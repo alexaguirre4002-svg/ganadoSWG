@@ -1,0 +1,470 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Nuevo Aborto | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listaabortos/" class="text-decoration-none" style="color: var(--color-primario);">Abortos</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo Aborto</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-exclamation-triangle me-2"></i>Registrar Nuevo Aborto
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Registre el aborto de una vaca, causa probable, tratamiento y destino de la madre
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE ABORTO            -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos del Aborto
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/guardaraborto/" id="frm_nuevo_aborto" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: ANIMAL Y FECHA ABORTO              -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: ANIMAL (FK) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_animal_ab">
+                                    <i class="bi bi-emoji-smile me-1"></i>Animal <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_animal_ab" 
+                                        id="sel_animal_ab" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione una vaca...</option>
+                                    {% for animal in animales %}
+                                    <option value="{{ animal.id_an }}"
+                                            data-categoria="{{ animal.categoria_an }}"
+                                            data-codigo="{{ animal.codigo_an }}">
+                                        {{ animal.codigo_an }} - {{ animal.nombre_an|default:'Sin nombre' }} ({{ animal.categoria_an }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Solo vacas hembras activas en categoría reproductiva.</small>
+                            </div>
+
+                            <!-- CAMPO: FECHA ABORTO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_ab">
+                                    <i class="bi bi-calendar-x me-1"></i>Fecha del Aborto <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_ab" 
+                                       id="txt_fecha_ab" 
+                                       class="form-control" 
+                                       required>
+                                <small class="text-muted">Fecha en que ocurrió el aborto. No puede ser futura.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: CAUSA PROBABLE                     -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_causa_probable_ab">
+                                    <i class="bi bi-clipboard-pulse me-1"></i>Causa Probable
+                                </label>
+                                <textarea name="txt_causa_probable_ab" 
+                                          id="txt_causa_probable_ab" 
+                                          class="form-control" 
+                                          rows="2" 
+                                          maxlength="1000"
+                                          placeholder="Causa probable del aborto: infecciosa, nutricional, estrés, genética, trauma..."></textarea>
+                                <small class="text-muted">Máximo 1000 caracteres. Describa la causa probable identificada.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: TRATAMIENTO                        -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_tratamiento_ab">
+                                    <i class="bi bi-capsule me-1"></i>Tratamiento Aplicado
+                                </label>
+                                <textarea name="txt_tratamiento_ab" 
+                                          id="txt_tratamiento_ab" 
+                                          class="form-control" 
+                                          rows="2" 
+                                          maxlength="1000"
+                                          placeholder="Tratamiento administrado a la madre post-aborto: antibióticos, antiinflamatorios, vitaminas..."></textarea>
+                                <small class="text-muted">Máximo 1000 caracteres. Describa el tratamiento aplicado.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: DESTINO DE LA MADRE                -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="sel_destino_madre_ab">
+                                    <i class="bi bi-signpost-split me-1"></i>Destino de la Madre <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_destino_madre_ab" 
+                                        id="sel_destino_madre_ab" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione destino...</option>
+                                    <option value="reproduccion">Reproducción (reingreso al ciclo reproductivo)</option>
+                                    <option value="reengorde">Reengorde (descanso y engorde)</option>
+                                    <option value="venta">Venta</option>
+                                    <option value="baja">Baja (descarte definitivo)</option>
+                                </select>
+                                <small class="text-muted">Destino final de la madre después del aborto. Obligatorio.</small>
+                                
+                                <!-- Indicador de destino -->
+                                <div id="indicador-destino" class="mt-2 p-2 rounded d-none" style="font-size: 0.9rem; font-weight: 500;">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    <span id="texto-destino"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Aborto
+                            </button>
+                            <a href="/listaabortos/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#28a745',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#28a745',
+                titleColor: '#155724',
+                messageColor: '#2c5e1a',
+                backgroundColor: '#d4edda',
+                borderBottom: '3px solid #28a745',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        // Fecha aborto no puede ser futura
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha del aborto no puede ser futura");
+
+        // Animal debe ser hembra y en categoría reproductiva
+        jQuery.validator.addMethod("animalReproductivo", function(value, element) {
+            if (!value) return false;
+            let selected = $(element).find('option:selected');
+            let categoria = selected.data('categoria');
+            return ['vaca_leche', 'vaca_seca', 'novilla'].includes(categoria);
+        }, "El animal debe ser una hembra en categoría reproductiva");
+
+        // Destino debe ser uno de los válidos
+        jQuery.validator.addMethod("destinoValido", function(value, element) {
+            if (!value) return false;
+            return ['reproduccion', 'reengorde', 'venta', 'baja'].includes(value);
+        }, "Seleccione un destino válido para la madre");
+
+        // ==========================================
+        // FUNCION: MOSTRAR INDICADOR DE DESTINO
+        // ==========================================
+        function mostrarIndicadorDestino() {
+            let destino = $('#sel_destino_madre_ab').val();
+            let $indicador = $('#indicador-destino');
+            let $texto = $('#texto-destino');
+            
+            if (!destino) {
+                $indicador.addClass('d-none');
+                return;
+            }
+            
+            let colorFondo, colorTexto, mensaje;
+            
+            switch(destino) {
+                case 'reproduccion':
+                    colorFondo = '#d4edda';
+                    colorTexto = '#155724';
+                    mensaje = '✅ La madre reingresará al ciclo reproductivo. Monitorear celos post-aborto.';
+                    break;
+                case 'reengorde':
+                    colorFondo = '#fff3cd';
+                    colorTexto = '#856404';
+                    mensaje = '⚠️ La madre pasará a reengorde. Descanso mínimo recomendado: 60 días.';
+                    break;
+                case 'venta':
+                    colorFondo = '#fde8e8';
+                    colorTexto = '#8B0000';
+                    mensaje = '❌ La madre será vendida. Verificar condiciones sanitarias antes de la venta.';
+                    break;
+                case 'baja':
+                    colorFondo = '#e2e3e5';
+                    colorTexto = '#383d41';
+                    mensaje = '⚠️ La madre será dada de baja definitiva. Registrar motivo en movimientos.';
+                    break;
+                default:
+                    $indicador.addClass('d-none');
+                    return;
+            }
+            
+            $indicador
+                .removeClass('d-none')
+                .css({
+                    'background-color': colorFondo,
+                    'color': colorTexto,
+                    'border-left': '4px solid ' + colorTexto
+                });
+            
+            $texto.html(mensaje);
+        }
+
+        $(document).ready(function() {
+            
+            // Set fecha aborto default a hoy
+            $('#txt_fecha_ab').val(new Date().toISOString().split('T')[0]);
+
+            // ==========================================
+            // MOSTRAR INDICADOR AL CAMBIAR DESTINO
+            // ==========================================
+            $('#sel_destino_madre_ab').on('change', function() {
+                mostrarIndicadorDestino();
+            });
+
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_nuevo_aborto").validate({
+                rules: {
+                    sel_animal_ab: {
+                        required: true,
+                        animalReproductivo: true
+                    },
+                    txt_fecha_ab: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    txt_causa_probable_ab: {
+                        maxlength: 1000
+                    },
+                    txt_tratamiento_ab: {
+                        maxlength: 1000
+                    },
+                    sel_destino_madre_ab: {
+                        required: true,
+                        destinoValido: true
+                    }
+                },
+                messages: {
+                    sel_animal_ab: {
+                        required: "Seleccione un animal",
+                        animalReproductivo: "El animal debe ser una hembra reproductiva (vaca o novilla)"
+                    },
+                    txt_fecha_ab: {
+                        required: "La fecha del aborto es obligatoria",
+                        fechaNoFutura: "La fecha del aborto no puede ser futura"
+                    },
+                    txt_causa_probable_ab: {
+                        maxlength: "Máximo 1000 caracteres"
+                    },
+                    txt_tratamiento_ab: {
+                        maxlength: "Máximo 1000 caracteres"
+                    },
+                    sel_destino_madre_ab: {
+                        required: "El destino de la madre es obligatorio",
+                        destinoValido: "Seleccione un destino válido"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - TEXTAREAS
+            // ==========================================
+            $('#txt_causa_probable_ab, #txt_tratamiento_ab').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 1000) {
+                    $(this).val(valor.substring(0, 1000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 1000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - FECHA ABORTO
+            // ==========================================
+            $('#txt_fecha_ab').on('blur', function() {
+                let fechaAborto = $(this).val();
+                let hoy = new Date();
+                hoy.setHours(23, 59, 59, 999);
+                
+                if (fechaAborto && new Date(fechaAborto) > hoy) {
+                    $(this).val(new Date().toISOString().split('T')[0]);
+                    alertaError('Fecha inválida', 'La fecha del aborto no puede ser futura. Se ha establecido la fecha de hoy.');
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

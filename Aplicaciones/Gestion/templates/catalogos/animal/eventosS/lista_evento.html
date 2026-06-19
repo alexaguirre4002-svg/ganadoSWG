@@ -1,0 +1,729 @@
+{% extends "plantilla.html" %}
+{% load static %}
+
+<!-- ========================================== -->
+<!-- TITULO                                    -->
+<!-- ========================================== -->
+{% block titulo %}
+Listado de Eventos Sanitarios | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BREADCRUMB                                -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">
+        Inicio
+    </a>
+</li>
+<li class="breadcrumb-item">
+    <a href="/listaanimal/" class="text-decoration-none" style="color: var(--color-primario);">
+        Animales
+    </a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">
+    Eventos Sanitarios
+</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- CONTENIDO PRINCIPAL                       -->
+<!-- ========================================== -->
+{% block contenido %}
+
+<!-- TARJETAS ESTADÍSTICAS -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3">
+            <i class="bi bi-heart-pulse fs-2" style="color: var(--color-primario);"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_eventos }}</h4>
+            <small class="text-muted">Total Eventos</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #ffc107;">
+            <i class="bi bi-clock-history fs-2 text-warning"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_pendientes }}</h4>
+            <small class="text-muted">Pendientes</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
+            <i class="bi bi-check-circle fs-2 text-success"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_ejecutados }}</h4>
+            <small class="text-muted">Ejecutados</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
+            <i class="bi bi-x-circle fs-2 text-danger"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_cancelados }}</h4>
+            <small class="text-muted">Cancelados</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #6c757d;">
+            <i class="bi bi-pause-circle fs-2 text-secondary"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_pospuestos }}</h4>
+            <small class="text-muted">Pospuestos</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #17a2b8;">
+            <i class="bi bi-currency-dollar fs-2" style="color: #17a2b8;"></i>
+            <h4 class="fw-bold mt-2 mb-0">${{ costo_total|default:"0.00" }}</h4>
+            <small class="text-muted">Costo Total</small>
+        </div>
+    </div>
+</div>
+
+<!-- TITULO -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-8">
+        <h2 class="fw-bold" style="color: var(--color-primario);">
+            <i class="bi bi-heart-pulse me-2"></i>
+            Listado de Eventos Sanitarios
+        </h2>
+        <p class="text-muted mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            Gestión de vacunaciones, desparasitaciones y controles veterinarios
+        </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="/nuevoeventosanitario/" class="btn btn-hacienda">
+            <i class="bi bi-plus-circle me-2"></i>
+            Nuevo Evento Sanitario
+        </a>
+    </div>
+</div>
+
+<!-- TARJETA PRINCIPAL -->
+<div class="row animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-list-ul"></i>
+                Eventos Sanitarios Registrados
+            </div>
+            <div class="p-4">
+                <div class="table-responsive">
+                    <table id="tablaEventosSanitarios" class="table table-hacienda align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>FECHA PROG.</th>
+                                <th>FECHA EJEC.</th>
+                                <th>ANIMAL</th>
+                                <th>TIPO</th>
+                                <th>ESTADO</th>
+                                <th>PRODUCTO</th>
+                                <th>VÍA</th>
+                                <th>VETERINARIO</th>
+                                <th>COSTO</th>
+                                <th>ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for evento in eventos %}
+                            <tr>
+                                <!-- ID -->
+                                <td class="fw-bold text-muted">#{{ evento.id_es }}</td>
+                                
+                                <!-- FECHA PROGRAMADA -->
+                                <td>
+                                    <span class="fw-bold" style="color: #5c450e;">
+                                        <i class="bi bi-calendar-event me-1"></i>
+                                        {{ evento.fecha_programada_es|date:'d/m/Y' }}
+                                    </span>
+                                </td>
+                                
+                                <!-- FECHA EJECUTADA -->
+                                <td>
+                                    {% if evento.fecha_ejecutada_es %}
+                                    <span class="fw-bold text-success">
+                                        <i class="bi bi-calendar-check me-1"></i>
+                                        {{ evento.fecha_ejecutada_es|date:'d/m/Y' }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">
+                                        <i class="bi bi-calendar-x me-1"></i>
+                                        Pendiente
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- ANIMAL -->
+                                <td>
+                                    <span class="badge rounded-pill p-2" style="background: #e8f5e9; color: #2c5e1a; border: 1px solid #2c5e1a;">
+                                        <i class="bi bi-emoji-smile me-1"></i>
+                                        {{ evento.fk_an.codigo_an }}
+                                    </span>
+                                    {% if evento.fk_an.nombre_an %}
+                                    <br><small class="text-muted">{{ evento.fk_an.nombre_an }}</small>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- TIPO -->
+                                <td>
+                                    {% if evento.tipo_evento_es == 'vacunacion' %}
+                                    <span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745;">
+                                        <i class="bi bi-shield-plus me-1"></i>Vacunación
+                                    </span>
+                                    {% elif evento.tipo_evento_es == 'desparasitacion' %}
+                                    <span class="badge rounded-pill p-2" style="background:#e2d4f0; color:#4a148c; border: 1px solid #6f42c1;">
+                                        <i class="bi bi-bug me-1"></i>Desparasitación
+                                    </span>
+                                    {% elif evento.tipo_evento_es == 'vitaminacion' %}
+                                    <span class="badge rounded-pill p-2" style="background:#fff3cd; color:#856404; border: 1px solid #fd7e14;">
+                                        <i class="bi bi-capsule me-1"></i>Vitaminación
+                                    </span>
+                                    {% elif evento.tipo_evento_es == 'prueba_tuberculosis' %}
+                                    <span class="badge rounded-pill p-2" style="background:#cce5ff; color:#004085; border: 1px solid #17a2b8;">
+                                        <i class="bi bi-clipboard-pulse me-1"></i>Tuberculosis
+                                    </span>
+                                    {% elif evento.tipo_evento_es == 'prueba_brucelosis' %}
+                                    <span class="badge rounded-pill p-2" style="background:#f8d7da; color:#721c24; border: 1px solid #dc3545;">
+                                        <i class="bi bi-clipboard-pulse me-1"></i>Brucelosis
+                                    </span>
+                                    {% else %}
+                                    <span class="badge rounded-pill p-2" style="background:#d6d8d9; color:#383d41; border: 1px solid #6c757d;">
+                                        <i class="bi bi-activity me-1"></i>Otro
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- ESTADO -->
+                                <td>
+                                    {% if evento.estado_es == 'pendiente' %}
+                                    <span class="badge rounded-pill p-2" style="background:#ffc107; color:#1a1a1a;">
+                                        <i class="bi bi-clock-history me-1"></i>Pendiente
+                                    </span>
+                                    {% elif evento.estado_es == 'ejecutado' %}
+                                    <span class="badge rounded-pill bg-success p-2">
+                                        <i class="bi bi-check-circle me-1"></i>Ejecutado
+                                    </span>
+                                    {% elif evento.estado_es == 'cancelado' %}
+                                    <span class="badge rounded-pill p-2" style="background:#dc3545; color:white;">
+                                        <i class="bi bi-x-circle me-1"></i>Cancelado
+                                    </span>
+                                    {% elif evento.estado_es == 'pospuesto' %}
+                                    <span class="badge rounded-pill p-2" style="background:#6c757d; color:white;">
+                                        <i class="bi bi-pause-circle me-1"></i>Pospuesto
+                                    </span>
+                                    {% else %}
+                                    <span class="badge rounded-pill bg-secondary p-2">{{ evento.estado_es }}</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- PRODUCTO -->
+                                <td>
+                                    {% if evento.fk_pv %}
+                                    <span class="text-muted">
+                                        <i class="bi bi-box-seam me-1 text-primary"></i>
+                                        {{ evento.fk_pv.nombre_pv }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- VÍA ADMINISTRACIÓN -->
+                                <td>
+                                    {% if evento.via_administracion_es %}
+                                    <span class="badge rounded-pill p-2" style="background:#e3f2fd; color:#1565c0; border: 1px solid #1565c0;">
+                                        {% if evento.via_administracion_es == 'oral' %}
+                                        <i class="bi bi-cup me-1"></i>Oral
+                                        {% elif evento.via_administracion_es == 'subcutanea' %}
+                                        <i class="bi bi-activity me-1"></i>Subcutánea
+                                        {% elif evento.via_administracion_es == 'intramuscular' %}
+                                        <i class="bi bi-droplet me-1"></i>Intramuscular
+                                        {% elif evento.via_administracion_es == 'intravenosa' %}
+                                        <i class="bi bi-droplet-fill me-1"></i>Intravenosa
+                                        {% elif evento.via_administracion_es == 'topica' %}
+                                        <i class="bi bi-hand-index me-1"></i>Tópica
+                                        {% endif %}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- VETERINARIO -->
+                                <td>
+                                    {% if evento.veterinario_responsable_es %}
+                                    <span class="text-muted">
+                                        <i class="bi bi-person-badge me-1 text-success"></i>
+                                        {{ evento.veterinario_responsable_es }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- COSTO -->
+                                <td class="fw-bold">
+                                    {% if evento.costo_es %}
+                                    <span style="color: #2c5e1a;">
+                                        <i class="bi bi-currency-dollar me-1"></i>
+                                        {{ evento.costo_es }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- ACCIONES -->
+                                <td>
+                                    <!-- VER DETALLE (MODAL) -->
+                                    <button type="button" class="btn btn-sm btn-info" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalDetalleEvento"
+                                            data-id="{{ evento.id_es }}"
+                                            data-fecha-prog="{{ evento.fecha_programada_es|date:'d/m/Y' }}"
+                                            data-fecha-ejec="{% if evento.fecha_ejecutada_es %}{{ evento.fecha_ejecutada_es|date:'d/m/Y' }}{% else %}---{% endif %}"
+                                            data-animal="{{ evento.fk_an.codigo_an }}"
+                                            data-animal-nombre="{% if evento.fk_an.nombre_an %}{{ evento.fk_an.nombre_an }}{% else %}Sin nombre{% endif %}"
+                                            data-tipo="{{ evento.tipo_evento_es }}"
+                                            data-estado="{{ evento.estado_es }}"
+                                            data-producto="{% if evento.fk_pv %}{{ evento.fk_pv.nombre_pv }}{% else %}No especificado{% endif %}"
+                                            data-dosis="{% if evento.dosis_es %}{{ evento.dosis_es }}{% else %}---{% endif %}"
+                                            data-via="{% if evento.via_administracion_es %}{{ evento.via_administracion_es }}{% else %}---{% endif %}"
+                                            data-veterinario="{% if evento.veterinario_responsable_es %}{{ evento.veterinario_responsable_es }}{% else %}---{% endif %}"
+                                            data-resultado="{% if evento.resultado_es %}{{ evento.resultado_es }}{% else %}Sin resultado registrado{% endif %}"
+                                            data-costo="{% if evento.costo_es %}{{ evento.costo_es }}{% else %}---{% endif %}"
+                                            data-usuario="{{ evento.fk_us_es.username_us }}"
+                                            data-created="{{ evento.created_at_es|date:'d/m/Y H:i' }}"
+                                            title="Ver detalle">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    
+                                    <!-- EDITAR -->
+                                    <a href="/editareventosanitario/{{ evento.id_es }}" class="btn btn-sm btn-hacienda-secondary" title="Editar">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    
+                                    <!-- ELIMINAR -->
+                                    <button type="button" class="btn btn-sm btn-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalEliminarEvento"
+                                            data-id="{{ evento.id_es }}"
+                                            data-animal="{{ evento.fk_an.codigo_an }}"
+                                            data-tipo="{{ evento.tipo_evento_es }}"
+                                            data-fecha="{{ evento.fecha_programada_es|date:'d/m/Y' }}"
+                                            data-url="/eliminareventosanitario/{{ evento.id_es }}"
+                                            title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="11" class="text-center py-5">
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <p class="mt-3 text-muted">No hay eventos sanitarios registrados</p>
+                                    <a href="/nuevoeventosanitario/" class="btn btn-hacienda btn-sm mt-2">
+                                        <i class="bi bi-plus-circle me-2"></i>Registrar primer evento
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
+                <small class="text-muted">
+                    <i class="bi bi-bar-chart-line me-1"></i>
+                    Total de eventos: <strong>{{ eventos|length }}</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL DETALLE EVENTO SANITARIO             -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalDetalleEvento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-heart-pulse-fill me-2" style="color: #DAA520;"></i>
+                    DETALLE DEL EVENTO SANITARIO
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="background: #fff8e6;">
+                <div class="row g-0">
+                    <div class="col-md-5" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
+                        <div class="p-4 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="bi bi-shield-plus fs-1" style="color: #2c5e1a;"></i>
+                            <p class="mt-3 mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleTipo"></p>
+                            <p class="text-muted mb-0" style="font-size: 14px;" id="detalleAnimal"></p>
+                            <div class="mt-3 w-100 text-center">
+                                <span id="detalleEstadoBadge"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="p-4">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">ID EVENTO</label>
+                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<<span id="detalleId"></span></p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <label class="text-muted small fw-bold">ESTADO</label>
+                                    <div id="detalleEstado"></div>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-event me-1"></i>FECHA PROGRAMADA</label>
+                                    <p class="mb-0" id="detalleFechaProg" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>FECHA EJECUTADA</label>
+                                    <p class="mb-0" id="detalleFechaEjec" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-box-seam me-1"></i>PRODUCTO</label>
+                                    <p class="mb-0" id="detalleProducto" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-droplet me-1"></i>DOSIS</label>
+                                    <p class="mb-0" id="detalleDosis" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-activity me-1"></i>VÍA ADMINISTRACIÓN</label>
+                                    <p class="mb-0" id="detalleVia" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person-badge me-1"></i>VETERINARIO</label>
+                                    <p class="mb-0" id="detalleVeterinario" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i>RESULTADO</label>
+                                <p class="mb-0" id="detalleResultado" style="color: #5c450e; font-style: italic;"></p>
+                            </div>
+                            <div class="mb-0">
+                                <label class="text-muted small fw-bold"><i class="bi bi-currency-dollar me-1"></i>COSTO</label>
+                                <p class="mb-0 fw-bold" id="detalleCosto" style="color: #2c5e1a;"></p>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-0">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>REGISTRADO POR</label>
+                                    <p class="mb-0" id="detalleUsuario" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>FECHA REGISTRO</label>
+                                    <p class="mb-0" id="detalleCreated" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
+                    <i class="bi bi-pencil-square me-1"></i>Editar Evento
+                </a>
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL ELIMINAR EVENTO SANITARIO            -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalEliminarEvento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: 2px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
+                    CONFIRMAR ELIMINACIÓN
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background: #fff8e6; padding: 25px;">
+                <p style="color: #5c450e; font-size: 16px; margin-bottom: 0;">
+                    ¿Está seguro de eliminar el evento de <strong id="tipoEventoModal" style="color: #2c5e1a;"></strong>?
+                </p>
+                <p class="mt-2 mb-0" style="color: #8B6914; font-size: 14px;">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Animal: <span id="animalEventoModal"></span> | Fecha: <span id="fechaEventoModal"></span>
+                </p>
+                <p class="mt-2 mb-0" style="color: #c0392b; font-size: 13px;">
+                    <i class="bi bi-exclamation-diamond me-1"></i>
+                    Esta acción no se puede deshacer. Se eliminará el registro sanitario.
+                </p>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                </button>
+                <a href="#" id="btnConfirmarEliminarEvento" class="btn btn-hacienda-warning">
+                    <i class="bi bi-check-lg me-1"></i>Sí, eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- SCRIPTS EXTRA                              -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+<style>
+    .dataTables_filter {
+        margin-bottom: 20px !important;
+        background: linear-gradient(135deg, #eef7e8, #dcefd0);
+        padding: 15px 20px;
+        border-radius: 18px;
+        border: 2px solid #b7d7a8;
+        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
+        display: flex !important;
+        align-items: center !important;
+        justify-content: end !important;
+        gap: 10px;
+    }
+    .dataTables_filter::before {
+        content: "💉";
+        font-size: 28px;
+    }
+    .dataTables_filter label {
+        font-weight: bold;
+        color: var(--color-primario);
+        font-size: 17px;
+    }
+    .dataTables_filter input {
+        border-radius: 50px !important;
+        border: 3px solid var(--color-primario) !important;
+        padding: 10px 18px !important;
+        background-color: #ffffff !important;
+        color: var(--color-navbar) !important;
+        font-weight: 600 !important;
+        width: 280px !important;
+        transition: 0.3s !important;
+        box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08);
+        margin-left: 10px !important;
+    }
+    .dataTables_filter input:focus {
+        outline: none !important;
+        border-color: #8dc26f !important;
+        box-shadow: 0px 0px 12px rgba(44,94,26,0.4);
+        background-color: #f8fff5 !important;
+    }
+    .dataTables_length select {
+        border-radius: 10px !important;
+        border: 2px solid var(--color-primario) !important;
+        padding: 5px 10px !important;
+    }
+    .dataTables_paginate {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        margin-top: 25px !important;
+    }
+    .dataTables_paginate .pagination {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 0px !important;
+        flex-wrap: nowrap !important;
+    }
+    .paginate_button {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        border: none !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 14px !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        transition: 0.3s !important;
+        margin: 0 3px !important;
+        vertical-align: middle !important;
+        float: none !important;
+    }
+    .paginate_button.current {
+        background: var(--color-primario) !important;
+        color: white !important;
+        border: 2px solid #8dc26f !important;
+        box-shadow: 0px 0px 8px rgba(44,94,26,0.4);
+    }
+    .paginate_button:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+    .paginate_button.previous, .paginate_button.next {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 16px !important;
+    }
+    .paginate_button.previous:hover, .paginate_button.next:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $('#tablaEventosSanitarios').DataTable({
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ registros",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                "infoEmpty": "No existen registros",
+                "infoFiltered": "(filtrado de _MAX_ registros)",
+                "search": "Buscar:",
+                "paginate": {
+                    "first": "",
+                    "last": "",
+                    "next": "›",
+                    "previous": "‹"
+                }
+            },
+            "pageLength": 10,
+            "lengthMenu": [5,10,25,50,100],
+            "responsive": true,
+            "pagingType": "simple_numbers",
+            "order": [[1, "asc"]]
+        });
+    });
+</script>
+
+<script>
+    // Modal Detalle Evento
+    var modalDetalleEvento = document.getElementById('modalDetalleEvento');
+    modalDetalleEvento.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        
+        var id = button.getAttribute('data-id');
+        var fechaProg = button.getAttribute('data-fecha-prog');
+        var fechaEjec = button.getAttribute('data-fecha-ejec');
+        var animal = button.getAttribute('data-animal');
+        var animalNombre = button.getAttribute('data-animal-nombre');
+        var tipo = button.getAttribute('data-tipo');
+        var estado = button.getAttribute('data-estado');
+        var producto = button.getAttribute('data-producto');
+        var dosis = button.getAttribute('data-dosis');
+        var via = button.getAttribute('data-via');
+        var veterinario = button.getAttribute('data-veterinario');
+        var resultado = button.getAttribute('data-resultado');
+        var costo = button.getAttribute('data-costo');
+        var usuario = button.getAttribute('data-usuario');
+        var created = button.getAttribute('data-created');
+        
+        document.getElementById('detalleId').textContent = id;
+        document.getElementById('detalleFechaProg').textContent = fechaProg;
+        document.getElementById('detalleFechaEjec').textContent = fechaEjec;
+        document.getElementById('detalleAnimal').textContent = animal + ' - ' + animalNombre;
+        document.getElementById('detalleProducto').textContent = producto;
+        document.getElementById('detalleDosis').textContent = dosis !== '---' ? dosis + ' ml/unidades' : '---';
+        document.getElementById('detalleVia').textContent = via.charAt(0).toUpperCase() + via.slice(1);
+        document.getElementById('detalleVeterinario').textContent = veterinario;
+        document.getElementById('detalleResultado').textContent = resultado;
+        document.getElementById('detalleCosto').textContent = costo !== '---' ? '$ ' + costo : '---';
+        document.getElementById('detalleUsuario').textContent = usuario;
+        document.getElementById('detalleCreated').textContent = created;
+        
+        // Tipo con texto
+        var tipoTexto = '';
+        switch(tipo) {
+            case 'vacunacion': tipoTexto = 'VACUNACIÓN'; break;
+            case 'desparasitacion': tipoTexto = 'DESPARASITACIÓN'; break;
+            case 'vitaminacion': tipoTexto = 'VITAMINACIÓN'; break;
+            case 'prueba_tuberculosis': tipoTexto = 'PRUEBA TUBERCULOSIS'; break;
+            case 'prueba_brucelosis': tipoTexto = 'PRUEBA BRUCELOSIS'; break;
+            default: tipoTexto = 'OTRO';
+        }
+        document.getElementById('detalleTipo').textContent = tipoTexto;
+        
+        // Estado con badge
+        var estadoHtml = '';
+        var badgeHtml = '';
+        switch(estado) {
+            case 'pendiente':
+                estadoHtml = '<span class="badge rounded-pill p-2" style="background:#ffc107; color:#1a1a1a;"><i class="bi bi-clock-history me-1"></i> Pendiente</span>';
+                badgeHtml = '<span class="badge rounded-pill p-2" style="background:#ffc107; color:#1a1a1a; font-size: 14px;"><i class="bi bi-clock-history me-1"></i> Pendiente</span>';
+                break;
+            case 'ejecutado':
+                estadoHtml = '<span class="badge rounded-pill bg-success p-2"><i class="bi bi-check-circle me-1"></i> Ejecutado</span>';
+                badgeHtml = '<span class="badge rounded-pill p-2" style="background:#28a745; color:white; font-size: 14px;"><i class="bi bi-check-circle me-1"></i> Ejecutado</span>';
+                break;
+            case 'cancelado':
+                estadoHtml = '<span class="badge rounded-pill p-2" style="background:#dc3545; color:white;"><i class="bi bi-x-circle me-1"></i> Cancelado</span>';
+                badgeHtml = '<span class="badge rounded-pill p-2" style="background:#dc3545; color:white; font-size: 14px;"><i class="bi bi-x-circle me-1"></i> Cancelado</span>';
+                break;
+            case 'pospuesto':
+                estadoHtml = '<span class="badge rounded-pill p-2" style="background:#6c757d; color:white;"><i class="bi bi-pause-circle me-1"></i> Pospuesto</span>';
+                badgeHtml = '<span class="badge rounded-pill p-2" style="background:#6c757d; color:white; font-size: 14px;"><i class="bi bi-pause-circle me-1"></i> Pospuesto</span>';
+                break;
+            default:
+                estadoHtml = '<span class="badge rounded-pill bg-secondary p-2">' + estado + '</span>';
+                badgeHtml = '<span class="badge rounded-pill bg-secondary p-2" style="font-size: 14px;">' + estado + '</span>';
+        }
+        document.getElementById('detalleEstado').innerHTML = estadoHtml;
+        document.getElementById('detalleEstadoBadge').innerHTML = badgeHtml;
+        
+        document.getElementById('btnEditarDesdeDetalle').href = '/editareventosanitario/' + id;
+    });
+</script>
+
+<script>
+    // Modal Eliminar Evento
+    var modalEliminarEvento = document.getElementById('modalEliminarEvento');
+    modalEliminarEvento.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var tipo = button.getAttribute('data-tipo');
+        var animal = button.getAttribute('data-animal');
+        var fecha = button.getAttribute('data-fecha');
+        var url = button.getAttribute('data-url');
+        
+        var tipoTexto = '';
+        switch(tipo) {
+            case 'vacunacion': tipoTexto = 'VACUNACIÓN'; break;
+            case 'desparasitacion': tipoTexto = 'DESPARASITACIÓN'; break;
+            case 'vitaminacion': tipoTexto = 'VITAMINACIÓN'; break;
+            case 'prueba_tuberculosis': tipoTexto = 'PRUEBA TUBERCULOSIS'; break;
+            case 'prueba_brucelosis': tipoTexto = 'PRUEBA BRUCELOSIS'; break;
+            default: tipoTexto = 'OTRO';
+        }
+        
+        document.getElementById('tipoEventoModal').textContent = tipoTexto;
+        document.getElementById('animalEventoModal').textContent = animal;
+        document.getElementById('fechaEventoModal').textContent = fecha;
+        document.getElementById('btnConfirmarEliminarEvento').setAttribute('href', url);
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,646 @@
+lista_costo.html
+{% extends "plantilla.html" %}
+{% load static %}
+
+<!-- ========================================== -->
+<!-- TITULO                                    -->
+<!-- ========================================== -->
+{% block titulo %}
+Listado de Costos | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BREADCRUMB                                -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">
+        Inicio
+    </a>
+</li>
+<li class="breadcrumb-item">
+    <a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">
+        Administración
+    </a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">
+    Costos
+</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- CONTENIDO PRINCIPAL                       -->
+<!-- ========================================== -->
+{% block contenido %}
+
+<!-- TARJETAS ESTADÍSTICAS -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3">
+            <i class="bi bi-cash-stack fs-2" style="color: var(--color-primario);"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_costos }}</h4>
+            <small class="text-muted">Total Registros</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
+            <i class="bi bi-currency-dollar fs-2 text-danger"></i>
+            <h4 class="fw-bold mt-2 mb-0">${{ monto_total }}</h4>
+            <small class="text-muted">Monto Total</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
+            <i class="bi bi-cart4 fs-2 text-success"></i>
+            <h4 class="fw-bold mt-2 mb-0">${{ total_alimentacion }}</h4>
+            <small class="text-muted">Alimentación</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #17a2b8;">
+            <i class="bi bi-heart-pulse fs-2" style="color: #17a2b8;"></i>
+            <h4 class="fw-bold mt-2 mb-0">${{ total_sanidad }}</h4>
+            <small class="text-muted">Sanidad</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #6f42c1;">
+            <i class="bi bi-tools fs-2" style="color: #6f42c1;"></i>
+            <h4 class="fw-bold mt-2 mb-0">${{ total_mantenimiento }}</h4>
+            <small class="text-muted">Mantenimiento</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #fd7e14;">
+            <i class="bi bi-calendar-check fs-2 text-warning"></i>
+            <h4 class="fw-bold mt-2 mb-0">${{ monto_mes }}</h4>
+            <small class="text-muted">Este Mes</small>
+        </div>
+    </div>
+</div>
+
+<!-- TITULO -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-8">
+        <h2 class="fw-bold" style="color: var(--color-primario);">
+            <i class="bi bi-cash-stack me-2"></i>
+            Listado de Costos
+        </h2>
+        <p class="text-muted mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            Registro y control de gastos de la hacienda por categoría y período
+        </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="/nuevocosto/" class="btn btn-hacienda">
+            <i class="bi bi-plus-circle me-2"></i>
+            Nuevo Costo
+        </a>
+    </div>
+</div>
+
+<!-- TARJETA PRINCIPAL -->
+<div class="row animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-list-ul"></i>
+                Costos Registrados
+            </div>
+            <div class="p-4">
+                <div class="table-responsive">
+                    <table id="tablaCosto" class="table table-hacienda align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>CATEGORÍA</th>
+                                <th>MONTO</th>
+                                <th>FECHA</th>
+                                <th>MES/AÑO REF.</th>
+                                <th>DESCRIPCIÓN</th>
+                                <th>COMPROBANTE</th>
+                                <th>REGISTRADO POR</th>
+                                <th>ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for costo in costo_list %}
+                            <tr>
+                                <!-- ID -->
+                                <td class="fw-bold text-muted">#{{ costo.id_co }}</td>
+                                
+                                <!-- CATEGORIA -->
+                                <td>
+                                    {% if costo.categoria_co == 'alimentacion' %}
+                                    <span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745;">
+                                        <i class="bi bi-cart4 me-1"></i>Alimentación
+                                    </span>
+                                    {% elif costo.categoria_co == 'sanidad' %}
+                                    <span class="badge rounded-pill p-2" style="background:#e2d4f0; color:#4a148c; border: 1px solid #6f42c1;">
+                                        <i class="bi bi-heart-pulse me-1"></i>Sanidad
+                                    </span>
+                                    {% elif costo.categoria_co == 'reproduccion' %}
+                                    <span class="badge rounded-pill p-2" style="background:#fff3cd; color:#856404; border: 1px solid #fd7e14;">
+                                        <i class="bi bi-heart me-1"></i>Reproducción
+                                    </span>
+                                    {% elif costo.categoria_co == 'mano_obra' %}
+                                    <span class="badge rounded-pill p-2" style="background:#cce5ff; color:#004085; border: 1px solid #17a2b8;">
+                                        <i class="bi bi-people me-1"></i>Mano de Obra
+                                    </span>
+                                    {% elif costo.categoria_co == 'mantenimiento_infraestructura' %}
+                                    <span class="badge rounded-pill p-2" style="background:#e9ecef; color:#495057; border: 1px solid #6c757d;">
+                                        <i class="bi bi-tools me-1"></i>Mantenimiento
+                                    </span>
+                                    {% elif costo.categoria_co == 'compra_animales' %}
+                                    <span class="badge rounded-pill p-2" style="background:#d1ecf1; color:#0c5460; border: 1px solid #17a2b8;">
+                                        <i class="bi bi-emoji-smile me-1"></i>Compra Animales
+                                    </span>
+                                    {% elif costo.categoria_co == 'impuestos' %}
+                                    <span class="badge rounded-pill p-2" style="background:#f8d7da; color:#721c24; border: 1px solid #dc3545;">
+                                        <i class="bi bi-file-text me-1"></i>Impuestos
+                                    </span>
+                                    {% elif costo.categoria_co == 'otros' %}
+                                    <span class="badge rounded-pill p-2" style="background:#fff3cd; color:#856404; border: 1px solid #ffc107;">
+                                        <i class="bi bi-three-dots me-1"></i>Otros
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- MONTO -->
+                                <td>
+                                    <span class="fw-bold fs-5" style="color: #2c5e1a;">
+                                        ${{ costo.monto_co }}
+                                    </span>
+                                </td>
+                                
+                                <!-- FECHA -->
+                                <td>
+                                    <span class="fw-bold" style="color: #5c450e;">
+                                        <i class="bi bi-calendar-check me-1"></i>
+                                        {{ costo.fecha_co|date:'d/m/Y' }}
+                                    </span>
+                                </td>
+                                
+                                <!-- MES/AÑO REFERENCIA -->
+                                <td>
+                                    <span class="badge rounded-pill p-2" style="background: #f5f0e6; color: #5c450e; border: 1px solid #d4c5a9;">
+                                        <i class="bi bi-calendar-month me-1"></i>
+                                        {{ costo.mes_referencia_co }}/{{ costo.anio_referencia_co }}
+                                    </span>
+                                </td>
+                                
+                                <!-- DESCRIPCION -->
+                                <td>
+                                    {% if costo.descripcion_co %}
+                                    <span class="text-muted" style="font-size: 13px;">
+                                        <i class="bi bi-journal-text me-1 text-primary"></i>
+                                        {{ costo.descripcion_co|truncatechars:40 }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- COMPROBANTE -->
+                                <td>
+                                    {% if costo.comprobante_co %}
+                                    <span class="text-muted" style="font-size: 13px;">
+                                        <i class="bi bi-file-earmark-text me-1 text-success"></i>
+                                        {{ costo.comprobante_co|truncatechars:25 }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- REGISTRADO POR -->
+                                <td>
+                                    <span class="text-muted">
+                                        <i class="bi bi-person me-1 text-success"></i>
+                                        {{ costo.fk_us_co.username_us }}
+                                    </span>
+                                    <br><small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>{{ costo.created_at_co|date:'d/m/Y H:i' }}
+                                    </small>
+                                </td>
+                                
+                                <!-- ACCIONES -->
+                                <td>
+                                    <!-- VER DETALLE (MODAL) -->
+                                    <button type="button" class="btn btn-sm btn-info" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalDetalleCosto"
+                                            data-id="{{ costo.id_co }}"
+                                            data-categoria="{{ costo.categoria_co }}"
+                                            data-categoria-display="{{ costo.get_categoria_co_display }}"
+                                            data-monto="{{ costo.monto_co }}"
+                                            data-fecha="{{ costo.fecha_co|date:'d/m/Y' }}"
+                                            data-mes="{{ costo.mes_referencia_co }}"
+                                            data-anio="{{ costo.anio_referencia_co }}"
+                                            data-descripcion="{% if costo.descripcion_co %}{{ costo.descripcion_co }}{% else %}Sin descripción{% endif %}"
+                                            data-comprobante="{% if costo.comprobante_co %}{{ costo.comprobante_co }}{% else %}Sin comprobante{% endif %}"
+                                            data-usuario="{{ costo.fk_us_co.username_us }}"
+                                            data-created="{{ costo.created_at_co|date:'d/m/Y H:i' }}"
+                                            data-updated="{{ costo.updated_at_co|date:'d/m/Y H:i' }}"
+                                            title="Ver detalle">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    
+                                    <!-- EDITAR -->
+                                    <a href="/editarcosto/{{ costo.id_co }}" class="btn btn-sm btn-hacienda-secondary" title="Editar">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    
+                                    <!-- ELIMINAR -->
+                                    <button type="button" class="btn btn-sm btn-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalEliminarCosto"
+                                            data-id="{{ costo.id_co }}"
+                                            data-categoria="{{ costo.get_categoria_co_display }}"
+                                            data-monto="{{ costo.monto_co }}"
+                                            data-fecha="{{ costo.fecha_co|date:'d/m/Y' }}"
+                                            data-url="/eliminacosto/{{ costo.id_co }}"
+                                            title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center py-5">
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <p class="mt-3 text-muted">No hay costos registrados</p>
+                                    <a href="/nuevocosto/" class="btn btn-hacienda btn-sm mt-2">
+                                        <i class="bi bi-plus-circle me-2"></i>Registrar primer costo
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
+                <small class="text-muted">
+                    <i class="bi bi-bar-chart-line me-1"></i>
+                    Total de costos: <strong>{{ costo_list|length }}</strong> | 
+                    Monto acumulado: <strong>${{ monto_total }}</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL DETALLE COSTO                        -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalDetalleCosto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-cash-stack-fill me-2" style="color: #DAA520;"></i>
+                    DETALLE DEL COSTO
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="background: #fff8e6;">
+                <div class="row g-0">
+                    <div class="col-md-5" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
+                        <div class="p-4 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="bi bi-cash-coin fs-1" style="color: #2c5e1a;"></i>
+                            <p class="mt-3 mb-0 fw-bold fs-3" style="color: #2c5e1a;" id="detalleMonto"></p>
+                            <p class="text-muted mb-0" style="font-size: 14px;" id="detalleCategoriaDisplay"></p>
+                            <div class="mt-3 w-100 text-center">
+                                <span id="detalleCategoriaBadge"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="p-4">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">ID COSTO</label>
+                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<span id="detalleId"></span></p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <label class="text-muted small fw-bold">FECHA</label>
+                                    <p class="mb-0 fw-bold" id="detalleFecha" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-month me-1"></i>MES REFERENCIA</label>
+                                    <p class="mb-0" id="detalleMes" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-year me-1"></i>AÑO REFERENCIA</label>
+                                    <p class="mb-0" id="detalleAnio" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i>DESCRIPCIÓN</label>
+                                <p class="mb-0" id="detalleDescripcion" style="color: #5c450e; font-style: italic;"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold"><i class="bi bi-file-earmark-text me-1"></i>COMPROBANTE</label>
+                                <p class="mb-0" id="detalleComprobante" style="color: #5c450e;"></p>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-0">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>REGISTRADO POR</label>
+                                    <p class="mb-0" id="detalleUsuario" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>FECHA REGISTRO</label>
+                                    <p class="mb-0" id="detalleCreated" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="row mt-2 mb-0">
+                                <div class="col-12">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-clockwise me-1"></i>ÚLTIMA MODIFICACIÓN</label>
+                                    <p class="mb-0" id="detalleUpdated" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
+                    <i class="bi bi-pencil-square me-1"></i>Editar Costo
+                </a>
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL ELIMINAR COSTO                       -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalEliminarCosto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: 2px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
+                    CONFIRMAR ELIMINACIÓN
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background: #fff8e6; padding: 25px;">
+                <p style="color: #5c450e; font-size: 16px; margin-bottom: 0;">
+                    ¿Está seguro de eliminar el costo de <strong id="categoriaCostoModal" style="color: #2c5e1a;"></strong>?
+                </p>
+                <p class="mt-2 mb-0" style="color: #8B6914; font-size: 14px;">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Monto: $<span id="montoCostoModal"></span> | Fecha: <span id="fechaCostoModal"></span>
+                </p>
+                <p class="mt-2 mb-0" style="color: #c0392b; font-size: 13px;">
+                    <i class="bi bi-exclamation-diamond me-1"></i>
+                    Esta acción no se puede deshacer. Se eliminará el registro de costo permanentemente.
+                </p>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                </button>
+                <a href="#" id="btnConfirmarEliminarCosto" class="btn btn-hacienda-warning">
+                    <i class="bi bi-check-lg me-1"></i>Sí, eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- SCRIPTS EXTRA                              -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+<style>
+    .dataTables_filter {
+        margin-bottom: 20px !important;
+        background: linear-gradient(135deg, #eef7e8, #dcefd0);
+        padding: 15px 20px;
+        border-radius: 18px;
+        border: 2px solid #b7d7a8;
+        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
+        display: flex !important;
+        align-items: center !important;
+        justify-content: end !important;
+        gap: 10px;
+    }
+    .dataTables_filter::before {
+        content: "🐄";
+        font-size: 28px;
+    }
+    .dataTables_filter label {
+        font-weight: bold;
+        color: var(--color-primario);
+        font-size: 17px;
+    }
+    .dataTables_filter input {
+        border-radius: 50px !important;
+        border: 3px solid var(--color-primario) !important;
+        padding: 10px 18px !important;
+        background-color: #ffffff !important;
+        color: var(--color-navbar) !important;
+        font-weight: 600 !important;
+        width: 280px !important;
+        transition: 0.3s !important;
+        box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08);
+        margin-left: 10px !important;
+    }
+    .dataTables_filter input:focus {
+        outline: none !important;
+        border-color: #8dc26f !important;
+        box-shadow: 0px 0px 12px rgba(44,94,26,0.4);
+        background-color: #f8fff5 !important;
+    }
+    .dataTables_length select {
+        border-radius: 10px !important;
+        border: 2px solid var(--color-primario) !important;
+        padding: 5px 10px !important;
+    }
+    .dataTables_paginate {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        margin-top: 25px !important;
+    }
+    .dataTables_paginate .pagination {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 0px !important;
+        flex-wrap: nowrap !important;
+    }
+    .paginate_button {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        border: none !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 14px !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        transition: 0.3s !important;
+        margin: 0 3px !important;
+        vertical-align: middle !important;
+        float: none !important;
+    }
+    .paginate_button.current {
+        background: var(--color-primario) !important;
+        color: white !important;
+        border: 2px solid #8dc26f !important;
+        box-shadow: 0px 0px 8px rgba(44,94,26,0.4);
+    }
+    .paginate_button:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+    .paginate_button.previous, .paginate_button.next {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 16px !important;
+    }
+    .paginate_button.previous:hover, .paginate_button.next:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $('#tablaCosto').DataTable({
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ registros",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                "infoEmpty": "No existen registros",
+                "infoFiltered": "(filtrado de _MAX_ registros)",
+                "search": "Buscar:",
+                "paginate": {
+                    "first": "",
+                    "last": "",
+                    "next": "›",
+                    "previous": "‹"
+                }
+            },
+            "pageLength": 10,
+            "lengthMenu": [5,10,25,50,100],
+            "responsive": true,
+            "pagingType": "simple_numbers",
+            "order": [[3, "desc"]]
+        });
+    });
+</script>
+
+<script>
+    // Modal Detalle Costo
+    var modalDetalleCosto = document.getElementById('modalDetalleCosto');
+    modalDetalleCosto.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        
+        var id = button.getAttribute('data-id');
+        var categoria = button.getAttribute('data-categoria');
+        var categoriaDisplay = button.getAttribute('data-categoria-display');
+        var monto = button.getAttribute('data-monto');
+        var fecha = button.getAttribute('data-fecha');
+        var mes = button.getAttribute('data-mes');
+        var anio = button.getAttribute('data-anio');
+        var descripcion = button.getAttribute('data-descripcion');
+        var comprobante = button.getAttribute('data-comprobante');
+        var usuario = button.getAttribute('data-usuario');
+        var created = button.getAttribute('data-created');
+        var updated = button.getAttribute('data-updated');
+        
+        document.getElementById('detalleId').textContent = id;
+        document.getElementById('detalleMonto').textContent = '$' + monto;
+        document.getElementById('detalleCategoriaDisplay').textContent = categoriaDisplay;
+        document.getElementById('detalleFecha').textContent = fecha;
+        document.getElementById('detalleMes').textContent = mes;
+        document.getElementById('detalleAnio').textContent = anio;
+        document.getElementById('detalleDescripcion').textContent = descripcion;
+        document.getElementById('detalleComprobante').textContent = comprobante;
+        document.getElementById('detalleUsuario').textContent = usuario;
+        document.getElementById('detalleCreated').textContent = created;
+        document.getElementById('detalleUpdated').textContent = updated;
+        
+        // Badge categoría
+        var badgeHtml = '';
+        var badgeColor, badgeBg, badgeBorder, badgeIcon;
+        switch(categoria) {
+            case 'alimentacion':
+                badgeBg = '#d4edda'; badgeColor = '#155724'; badgeBorder = '#28a745'; badgeIcon = 'bi-cart4';
+                break;
+            case 'sanidad':
+                badgeBg = '#e2d4f0'; badgeColor = '#4a148c'; badgeBorder = '#6f42c1'; badgeIcon = 'bi-heart-pulse';
+                break;
+            case 'reproduccion':
+                badgeBg = '#fff3cd'; badgeColor = '#856404'; badgeBorder = '#fd7e14'; badgeIcon = 'bi-heart';
+                break;
+            case 'mano_obra':
+                badgeBg = '#cce5ff'; badgeColor = '#004085'; badgeBorder = '#17a2b8'; badgeIcon = 'bi-people';
+                break;
+            case 'mantenimiento_infraestructura':
+                badgeBg = '#e9ecef'; badgeColor = '#495057'; badgeBorder = '#6c757d'; badgeIcon = 'bi-tools';
+                break;
+            case 'compra_animales':
+                badgeBg = '#d1ecf1'; badgeColor = '#0c5460'; badgeBorder = '#17a2b8'; badgeIcon = 'bi-emoji-smile';
+                break;
+            case 'impuestos':
+                badgeBg = '#f8d7da'; badgeColor = '#721c24'; badgeBorder = '#dc3545'; badgeIcon = 'bi-file-text';
+                break;
+            case 'otros':
+                badgeBg = '#fff3cd'; badgeColor = '#856404'; badgeBorder = '#ffc107'; badgeIcon = 'bi-three-dots';
+                break;
+            default:
+                badgeBg = '#e9ecef'; badgeColor = '#6c757d'; badgeBorder = '#adb5bd'; badgeIcon = 'bi-question';
+        }
+        badgeHtml = '<span class="badge rounded-pill p-2" style="background:' + badgeBg + '; color:' + badgeColor + '; border: 1px solid ' + badgeBorder + '; font-size: 14px;"><i class="bi ' + badgeIcon + ' me-1"></i> ' + categoriaDisplay + '</span>';
+        document.getElementById('detalleCategoriaBadge').innerHTML = badgeHtml;
+        
+        document.getElementById('btnEditarDesdeDetalle').href = '/editarcosto/' + id;
+    });
+</script>
+
+<script>
+    // Modal Eliminar Costo
+    var modalEliminarCosto = document.getElementById('modalEliminarCosto');
+    modalEliminarCosto.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var categoria = button.getAttribute('data-categoria');
+        var monto = button.getAttribute('data-monto');
+        var fecha = button.getAttribute('data-fecha');
+        var url = button.getAttribute('data-url');
+        
+        document.getElementById('categoriaCostoModal').textContent = categoria;
+        document.getElementById('montoCostoModal').textContent = monto;
+        document.getElementById('fechaCostoModal').textContent = fecha;
+        document.getElementById('btnConfirmarEliminarCosto').setAttribute('href', url);
+    });
+</script>
+
+{% endblock %}

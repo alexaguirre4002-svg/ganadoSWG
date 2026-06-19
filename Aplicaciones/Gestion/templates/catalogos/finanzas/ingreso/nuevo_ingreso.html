@@ -1,0 +1,577 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Nuevo Ingreso | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listaingreso/" class="text-decoration-none" style="color: var(--color-primario);">Ingresos</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo Ingreso</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-graph-up-arrow me-2"></i>Registrar Nuevo Ingreso
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Registre ventas de leche, animales, subproductos o servicios de inseminación
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE INGRESO           -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos del Ingreso
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/guardaringreso/" id="frm_nuevo_ingreso" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: CATEGORÍA Y FECHA                  -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: CATEGORÍA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_categoria_ig">
+                                    <i class="bi bi-tags me-1"></i>Categoría <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_categoria_ig" 
+                                        id="sel_categoria_ig" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione categoría...</option>
+                                    <option value="venta_leche">🥛 Venta de Leche</option>
+                                    <option value="venta_animales">🐄 Venta de Animales</option>
+                                    <option value="venta_subproductos">📦 Venta de Subproductos</option>
+                                    <option value="servicios_inseminacion">🧬 Servicios de Inseminación</option>
+                                    <option value="otros">❓ Otros</option>
+                                </select>
+                                <small class="text-muted">Tipo de ingreso según el CHECK de la base de datos.</small>
+                            </div>
+
+                            <!-- CAMPO: FECHA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_ig">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_ig" 
+                                       id="txt_fecha_ig" 
+                                       class="form-control" 
+                                       required>
+                                <small class="text-muted">Fecha del ingreso. No puede ser futura.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: CLIENTE Y COMPROBANTE              -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: CLIENTE -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_cliente_ig">
+                                    <i class="bi bi-person me-1"></i>Cliente
+                                </label>
+                                <input type="text" 
+                                       name="txt_cliente_ig" 
+                                       id="txt_cliente_ig" 
+                                       class="form-control" 
+                                       maxlength="200"
+                                       placeholder="Nombre del cliente o comprador...">
+                                <small class="text-muted">Opcional. Nombre del cliente o comprador.</small>
+                            </div>
+
+                            <!-- CAMPO: COMPROBANTE -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_comprobante_ig">
+                                    <i class="bi bi-file-earmark-text me-1"></i>Comprobante
+                                </label>
+                                <input type="text" 
+                                       name="txt_comprobante_ig" 
+                                       id="txt_comprobante_ig" 
+                                       class="form-control" 
+                                       maxlength="50"
+                                       placeholder="N° factura, guía, recibo...">
+                                <small class="text-muted">Opcional. Número de factura, guía de remisión o recibo.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: CANTIDAD Y PRECIO UNITARIO         -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: CANTIDAD -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_cantidad_ig">
+                                    <i class="bi bi-box me-1"></i>Cantidad
+                                </label>
+                                <input type="text" 
+                                       name="txt_cantidad_ig" 
+                                       id="txt_cantidad_ig" 
+                                       class="form-control" 
+                                       placeholder="Ej: 150.50">
+                                <small class="text-muted">Opcional. Litros, kilos, unidades, etc. Mayor a 0.</small>
+                            </div>
+
+                            <!-- CAMPO: PRECIO UNITARIO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_precio_unitario_ig">
+                                    <i class="bi bi-tag me-1"></i>Precio Unitario
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" 
+                                           name="txt_precio_unitario_ig" 
+                                           id="txt_precio_unitario_ig" 
+                                           class="form-control" 
+                                           placeholder="Ej: 0.45">
+                                </div>
+                                <small class="text-muted">Opcional. Precio por unidad. Mayor a 0.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: MONTO TOTAL (CALCULADO/MANUAL)     -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_monto_total_ig">
+                                    <i class="bi bi-currency-dollar me-1"></i>Monto Total <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" 
+                                           name="txt_monto_total_ig" 
+                                           id="txt_monto_total_ig" 
+                                           class="form-control fw-bold" 
+                                           required
+                                           placeholder="Ej: 500.00">
+                                </div>
+                                <small class="text-muted" id="msg_monto">
+                                    <span style="color: #2c5e1a;"><i class="bi bi-calculator me-1"></i>Se calcula automáticamente si ingresa cantidad y precio.</span>
+                                </small>
+                                
+                                <!-- INDICADOR DE CÁLCULO -->
+                                <div id="indicador-calculo" class="mt-2 p-2 rounded d-none" style="font-size: 0.9rem; font-weight: 500;">
+                                    <i class="bi bi-calculator me-1"></i>
+                                    <span id="texto-calculo"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 5: OBSERVACIONES                      -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_observaciones_ig">
+                                    <i class="bi bi-journal-text me-1"></i>Observaciones
+                                </label>
+                                <textarea name="txt_observaciones_ig" 
+                                          id="txt_observaciones_ig" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          maxlength="1000"
+                                          placeholder="Detalles adicionales del ingreso..."></textarea>
+                                <small class="text-muted">Máximo 1000 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Ingreso
+                            </button>
+                            <a href="/listaingreso/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                     -->
+<!-- Validaciones con jQuery Validate + iziToast-->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#28a745',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#28a745',
+                titleColor: '#155724',
+                messageColor: '#2c5e1a',
+                backgroundColor: '#d4edda',
+                borderBottom: '3px solid #28a745',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        // Fecha no puede ser futura
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha no puede ser futura");
+
+        // Monto total debe ser mayor a 0
+        jQuery.validator.addMethod("montoPositivo", function(value, element) {
+            if (!value) return false;
+            let monto = parseFloat(value.replace(',', '.'));
+            return !isNaN(monto) && monto > 0;
+        }, "El monto total debe ser mayor a 0");
+
+        // Cantidad debe ser mayor a 0 si se ingresa
+        jQuery.validator.addMethod("cantidadPositiva", function(value, element) {
+            if (!value) return true;
+            let cantidad = parseFloat(value.replace(',', '.'));
+            return !isNaN(cantidad) && cantidad > 0;
+        }, "La cantidad debe ser mayor a 0");
+
+        // Precio unitario debe ser mayor a 0 si se ingresa
+        jQuery.validator.addMethod("precioPositivo", function(value, element) {
+            if (!value) return true;
+            let precio = parseFloat(value.replace(',', '.'));
+            return !isNaN(precio) && precio > 0;
+        }, "El precio unitario debe ser mayor a 0");
+
+        // ==========================================
+        // FUNCION: CALCULAR MONTO TOTAL AUTOMÁTICO
+        // ==========================================
+        function calcularMontoTotal() {
+            let cantidad = $('#txt_cantidad_ig').val().replace(',', '.');
+            let precio = $('#txt_precio_unitario_ig').val().replace(',', '.');
+            let $indicador = $('#indicador-calculo');
+            let $texto = $('#texto-calculo');
+            let $msg = $('#msg_monto');
+            
+            let cantidadNum = parseFloat(cantidad);
+            let precioNum = parseFloat(precio);
+            
+            if (!isNaN(cantidadNum) && cantidadNum > 0 && !isNaN(precioNum) && precioNum > 0) {
+                let monto = (cantidadNum * precioNum).toFixed(2);
+                $('#txt_monto_total_ig').val(monto);
+                
+                $indicador
+                    .removeClass('d-none')
+                    .css({
+                        'background-color': '#e8f5e9',
+                        'color': '#2c5e1a',
+                        'border-left': '4px solid #28a745'
+                    });
+                $texto.html('<i class="bi bi-check-circle-fill me-1"></i> Monto calculado: $' + monto + ' (' + cantidadNum + ' × $' + precioNum + ')');
+                $msg.html('<span style="color: #28a745;"><i class="bi bi-check-circle me-1"></i>Monto calculado automáticamente.</span>');
+            } else {
+                $indicador.addClass('d-none');
+                $msg.html('<span class="text-muted"><i class="bi bi-info-circle me-1"></i>Ingrese cantidad y precio para cálculo automático, o ingrese el monto manualmente.</span>');
+            }
+        }
+
+        $(document).ready(function() {
+            
+            // Set fecha default a hoy
+            $('#txt_fecha_ig').val(new Date().toISOString().split('T')[0]);
+
+            // ==========================================
+            // CÁLCULO AUTOMÁTICO AL CAMBIAR CANTIDAD/PRECIO
+            // ==========================================
+            $('#txt_cantidad_ig, #txt_precio_unitario_ig').on('input change', function() {
+                calcularMontoTotal();
+            });
+
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_nuevo_ingreso").validate({
+                rules: {
+                    sel_categoria_ig: {
+                        required: true
+                    },
+                    txt_fecha_ig: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    txt_cliente_ig: {
+                        maxlength: 200
+                    },
+                    txt_comprobante_ig: {
+                        maxlength: 50
+                    },
+                    txt_cantidad_ig: {
+                        cantidadPositiva: true
+                    },
+                    txt_precio_unitario_ig: {
+                        precioPositivo: true
+                    },
+                    txt_monto_total_ig: {
+                        required: true,
+                        montoPositivo: true
+                    },
+                    txt_observaciones_ig: {
+                        maxlength: 1000
+                    }
+                },
+                messages: {
+                    sel_categoria_ig: {
+                        required: "Seleccione una categoría de ingreso"
+                    },
+                    txt_fecha_ig: {
+                        required: "La fecha es obligatoria",
+                        fechaNoFutura: "La fecha no puede ser futura"
+                    },
+                    txt_cliente_ig: {
+                        maxlength: "Máximo 200 caracteres"
+                    },
+                    txt_comprobante_ig: {
+                        maxlength: "Máximo 50 caracteres"
+                    },
+                    txt_monto_total_ig: {
+                        required: "El monto total es obligatorio",
+                        montoPositivo: "El monto total debe ser mayor a 0"
+                    },
+                    txt_observaciones_ig: {
+                        maxlength: "Máximo 1000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - OBSERVACIONES
+            // ==========================================
+            $('#txt_observaciones_ig').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 1000) {
+                    $(this).val(valor.substring(0, 1000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 1000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - CLIENTE
+            // ==========================================
+            $('#txt_cliente_ig').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 200) {
+                    $(this).val(valor.substring(0, 200));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 200 caracteres para el cliente.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - COMPROBANTE
+            // ==========================================
+            $('#txt_comprobante_ig').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 50) {
+                    $(this).val(valor.substring(0, 50));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 50 caracteres para el comprobante.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - FECHA
+            // ==========================================
+            $('#txt_fecha_ig').on('blur', function() {
+                let fecha = $(this).val();
+                let hoy = new Date();
+                hoy.setHours(23, 59, 59, 999);
+                
+                if (fecha && new Date(fecha) > hoy) {
+                    $(this).val(new Date().toISOString().split('T')[0]);
+                    alertaError('Fecha inválida', 'La fecha no puede ser futura. Se ha establecido la fecha de hoy.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - MONTO TOTAL
+            // ==========================================
+            $('#txt_monto_total_ig').on('blur', function() {
+                let valor = $(this).val().replace(',', '.');
+                let monto = parseFloat(valor);
+                
+                if (valor && (isNaN(monto) || monto <= 0)) {
+                    $(this).val('');
+                    alertaError('Monto inválido', 'El monto total debe ser un número mayor a 0.');
+                    $(this).focus();
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - CANTIDAD
+            // ==========================================
+            $('#txt_cantidad_ig').on('blur', function() {
+                let valor = $(this).val().replace(',', '.');
+                let cantidad = parseFloat(valor);
+                
+                if (valor && (isNaN(cantidad) || cantidad <= 0)) {
+                    $(this).val('');
+                    alertaError('Cantidad inválida', 'La cantidad debe ser un número mayor a 0.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - PRECIO UNITARIO
+            // ==========================================
+            $('#txt_precio_unitario_ig').on('blur', function() {
+                let valor = $(this).val().replace(',', '.');
+                let precio = parseFloat(valor);
+                
+                if (valor && (isNaN(precio) || precio <= 0)) {
+                    $(this).val('');
+                    alertaError('Precio inválido', 'El precio unitario debe ser un número mayor a 0.');
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

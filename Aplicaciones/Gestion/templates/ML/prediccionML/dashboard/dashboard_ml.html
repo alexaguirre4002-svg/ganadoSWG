@@ -1,0 +1,170 @@
+{% extends "plantilla.html" %}
+{% load static %}
+
+{% block titulo %}
+Dashboard Machine Learning | Hacienda Joseph
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">Dashboard ML</li>
+{% endblock %}
+
+{% block contenido %}
+
+<!-- TARJETAS: ESTADO DE MODELOS -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-4">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid var(--color-primario);">
+            <i class="bi bi-tree fs-2" style="color: var(--color-primario);"></i>
+            <h4 class="fw-bold mt-2 mb-0">AD-1</h4>
+            <small class="text-muted">Arbol de Decision - Litros de Leche</small>
+            {% if estado_ad1 %}
+            <div class="mt-2"><span class="badge bg-success">Entrenado</span></div>
+            <small class="text-muted">R2: {{ metrica_ad1 }}</small>
+            {% else %}
+            <div class="mt-2"><span class="badge bg-danger">No entrenado</span></div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
+            <i class="bi bi-tree fs-2 text-success"></i>
+            <h4 class="fw-bold mt-2 mb-0">AD-2</h4>
+            <small class="text-muted">Arbol de Decision - Preñez</small>
+            {% if estado_ad2 %}
+            <div class="mt-2"><span class="badge bg-success">Entrenado</span></div>
+            <small class="text-muted">Accuracy: {{ metrica_ad2 }}</small>
+            {% else %}
+            <div class="mt-2"><span class="badge bg-danger">No entrenado</span></div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #17a2b8;">
+            <i class="bi bi-graph-up fs-2" style="color: #17a2b8;"></i>
+            <h4 class="fw-bold mt-2 mb-0">RL-4</h4>
+            <small class="text-muted">Regresion Logistica - Calidad</small>
+            {% if estado_rl4 %}
+            <div class="mt-2"><span class="badge bg-success">Entrenado</span></div>
+            <small class="text-muted">Accuracy: {{ metrica_rl4 }}</small>
+            {% else %}
+            <div class="mt-2"><span class="badge bg-danger">No entrenado</span></div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- BOTONES DE ACCION -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-12">
+        <a href="{% url 'prediccion_ad1' %}" class="btn btn-hacienda me-2">
+            <i class="bi bi-magic me-2"></i>Predecir Litros (Manual)
+        </a>
+        <a href="{% url 'prediccion_ad2' %}" class="btn btn-hacienda me-2">
+            <i class="bi bi-magic me-2"></i>Predecir Preñez (Manual)
+        </a>
+        <a href="{% url 'prediccion_rl4' %}" class="btn btn-hacienda">
+            <i class="bi bi-magic me-2"></i>Predecir Calidad (Manual)
+        </a>
+    </div>
+</div>
+
+<!-- PREDICCIONES AUTOMATICAS: ORDEÑOS -->
+{% if predicciones_ad1 %}
+<div class="row mb-4 animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-droplet-fill me-2"></i>Predicciones Automaticas: Proxima Produccion de Leche
+            </div>
+            <div class="p-3">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Animal</th>
+                            <th>Temp. Ambiental</th>
+                            <th>Concentrado (kg)</th>
+                            <th>Temp. Leche</th>
+                            <th>Prediccion (litros)</th>
+                            <th>Confianza</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in predicciones_ad1 %}
+                        <tr>
+                            <td>{{ p.animal }}</td>
+                            <td>{{ p.temperatura_ambiental }}</td>
+                            <td>{{ p.cantidad_concentrado_kg }}</td>
+                            <td>{{ p.temperatura_leche }}</td>
+                            <td class="fw-bold" style="color: var(--color-primario);">{{ p.prediccion }} L</td>
+                            <td><span class="badge bg-success">{{ p.confianza }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- PREDICCIONES AUTOMATICAS: CALIDAD DE LECHE -->
+{% if predicciones_rl4 %}
+<div class="row mb-4 animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-check-circle-fill me-2"></i>Predicciones Automaticas: Calidad de Leche
+            </div>
+            <div class="p-3">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Animal</th>
+                            <th>Grasa (%)</th>
+                            <th>Proteina (%)</th>
+                            <th>CCS</th>
+                            <th>Prediccion</th>
+                            <th>Confianza</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in predicciones_rl4 %}
+                        <tr>
+                            <td>{{ p.animal }}</td>
+                            <td>{{ p.grasa }}</td>
+                            <td>{{ p.proteina }}</td>
+                            <td>{{ p.ccs }}</td>
+                            <td class="fw-bold">
+                                {% if p.prediccion == 'APTO' %}
+                                <span class="badge bg-success">APTO</span>
+                                {% else %}
+                                <span class="badge bg-danger">NO APTO</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="badge bg-success">{{ p.confianza }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if not predicciones_ad1 and not predicciones_rl4 %}
+<div class="alert alert-info animate-fade-in">
+    <i class="bi bi-info-circle-fill me-2"></i>
+    <strong>No hay predicciones automaticas.</strong> Entrena los modelos primero:
+    <br>
+    <code>python manage.py entrenar_ml AD-1</code><br>
+    <code>python manage.py entrenar_ml AD-2 --ejemplo</code><br>
+    <code>python manage.py entrenar_ml RL-4</code>
+</div>
+{% endif %}
+
+{% endblock %}

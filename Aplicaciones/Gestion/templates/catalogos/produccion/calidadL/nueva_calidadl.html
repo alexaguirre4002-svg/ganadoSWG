@@ -1,0 +1,611 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Nueva Calidad de Leche | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listacalidadl/" class="text-decoration-none" style="color: var(--color-primario);">Calidad de Leche</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo Análisis</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-droplet-half me-2"></i>Registrar Nuevo Análisis
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Registre el análisis de calidad de leche de una vaca productora
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE CALIDAD           -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos del Análisis
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/guardarcalidadl/" id="frm_nueva_calidad" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: ANIMAL Y FECHA MUESTREO            -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: ANIMAL (FK) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_animal_cl">
+                                    <i class="bi bi-emoji-smile me-1"></i>Animal <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_animal_cl" 
+                                        id="sel_animal_cl" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione una vaca...</option>
+                                    {% for animal in animales %}
+                                    <option value="{{ animal.id_an }}">{{ animal.codigo_an }} - {{ animal.nombre_an|default:'Sin nombre' }} ({{ animal.categoria_an }})</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Solo vacas productoras activas (vaca_leche, vaca_seca).</small>
+                            </div>
+
+                            <!-- CAMPO: FECHA MUESTREO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_muestreo_cl">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Muestreo <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_muestreo_cl" 
+                                       id="txt_fecha_muestreo_cl" 
+                                       class="form-control" 
+                                       required>
+                                <small class="text-muted">Fecha en que se realizó el muestreo. No puede ser futura.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: GRASA Y PROTEÍNA                   -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: GRASA (%) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_grasa_pct_cl">
+                                    <i class="bi bi-droplet me-1"></i>Grasa (%)
+                                </label>
+                                <input type="number" 
+                                       name="txt_grasa_pct_cl" 
+                                       id="txt_grasa_pct_cl" 
+                                       class="form-control"
+                                       step="0.01"
+                                       min="0"
+                                       max="15"
+                                       placeholder="Ej: 3.5">
+                                <small class="text-muted">Porcentaje de grasa en la leche. Rango: 0 - 15%.</small>
+                            </div>
+
+                            <!-- CAMPO: PROTEÍNA (%) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_proteina_pct_cl">
+                                    <i class="bi bi-egg-fried me-1"></i>Proteína (%)
+                                </label>
+                                <input type="number" 
+                                       name="txt_proteina_pct_cl" 
+                                       id="txt_proteina_pct_cl" 
+                                       class="form-control"
+                                       step="0.01"
+                                       min="0"
+                                       max="10"
+                                       placeholder="Ej: 3.2">
+                                <small class="text-muted">Porcentaje de proteína en la leche. Rango: 0 - 10%.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: CCS Y UFC                          -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: CCS -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_ccs_cl">
+                                    <i class="bi bi-activity me-1"></i>CCS (Células Somáticas)
+                                </label>
+                                <input type="number" 
+                                       name="txt_ccs_cl" 
+                                       id="txt_ccs_cl" 
+                                       class="form-control"
+                                       min="0"
+                                       placeholder="Ej: 150000">
+                                <small class="text-muted">Conteo de células somáticas. Alerta si > 200,000.</small>
+                            </div>
+
+                            <!-- CAMPO: UFC -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_ufc_cl">
+                                    <i class="bi bi-bacteria me-1"></i>UFC (Unidades Formadoras de Colonias)
+                                </label>
+                                <input type="number" 
+                                       name="txt_ufc_cl" 
+                                       id="txt_ufc_cl" 
+                                       class="form-control"
+                                       min="0"
+                                       placeholder="Ej: 50000">
+                                <small class="text-muted">Unidades formadoras de colonias. Alerta si > 100,000.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: RESULTADO Y LABORATORIO            -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: RESULTADO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_resultado_cl">
+                                    <i class="bi bi-check-circle me-1"></i>Resultado
+                                </label>
+                                <select name="sel_resultado_cl" 
+                                        id="sel_resultado_cl" 
+                                        class="form-select">
+                                    <option value="" selected>Determinar automáticamente...</option>
+                                    <option value="apto">Apto</option>
+                                    <option value="no_apto">No Apto</option>
+                                    <option value="pendiente">Pendiente</option>
+                                </select>
+                                <small class="text-muted">Si no selecciona, se determinará automáticamente según CCS/UFC.</small>
+                            </div>
+
+                            <!-- CAMPO: LABORATORIO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_laboratorio_cl">
+                                    <i class="bi bi-building me-1"></i>Laboratorio
+                                </label>
+                                <input type="text" 
+                                       name="txt_laboratorio_cl" 
+                                       id="txt_laboratorio_cl" 
+                                       class="form-control"
+                                       maxlength="100"
+                                       placeholder="Nombre del laboratorio">
+                                <small class="text-muted">Laboratorio que realizó el análisis.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 5: COSTO                              -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_costo_analisis_cl">
+                                    <i class="bi bi-currency-dollar me-1"></i>Costo del Análisis
+                                </label>
+                                <input type="number" 
+                                       name="txt_costo_analisis_cl" 
+                                       id="txt_costo_analisis_cl" 
+                                       class="form-control"
+                                       step="0.01"
+                                       min="0"
+                                       placeholder="0.00">
+                                <small class="text-muted">Costo del análisis en dólares.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 6: OBSERVACIONES                      -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_observaciones_cl">
+                                    <i class="bi bi-journal-text me-1"></i>Observaciones
+                                </label>
+                                <textarea name="txt_observaciones_cl" 
+                                          id="txt_observaciones_cl" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          maxlength="1000"
+                                          placeholder="Observaciones del análisis, condiciones del muestreo, recomendaciones..."></textarea>
+                                <small class="text-muted">Máximo 1000 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- INDICADOR DE RESULTADO AUTOMÁTICO (NUEVO)  -->
+                        <!-- ========================================== -->
+                        <div id="indicador-resultado" class="mt-2 p-2 rounded d-none" style="font-size: 0.9rem; font-weight: 500;">
+                            <i class="bi bi-calculator me-1"></i>
+                            <span id="texto-resultado"></span>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Análisis
+                            </button>
+                            <a href="/listacalidadl/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#28a745',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#28a745',
+                titleColor: '#155724',
+                messageColor: '#2c5e1a',
+                backgroundColor: '#d4edda',
+                borderBottom: '3px solid #28a745',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        // Fecha muestreo no puede ser futura
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha de muestreo no puede ser futura");
+
+        // Grasa debe estar entre 0 y 15
+        jQuery.validator.addMethod("grasaValida", function(value, element) {
+            if (!value) return true;
+            let grasa = parseFloat(value);
+            return grasa >= 0 && grasa <= 15;
+        }, "El porcentaje de grasa debe estar entre 0 y 15");
+
+        // Proteína debe estar entre 0 y 10
+        jQuery.validator.addMethod("proteinaValida", function(value, element) {
+            if (!value) return true;
+            let proteina = parseFloat(value);
+            return proteina >= 0 && proteina <= 10;
+        }, "El porcentaje de proteína debe estar entre 0 y 10");
+
+        // CCS no puede ser negativo
+        jQuery.validator.addMethod("ccsValido", function(value, element) {
+            if (!value) return true;
+            return parseInt(value) >= 0;
+        }, "El CCS no puede ser negativo");
+
+        // UFC no puede ser negativo
+        jQuery.validator.addMethod("ufcValido", function(value, element) {
+            if (!value) return true;
+            return parseInt(value) >= 0;
+        }, "El UFC no puede ser negativo");
+
+        // Costo no puede ser negativo
+        jQuery.validator.addMethod("costoValido", function(value, element) {
+            if (!value) return true;
+            return parseFloat(value) >= 0;
+        }, "El costo no puede ser negativo");
+
+        // Animal debe ser hembra productora
+        jQuery.validator.addMethod("animalProductor", function(value, element) {
+            if (!value) return false;
+            let selected = $(element).find('option:selected').text().toLowerCase();
+            return selected.includes('vaca');
+        }, "El animal debe ser una vaca productora");
+
+        // ==========================================
+        // FUNCION: CALCULAR RESULTADO AUTOMÁTICO
+        // ==========================================
+        function calcularResultadoAutomatico() {
+            let ccs = $('#txt_ccs_cl').val();
+            let ufc = $('#txt_ufc_cl').val();
+            let grasa = $('#txt_grasa_pct_cl').val();
+            let proteina = $('#txt_proteina_pct_cl').val();
+            let $indicador = $('#indicador-resultado');
+            let $texto = $('#texto-resultado');
+            
+            // Si no hay datos suficientes, ocultar
+            if (!ccs && !ufc && !grasa && !proteina) {
+                $indicador.addClass('d-none');
+                return;
+            }
+            
+            let resultado = 'apto';
+            let colorFondo, colorTexto, mensaje;
+            
+            // Determinar resultado según valores
+            if (ccs && parseInt(ccs) > 200000) {
+                resultado = 'no_apto';
+            } else if (ufc && parseInt(ufc) > 100000) {
+                resultado = 'no_apto';
+            } else if (grasa && parseFloat(grasa) < 2.5) {
+                resultado = 'no_apto';
+            } else if (proteina && parseFloat(proteina) < 2.5) {
+                resultado = 'no_apto';
+            }
+            
+            if (resultado === 'no_apto') {
+                colorFondo = '#fde8e8';
+                colorTexto = '#8B0000';
+                mensaje = '⚠️ Resultado automático: NO APTO (valores fuera de rango)';
+            } else {
+                colorFondo = '#d4edda';
+                colorTexto = '#155724';
+                mensaje = '✅ Resultado automático: APTO';
+            }
+            
+            $indicador
+                .removeClass('d-none')
+                .css({
+                    'background-color': colorFondo,
+                    'color': colorTexto,
+                    'border-left': '4px solid ' + colorTexto
+                });
+            
+            $texto.html(mensaje);
+        }
+
+        $(document).ready(function() {
+            
+            // Set fecha muestreo default a hoy
+            $('#txt_fecha_muestreo_cl').val(new Date().toISOString().split('T')[0]);
+
+            // ==========================================
+            // RECALCULAR RESULTADO AL CAMBIAR VALORES
+            // ==========================================
+            $('#txt_ccs_cl, #txt_ufc_cl, #txt_grasa_pct_cl, #txt_proteina_pct_cl').on('change', function() {
+                // Solo calcular si no hay resultado manual seleccionado
+                if (!$('#sel_resultado_cl').val()) {
+                    calcularResultadoAutomatico();
+                }
+            });
+
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_nueva_calidad").validate({
+                rules: {
+                    sel_animal_cl: {
+                        required: true,
+                        animalProductor: true
+                    },
+                    txt_fecha_muestreo_cl: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    txt_grasa_pct_cl: {
+                        grasaValida: true
+                    },
+                    txt_proteina_pct_cl: {
+                        proteinaValida: true
+                    },
+                    txt_ccs_cl: {
+                        ccsValido: true
+                    },
+                    txt_ufc_cl: {
+                        ufcValido: true
+                    },
+                    txt_costo_analisis_cl: {
+                        costoValido: true
+                    },
+                    txt_observaciones_cl: {
+                        maxlength: 1000
+                    }
+                },
+                messages: {
+                    sel_animal_cl: {
+                        required: "Seleccione un animal",
+                        animalProductor: "El animal debe ser una vaca productora"
+                    },
+                    txt_fecha_muestreo_cl: {
+                        required: "La fecha de muestreo es obligatoria",
+                        fechaNoFutura: "La fecha de muestreo no puede ser futura"
+                    },
+                    txt_observaciones_cl: {
+                        maxlength: "Máximo 1000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - OBSERVACIONES
+            // ==========================================
+            $('#txt_observaciones_cl').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 1000) {
+                    $(this).val(valor.substring(0, 1000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 1000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - FECHA MUESTREO
+            // ==========================================
+            $('#txt_fecha_muestreo_cl').on('blur', function() {
+                let fechaMuestreo = $(this).val();
+                let hoy = new Date();
+                hoy.setHours(23, 59, 59, 999);
+                
+                if (fechaMuestreo && new Date(fechaMuestreo) > hoy) {
+                    $(this).val(new Date().toISOString().split('T')[0]);
+                    alertaError('Fecha inválida', 'La fecha de muestreo no puede ser futura. Se ha establecido la fecha de hoy.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - GRASA
+            // ==========================================
+            $('#txt_grasa_pct_cl').on('blur', function() {
+                let valor = $(this).val();
+                if (valor) {
+                    let grasa = parseFloat(valor);
+                    if (grasa < 0 || grasa > 15) {
+                        $(this).val('');
+                        alertaError('Valor inválido', 'El porcentaje de grasa debe estar entre 0 y 15.');
+                        $(this).focus();
+                    }
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - PROTEÍNA
+            // ==========================================
+            $('#txt_proteina_pct_cl').on('blur', function() {
+                let valor = $(this).val();
+                if (valor) {
+                    let proteina = parseFloat(valor);
+                    if (proteina < 0 || proteina > 10) {
+                        $(this).val('');
+                        alertaError('Valor inválido', 'El porcentaje de proteína debe estar entre 0 y 10.');
+                        $(this).focus();
+                    }
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

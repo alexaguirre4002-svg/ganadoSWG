@@ -1,0 +1,547 @@
+{% extends "plantilla.html" %}
+
+{% block titulo %}
+    Editar Insumo | Hacienda El Roble
+{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listadoinsumos/" class="text-decoration-none" style="color: var(--color-primario);">Insumos</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Editar Insumo</li>
+{% endblock %}
+
+{% block contenido %}
+
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-pencil-square me-2"></i>Editar Insumo
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Modifique los datos de <strong>{{ insumo.nombre_ia }}</strong>
+            </p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-check"></i>Datos del Insumo
+                </div>
+
+                <div class="p-4">
+                    <form action="/procesareditarinsumo/" id="frm_editar_insumo" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <input type="hidden" name="id_ia" value="{{ insumo.id_ia }}">
+
+                        <div class="row">
+                            <!-- CÓDIGO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_codigo_ia">
+                                    <i class="bi bi-upc-scan me-1"></i>Código <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_codigo_ia" 
+                                       id="txt_codigo_ia" 
+                                       class="form-control" 
+                                       value="{{ insumo.codigo_ia }}"
+                                       placeholder="Ej: INS-001, ALM-2024..." 
+                                       maxlength="20" 
+                                       required>
+                                <small class="text-muted">Máximo 20 caracteres. Solo letras, números y guiones.</small>
+                            </div>
+
+                            <!-- NOMBRE -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_nombre_ia">
+                                    <i class="bi bi-tag me-1"></i>Nombre <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_nombre_ia" 
+                                       id="txt_nombre_ia" 
+                                       class="form-control" 
+                                       value="{{ insumo.nombre_ia }}"
+                                       placeholder="Ej: Concentrado vacuno, Sal mineral..." 
+                                       maxlength="200" 
+                                       required>
+                                <small class="text-muted">Máximo 200 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- TIPO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_tipo_ia">
+                                    <i class="bi bi-grid-3x3-gap me-1"></i>Tipo <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_tipo_ia" 
+                                        id="sel_tipo_ia" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" disabled>Seleccione un tipo...</option>
+                                    <option value="concentrado" {% if insumo.tipo_ia == 'concentrado' %}selected{% endif %}>Concentrado</option>
+                                    <option value="sal_mineral" {% if insumo.tipo_ia == 'sal_mineral' %}selected{% endif %}>Sal mineral</option>
+                                    <option value="bloque_nutricional" {% if insumo.tipo_ia == 'bloque_nutricional' %}selected{% endif %}>Bloque nutricional</option>
+                                    <option value="ensilaje" {% if insumo.tipo_ia == 'ensilaje' %}selected{% endif %}>Ensilaje</option>
+                                    <option value="heno" {% if insumo.tipo_ia == 'heno' %}selected{% endif %}>Heno</option>
+                                    <option value="pasto" {% if insumo.tipo_ia == 'pasto' %}selected{% endif %}>Pasto</option>
+                                    <option value="otro" {% if insumo.tipo_ia == 'otro' %}selected{% endif %}>Otro</option>
+                                </select>
+                            </div>
+
+                            <!-- MARCA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_marca_ia">
+                                    <i class="bi bi-award me-1"></i>Marca
+                                </label>
+                                <input type="text" 
+                                       name="txt_marca_ia" 
+                                       id="txt_marca_ia" 
+                                       class="form-control" 
+                                       value="{{ insumo.marca_ia|default:'' }}"
+                                       placeholder="Ej: Purina, Nutrena..." 
+                                       maxlength="100">
+                                <small class="text-muted">Máximo 100 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- STOCK ACTUAL -->
+                            <div class="col-md-4 mb-3">
+                                <label for="txt_stock_kg_ia">
+                                    <i class="bi bi-box me-1"></i>Stock Actual (kg) <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_stock_kg_ia" 
+                                       id="txt_stock_kg_ia" 
+                                       class="form-control" 
+                                       value="{{ insumo.stock_kg_ia }}"
+                                       placeholder="0.00">
+                                <small class="text-muted">Máximo 99999999.99 kg. Use punto o coma decimal.</small>
+                            </div>
+
+                            <!-- STOCK MÍNIMO -->
+                            <div class="col-md-4 mb-3">
+                                <label for="txt_stock_minimo_kg_ia">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>Stock Mínimo (kg) <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_stock_minimo_kg_ia" 
+                                       id="txt_stock_minimo_kg_ia" 
+                                       class="form-control" 
+                                       value="{{ insumo.stock_minimo_kg_ia }}"
+                                       placeholder="100.00">
+                                <small class="text-muted">Alerta cuando stock esté por debajo.</small>
+                            </div>
+
+                            <!-- COSTO POR KG -->
+                            <div class="col-md-4 mb-3">
+                                <label for="txt_costo_kg_ia">
+                                    <i class="bi bi-currency-dollar me-1"></i>Costo por kg <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_costo_kg_ia" 
+                                       id="txt_costo_kg_ia" 
+                                       class="form-control" 
+                                       value="{{ insumo.costo_kg_ia }}"
+                                       placeholder="0.00">
+                                <small class="text-muted">Máximo 99999999.99. Use punto o coma decimal.</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- PROVEEDOR -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_proveedor_ia">
+                                    <i class="bi bi-truck me-1"></i>Proveedor
+                                </label>
+                                <input type="text" 
+                                       name="txt_proveedor_ia" 
+                                       id="txt_proveedor_ia" 
+                                       class="form-control" 
+                                       value="{{ insumo.proveedor_ia|default:'' }}"
+                                       placeholder="Ej: Agropecuaria El Valle..." 
+                                       maxlength="200">
+                                <small class="text-muted">Máximo 200 caracteres.</small>
+                            </div>
+
+                            <!-- FECHA COMPRA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="dt_fecha_compra_ia">
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha de Compra
+                                </label>
+                                <input type="date" 
+                                       name="dt_fecha_compra_ia" 
+                                       id="dt_fecha_compra_ia" 
+                                       class="form-control"
+                                       value="{{ insumo.fecha_compra_ia|date:'Y-m-d'|default:'' }}">
+                            </div>
+                        </div>
+
+                        <!-- ESTADO ACTIVO -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input type="checkbox" 
+                                       name="chk_activo_ia" 
+                                       id="chk_activo_ia" 
+                                       class="form-check-input" 
+                                       value="1" 
+                                       {% if insumo.activo_ia %}checked{% endif %}>
+                                <label class="form-check-label" for="chk_activo_ia">
+                                    <i class="bi bi-check-circle me-1"></i>Insumo activo
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- BOTONES -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                            <a href="/listadoinsumos/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        jQuery.validator.addMethod("codigoValido", function(value, element) {
+            return this.optional(element) || /^[a-zA-Z0-9\-]+$/.test(value);
+        }, "Solo letras, números y guiones");
+
+        jQuery.validator.addMethod("nombreInsumo", function(value, element) {
+            return this.optional(element) || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.\,]+$/.test(value);
+        }, "Caracteres no permitidos");
+
+        jQuery.validator.addMethod("decimalMayorIgualCero", function(value, element) {
+            if (this.optional(element)) return true;
+            let val = parseFloat(value.replace(',', '.'));
+            return /^\d+([.,]\d{1,2})?$/.test(value) && val >= 0;
+        }, "Debe ser 0 o mayor");
+
+        jQuery.validator.addMethod("decimalMayorCero", function(value, element) {
+            if (this.optional(element)) return true;
+            let val = parseFloat(value.replace(',', '.'));
+            return /^\d+([.,]\d{1,2})?$/.test(value) && val > 0;
+        }, "Debe ser mayor a 0");
+
+        $(document).ready(function() {
+            $("#frm_editar_insumo").validate({
+                rules: {
+                    txt_codigo_ia: {
+                        required: true,
+                        codigoValido: true,
+                        minlength: 3,
+                        maxlength: 20
+                    },
+                    txt_nombre_ia: {
+                        required: true,
+                        nombreInsumo: true,
+                        minlength: 2,
+                        maxlength: 200
+                    },
+                    sel_tipo_ia: {
+                        required: true
+                    },
+                    txt_marca_ia: {
+                        maxlength: 100
+                    },
+                    txt_stock_kg_ia: {
+                        required: true,
+                        decimalMayorIgualCero: true
+                    },
+                    txt_stock_minimo_kg_ia: {
+                        required: true,
+                        decimalMayorCero: true
+                    },
+                    txt_costo_kg_ia: {
+                        required: true,
+                        decimalMayorIgualCero: true
+                    },
+                    txt_proveedor_ia: {
+                        maxlength: 200
+                    }
+                },
+                messages: {
+                    txt_codigo_ia: {
+                        required: "El código es obligatorio",
+                        codigoValido: "Solo letras, números y guiones",
+                        minlength: "Mínimo 3 caracteres",
+                        maxlength: "Máximo 20 caracteres"
+                    },
+                    txt_nombre_ia: {
+                        required: "El nombre es obligatorio",
+                        nombreInsumo: "Solo letras, números, espacios y guiones",
+                        minlength: "Mínimo 2 caracteres",
+                        maxlength: "Máximo 200 caracteres"
+                    },
+                    sel_tipo_ia: {
+                        required: "Seleccione el tipo de insumo"
+                    },
+                    txt_marca_ia: {
+                        maxlength: "Máximo 100 caracteres"
+                    },
+                    txt_stock_kg_ia: {
+                        required: "El stock actual es obligatorio",
+                        decimalMayorIgualCero: "Ingrese un número válido (0 o mayor, máx 2 decimales)"
+                    },
+                    txt_stock_minimo_kg_ia: {
+                        required: "El stock mínimo es obligatorio",
+                        decimalMayorCero: "Debe ser mayor a 0, máx 2 decimales"
+                    },
+                    txt_costo_kg_ia: {
+                        required: "El costo es obligatorio",
+                        decimalMayorIgualCero: "Ingrese un número válido (0 o mayor, máx 2 decimales)"
+                    },
+                    txt_proveedor_ia: {
+                        maxlength: "Máximo 200 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                    if ($(element).hasClass('is-invalid')) {
+                        $(element).focus();
+                    }
+                }
+            });
+
+            // BLOQUEO EN TIEMPO REAL - CÓDIGO
+            $('#txt_codigo_ia').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase();
+                if (filtrado.length > 20) {
+                    filtrado = filtrado.substring(0, 20);
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 20 caracteres para el código.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'Solo letras, números y guiones.');
+                }
+            });
+
+            // BLOQUEO EN TIEMPO REAL - NOMBRE
+            $('#txt_nombre_ia').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.\,]/g, '');
+                if (filtrado.length > 200) {
+                    filtrado = filtrado.substring(0, 200);
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 200 caracteres para el nombre.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'Caracter ingresado no válido para nombre de insumo.');
+                }
+            });
+
+            // BLOQUEO EN TIEMPO REAL - MARCA
+            $('#txt_marca_ia').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 100) {
+                    $(this).val(valor.substring(0, 100));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 100 caracteres para la marca.');
+                }
+            });
+
+            // BLOQUEO EN TIEMPO REAL - DECIMALES
+            function validarDecimal(input, maxEnteros, maxDecimales) {
+                let valor = input.val();
+                let filtrado = valor.replace(/[^\d\.,]/g, '');
+                let partes = filtrado.split(/[\.,]/);
+                if (partes.length > 2) {
+                    filtrado = partes[0] + '.' + partes.slice(1).join('');
+                }
+                if (partes[0] && partes[0].length > maxEnteros) {
+                    partes[0] = partes[0].substring(0, maxEnteros);
+                    filtrado = partes.join('.');
+                    alertaAdvertencia('Límite alcanzado', 'Valor demasiado grande.');
+                }
+                if (partes[1] && partes[1].length > maxDecimales) {
+                    partes[1] = partes[1].substring(0, maxDecimales);
+                    filtrado = partes.join('.');
+                    alertaAdvertencia('Límite decimal', 'Máximo ' + maxDecimales + ' decimales permitidos.');
+                }
+                if (valor !== filtrado) {
+                    input.val(filtrado);
+                }
+            }
+
+            $('#txt_stock_kg_ia, #txt_stock_minimo_kg_ia, #txt_costo_kg_ia').on('input', function() {
+                validarDecimal($(this), 8, 2);
+            });
+
+            // BLOQUEO EN TIEMPO REAL - PROVEEDOR
+            $('#txt_proveedor_ia').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 200) {
+                    $(this).val(valor.substring(0, 200));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 200 caracteres para el proveedor.');
+                }
+            });
+
+            // BLOQUEO DE TECLAS - CÓDIGO
+            $('#txt_codigo_ia').on('keypress', function(e) {
+                let tecla = String.fromCharCode(e.which);
+                if (!/^[a-zA-Z0-9\-]$/.test(tecla)) {
+                    e.preventDefault();
+                    alertaError('Tecla bloqueada', 'Solo letras, números y guiones.');
+                    return false;
+                }
+            });
+
+            // PEGADO - CÓDIGO
+            $('#txt_codigo_ia').on('paste', function(e) {
+                e.preventDefault();
+                let pegado = (e.originalEvent.clipboardData || window.clipboardData).getData('text');
+                let filtrado = pegado.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase().substring(0, 20);
+                $(this).val(filtrado);
+                if (pegado.toUpperCase().replace(/[^a-zA-Z0-9\-]/g, '') !== filtrado.replace(/[^a-zA-Z0-9\-]/g, '')) {
+                    alertaAdvertencia('Texto filtrado', 'Se han eliminado caracteres no permitidos.');
+                }
+            });
+
+            // PEGADO - NOMBRE
+            $('#txt_nombre_ia').on('paste', function(e) {
+                e.preventDefault();
+                let pegado = (e.originalEvent.clipboardData || window.clipboardData).getData('text');
+                let filtrado = pegado.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.\,]/g, '').substring(0, 200);
+                $(this).val(filtrado);
+                if (pegado !== filtrado) {
+                    alertaAdvertencia('Texto filtrado', 'Se han eliminado caracteres no permitidos.');
+                }
+            });
+
+            // BLUR - CÓDIGO
+            $('#txt_codigo_ia').on('blur', function() {
+                let valor = $(this).val().trim();
+                if (valor.length > 0 && valor.length < 3) {
+                    $(this).val('');
+                    alertaError('Longitud insuficiente', 'El código debe tener al menos 3 caracteres.');
+                    $(this).focus();
+                }
+            });
+
+            // BLUR - NOMBRE
+            $('#txt_nombre_ia').on('blur', function() {
+                let valor = $(this).val().trim();
+                if (valor.length === 1) {
+                    $(this).val('');
+                    alertaError('Longitud insuficiente', 'El nombre debe tener al menos 2 caracteres.');
+                    $(this).focus();
+                }
+            });
+
+            // FECHA: NO FUTURA
+            $('#dt_fecha_compra_ia').on('change', function() {
+                let fechaSeleccionada = new Date($(this).val());
+                let hoy = new Date();
+                hoy.setHours(0,0,0,0);
+                
+                if (fechaSeleccionada > hoy) {
+                    $(this).val('');
+                    alertaError('Fecha inválida', 'No puede seleccionar una fecha futura.');
+                }
+            });
+        });
+    </script>
+{% endblock %}

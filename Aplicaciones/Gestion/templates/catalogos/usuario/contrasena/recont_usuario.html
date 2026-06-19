@@ -1,0 +1,413 @@
+{% extends "plantilla.html" %}
+
+{% block titulo %}
+    Recuperar Contraseña | Hacienda El Roble
+{% endblock %}
+
+{% block contenido %}
+
+    <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-md-5 col-lg-4">
+
+            <!-- ========================================== -->
+            <!-- PASO 1: SOLICITAR CORREO                   -->
+            <!-- ========================================== -->
+            {% if not paso %}
+            <div class="card-hacienda" style="border: 2px solid #DAA520; box-shadow: 0 10px 40px rgba(44,94,26,0.3);">
+
+                <!-- Header -->
+                <div class="card-header-hacienda text-center" style="padding: 30px;">
+                    <i class="bi bi-shield-lock" style="font-size: 48px; color: #DAA520;"></i>
+                    <h3 class="mt-3 fw-bold" style="color: white;">Recuperar Contraseña</h3>
+                    <p class="mb-0" style="color: rgba(255,255,255,0.8);">Paso 1 de 3</p>
+                </div>
+
+                <div class="p-4">
+                    <form action="/recuperarcontrasena/" id="frm_recuperar" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <p class="text-muted mb-3" style="font-size: 14px;">
+                            <i class="bi bi-info-circle me-1"></i>Ingrese su correo electrónico registrado. Le enviaremos un código de verificación.
+                        </p>
+
+                        <!-- EMAIL -->
+                        <div class="mb-3">
+                            <label for="txt_email">
+                                <i class="bi bi-envelope me-1"></i>Correo Electrónico
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background: var(--color-primario); color: white; border: none;">
+                                    <i class="bi bi-envelope-at"></i>
+                                </span>
+                                <input type="email"
+                                       name="txt_email"
+                                       id="txt_email"
+                                       class="form-control"
+                                       placeholder="usuario@correo.com"
+                                       maxlength="254"
+                                       required
+                                       autofocus>
+                            </div>
+                        </div>
+
+                        <!-- BOTÓN ENVIAR -->
+                        <button type="submit" class="btn btn-hacienda w-100 mb-3">
+                            <i class="bi bi-send me-2"></i>Enviar Código
+                        </button>
+
+                        <!-- VOLVER AL LOGIN -->
+                        <div class="text-center">
+                            <a href="/login/" style="color: var(--color-primario); font-size: 14px; text-decoration: none;">
+                                <i class="bi bi-arrow-left me-1"></i>Volver al inicio de sesión
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- PASO 2: VERIFICAR CÓDIGO                   -->
+            <!-- ========================================== -->
+            {% elif paso == 'verificar' %}
+            <div class="card-hacienda" style="border: 2px solid #DAA520; box-shadow: 0 10px 40px rgba(44,94,26,0.3);">
+
+                <!-- Header -->
+                <div class="card-header-hacienda text-center" style="padding: 30px;">
+                    <i class="bi bi-envelope-check" style="font-size: 48px; color: #DAA520;"></i>
+                    <h3 class="mt-3 fw-bold" style="color: white;">Verificar Código</h3>
+                    <p class="mb-0" style="color: rgba(255,255,255,0.8);">Paso 2 de 3</p>
+                </div>
+
+                <div class="p-4">
+                    <form action="/verificarcodigo/" id="frm_verificar" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <p class="text-muted mb-3" style="font-size: 14px;">
+                            <i class="bi bi-info-circle me-1"></i>Ingrese el código de 6 dígitos que enviamos a su correo. Expira en 15 minutos.
+                        </p>
+
+                        <!-- CÓDIGO -->
+                        <div class="mb-3">
+                            <label for="txt_codigo">
+                                <i class="bi bi-123 me-1"></i>Código de Verificación
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background: var(--color-primario); color: white; border: none;">
+                                    <i class="bi bi-shield-check"></i>
+                                </span>
+                                <input type="text"
+                                       name="txt_codigo"
+                                       id="txt_codigo"
+                                       class="form-control text-center fw-bold"
+                                       placeholder="------"
+                                       maxlength="6"
+                                       style="font-size: 24px; letter-spacing: 8px;"
+                                       required
+                                       autofocus>
+                            </div>
+                            <small class="text-muted">Solo números. 6 dígitos.</small>
+                        </div>
+
+                        <!-- BOTÓN VERIFICAR -->
+                        <button type="submit" class="btn btn-hacienda w-100 mb-3">
+                            <i class="bi bi-check-circle me-2"></i>Verificar Código
+                        </button>
+
+                        <!-- REENVIAR / VOLVER -->
+                        <div class="d-flex justify-content-between">
+                            <a href="/recuperarcontrasena/" style="color: var(--color-primario); font-size: 14px; text-decoration: none;">
+                                <i class="bi bi-arrow-repeat me-1"></i>Solicitar nuevo código
+                            </a>
+                            <a href="/login/" style="color: var(--color-primario); font-size: 14px; text-decoration: none;">
+                                <i class="bi bi-arrow-left me-1"></i>Volver al login
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- PASO 3: REESTABLECER CONTRASEÑA            -->
+            <!-- ========================================== -->
+            {% elif paso == 'reestablecer' %}
+            <div class="card-hacienda" style="border: 2px solid #DAA520; box-shadow: 0 10px 40px rgba(44,94,26,0.3);">
+
+                <!-- Header -->
+                <div class="card-header-hacienda text-center" style="padding: 30px;">
+                    <i class="bi bi-key" style="font-size: 48px; color: #DAA520;"></i>
+                    <h3 class="mt-3 fw-bold" style="color: white;">Nueva Contraseña</h3>
+                    <p class="mb-0" style="color: rgba(255,255,255,0.8);">Paso 3 de 3</p>
+                </div>
+
+                <div class="p-4">
+                    <form action="/reestablecercontrasena/" id="frm_reestablecer" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <p class="text-muted mb-3" style="font-size: 14px;">
+                            <i class="bi bi-info-circle me-1"></i>Ingrese su nueva contraseña. Mínimo 8 caracteres con mayúscula, minúscula y número.
+                        </p>
+
+                        <!-- NUEVA CONTRASEÑA -->
+                        <div class="mb-3">
+                            <label for="txt_nueva_password">
+                                <i class="bi bi-key me-1"></i>Nueva Contraseña
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background: var(--color-primario); color: white; border: none;">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password"
+                                       name="txt_nueva_password"
+                                       id="txt_nueva_password"
+                                       class="form-control"
+                                       placeholder="Mínimo 8 caracteres"
+                                       maxlength="255"
+                                       required
+                                       autofocus>
+                                <button class="btn btn-outline-secondary" type="button" id="btnMostrarPass1">
+                                    <i class="bi bi-eye" id="iconoOjo1"></i>
+                                </button>
+                            </div>
+                            <div id="fuerzaPassword" class="mt-2">
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar" id="barraFuerza" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <small id="textoFuerza" class="text-muted"></small>
+                            </div>
+                        </div>
+
+                        <!-- CONFIRMAR CONTRASEÑA -->
+                        <div class="mb-3">
+                            <label for="txt_confirmar_password">
+                                <i class="bi bi-key-fill me-1"></i>Confirmar Contraseña
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background: var(--color-primario); color: white; border: none;">
+                                    <i class="bi bi-lock-fill"></i>
+                                </span>
+                                <input type="password"
+                                       name="txt_confirmar_password"
+                                       id="txt_confirmar_password"
+                                       class="form-control"
+                                       placeholder="Repita la contraseña"
+                                       maxlength="255"
+                                       required>
+                                <button class="btn btn-outline-secondary" type="button" id="btnMostrarPass2">
+                                    <i class="bi bi-eye" id="iconoOjo2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- BOTÓN GUARDAR -->
+                        <button type="submit" class="btn btn-hacienda w-100 mb-3">
+                            <i class="bi bi-save me-2"></i>Guardar Nueva Contraseña
+                        </button>
+
+                        <!-- VOLVER -->
+                        <div class="text-center">
+                            <a href="/login/" style="color: var(--color-primario); font-size: 14px; text-decoration: none;">
+                                <i class="bi bi-arrow-left me-1"></i>Volver al inicio de sesión
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+    <script>
+
+        // ==========================================
+        // MOSTRAR/OCULTAR CONTRASEÑAS (PASO 3)
+        // ==========================================
+        $('#btnMostrarPass1').on('click', function() {
+            let input = $('#txt_nueva_password');
+            let icono = $('#iconoOjo1');
+            if (input.attr('type') === 'password') {
+                input.attr('type', 'text');
+                icono.removeClass('bi-eye').addClass('bi-eye-slash');
+            } else {
+                input.attr('type', 'password');
+                icono.removeClass('bi-eye-slash').addClass('bi-eye');
+            }
+        });
+
+        $('#btnMostrarPass2').on('click', function() {
+            let input = $('#txt_confirmar_password');
+            let icono = $('#iconoOjo2');
+            if (input.attr('type') === 'password') {
+                input.attr('type', 'text');
+                icono.removeClass('bi-eye').addClass('bi-eye-slash');
+            } else {
+                input.attr('type', 'password');
+                icono.removeClass('bi-eye-slash').addClass('bi-eye');
+            }
+        });
+
+        // ==========================================
+        // MEDIDOR DE FUERZA DE CONTRASEÑA (PASO 3)
+        // ==========================================
+        $('#txt_nueva_password').on('input', function() {
+            let password = $(this).val();
+            let fuerza = 0;
+
+            if (password.length >= 8) fuerza += 25;
+            if (password.match(/[a-z]+/)) fuerza += 15;
+            if (password.match(/[A-Z]+/)) fuerza += 20;
+            if (password.match(/[0-9]+/)) fuerza += 20;
+            if (password.match(/[^a-zA-Z0-9]+/)) fuerza += 20;
+
+            let barra = $('#barraFuerza');
+            let texto = $('#textoFuerza');
+
+            barra.css('width', fuerza + '%');
+
+            if (fuerza < 30) {
+                barra.removeClass('bg-warning bg-success').addClass('bg-danger');
+                texto.text('Débil').removeClass('text-warning text-success').addClass('text-danger');
+            } else if (fuerza < 70) {
+                barra.removeClass('bg-danger bg-success').addClass('bg-warning');
+                texto.text('Media').removeClass('text-danger text-success').addClass('text-warning');
+            } else {
+                barra.removeClass('bg-danger bg-warning').addClass('bg-success');
+                texto.text('Fuerte').removeClass('text-danger text-warning').addClass('text-success');
+            }
+        });
+
+        // ==========================================
+        // VALIDACIÓN PASO 1: EMAIL
+        // ==========================================
+        $("#frm_recuperar").validate({
+            rules: {
+                txt_email: {
+                    required: true,
+                    email: true,
+                    maxlength: 254
+                }
+            },
+            messages: {
+                txt_email: {
+                    required: "Ingrese su correo electrónico",
+                    email: "Ingrese un correo válido",
+                    maxlength: "Máximo 254 caracteres"
+                }
+            },
+            errorElement: "span",
+            errorClass: "text-danger small",
+            highlight: function(element) {
+                $(element).addClass("is-invalid");
+            },
+            unhighlight: function(element) {
+                $(element).removeClass("is-invalid");
+            }
+        });
+
+        // ==========================================
+        // VALIDACIÓN PASO 2: CÓDIGO
+        // ==========================================
+        $("#frm_verificar").validate({
+            rules: {
+                txt_codigo: {
+                    required: true,
+                    digits: true,
+                    minlength: 6,
+                    maxlength: 6
+                }
+            },
+            messages: {
+                txt_codigo: {
+                    required: "Ingrese el código",
+                    digits: "Solo números permitidos",
+                    minlength: "Debe tener 6 dígitos",
+                    maxlength: "Debe tener 6 dígitos"
+                }
+            },
+            errorElement: "span",
+            errorClass: "text-danger small",
+            highlight: function(element) {
+                $(element).addClass("is-invalid");
+            },
+            unhighlight: function(element) {
+                $(element).removeClass("is-invalid");
+            }
+        });
+
+        // Bloqueo en tiempo real - CÓDIGO (solo números)
+        $('#txt_codigo').on('input', function() {
+            let valor = $(this).val();
+            let filtrado = valor.replace(/[^0-9]/g, '');
+            if (filtrado.length > 6) {
+                filtrado = filtrado.substring(0, 6);
+            }
+            if (valor !== filtrado) {
+                $(this).val(filtrado);
+            }
+        });
+
+        $('#txt_codigo').on('keypress', function(e) {
+            let tecla = String.fromCharCode(e.which);
+            if (!/^[0-9]$/.test(tecla)) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        $('#txt_codigo').on('paste', function(e) {
+            e.preventDefault();
+            let pegado = (e.originalEvent.clipboardData || window.clipboardData).getData('text');
+            let filtrado = pegado.replace(/[^0-9]/g, '').substring(0, 6);
+            $(this).val(filtrado);
+        });
+
+        // ==========================================
+        // VALIDACIÓN PASO 3: NUEVA CONTRASEÑA
+        // ==========================================
+        jQuery.validator.addMethod("passwordSegura", function(value, element) {
+            return this.optional(element) || /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(value);
+        }, "Debe tener mayúscula, minúscula, número y 8+ caracteres");
+
+        $("#frm_reestablecer").validate({
+            rules: {
+                txt_nueva_password: {
+                    required: true,
+                    passwordSegura: true,
+                    minlength: 8,
+                    maxlength: 255
+                },
+                txt_confirmar_password: {
+                    required: true,
+                    equalTo: "#txt_nueva_password"
+                }
+            },
+            messages: {
+                txt_nueva_password: {
+                    required: "Ingrese la nueva contraseña",
+                    passwordSegura: "Debe tener mayúscula, minúscula, número y 8+ caracteres",
+                    minlength: "Mínimo 8 caracteres",
+                    maxlength: "Máximo 255 caracteres"
+                },
+                txt_confirmar_password: {
+                    required: "Confirme la contraseña",
+                    equalTo: "Las contraseñas no coinciden"
+                }
+            },
+            errorElement: "span",
+            errorClass: "text-danger small",
+            highlight: function(element) {
+                $(element).addClass("is-invalid");
+            },
+            unhighlight: function(element) {
+                $(element).removeClass("is-invalid");
+            }
+        });
+
+    </script>
+{% endblock %}

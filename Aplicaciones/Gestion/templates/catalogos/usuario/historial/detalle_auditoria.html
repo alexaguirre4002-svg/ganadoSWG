@@ -1,0 +1,195 @@
+{% extends "plantilla.html" %}
+
+{% block titulo %}
+    Detalle de Auditoría | Hacienda Joseph
+{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'historialauditoria' %}" style="color: var(--color-primario);">Auditoría</a></li>
+    <li class="breadcrumb-item active">Detalle Log #{{ log.id_la }}</li>
+{% endblock %}
+
+{% block contenido %}
+
+<div class="row mb-4 animate-fade-in">
+    <div class="col-12">
+        <h2 class="fw-bold" style="color: var(--color-primario);">
+            <i class="bi bi-journal-text me-2"></i>Detalle de Registro
+        </h2>
+        <p class="text-muted mb-0">
+            <i class="bi bi-info-circle me-1"></i>Log <strong>#{{ log.id_la }}</strong>
+        </p>
+    </div>
+</div>
+
+<div class="row justify-content-center animate-fade-in">
+    <div class="col-md-8 col-lg-6">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-clipboard-data"></i>Datos del Registro
+            </div>
+
+            <div class="p-4">
+
+                <!-- ID -->
+                <div class="mb-3">
+                    <label class="fw-bold text-muted"><i class="bi bi-hash me-1"></i>ID</label>
+                    <div class="form-control bg-light">#{{ log.id_la }}</div>
+                </div>
+
+                <!-- USUARIO -->
+                <div class="mb-3">
+                    <label class="fw-bold text-muted"><i class="bi bi-person-circle me-1"></i>Usuario</label>
+                    <div class="form-control bg-light">
+                        <span style="color: var(--color-primario); font-weight: bold;">
+                            {{ log.fk_us_la.username_us }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- ACCIÓN -->
+                <div class="mb-3">
+                    <label class="fw-bold text-muted"><i class="bi bi-lightning-charge me-1"></i>Acción</label>
+                    <div class="form-control bg-light">
+                        {% if log.accion_la == 'crear' %}
+                        <span class="badge rounded-pill p-2" style="background: #28a745; color: white;">
+                            <i class="bi bi-plus-circle me-1"></i>CREAR
+                        </span>
+                        {% elif log.accion_la == 'editar' %}
+                        <span class="badge rounded-pill p-2" style="background: #ffc107; color: #1a1a1a;">
+                            <i class="bi bi-pencil-square me-1"></i>EDITAR
+                        </span>
+                        {% elif log.accion_la == 'eliminar' %}
+                        <span class="badge rounded-pill p-2" style="background: #dc3545; color: white;">
+                            <i class="bi bi-trash me-1"></i>ELIMINAR
+                        </span>
+                        {% elif log.accion_la == 'login' or log.accion_la == 'logout' %}
+                        <span class="badge rounded-pill p-2" style="background: #17a2b8; color: white;">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>{{ log.accion_la|upper }}
+                        </span>
+                        {% elif log.accion_la == 'exportar' %}
+                        <span class="badge rounded-pill p-2" style="background: #6f42c1; color: white;">
+                            <i class="bi bi-download me-1"></i>EXPORTAR
+                        </span>
+                        {% else %}
+                        <span class="badge rounded-pill bg-secondary p-2">
+                            <i class="bi bi-activity me-1"></i>{{ log.accion_la|upper }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- MODELO -->
+                <div class="mb-3">
+                    <label class="fw-bold text-muted"><i class="bi bi-table me-1"></i>Modelo</label>
+                    <div class="form-control bg-light">{{ log.modelo_afectado_la }}</div>
+                </div>
+
+                <!-- OBJETO ID -->
+                <div class="mb-3">
+                    <label class="fw-bold text-muted"><i class="bi bi-fingerprint me-1"></i>Objeto ID</label>
+                    <div class="form-control bg-light">
+                        {% if log.objeto_id_la %}
+                        <span class="badge bg-light text-dark border">#{{ log.objeto_id_la }}</span>
+                        {% else %}
+                        <span class="text-muted fst-italic">No especificado</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- DESCRIPCIÓN -->
+                <div class="mb-3">
+                    <label class="fw-bold text-muted"><i class="bi bi-card-text me-1"></i>Descripción</label>
+                    <div class="form-control bg-light" style="min-height: 80px; white-space: pre-line;">
+                        {% if log.descripcion_la %}
+                            {{ log.descripcion_la }}
+                        {% else %}
+                            <span class="text-muted fst-italic">Sin descripción</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- IP -->
+                <div class="mb-3">
+                    <label class="fw-bold text-muted"><i class="bi bi-globe me-1"></i>IP</label>
+                    <div class="form-control bg-light">
+                        {% if log.ip_address_la %}{{ log.ip_address_la }}{% else %}<span class="text-muted fst-italic">No registrada</span>{% endif %}
+                    </div>
+                </div>
+
+                <!-- FECHA -->
+                <div class="mb-3">
+                    <label class="fw-bold text-muted"><i class="bi bi-calendar-event me-1"></i>Fecha/Hora</label>
+                    <div class="form-control bg-light">
+                        {{ log.fecha_hora_la|date:"d/m/Y" }} | {{ log.fecha_hora_la|time:"H:i:s" }}
+                    </div>
+                </div>
+
+                <!-- BOTONES -->
+                <div class="d-flex gap-2">
+                    <a href="{% url 'historialauditoria' %}" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                        <i class="bi bi-arrow-left me-2"></i>Volver
+                    </a>
+                    <button type="button" class="btn btn-hacienda-warning flex-fill"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalEliminarLog"
+                            data-accion="{{ log.accion_la|upper }}"
+                            data-modelo="{{ log.modelo_afectado_la }}"
+                            data-url="{% url 'eliminarlog' log.id_la %}">
+                        <i class="bi bi-trash me-2"></i>Eliminar
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL (aquí dentro del contenido) -->
+<div class="modal fade" id="modalEliminarLog" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: 2px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
+                    CONFIRMAR ELIMINACIÓN
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background: #fff8e6; padding: 25px;">
+                <p style="color: #5c450e; font-size: 16px;">
+                    ¿Eliminar registro de <strong id="accionLogModal" style="color: #2c5e1a;"></strong> 
+                    sobre <strong id="modeloLogModal" style="color: #2c5e1a;"></strong>?
+                </p>
+                <p style="color: #8B6914; font-size: 14px;">
+                    <i class="bi bi-info-circle me-1"></i>No se puede deshacer.
+                </p>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                </button>
+                <a href="#" id="btnConfirmarEliminarLog" class="btn btn-hacienda-warning">
+                    <i class="bi bi-check-lg me-1"></i>Sí, eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block scripts_extra %}
+<script>
+    var modalEliminarLog = document.getElementById('modalEliminarLog');
+    modalEliminarLog.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        document.getElementById('accionLogModal').textContent = button.getAttribute('data-accion');
+        document.getElementById('modeloLogModal').textContent = button.getAttribute('data-modelo');
+        document.getElementById('btnConfirmarEliminarLog').setAttribute('href', button.getAttribute('data-url'));
+    });
+</script>
+{% endblock %}

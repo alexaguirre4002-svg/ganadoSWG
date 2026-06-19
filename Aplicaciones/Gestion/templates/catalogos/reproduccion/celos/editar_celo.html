@@ -1,0 +1,328 @@
+{% extends "plantilla.html" %}
+
+{% block titulo %}
+    Editar Celo | Hacienda Joseph
+{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listacelo/" class="text-decoration-none" style="color: var(--color-primario);">Celos</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Editar Celo</li>
+{% endblock %}
+
+{% block contenido %}
+
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-pencil-square me-2"></i>Editar Celo
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Modifique los datos del registro de celo #<<strong>{{ celo.id_ce }}</strong> - {{ celo.fk_an.codigo_an }}
+            </p>
+        </div>
+    </div>
+
+    <!-- ALERTA DE ANIMAL -->
+    <div class="row animate-fade-in mb-4">
+        <div class="col-12">
+            <div class="alert" style="background: #e8f5e9; border: 2px solid #2c5e1a; border-radius: 12px; color: #2c5e1a;">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <strong>Animal:</strong> 
+                <span class="badge" style="background:#28a745; color:white;"><i class="bi bi-emoji-smile me-1"></i>{{ celo.fk_an.codigo_an }}</span>
+                {% if celo.fk_an.nombre_an %}
+                - {{ celo.fk_an.nombre_an }}
+                {% endif %}
+                <span class="ms-2 badge bg-secondary">{{ celo.fk_an.categoria_an }}</span>
+                <span class="ms-3"><strong>Fecha original:</strong> {{ celo.fecha_observacion_ce|date:'d/m/Y' }}</span>
+                <br><small class="ms-4">El animal no se puede cambiar. Si necesita corregirlo, elimine y cree uno nuevo.</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-check"></i>Datos del Celo
+                </div>
+
+                <div class="p-4">
+                    <form action="/procesareditarcelo/" id="frm_editar_celo" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <input type="hidden" name="id_ce" value="{{ celo.id_ce }}">
+
+                        <!-- FILA 1: FECHA OBSERVACIÓN Y ANIMAL (SOLO LECTURA) -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_observacion_ce">
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha de Observación <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_observacion_ce" 
+                                       id="txt_fecha_observacion_ce" 
+                                       class="form-control" 
+                                       value="{{ celo.fecha_observacion_ce|date:'Y-m-d' }}"
+                                       required>
+                                <small class="text-muted">Fecha en que se observó el celo.</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_animal_ce">
+                                    <i class="bi bi-emoji-smile me-1"></i>Animal
+                                </label>
+                                <select name="sel_animal_ce" 
+                                        id="sel_animal_ce" 
+                                        class="form-select" 
+                                        disabled>
+                                    <option value="{{ celo.fk_an.id_an }}" selected>
+                                        {{ celo.fk_an.codigo_an }} - {{ celo.fk_an.nombre_an|default:'Sin nombre' }} ({{ celo.fk_an.categoria_an }})
+                                    </option>
+                                </select>
+                                <small class="text-muted">El animal no se puede modificar.</small>
+                            </div>
+                        </div>
+
+                        <!-- FILA 2: INTENSIDAD Y DURACIÓN -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_intensidad_ce">
+                                    <i class="bi bi-activity me-1"></i>Intensidad del Celo
+                                </label>
+                                <select name="sel_intensidad_ce" 
+                                        id="sel_intensidad_ce" 
+                                        class="form-select">
+                                    <option value="" {% if not celo.intensidad_ce %}selected{% endif %}>No especificada...</option>
+                                    <option value="baja" {% if celo.intensidad_ce == 'baja' %}selected{% endif %}>Baja</option>
+                                    <option value="media" {% if celo.intensidad_ce == 'media' %}selected{% endif %}>Media</option>
+                                    <option value="alta" {% if celo.intensidad_ce == 'alta' %}selected{% endif %}>Alta</option>
+                                </select>
+                                <small class="text-muted">Intensidad observada del comportamiento de celo.</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_duracion_horas_ce">
+                                    <i class="bi bi-clock-history me-1"></i>Duración Aproximada (horas)
+                                </label>
+                                <input type="number" 
+                                       name="txt_duracion_horas_ce" 
+                                       id="txt_duracion_horas_ce" 
+                                       class="form-control" 
+                                       {% if celo.duracion_aproximada_horas_ce %}
+                                       value="{{ celo.duracion_aproximada_horas_ce }}"
+                                       {% endif %}
+                                       placeholder="Ej: 18" 
+                                       min="1"
+                                       max="72">
+                                <small class="text-muted">Duración estimada en horas (1-72). Promedio bovino: 12-18 hrs.</small>
+                            </div>
+                        </div>
+
+                        <!-- FILA 3: OBSERVACIONES -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_observaciones_ce">
+                                    <i class="bi bi-journal-text me-1"></i>Observaciones
+                                </label>
+                                <textarea name="txt_observaciones_ce" 
+                                          id="txt_observaciones_ce" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          maxlength="1000"
+                                          placeholder="Comportamiento observado: inquietud, monta sobre otras, berrido, hinchazón vulvar, mucus...">{{ celo.observaciones_ce|default:'' }}</textarea>
+                                <small class="text-muted">Máximo 1000 caracteres. Describa signos observados.</small>
+                            </div>
+                        </div>
+
+                        <!-- INFORMACIÓN DE AUDITORÍA -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="p-2 rounded" style="background: #f8f9fa; border-left: 3px solid #6c757d;">
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock-history me-1"></i>
+                                        <strong>Creado:</strong> {{ celo.created_at_ce|date:'d/m/Y H:i' }} | 
+                                        <strong>Última modificación:</strong> {{ celo.updated_at_ce|date:'d/m/Y H:i' }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BOTONES DE ACCIÓN -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                            <a href="/listacelo/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+    <script>
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha no puede ser futura");
+
+        $(document).ready(function() {
+
+            $("#frm_editar_celo").validate({
+                rules: {
+                    txt_fecha_observacion_ce: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    sel_intensidad_ce: {
+                        required: false
+                    },
+                    txt_duracion_horas_ce: {
+                        digits: true,
+                        min: 1,
+                        max: 72
+                    },
+                    txt_observaciones_ce: {
+                        maxlength: 1000
+                    }
+                },
+                messages: {
+                    txt_fecha_observacion_ce: {
+                        required: "La fecha de observación es obligatoria",
+                        fechaNoFutura: "No puede registrar observaciones futuras"
+                    },
+                    txt_duracion_horas_ce: {
+                        digits: "Solo números enteros",
+                        min: "Mínimo 1 hora",
+                        max: "Máximo 72 horas"
+                    },
+                    txt_observaciones_ce: {
+                        maxlength: "Máximo 1000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - DURACIÓN HORAS
+            // ==========================================
+            $('#txt_duracion_horas_ce').on('input', function() {
+                let valor = $(this).val();
+                if (valor < 1 && valor !== '') {
+                    $(this).val('');
+                    alertaError('Valor inválido', 'La duración debe ser al menos 1 hora.');
+                }
+                if (valor > 72) {
+                    $(this).val(72);
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 72 horas.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - OBSERVACIONES
+            // ==========================================
+            $('#txt_observaciones_ce').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 1000) {
+                    $(this).val(valor.substring(0, 1000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 1000 caracteres.');
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

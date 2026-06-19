@@ -1,0 +1,484 @@
+nuevo_costo.html
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Nuevo Costo | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listacosto/" class="text-decoration-none" style="color: var(--color-primario);">Costos</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo Costo</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-cash-stack me-2"></i>Registrar Nuevo Costo
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Registre un gasto de la hacienda con su categoría y período de referencia
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE COSTO             -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos del Costo
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/guardarcosto/" id="frm_nuevo_costo" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: CATEGORIA Y MONTO                  -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: CATEGORIA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_categoria_co">
+                                    <i class="bi bi-tags me-1"></i>Categoría <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_categoria_co" 
+                                        id="sel_categoria_co" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione categoría...</option>
+                                    <option value="alimentacion">🌾 Alimentación</option>
+                                    <option value="sanidad">💉 Sanidad</option>
+                                    <option value="reproduccion">❤️ Reproducción</option>
+                                    <option value="mano_obra">👷 Mano de Obra</option>
+                                    <option value="mantenimiento_infraestructura">🔧 Mantenimiento Infraestructura</option>
+                                    <option value="compra_animales">🐄 Compra de Animales</option>
+                                    <option value="impuestos">📄 Impuestos</option>
+                                    <option value="otros">📦 Otros</option>
+                                </select>
+                                <small class="text-muted">Categoría del gasto según clasificación contable.</small>
+                            </div>
+
+                            <!-- CAMPO: MONTO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_monto_co">
+                                    <i class="bi bi-currency-dollar me-1"></i>Monto ($) <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_monto_co" 
+                                       id="txt_monto_co" 
+                                       class="form-control" 
+                                       placeholder="Ej: 1500.50"
+                                       required>
+                                <small class="text-muted">Monto en dólares. Debe ser mayor a 0.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: FECHA Y COMPROBANTE                -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: FECHA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_co">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_co" 
+                                       id="txt_fecha_co" 
+                                       class="form-control" 
+                                       required>
+                                <small class="text-muted">Fecha en que se realizó el gasto.</small>
+                            </div>
+
+                            <!-- CAMPO: COMPROBANTE -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_comprobante_co">
+                                    <i class="bi bi-file-earmark-text me-1"></i>Comprobante
+                                </label>
+                                <input type="text" 
+                                       name="txt_comprobante_co" 
+                                       id="txt_comprobante_co" 
+                                       class="form-control" 
+                                       maxlength="255"
+                                       placeholder="N° factura, recibo, comprobante...">
+                                <small class="text-muted">Número o referencia del comprobante. Opcional.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: MES Y AÑO DE REFERENCIA            -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: MES REFERENCIA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_mes_referencia_co">
+                                    <i class="bi bi-calendar-month me-1"></i>Mes de Referencia <span class="text-danger">*</span>
+                                </label>
+                                <select name="txt_mes_referencia_co" 
+                                        id="txt_mes_referencia_co" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione mes...</option>
+                                    <option value="1">Enero</option>
+                                    <option value="2">Febrero</option>
+                                    <option value="3">Marzo</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Mayo</option>
+                                    <option value="6">Junio</option>
+                                    <option value="7">Julio</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Septiembre</option>
+                                    <option value="10">Octubre</option>
+                                    <option value="11">Noviembre</option>
+                                    <option value="12">Diciembre</option>
+                                </select>
+                                <small class="text-muted">Mes contable de referencia (1-12).</small>
+                            </div>
+
+                            <!-- CAMPO: AÑO REFERENCIA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_anio_referencia_co">
+                                    <i class="bi bi-calendar-year me-1"></i>Año de Referencia <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" 
+                                       name="txt_anio_referencia_co" 
+                                       id="txt_anio_referencia_co" 
+                                       class="form-control" 
+                                       min="2000"
+                                       max="2100"
+                                       placeholder="Ej: 2026"
+                                       required>
+                                <small class="text-muted">Año contable de referencia.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: DESCRIPCION                        -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_descripcion_co">
+                                    <i class="bi bi-journal-text me-1"></i>Descripción
+                                </label>
+                                <textarea name="txt_descripcion_co" 
+                                          id="txt_descripcion_co" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          maxlength="2000"
+                                          placeholder="Detalle del gasto, proveedor, motivo..."></textarea>
+                                <small class="text-muted">Máximo 2000 caracteres. Opcional.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Costo
+                            </button>
+                            <a href="/listacosto/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#28a745',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#28a745',
+                titleColor: '#155724',
+                messageColor: '#2c5e1a',
+                backgroundColor: '#d4edda',
+                borderBottom: '3px solid #28a745',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        // Monto debe ser un número positivo válido
+        jQuery.validator.addMethod("montoValido", function(value, element) {
+            if (!value) return false;
+            let monto = parseFloat(value.replace(',', '.'));
+            return monto > 0 && monto <= 99999999.99;
+        }, "El monto debe ser mayor a 0 y no exceder 99,999,999.99");
+
+        // Mes debe estar entre 1 y 12
+        jQuery.validator.addMethod("mesValido", function(value, element) {
+            if (!value) return false;
+            let mes = parseInt(value);
+            return mes >= 1 && mes <= 12;
+        }, "El mes debe estar entre 1 y 12");
+
+        // Año debe ser válido
+        jQuery.validator.addMethod("anioValido", function(value, element) {
+            if (!value) return false;
+            let anio = parseInt(value);
+            return anio >= 2000 && anio <= 2100;
+        }, "El año debe estar entre 2000 y 2100");
+
+        $(document).ready(function() {
+            
+            // Set fecha default a hoy
+            $('#txt_fecha_co').val(new Date().toISOString().split('T')[0]);
+            
+            // Set mes y año default al actual
+            let hoy = new Date();
+            $('#txt_mes_referencia_co').val(hoy.getMonth() + 1);
+            $('#txt_anio_referencia_co').val(hoy.getFullYear());
+
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_nuevo_costo").validate({
+                rules: {
+                    sel_categoria_co: {
+                        required: true
+                    },
+                    txt_monto_co: {
+                        required: true,
+                        montoValido: true
+                    },
+                    txt_fecha_co: {
+                        required: true
+                    },
+                    txt_comprobante_co: {
+                        maxlength: 255
+                    },
+                    txt_mes_referencia_co: {
+                        required: true,
+                        mesValido: true
+                    },
+                    txt_anio_referencia_co: {
+                        required: true,
+                        anioValido: true
+                    },
+                    txt_descripcion_co: {
+                        maxlength: 2000
+                    }
+                },
+                messages: {
+                    sel_categoria_co: {
+                        required: "Seleccione una categoría"
+                    },
+                    txt_monto_co: {
+                        required: "El monto es obligatorio",
+                        montoValido: "El monto debe ser mayor a 0 y no exceder 99,999,999.99"
+                    },
+                    txt_fecha_co: {
+                        required: "La fecha es obligatoria"
+                    },
+                    txt_comprobante_co: {
+                        maxlength: "Máximo 255 caracteres"
+                    },
+                    txt_mes_referencia_co: {
+                        required: "El mes de referencia es obligatorio",
+                        mesValido: "El mes debe estar entre 1 y 12"
+                    },
+                    txt_anio_referencia_co: {
+                        required: "El año de referencia es obligatorio",
+                        anioValido: "El año debe estar entre 2000 y 2100"
+                    },
+                    txt_descripcion_co: {
+                        maxlength: "Máximo 2000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - DESCRIPCION
+            // ==========================================
+            $('#txt_descripcion_co').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 2000) {
+                    $(this).val(valor.substring(0, 2000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 2000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - COMPROBANTE
+            // ==========================================
+            $('#txt_comprobante_co').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 255) {
+                    $(this).val(valor.substring(0, 255));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 255 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - MONTO
+            // ==========================================
+            $('#txt_monto_co').on('blur', function() {
+                let valor = $(this).val().replace(',', '.');
+                let monto = parseFloat(valor);
+                if ($(this).val() && (isNaN(monto) || monto <= 0 || monto > 99999999.99)) {
+                    $(this).val('');
+                    alertaError('Monto inválido', 'El monto debe ser mayor a 0 y no exceder 99,999,999.99.');
+                    $(this).focus();
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - AÑO
+            // ==========================================
+            $('#txt_anio_referencia_co').on('blur', function() {
+                let anio = parseInt($(this).val());
+                if ($(this).val() && (isNaN(anio) || anio < 2000 || anio > 2100)) {
+                    $(this).val(new Date().getFullYear());
+                    alertaError('Año inválido', 'El año debe estar entre 2000 y 2100. Se ha establecido el año actual.');
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

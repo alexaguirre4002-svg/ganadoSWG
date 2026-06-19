@@ -1,0 +1,638 @@
+lista_pesaje.html
+{% extends "plantilla.html" %}
+{% load static %}
+
+<!-- ========================================== -->
+<!-- TITULO                                    -->
+<!-- ========================================== -->
+{% block titulo %}
+Listado de Pesajes | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BREADCRUMB                                -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">
+        Inicio
+    </a>
+</li>
+<li class="breadcrumb-item">
+    <a href="/listaanimal/" class="text-decoration-none" style="color: var(--color-primario);">
+        Animales
+    </a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">
+    Pesajes
+</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- CONTENIDO PRINCIPAL                       -->
+<!-- ========================================== -->
+{% block contenido %}
+
+<!-- TARJETAS ESTADÍSTICAS -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3">
+            <i class="bi bi-speedometer2 fs-2" style="color: var(--color-primario);"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_pesajes }}</h4>
+            <small class="text-muted">Total Pesajes</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #d8f615;">
+            <i class="bi bi-eye-fill fs-2 text-warning"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_estimacion }}</h4>
+            <small class="text-muted">Por estimación</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #df7117;">
+            <i class="bi bi-arrows-expand fs-2 text-warning"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_cinta }}</h4>
+            <small class="text-muted">Por cinta</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #2714fd;">
+            <i class="bi bi-speedometer2 fs-2 text-warning"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_bascula }}</h4>
+            <small class="text-muted">Por báscula</small>
+        </div>
+    </div>
+</div>
+
+<!-- TITULO -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-8">
+        <h2 class="fw-bold" style="color: var(--color-primario);">
+            <i class="bi bi-speedometer2 me-2"></i>
+            Listado de Pesajes
+        </h2>
+        <p class="text-muted mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            Registro y seguimiento de pesajes de animales, control de peso y condición corporal
+        </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="/nuevapesaje/" class="btn btn-hacienda">
+            <i class="bi bi-plus-circle me-2"></i>
+            Nuevo Pesaje
+        </a>
+    </div>
+</div>
+
+<!-- TARJETA PRINCIPAL -->
+<div class="row animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-list-ul"></i>
+                Pesajes Registrados
+            </div>
+            <div class="p-4">
+                <div class="table-responsive">
+                    <table id="tablaPesaje" class="table table-hacienda align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>ANIMAL</th>
+                                <th>FECHA</th>
+                                <th>PESO (kg)</th>
+                                <th>COND. CORPORAL</th>
+                                <th>MÉTODO</th>
+                                <th>OBSERVACIONES</th>
+                                <th>REGISTRADO POR</th>
+                                <th>ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pesaje in pesaje_list %}
+                            <tr>
+                                <!-- ID -->
+                                <td class="fw-bold text-muted">#{{ pesaje.id_pe }}</td>
+                                
+                                <!-- ANIMAL -->
+                                <td>
+                                    <span class="badge rounded-pill p-2" style="background: #e8f5e9; color: #2c5e1a; border: 1px solid #2c5e1a;">
+                                        <i class="bi bi-emoji-smile me-1"></i>
+                                        {{ pesaje.fk_an.codigo_an }}
+                                    </span>
+                                    {% if pesaje.fk_an.nombre_an %}
+                                    <br><small class="text-muted">{{ pesaje.fk_an.nombre_an }}</small>
+                                    {% endif %}
+                                    <br><small class="text-muted"><i class="bi bi-tag me-1"></i>{{ pesaje.fk_an.categoria_an }}</small>
+                                </td>
+                                
+                                <!-- FECHA -->
+                                <td>
+                                    <span class="fw-bold" style="color: #5c450e;">
+                                        <i class="bi bi-calendar-check me-1"></i>
+                                        {{ pesaje.fecha_pe|date:'d/m/Y' }}
+                                    </span>
+                                </td>
+                                
+                                <!-- PESO -->
+                                <td>
+                                    <span class="fw-bold fs-5" style="color: #2c5e1a;">
+                                        {{ pesaje.peso_kg_pe }} kg
+                                    </span>
+                                </td>
+                                
+                                <!-- CONDICION CORPORAL -->
+                                <td>
+                                    {% if pesaje.condicion_corporal_pe %}
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge rounded-pill p-2" style="background: 
+                                            {% if pesaje.condicion_corporal_pe <= 2 %}
+                                                #fde8e8; color: #8B0000; border: 1px solid #dc3545;
+                                            {% elif pesaje.condicion_corporal_pe == 3 %}
+                                                #fff8e6; color: #8B6914; border: 1px solid #fd7e14;
+                                            {% else %}
+                                                #d4edda; color: #155724; border: 1px solid #28a745;
+                                            {% endif %}
+                                        ">
+                                            <i class="bi bi-activity me-1"></i>{{ pesaje.condicion_corporal_pe }}/5
+                                        </span>
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- METODO -->
+                                <td>
+                                    {% if pesaje.metodo_pe == 'bascula' %}
+                                    <span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745;">
+                                        <i class="bi bi-balance-scale me-1"></i>Báscula
+                                    </span>
+                                    {% elif pesaje.metodo_pe == 'cinta_metrica' %}
+                                    <span class="badge rounded-pill p-2" style="background:#e2d4f0; color:#4a148c; border: 1px solid #6f42c1;">
+                                        <i class="bi bi-rulers me-1"></i>Cinta Métrica
+                                    </span>
+                                    {% elif pesaje.metodo_pe == 'estimacion_visual' %}
+                                    <span class="badge rounded-pill p-2" style="background:#fff3cd; color:#856404; border: 1px solid #fd7e14;">
+                                        <i class="bi bi-eye me-1"></i>Estimación Visual
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- OBSERVACIONES -->
+                                <td>
+                                    {% if pesaje.observaciones_pe %}
+                                    <span class="text-muted" style="font-size: 13px;">
+                                        <i class="bi bi-journal-text me-1 text-primary"></i>
+                                        {{ pesaje.observaciones_pe|truncatechars:50 }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- REGISTRADO POR -->
+                                <td>
+                                    <span class="text-muted">
+                                        <i class="bi bi-person me-1 text-success"></i>
+                                        {{ pesaje.fk_us_pe.username_us }}
+                                    </span>
+                                    <br><small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>{{ pesaje.created_at_pe|date:'d/m/Y H:i' }}
+                                    </small>
+                                </td>
+                                
+                                <!-- ACCIONES -->
+                                <td>
+                                    <!-- VER DETALLE (MODAL) -->
+                                    <button type="button" class="btn btn-sm btn-info" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalDetallePesaje"
+                                            data-id="{{ pesaje.id_pe }}"
+                                            data-animal="{{ pesaje.fk_an.codigo_an }}"
+                                            data-animal-nombre="{% if pesaje.fk_an.nombre_an %}{{ pesaje.fk_an.nombre_an }}{% else %}Sin nombre{% endif %}"
+                                            data-animal-categoria="{{ pesaje.fk_an.categoria_an }}"
+                                            data-fecha="{{ pesaje.fecha_pe|date:'d/m/Y' }}"
+                                            data-peso="{{ pesaje.peso_kg_pe }}"
+                                            data-condicion="{% if pesaje.condicion_corporal_pe %}{{ pesaje.condicion_corporal_pe }}{% else %}---{% endif %}"
+                                            data-metodo="{% if pesaje.metodo_pe %}{{ pesaje.metodo_pe }}{% else %}---{% endif %}"
+                                            data-observaciones="{% if pesaje.observaciones_pe %}{{ pesaje.observaciones_pe }}{% else %}Sin observaciones{% endif %}"
+                                            data-usuario="{{ pesaje.fk_us_pe.username_us }}"
+                                            data-created="{{ pesaje.created_at_pe|date:'d/m/Y H:i' }}"
+                                            data-updated="{{ pesaje.updated_at_pe|date:'d/m/Y H:i' }}"
+                                            title="Ver detalle">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    
+                                    <!-- EDITAR -->
+                                    <a href="/editarpesaje/{{ pesaje.id_pe }}" class="btn btn-sm btn-hacienda-secondary" title="Editar">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    
+                                    <!-- ELIMINAR -->
+                                    <button type="button" class="btn btn-sm btn-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalEliminarPesaje"
+                                            data-id="{{ pesaje.id_pe }}"
+                                            data-animal="{{ pesaje.fk_an.codigo_an }}"
+                                            data-fecha="{{ pesaje.fecha_pe|date:'d/m/Y' }}"
+                                            data-peso="{{ pesaje.peso_kg_pe }}"
+                                            data-url="/eliminapesaje/{{ pesaje.id_pe }}"
+                                            title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center py-5">
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <p class="mt-3 text-muted">No hay pesajes registrados</p>
+                                    <a href="/nuevapesaje/" class="btn btn-hacienda btn-sm mt-2">
+                                        <i class="bi bi-plus-circle me-2"></i>Registrar primer pesaje
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
+                <small class="text-muted">
+                    <i class="bi bi-bar-chart-line me-1"></i>
+                    Total de pesajes: <strong>{{ pesaje_list|length }}</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL DETALLE PESAJE                       -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalDetallePesaje" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-speedometer2-fill me-2" style="color: #DAA520;"></i>
+                    DETALLE DEL PESAJE
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="background: #fff8e6;">
+                <div class="row g-0">
+                    <div class="col-md-5" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
+                        <div class="p-4 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="bi bi-emoji-smile fs-1" style="color: #2c5e1a;"></i>
+                            <p class="mt-3 mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleAnimal"></p>
+                            <p class="text-muted mb-0" style="font-size: 14px;" id="detalleAnimalNombre"></p>
+                            <p class="text-muted mb-0" style="font-size: 13px;" id="detalleAnimalCategoria"></p>
+                            <div class="mt-3 w-100 text-center">
+                                <span id="detallePesoBadge"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="p-4">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">ID PESAJE</label>
+                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<span id="detalleId"></span></p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <label class="text-muted small fw-bold">FECHA</label>
+                                    <p class="mb-0 fw-bold" id="detalleFecha" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-speedometer2 me-1"></i>PESO</label>
+                                    <p class="mb-0 fw-bold fs-4" id="detallePeso" style="color: #2c5e1a;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-activity me-1"></i>COND. CORPORAL</label>
+                                    <p class="mb-0" id="detalleCondicion"></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-tools me-1"></i>MÉTODO DE PESAJE</label>
+                                    <p class="mb-0" id="detalleMetodo" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i>OBSERVACIONES</label>
+                                <p class="mb-0" id="detalleObservaciones" style="color: #5c450e; font-style: italic;"></p>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-0">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>REGISTRADO POR</label>
+                                    <p class="mb-0" id="detalleUsuario" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>FECHA REGISTRO</label>
+                                    <p class="mb-0" id="detalleCreated" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="row mt-2 mb-0">
+                                <div class="col-12">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-clockwise me-1"></i>ÚLTIMA MODIFICACIÓN</label>
+                                    <p class="mb-0" id="detalleUpdated" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
+                    <i class="bi bi-pencil-square me-1"></i>Editar Pesaje
+                </a>
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL ELIMINAR PESAJE                      -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalEliminarPesaje" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: 2px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
+                    CONFIRMAR ELIMINACIÓN
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background: #fff8e6; padding: 25px;">
+                <p style="color: #5c450e; font-size: 16px; margin-bottom: 0;">
+                    ¿Está seguro de eliminar el pesaje del animal <strong id="animalPesajeModal" style="color: #2c5e1a;"></strong>?
+                </p>
+                <p class="mt-2 mb-0" style="color: #8B6914; font-size: 14px;">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Fecha: <span id="fechaPesajeModal"></span> | Peso: <span id="pesoPesajeModal"></span> kg
+                </p>
+                <p class="mt-2 mb-0" style="color: #c0392b; font-size: 13px;">
+                    <i class="bi bi-exclamation-diamond me-1"></i>
+                    Esta acción no se puede deshacer. Se eliminará el registro de pesaje permanentemente.
+                </p>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                </button>
+                <a href="#" id="btnConfirmarEliminarPesaje" class="btn btn-hacienda-warning">
+                    <i class="bi bi-check-lg me-1"></i>Sí, eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- SCRIPTS EXTRA                              -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+<style>
+    .dataTables_filter {
+        margin-bottom: 20px !important;
+        background: linear-gradient(135deg, #eef7e8, #dcefd0);
+        padding: 15px 20px;
+        border-radius: 18px;
+        border: 2px solid #b7d7a8;
+        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
+        display: flex !important;
+        align-items: center !important;
+        justify-content: end !important;
+        gap: 10px;
+    }
+    .dataTables_filter::before {
+        content: "🐄";
+        font-size: 28px;
+    }
+    .dataTables_filter label {
+        font-weight: bold;
+        color: var(--color-primario);
+        font-size: 17px;
+    }
+    .dataTables_filter input {
+        border-radius: 50px !important;
+        border: 3px solid var(--color-primario) !important;
+        padding: 10px 18px !important;
+        background-color: #ffffff !important;
+        color: var(--color-navbar) !important;
+        font-weight: 600 !important;
+        width: 280px !important;
+        transition: 0.3s !important;
+        box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08);
+        margin-left: 10px !important;
+    }
+    .dataTables_filter input:focus {
+        outline: none !important;
+        border-color: #8dc26f !important;
+        box-shadow: 0px 0px 12px rgba(44,94,26,0.4);
+        background-color: #f8fff5 !important;
+    }
+    .dataTables_length select {
+        border-radius: 10px !important;
+        border: 2px solid var(--color-primario) !important;
+        padding: 5px 10px !important;
+    }
+    .dataTables_paginate {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        margin-top: 25px !important;
+    }
+    .dataTables_paginate .pagination {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 0px !important;
+        flex-wrap: nowrap !important;
+    }
+    .paginate_button {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        border: none !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 14px !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        transition: 0.3s !important;
+        margin: 0 3px !important;
+        vertical-align: middle !important;
+        float: none !important;
+    }
+    .paginate_button.current {
+        background: var(--color-primario) !important;
+        color: white !important;
+        border: 2px solid #8dc26f !important;
+        box-shadow: 0px 0px 8px rgba(44,94,26,0.4);
+    }
+    .paginate_button:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+    .paginate_button.previous, .paginate_button.next {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 16px !important;
+    }
+    .paginate_button.previous:hover, .paginate_button.next:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $('#tablaPesaje').DataTable({
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ registros",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                "infoEmpty": "No existen registros",
+                "infoFiltered": "(filtrado de _MAX_ registros)",
+                "search": "Buscar:",
+                "paginate": {
+                    "first": "",
+                    "last": "",
+                    "next": "›",
+                    "previous": "‹"
+                }
+            },
+            "pageLength": 10,
+            "lengthMenu": [5,10,25,50,100],
+            "responsive": true,
+            "pagingType": "simple_numbers",
+            "order": [[2, "desc"]]
+        });
+    });
+</script>
+
+<script>
+    // Modal Detalle Pesaje
+    var modalDetallePesaje = document.getElementById('modalDetallePesaje');
+    modalDetallePesaje.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        
+        var id = button.getAttribute('data-id');
+        var animal = button.getAttribute('data-animal');
+        var animalNombre = button.getAttribute('data-animal-nombre');
+        var animalCategoria = button.getAttribute('data-animal-categoria');
+        var fecha = button.getAttribute('data-fecha');
+        var peso = button.getAttribute('data-peso');
+        var condicion = button.getAttribute('data-condicion');
+        var metodo = button.getAttribute('data-metodo');
+        var observaciones = button.getAttribute('data-observaciones');
+        var usuario = button.getAttribute('data-usuario');
+        var created = button.getAttribute('data-created');
+        var updated = button.getAttribute('data-updated');
+        
+        document.getElementById('detalleId').textContent = id;
+        document.getElementById('detalleAnimal').textContent = animal;
+        document.getElementById('detalleAnimalNombre').textContent = animalNombre;
+        document.getElementById('detalleAnimalCategoria').textContent = animalCategoria;
+        document.getElementById('detalleFecha').textContent = fecha;
+        document.getElementById('detallePeso').textContent = peso + ' kg';
+        document.getElementById('detalleObservaciones').textContent = observaciones;
+        document.getElementById('detalleUsuario').textContent = usuario;
+        document.getElementById('detalleCreated').textContent = created;
+        document.getElementById('detalleUpdated').textContent = updated;
+        
+        // Condición corporal
+        var condicionHtml = '';
+        var pesoBadgeHtml = '';
+        if (condicion !== '---') {
+            var condicionNum = parseInt(condicion);
+            var condicionColor, condicionBg, condicionBorder;
+            if (condicionNum <= 2) {
+                condicionColor = '#8B0000';
+                condicionBg = '#fde8e8';
+                condicionBorder = '#dc3545';
+            } else if (condicionNum === 3) {
+                condicionColor = '#8B6914';
+                condicionBg = '#fff8e6';
+                condicionBorder = '#fd7e14';
+            } else {
+                condicionColor = '#155724';
+                condicionBg = '#d4edda';
+                condicionBorder = '#28a745';
+            }
+            condicionHtml = '<span class="badge rounded-pill p-2" style="background:' + condicionBg + '; color:' + condicionColor + '; border: 1px solid ' + condicionBorder + ';"><i class="bi bi-activity me-1"></i>' + condicion + '/5</span>';
+            pesoBadgeHtml = '<span class="badge rounded-pill p-2" style="background:' + condicionBg + '; color:' + condicionColor + '; border: 1px solid ' + condicionBorder + '; font-size: 14px;"><i class="bi bi-activity me-1"></i> Condición: ' + condicion + '/5</span>';
+        } else {
+            condicionHtml = '<span class="text-muted fst-italic">No registrada</span>';
+            pesoBadgeHtml = '<span class="badge rounded-pill p-2" style="background:#e9ecef; color:#6c757d; border: 1px solid #adb5bd; font-size: 14px;"><i class="bi bi-dash-circle me-1"></i> Sin condición</span>';
+        }
+        document.getElementById('detalleCondicion').innerHTML = condicionHtml;
+        document.getElementById('detallePesoBadge').innerHTML = pesoBadgeHtml;
+        
+        // Método
+        var metodoHtml = '';
+        switch(metodo) {
+            case 'bascula': 
+                metodoHtml = '<span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745;"><i class="bi bi-balance-scale me-1"></i> Báscula</span>';
+                break;
+            case 'cinta_metrica': 
+                metodoHtml = '<span class="badge rounded-pill p-2" style="background:#e2d4f0; color:#4a148c; border: 1px solid #6f42c1;"><i class="bi bi-rulers me-1"></i> Cinta Métrica</span>';
+                break;
+            case 'estimacion_visual': 
+                metodoHtml = '<span class="badge rounded-pill p-2" style="background:#fff3cd; color:#856404; border: 1px solid #fd7e14;"><i class="bi bi-eye me-1"></i> Estimación Visual</span>';
+                break;
+            default: 
+                metodoHtml = '<span class="text-muted fst-italic">No registrado</span>';
+        }
+        document.getElementById('detalleMetodo').innerHTML = metodoHtml;
+        
+        document.getElementById('btnEditarDesdeDetalle').href = '/editarpesaje/' + id;
+    });
+</script>
+
+<script>
+    // Modal Eliminar Pesaje
+    var modalEliminarPesaje = document.getElementById('modalEliminarPesaje');
+    modalEliminarPesaje.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var animal = button.getAttribute('data-animal');
+        var fecha = button.getAttribute('data-fecha');
+        var peso = button.getAttribute('data-peso');
+        var url = button.getAttribute('data-url');
+        
+        document.getElementById('animalPesajeModal').textContent = animal;
+        document.getElementById('fechaPesajeModal').textContent = fecha;
+        document.getElementById('pesoPesajeModal').textContent = peso;
+        document.getElementById('btnConfirmarEliminarPesaje').setAttribute('href', url);
+    });
+</script>
+
+{% endblock %}

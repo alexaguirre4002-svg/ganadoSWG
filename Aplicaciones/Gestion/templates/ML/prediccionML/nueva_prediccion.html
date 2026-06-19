@@ -1,0 +1,99 @@
+{% extends "plantilla.html" %}
+{% load static %}
+
+{% block titulo %}
+{{ titulo }} | Hacienda Joseph
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a>
+</li>
+<li class="breadcrumb-item">
+    <a href="/dashboardml/" class="text-decoration-none" style="color: var(--color-primario);">ML Dashboard</a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">{{ titulo }}</li>
+{% endblock %}
+
+{% block contenido %}
+
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-8">
+        <h2 class="fw-bold" style="color: var(--color-primario);">
+            <i class="bi bi-cpu me-2"></i>{{ titulo }}
+        </h2>
+        <p class="text-muted mb-0">
+            <i class="bi bi-info-circle me-1"></i>{{ descripcion }}
+        </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="/dashboardml/" class="btn btn-hacienda-secondary me-2">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard ML
+        </a>
+        <a href="/listapredicciones/" class="btn btn-hacienda">
+            <i class="bi bi-list me-2"></i>Historial
+        </a>
+    </div>
+</div>
+
+<!-- Error si el modelo no esta entrenado -->
+{% if error %}
+<div class="alert alert-danger animate-fade-in" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <strong>Error:</strong> {{ error }}
+</div>
+{% endif %}
+
+<!-- Resultado de prediccion -->
+{% if resultado and resultado.exito %}
+<div class="card-hacienda mb-4 animate-fade-in" style="border-left: 5px solid var(--color-primario);">
+    <div class="card-header-hacienda bg-success text-white">
+        <i class="bi bi-check-circle-fill me-2"></i>Resultado de la Prediccion
+    </div>
+    <div class="p-4">
+        <div class="row">
+            <div class="col-md-6">
+                <h3 class="fw-bold" style="color: var(--color-primario);">
+                    {{ resultado.prediccion }} {% if resultado.unidad == 'litros' %}litros{% endif %}
+                </h3>
+                {% if resultado.probabilidad %}
+                <p class="text-muted">Confianza: <strong>{{ resultado.probabilidad }}</strong></p>
+                {% endif %}
+                <p class="mb-0">{{ resultado.interpretacion }}</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <span class="badge bg-primary fs-6">{{ resultado.codigo }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Formulario de entrada -->
+<div class="card-hacienda animate-fade-in">
+    <div class="card-header-hacienda">
+        <i class="bi bi-input-cursor-text me-2"></i>Datos de Entrada
+    </div>
+    <div class="p-4">
+        <form method="post" action="">
+            {% csrf_token %}
+            <div class="row g-3">
+                {% for campo in campos %}
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">{{ campo.label }}</label>
+                    <input type="{{ campo.tipo }}" name="{{ campo.nombre }}" 
+                           value="{{ campo.valor }}" step="{{ campo.paso }}" 
+                           class="form-control" required>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-hacienda">
+                    <i class="bi bi-magic me-2"></i>Predecir
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

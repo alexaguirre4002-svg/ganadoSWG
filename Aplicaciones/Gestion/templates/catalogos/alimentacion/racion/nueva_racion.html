@@ -1,0 +1,824 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Nueva Ración | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listaracion/" class="text-decoration-none" style="color: var(--color-primario);">Raciones</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nueva Ración</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-basket me-2"></i>Registrar Nueva Ración
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Asigne una dieta alimenticia a un animal y registre el consumo y desperdicio
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE RACIÓN            -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos de la Ración
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/guardarracion/" id="frm_nueva_racion" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: ANIMAL Y DIETA (FKs OBLIGATORIAS)  -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: ANIMAL (FK) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_animal_ra">
+                                    <i class="bi bi-emoji-smile me-1"></i>Animal <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_animal_ra" 
+                                        id="sel_animal_ra" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione un animal...</option>
+                                    {% for animal in animales %}
+                                    <option value="{{ animal.id_an }}"
+                                            data-categoria="{{ animal.categoria_an }}"
+                                            data-raza="{{ animal.fk_ra.nombre_ra|default:'Sin raza' }}">
+                                        {{ animal.codigo_an }} - {{ animal.nombre_an|default:'Sin nombre' }} ({{ animal.categoria_an }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Solo animales activos en categorías: ternero, novilla, vaca_leche, vaca_seca, toro, ceba.</small>
+                            </div>
+
+                            <!-- CAMPO: DIETA (FK) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_dieta_ra">
+                                    <i class="bi bi-clipboard-data me-1"></i>Dieta <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_dieta_ra" 
+                                        id="sel_dieta_ra" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione una dieta...</option>
+                                    {% for dieta in dietas %}
+                                    <option value="{{ dieta.id_di }}"
+                                            data-categoria="{{ dieta.categoria_objetivo_di }}"
+                                            data-materia-seca="{{ dieta.materia_seca_kg_di|default:'' }}"
+                                            data-energia="{{ dieta.energia_mcal_di|default:'' }}"
+                                            data-proteina="{{ dieta.proteina_cruda_pct_di|default:'' }}">
+                                        {{ dieta.codigo_di }} - {{ dieta.nombre_di }} ({{ dieta.categoria_objetivo_di }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Solo dietas activas disponibles.</small>
+                                
+                                <!-- Indicador de compatibilidad animal-dieta -->
+                                <div id="indicador-compatibilidad" class="mt-2 p-2 rounded d-none" style="font-size: 0.9rem; font-weight: 500;">
+                                    <i class="bi bi-calculator me-1"></i>
+                                    <span id="texto-compatibilidad"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: INSUMO ALIMENTICIO (FK OPCIONAL)   -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="sel_insumo_ra">
+                                    <i class="bi bi-box-seam me-1"></i>Insumo Alimenticio
+                                </label>
+                                <select name="sel_insumo_ra" 
+                                        id="sel_insumo_ra" 
+                                        class="form-select">
+                                    <option value="" selected data-stock="">Sin insumo...</option>
+                                    {% for insumo in insumos %}
+                                    <option value="{{ insumo.id_ia }}"
+                                            data-stock="{{ insumo.stock_kg_ia|stringformat:'s' }}"
+                                            data-tipo="{{ insumo.tipo_ia }}"
+                                            data-costo="{{ insumo.costo_kg_ia|default:''|stringformat:'s' }}">
+                                        {{ insumo.codigo_ia }} - {{ insumo.nombre_ia }} | Stock: {{ insumo.stock_kg_ia|stringformat:"s" }} kg | {{ insumo.tipo_ia }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Opcional. Vincula un insumo para descontar stock automáticamente.</small>
+                                
+                                <!-- Indicador de stock -->
+                                <div id="indicador-stock" class="mt-2 p-2 rounded d-none" style="font-size: 0.9rem; font-weight: 500;">
+                                    <i class="bi bi-box-seam me-1"></i>
+                                    <span id="texto-stock"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: FECHAS INICIO Y FIN                -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: FECHA INICIO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_inicio_ra">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Inicio <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_inicio_ra" 
+                                       id="txt_fecha_inicio_ra" 
+                                       class="form-control" 
+                                       value="{{ hoy }}"
+                                       required>
+                                <small class="text-muted">Fecha en que inicia la ración. No puede ser futura.</small>
+                            </div>
+
+                            <!-- CAMPO: FECHA FIN -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_fin_ra">
+                                    <i class="bi bi-calendar-x me-1"></i>Fecha de Fin
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_fin_ra" 
+                                       id="txt_fecha_fin_ra" 
+                                       class="form-control">
+                                <small class="text-muted">Opcional. Debe ser posterior o igual a la fecha de inicio.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: CANTIDADES (DECIMALES = TEXT)      -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: CANTIDAD OFRECIDA -->
+                            <div class="col-md-4 mb-3">
+                                <label for="txt_cantidad_ofrecida_kg_ra">
+                                    <i class="bi bi-arrow-up-circle me-1"></i>Cantidad Ofrecida (kg) <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_cantidad_ofrecida_kg_ra" 
+                                       id="txt_cantidad_ofrecida_kg_ra" 
+                                       class="form-control"
+                                       placeholder="0.00"
+                                       required
+                                       inputmode="decimal"
+                                       pattern="^\d+(\.\d{1,2})?$">
+                                <small class="text-muted">Cantidad total ofrecida al animal. Máx 9999.99 kg.</small>
+                            </div>
+
+                            <!-- CAMPO: CANTIDAD CONSUMIDA -->
+                            <div class="col-md-4 mb-3">
+                                <label for="txt_cantidad_consumida_kg_ra">
+                                    <i class="bi bi-arrow-down-circle me-1"></i>Cantidad Consumida (kg)
+                                </label>
+                                <input type="text" 
+                                       name="txt_cantidad_consumida_kg_ra" 
+                                       id="txt_cantidad_consumida_kg_ra" 
+                                       class="form-control"
+                                       placeholder="0.00"
+                                       inputmode="decimal"
+                                       pattern="^\d+(\.\d{1,2})?$">
+                                <small class="text-muted">Opcional. No puede superar la cantidad ofrecida.</small>
+                            </div>
+
+                            <!-- CAMPO: DESPERDICIO -->
+                            <div class="col-md-4 mb-3">
+                                <label for="txt_desperdicio_kg_ra">
+                                    <i class="bi bi-trash me-1"></i>Desperdicio (kg)
+                                </label>
+                                <input type="text" 
+                                       name="txt_desperdicio_kg_ra" 
+                                       id="txt_desperdicio_kg_ra" 
+                                       class="form-control"
+                                       placeholder="0.00"
+                                       inputmode="decimal"
+                                       pattern="^\d+(\.\d{1,2})?$">
+                                <small class="text-muted">Opcional. No puede superar lo no consumido.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- INDICADOR DE EFICIENCIA (NUEVO)            -->
+                        <!-- ========================================== -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div id="indicador-eficiencia" class="p-3 rounded d-none" style="font-size: 0.95rem; font-weight: 500; border-left: 4px solid;">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6">
+                                            <i class="bi bi-graph-up me-1"></i>
+                                            <span id="texto-eficiencia"></span>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="progress" style="height: 25px; border-radius: 12px;">
+                                                <div id="barra-eficiencia" class="progress-bar" role="progressbar" 
+                                                     style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                                    0%
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 5: DIAS EN POTRERO                    -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_dias_en_potrero_ra">
+                                    <i class="bi bi-clock-history me-1"></i>Días en Potrero
+                                </label>
+                                <input type="number" 
+                                       name="txt_dias_en_potrero_ra" 
+                                       id="txt_dias_en_potrero_ra" 
+                                       class="form-control"
+                                       placeholder="0"
+                                       min="0"
+                                       step="1">
+                                <small class="text-muted">Opcional. Días que el animal permanecerá en el potrero.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Ración
+                            </button>
+                            <a href="/listaracion/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#28a745',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#28a745',
+                titleColor: '#155724',
+                messageColor: '#2c5e1a',
+                backgroundColor: '#d4edda',
+                borderBottom: '3px solid #28a745',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaInfo(titulo, mensaje) {
+            iziToast.info({
+                title: '<i class="bi bi-info-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#17a2b8',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-info-circle-fill',
+                iconColor: '#17a2b8',
+                titleColor: '#0d47a1',
+                messageColor: '#0d47a1',
+                backgroundColor: '#e3f2fd',
+                borderBottom: '3px solid #17a2b8',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS JQUERY VALIDATE
+        // ==========================================
+        
+        // Fecha inicio no puede ser futura
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha de inicio no puede ser futura");
+
+        // Fecha fin debe ser posterior o igual a fecha inicio
+        jQuery.validator.addMethod("fechaFinPosterior", function(value, element) {
+            if (!value) return true;
+            let fechaInicio = $('#txt_fecha_inicio_ra').val();
+            if (!fechaInicio) return true;
+            return new Date(value) >= new Date(fechaInicio);
+        }, "La fecha de fin debe ser posterior o igual a la fecha de inicio");
+
+        // Decimal válido (hasta 2 decimales)
+        jQuery.validator.addMethod("decimalValido", function(value, element) {
+            if (!value) return true;
+            return /^\d+(\.\d{1,2})?$/.test(value);
+        }, "Ingrese un número válido con máximo 2 decimales");
+
+        // Cantidad consumida no supera ofrecida
+        jQuery.validator.addMethod("consumoValido", function(value, element) {
+            if (!value) return true;
+            let ofrecido = parseFloat($('#txt_cantidad_ofrecida_kg_ra').val()) || 0;
+            let consumido = parseFloat(value) || 0;
+            return consumido <= ofrecido;
+        }, "La cantidad consumida no puede superar la ofrecida");
+
+        // Desperdicio no supera lo no consumido
+        jQuery.validator.addMethod("desperdicioValido", function(value, element) {
+            if (!value) return true;
+            let ofrecido = parseFloat($('#txt_cantidad_ofrecida_kg_ra').val()) || 0;
+            let consumido = parseFloat($('#txt_cantidad_consumida_kg_ra').val()) || 0;
+            let desperdicio = parseFloat(value) || 0;
+            let noConsumido = ofrecido - consumido;
+            return desperdicio <= noConsumido;
+        }, "El desperdicio no puede superar lo no consumido");
+
+        // Stock suficiente para insumo
+        jQuery.validator.addMethod("stockSuficiente", function(value, element) {
+            if (!value) return true;
+            let ofrecido = parseFloat($('#txt_cantidad_ofrecida_kg_ra').val()) || 0;
+            let stock = parseFloat($('#sel_insumo_ra option:selected').data('stock')) || 0;
+            return ofrecido <= stock;
+        }, "Stock insuficiente para la cantidad ofrecida");
+
+        // ==========================================
+        // FUNCION: CALCULAR Y MOSTRAR EFICIENCIA
+        // ==========================================
+        function calcularEficiencia() {
+            let ofrecido = parseFloat($('#txt_cantidad_ofrecida_kg_ra').val()) || 0;
+            let consumido = parseFloat($('#txt_cantidad_consumida_kg_ra').val()) || 0;
+            let desperdicio = parseFloat($('#txt_desperdicio_kg_ra').val()) || 0;
+            
+            let $indicador = $('#indicador-eficiencia');
+            let $texto = $('#texto-eficiencia');
+            let $barra = $('#barra-eficiencia');
+            
+            if (ofrecido <= 0) {
+                $indicador.addClass('d-none');
+                return;
+            }
+            
+            let eficiencia = 0;
+            let colorFondo, colorTexto, colorBarra, mensaje;
+            
+            if (consumido > 0) {
+                eficiencia = Math.round((consumido / ofrecido) * 100);
+                
+                // Validar desperdicio vs no consumido
+                let noConsumido = ofrecido - consumido;
+                if (desperdicio > noConsumido) {
+                    colorFondo = '#fde8e8';
+                    colorTexto = '#8B0000';
+                    colorBarra = 'bg-danger';
+                    mensaje = '⚠️ Error: Desperdicio (' + desperdicio.toFixed(2) + ' kg) supera lo no consumido (' + noConsumido.toFixed(2) + ' kg)';
+                    eficiencia = 0;
+                } else if (eficiencia >= 90) {
+                    colorFondo = '#d4edda';
+                    colorTexto = '#155724';
+                    colorBarra = 'bg-success';
+                    mensaje = '✅ Excelente eficiencia: ' + eficiencia + '% consumido';
+                } else if (eficiencia >= 70) {
+                    colorFondo = '#e3f2fd';
+                    colorTexto = '#0d47a1';
+                    colorBarra = 'bg-info';
+                    mensaje = 'ℹ️ Buena eficiencia: ' + eficiencia + '% consumido';
+                } else if (eficiencia >= 50) {
+                    colorFondo = '#fff8e6';
+                    colorTexto = '#8B6914';
+                    colorBarra = 'bg-warning';
+                    mensaje = '⚠️ Eficiencia regular: ' + eficiencia + '% consumido';
+                } else {
+                    colorFondo = '#fde8e8';
+                    colorTexto = '#8B0000';
+                    colorBarra = 'bg-danger';
+                    mensaje = '❌ Baja eficiencia: ' + eficiencia + '% consumido';
+                }
+            } else {
+                colorFondo = '#f8f9fa';
+                colorTexto = '#6c757d';
+                colorBarra = 'bg-secondary';
+                mensaje = '⏳ Ingrese cantidad consumida para calcular eficiencia';
+                eficiencia = 0;
+            }
+            
+            $indicador
+                .removeClass('d-none')
+                .css({
+                    'background-color': colorFondo,
+                    'color': colorTexto,
+                    'border-color': colorTexto
+                });
+            
+            $texto.html(mensaje);
+            $barra
+                .removeClass('bg-success bg-info bg-warning bg-danger bg-secondary')
+                .addClass(colorBarra)
+                .css('width', eficiencia + '%')
+                .attr('aria-valuenow', eficiencia)
+                .text(eficiencia > 0 ? eficiencia + '%' : '0%');
+        }
+
+        // ==========================================
+        // FUNCION: VERIFICAR COMPATIBILIDAD ANIMAL-DIETA
+        // ==========================================
+        function verificarCompatibilidad() {
+            let animalSelect = $('#sel_animal_ra option:selected');
+            let dietaSelect = $('#sel_dieta_ra option:selected');
+            let $indicador = $('#indicador-compatibilidad');
+            let $texto = $('#texto-compatibilidad');
+            
+            let categoriaAnimal = animalSelect.data('categoria');
+            let categoriaDieta = dietaSelect.data('categoria');
+            
+            if (!categoriaAnimal || !categoriaDieta) {
+                $indicador.addClass('d-none');
+                return;
+            }
+            
+            let colorFondo, colorTexto, mensaje;
+            
+            if (categoriaAnimal === categoriaDieta) {
+                colorFondo = '#d4edda';
+                colorTexto = '#155724';
+                mensaje = '✅ Compatible: Dieta diseñada para ' + categoriaDieta;
+            } else {
+                colorFondo = '#fff8e6';
+                colorTexto = '#8B6914';
+                mensaje = '⚠️ Advertencia: Animal es ' + categoriaAnimal + ', dieta para ' + categoriaDieta;
+            }
+            
+            $indicador
+                .removeClass('d-none')
+                .css({
+                    'background-color': colorFondo,
+                    'color': colorTexto,
+                    'border-left': '4px solid ' + colorTexto
+                });
+            
+            $texto.html(mensaje);
+        }
+
+        // ==========================================
+        // FUNCION: VERIFICAR STOCK DE INSUMO
+        // ==========================================
+        function verificarStock() {
+            let insumoSelect = $('#sel_insumo_ra option:selected');
+            let ofrecido = parseFloat($('#txt_cantidad_ofrecida_kg_ra').val()) || 0;
+            let stock = parseFloat(insumoSelect.data('stock')) || 0;
+            let $indicador = $('#indicador-stock');
+            let $texto = $('#texto-stock');
+            
+            if (!insumoSelect.val() || stock <= 0) {
+                $indicador.addClass('d-none');
+                return;
+            }
+            
+            let colorFondo, colorTexto, mensaje;
+            
+            if (ofrecido > 0) {
+                if (ofrecido > stock) {
+                    colorFondo = '#fde8e8';
+                    colorTexto = '#8B0000';
+                    mensaje = '❌ Stock insuficiente: Necesita ' + ofrecido.toFixed(2) + ' kg, disponible ' + stock.toFixed(2) + ' kg';
+                } else {
+                    let restante = stock - ofrecido;
+                    colorFondo = '#d4edda';
+                    colorTexto = '#155724';
+                    mensaje = '✅ Stock suficiente: ' + stock.toFixed(2) + ' kg disponibles, quedarán ' + restante.toFixed(2) + ' kg';
+                }
+            } else {
+                colorFondo = '#e3f2fd';
+                colorTexto = '#0d47a1';
+                mensaje = 'ℹ️ Stock disponible: ' + stock.toFixed(2) + ' kg';
+            }
+            
+            $indicador
+                .removeClass('d-none')
+                .css({
+                    'background-color': colorFondo,
+                    'color': colorTexto,
+                    'border-left': '4px solid ' + colorTexto
+                });
+            
+            $texto.html(mensaje);
+        }
+
+        $(document).ready(function() {
+            
+            // ==========================================
+            // EVENTOS PARA CÁLCULOS EN TIEMPO REAL
+            // ==========================================
+            
+            $('#sel_animal_ra, #sel_dieta_ra').on('change', function() {
+                verificarCompatibilidad();
+            });
+            
+            $('#sel_insumo_ra, #txt_cantidad_ofrecida_kg_ra').on('change input', function() {
+                verificarStock();
+            });
+            
+            $('#txt_cantidad_ofrecida_kg_ra, #txt_cantidad_consumida_kg_ra, #txt_desperdicio_kg_ra').on('input change', function() {
+                calcularEficiencia();
+            });
+
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_nueva_racion").validate({
+                rules: {
+                    sel_animal_ra: {
+                        required: true
+                    },
+                    sel_dieta_ra: {
+                        required: true
+                    },
+                    sel_insumo_ra: {
+                        // Opcional
+                    },
+                    txt_fecha_inicio_ra: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    txt_fecha_fin_ra: {
+                        fechaFinPosterior: true
+                    },
+                    txt_cantidad_ofrecida_kg_ra: {
+                        required: true,
+                        decimalValido: true,
+                        number: true,
+                        min: 0.01,
+                        max: 9999.99
+                    },
+                    txt_cantidad_consumida_kg_ra: {
+                        decimalValido: true,
+                        number: true,
+                        min: 0,
+                        consumoValido: true
+                    },
+                    txt_desperdicio_kg_ra: {
+                        decimalValido: true,
+                        number: true,
+                        min: 0,
+                        desperdicioValido: true
+                    },
+                    txt_dias_en_potrero_ra: {
+                        digits: true,
+                        min: 0
+                    }
+                },
+                messages: {
+                    sel_animal_ra: {
+                        required: "Seleccione un animal"
+                    },
+                    sel_dieta_ra: {
+                        required: "Seleccione una dieta"
+                    },
+                    txt_fecha_inicio_ra: {
+                        required: "La fecha de inicio es obligatoria",
+                        fechaNoFutura: "La fecha de inicio no puede ser futura"
+                    },
+                    txt_fecha_fin_ra: {
+                        fechaFinPosterior: "La fecha de fin debe ser posterior o igual a la de inicio"
+                    },
+                    txt_cantidad_ofrecida_kg_ra: {
+                        required: "La cantidad ofrecida es obligatoria",
+                        decimalValido: "Ingrese un número válido (máx. 2 decimales)",
+                        number: "Ingrese un número válido",
+                        min: "Debe ser mayor a 0",
+                        max: "Máximo 9999.99 kg"
+                    },
+                    txt_cantidad_consumida_kg_ra: {
+                        decimalValido: "Ingrese un número válido (máx. 2 decimales)",
+                        number: "Ingrese un número válido",
+                        min: "No puede ser negativo",
+                        consumoValido: "No puede superar la cantidad ofrecida"
+                    },
+                    txt_desperdicio_kg_ra: {
+                        decimalValido: "Ingrese un número válido (máx. 2 decimales)",
+                        number: "Ingrese un número válido",
+                        min: "No puede ser negativo",
+                        desperdicioValido: "No puede superar lo no consumido"
+                    },
+                    txt_dias_en_potrero_ra: {
+                        digits: "Debe ser un número entero",
+                        min: "No puede ser negativo"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                },
+                submitHandler: function(form) {
+                    // Validación final de stock antes de enviar
+                    let insumoSelect = $('#sel_insumo_ra option:selected');
+                    let ofrecido = parseFloat($('#txt_cantidad_ofrecida_kg_ra').val()) || 0;
+                    let stock = parseFloat(insumoSelect.data('stock')) || 0;
+                    
+                    if (insumoSelect.val() && ofrecido > stock) {
+                        alertaError('Stock insuficiente', 
+                            'El insumo seleccionado solo tiene ' + stock.toFixed(2) + ' kg disponibles. ' +
+                            'Necesita ' + ofrecido.toFixed(2) + ' kg.');
+                        return false;
+                    }
+                    
+                    form.submit();
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - CANTIDADES
+            // ==========================================
+            $('#txt_cantidad_ofrecida_kg_ra, #txt_cantidad_consumida_kg_ra, #txt_desperdicio_kg_ra').on('input', function() {
+                let valor = $(this).val();
+                // Reemplazar coma por punto
+                valor = valor.replace(',', '.');
+                // Validar formato
+                if (valor && !/^\d*\.?\d{0,2}$/.test(valor)) {
+                    valor = valor.substring(0, valor.length - 1);
+                }
+                $(this).val(valor);
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - FECHAS
+            // ==========================================            
+            $('#txt_fecha_fin_ra').on('blur', function() {
+                let fechaInicio = $('#txt_fecha_inicio_ra').val();
+                let fechaFin = $(this).val();
+                
+                if (fechaFin && fechaInicio) {
+                    if (new Date(fechaFin) < new Date(fechaInicio)) {
+                        $(this).val('');
+                        alertaError('Fecha inválida', 'La fecha de fin debe ser posterior o igual a la fecha de inicio.');
+                        $(this).focus();
+                    }
+                }
+            });
+
+            $('#txt_fecha_inicio_ra').on('blur', function() {
+                let fechaInicio = $(this).val();
+                let hoy = new Date();
+                hoy.setHours(23, 59, 59, 999);
+                
+                if (fechaInicio && new Date(fechaInicio) > hoy) {
+                    $(this).val(new Date().toISOString().split('T')[0]);
+                    alertaError('Fecha inválida', 'La fecha de inicio no puede ser futura. Se ha establecido la fecha de hoy.');
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

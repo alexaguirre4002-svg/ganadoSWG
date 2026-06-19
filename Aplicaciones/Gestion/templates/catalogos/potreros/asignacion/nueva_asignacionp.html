@@ -1,0 +1,567 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Nueva Asignación de Potrero | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listaasignacionp/" class="text-decoration-none" style="color: var(--color-primario);">Asignaciones de Potrero</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nueva Asignación</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-geo-alt me-2"></i>Registrar Nueva Asignación de Potrero
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Asigne un animal a un potrero disponible y registre las fechas de permanencia
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE ASIGNACIÓN        -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos de la Asignación
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/guardarasignacionp/" id="frm_nueva_asignacionp" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: POTRERO Y ANIMAL (FKs OBLIGATORIAS)-->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: POTRERO (FK) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_potrero_ap">
+                                    <i class="bi bi-geo-alt me-1"></i>Potrero <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_potrero_ap" 
+                                        id="sel_potrero_ap" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione un potrero...</option>
+                                    {% for potrero in potreros %}
+                                    <option value="{{ potrero.id_po }}"
+                                            data-hectareas="{{ potrero.hectareas_po }}"
+                                            data-capacidad="{{ potrero.capacidad_maxima_po }}"
+                                            data-estado="{{ potrero.estado_po }}">
+                                        {{ potrero.codigo_po }} - {{ potrero.nombre_po }} 
+                                        ({{ potrero.hectareas_po }} ha | Cap: {{ potrero.capacidad_maxima_po }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Solo potreros disponibles o en descanso.</small>
+                                
+                                <!-- Indicador de capacidad -->
+                                <div id="indicador-capacidad" class="mt-2 p-2 rounded d-none" style="font-size: 0.9rem; font-weight: 500;">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    <span id="texto-capacidad"></span>
+                                </div>
+                            </div>
+
+                            <!-- CAMPO: ANIMAL (FK) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_animal_ap">
+                                    <i class="bi bi-emoji-smile me-1"></i>Animal <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_animal_ap" 
+                                        id="sel_animal_ap" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione un animal...</option>
+                                    {% for animal in animales %}
+                                    <option value="{{ animal.id_an }}"
+                                            data-categoria="{{ animal.categoria_an }}"
+                                            data-raza="{{ animal.fk_ra.nombre_ra|default:'Sin raza' }}">
+                                        {{ animal.codigo_an }} - {{ animal.nombre_an|default:'Sin nombre' }} 
+                                        ({{ animal.categoria_an }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Solo animales activos no asignados actualmente a un potrero.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: FECHAS INGRESO Y SALIDA ESTIMADA   -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: FECHA INGRESO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_ingreso_ap">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Ingreso <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_ingreso_ap" 
+                                       id="txt_fecha_ingreso_ap" 
+                                       class="form-control" 
+                                       value="{{ hoy }}"
+                                       required>
+                                <small class="text-muted">Fecha en que el animal ingresa al potrero. No puede ser futura.</small>
+                            </div>
+
+                            <!-- CAMPO: FECHA SALIDA ESTIMADA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_salida_estimada_ap">
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha de Salida Estimada
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_salida_estimada_ap" 
+                                       id="txt_fecha_salida_estimada_ap" 
+                                       class="form-control">
+                                <small class="text-muted">Opcional. Debe ser posterior a la fecha de ingreso.</small>
+                                
+                                <!-- Indicador de duración -->
+                                <div id="indicador-duracion" class="mt-2 p-2 rounded d-none" style="font-size: 0.9rem; font-weight: 500;">
+                                    <i class="bi bi-calculator me-1"></i>
+                                    <span id="texto-duracion"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: DIAS DESCANSO Y OBSERVACIONES      -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: DIAS DESCANSO POSTERIOR -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_dias_descanso_posterior_ap">
+                                    <i class="bi bi-pause-circle me-1"></i>Días de Descanso Posterior
+                                </label>
+                                <input type="number" 
+                                       name="txt_dias_descanso_posterior_ap" 
+                                       id="txt_dias_descanso_posterior_ap" 
+                                       class="form-control"
+                                       value="30"
+                                       min="0"
+                                       step="1">
+                                <small class="text-muted">Días de descanso del potrero después de la salida. Default: 30.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: OBSERVACIONES                      -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_observaciones_ap">
+                                    <i class="bi bi-journal-text me-1"></i>Observaciones
+                                </label>
+                                <textarea name="txt_observaciones_ap" 
+                                          id="txt_observaciones_ap" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          maxlength="1000"
+                                          placeholder="Observaciones sobre la asignación, condiciones del potrero, razones del traslado..."></textarea>
+                                <small class="text-muted">Máximo 1000 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Asignación
+                            </button>
+                            <a href="/listaasignacionp/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#28a745',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#28a745',
+                titleColor: '#155724',
+                messageColor: '#2c5e1a',
+                backgroundColor: '#d4edda',
+                borderBottom: '3px solid #28a745',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS JQUERY VALIDATE
+        // ==========================================
+        
+        // Fecha ingreso no puede ser futura
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha de ingreso no puede ser futura");
+
+        // Fecha salida estimada debe ser posterior a fecha ingreso
+        jQuery.validator.addMethod("salidaPosterior", function(value, element) {
+            if (!value) return true;
+            let fechaIngreso = $('#txt_fecha_ingreso_ap').val();
+            if (!fechaIngreso) return true;
+            return new Date(value) > new Date(fechaIngreso);
+        }, "La fecha de salida estimada debe ser posterior a la fecha de ingreso");
+
+        // ==========================================
+        // FUNCION: CALCULAR Y MOSTRAR DURACIÓN
+        // ==========================================
+        function calcularDuracion() {
+            let fechaIngreso = $('#txt_fecha_ingreso_ap').val();
+            let fechaSalida = $('#txt_fecha_salida_estimada_ap').val();
+            let $indicador = $('#indicador-duracion');
+            let $texto = $('#texto-duracion');
+            
+            if (!fechaIngreso || !fechaSalida) {
+                $indicador.addClass('d-none');
+                return;
+            }
+            
+            let d1 = new Date(fechaIngreso);
+            let d2 = new Date(fechaSalida);
+            let diffMs = d2 - d1;
+            let dias = Math.round(diffMs / (1000 * 60 * 60 * 24));
+            
+            if (dias <= 0) {
+                $indicador.removeClass('d-none')
+                    .css({
+                        'background-color': '#fde8e8',
+                        'color': '#8B0000',
+                        'border-left': '4px solid #dc3545'
+                    });
+                $texto.html('⚠️ La fecha de salida debe ser posterior a la de ingreso');
+                return;
+            }
+            
+            let colorFondo, colorTexto, mensaje;
+            
+            if (dias < 7) {
+                colorFondo = '#fff8e6';
+                colorTexto = '#8B6914';
+                mensaje = '⏳ Permanencia corta: ' + dias + ' días';
+            } else if (dias < 30) {
+                colorFondo = '#e8f5e9';
+                colorTexto = '#2e7d32';
+                mensaje = '✅ Permanencia normal: ' + dias + ' días';
+            } else if (dias < 90) {
+                colorFondo = '#d4edda';
+                colorTexto = '#155724';
+                mensaje = '✅ Permanencia extendida: ' + dias + ' días';
+            } else {
+                colorFondo = '#fff3e0';
+                colorTexto = '#e65100';
+                mensaje = '⚠️ Permanencia muy larga: ' + dias + ' días (revisar)';
+            }
+            
+            $indicador
+                .removeClass('d-none')
+                .css({
+                    'background-color': colorFondo,
+                    'color': colorTexto,
+                    'border-left': '4px solid ' + colorTexto
+                });
+            
+            $texto.html(mensaje);
+        }
+
+        // ==========================================
+        // FUNCION: VERIFICAR CAPACIDAD POTRERO
+        // ==========================================
+        function verificarCapacidad() {
+            let potreroSelect = $('#sel_potrero_ap option:selected');
+            let capacidad = parseInt(potreroSelect.data('capacidad')) || 0;
+            let hectareas = parseFloat(potreroSelect.data('hectareas')) || 0;
+            let estado = potreroSelect.data('estado');
+            
+            let $indicador = $('#indicador-capacidad');
+            let $texto = $('#texto-capacidad');
+            
+            if (!potreroSelect.val()) {
+                $indicador.addClass('d-none');
+                return;
+            }
+            
+            let colorFondo, colorTexto, mensaje;
+            
+            if (estado === 'en_descanso') {
+                colorFondo = '#fff8e6';
+                colorTexto = '#8B6914';
+                mensaje = '⚠️ Potrero en descanso. Se activará al asignar.';
+            } else {
+                colorFondo = '#d4edda';
+                colorTexto = '#155724';
+                mensaje = '✅ Capacidad máxima: ' + capacidad + ' animales | ' + hectareas + ' hectáreas';
+            }
+            
+            $indicador
+                .removeClass('d-none')
+                .css({
+                    'background-color': colorFondo,
+                    'color': colorTexto,
+                    'border-left': '4px solid ' + colorTexto
+                });
+            
+            $texto.html(mensaje);
+        }
+
+        $(document).ready(function() {
+            
+            // Set fecha ingreso default a hoy
+            $('#txt_fecha_ingreso_ap').val(new Date().toISOString().split('T')[0]);
+
+            // ==========================================
+            // EVENTOS PARA CÁLCULOS EN TIEMPO REAL
+            // ==========================================
+            
+            $('#sel_potrero_ap').on('change', function() {
+                verificarCapacidad();
+            });
+
+            $('#txt_fecha_ingreso_ap, #txt_fecha_salida_estimada_ap').on('change', function() {
+                calcularDuracion();
+            });
+
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_nueva_asignacionp").validate({
+                rules: {
+                    sel_potrero_ap: {
+                        required: true
+                    },
+                    sel_animal_ap: {
+                        required: true
+                    },
+                    txt_fecha_ingreso_ap: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    txt_fecha_salida_estimada_ap: {
+                        salidaPosterior: true
+                    },
+                    txt_dias_descanso_posterior_ap: {
+                        digits: true,
+                        min: 0
+                    },
+                    txt_observaciones_ap: {
+                        maxlength: 1000
+                    }
+                },
+                messages: {
+                    sel_potrero_ap: {
+                        required: "Seleccione un potrero"
+                    },
+                    sel_animal_ap: {
+                        required: "Seleccione un animal"
+                    },
+                    txt_fecha_ingreso_ap: {
+                        required: "La fecha de ingreso es obligatoria",
+                        fechaNoFutura: "La fecha de ingreso no puede ser futura"
+                    },
+                    txt_fecha_salida_estimada_ap: {
+                        salidaPosterior: "La fecha de salida debe ser posterior a la de ingreso"
+                    },
+                    txt_dias_descanso_posterior_ap: {
+                        digits: "Debe ser un número entero",
+                        min: "No puede ser negativo"
+                    },
+                    txt_observaciones_ap: {
+                        maxlength: "Máximo 1000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - OBSERVACIONES
+            // ==========================================
+            $('#txt_observaciones_ap').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 1000) {
+                    $(this).val(valor.substring(0, 1000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 1000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - FECHAS
+            // ==========================================            
+            $('#txt_fecha_salida_estimada_ap').on('blur', function() {
+                let fechaIngreso = $('#txt_fecha_ingreso_ap').val();
+                let fechaSalida = $(this).val();
+                
+                if (fechaSalida && fechaIngreso) {
+                    if (new Date(fechaSalida) <= new Date(fechaIngreso)) {
+                        $(this).val('');
+                        alertaError('Fecha inválida', 'La fecha de salida estimada debe ser posterior a la fecha de ingreso.');
+                        $(this).focus();
+                    }
+                }
+                
+                calcularDuracion();
+            });
+
+            $('#txt_fecha_ingreso_ap').on('blur', function() {
+                let fechaIngreso = $(this).val();
+                let hoy = new Date();
+                hoy.setHours(23, 59, 59, 999);
+                
+                if (fechaIngreso && new Date(fechaIngreso) > hoy) {
+                    $(this).val(new Date().toISOString().split('T')[0]);
+                    alertaError('Fecha inválida', 'La fecha de ingreso no puede ser futura. Se ha establecido la fecha de hoy.');
+                }
+                
+                calcularDuracion();
+            });
+
+        });
+    </script>
+{% endblock %}

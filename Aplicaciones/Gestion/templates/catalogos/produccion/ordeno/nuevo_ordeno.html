@@ -1,0 +1,598 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Nuevo Ordeño | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listaordeno/" class="text-decoration-none" style="color: var(--color-primario);">Ordeños</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo Ordeño</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-droplet me-2"></i>Registrar Nuevo Ordeño
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Registre la producción láctea diaria del animal
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE ORDEÑO            -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos del Ordeño
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/guardarordeno/" id="frm_nuevo_ordeno" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: ANIMAL Y FECHA                     -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: ANIMAL (FK) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_animal_or">
+                                    <i class="bi bi-emoji-smile me-1"></i>Animal <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_animal_or" 
+                                        id="sel_animal_or" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione una vaca...</option>
+                                    {% for animal in animales %}
+                                    <option value="{{ animal.id_an }}">{{ animal.codigo_an }} - {{ animal.nombre_an|default:'Sin nombre' }} ({{ animal.categoria_an }})</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Solo vacas en producción de leche (vaca_leche).</small>
+                            </div>
+
+                            <!-- CAMPO: FECHA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_or">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_or" 
+                                       id="txt_fecha_or" 
+                                       class="form-control" 
+                                       required>
+                                <small class="text-muted">Fecha del ordeño. No puede ser futura.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: TURNO Y LITROS                     -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: TURNO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_turno_or">
+                                    <i class="bi bi-sun me-1"></i>Turno <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_turno_or" 
+                                        id="sel_turno_or" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione turno...</option>
+                                    <option value="manana">Mañana</option>
+                                    <option value="tarde">Tarde</option>
+                                    <option value="unico">Único</option>
+                                </select>
+                                <small class="text-muted">Turno de ordeño. No puede repetirse el mismo turno para el mismo animal en la misma fecha.</small>
+                            </div>
+
+                            <!-- CAMPO: LITROS -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_litros_or">
+                                    <i class="bi bi-droplet me-1"></i>Litros <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" 
+                                       name="txt_litros_or" 
+                                       id="txt_litros_or" 
+                                       class="form-control" 
+                                       step="0.01"
+                                       min="0.01"
+                                       max="99.99"
+                                       placeholder="Ej: 15.50"
+                                       required>
+                                <small class="text-muted">Cantidad de leche en litros. Máximo 99.99 L.</small>
+                                
+                                <!-- ========================================== -->
+                                <!-- INDICADOR DE RENDIMIENTO (NUEVO)           -->
+                                <!-- ========================================== -->
+                                <div id="indicador-rendimiento" class="mt-2 p-2 rounded d-none" style="font-size: 0.9rem; font-weight: 500;">
+                                    <i class="bi bi-calculator me-1"></i>
+                                    <span id="texto-rendimiento"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: TEMPERATURAS                       -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: TEMPERATURA LECHE -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_temperatura_leche_or">
+                                    <i class="bi bi-thermometer me-1"></i>Temperatura de la Leche (°C)
+                                </label>
+                                <input type="number" 
+                                       name="txt_temperatura_leche_or" 
+                                       id="txt_temperatura_leche_or" 
+                                       class="form-control" 
+                                       step="0.1"
+                                       min="0"
+                                       max="50"
+                                       placeholder="Ej: 5.5">
+                                <small class="text-muted">Rango óptimo: 4°C - 7°C. Fuera de rango genera alerta.</small>
+                            </div>
+
+                            <!-- CAMPO: TEMPERATURA AMBIENTAL -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_temperatura_ambiental_or">
+                                    <i class="bi bi-thermometer-sun me-1"></i>Temperatura Ambiental (°C)
+                                </label>
+                                <input type="number" 
+                                       name="txt_temperatura_ambiental_or" 
+                                       id="txt_temperatura_ambiental_or" 
+                                       class="form-control" 
+                                       step="0.1"
+                                       min="-10"
+                                       max="50"
+                                       placeholder="Ej: 22.0">
+                                <small class="text-muted">Temperatura ambiental durante el ordeño.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: CONCENTRADO                        -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_cantidad_concentrado_kg_or">
+                                    <i class="bi bi-basket me-1"></i>Concentrado (kg)
+                                </label>
+                                <input type="number" 
+                                       name="txt_cantidad_concentrado_kg_or" 
+                                       id="txt_cantidad_concentrado_kg_or" 
+                                       class="form-control" 
+                                       step="0.01"
+                                       min="0"
+                                       max="99.99"
+                                       placeholder="Ej: 3.50">
+                                <small class="text-muted">Cantidad de concentrado ofrecida en kg.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 5: OBSERVACIONES                      -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_observaciones_or">
+                                    <i class="bi bi-journal-text me-1"></i>Observaciones
+                                </label>
+                                <textarea name="txt_observaciones_or" 
+                                          id="txt_observaciones_or" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          maxlength="1000"
+                                          placeholder="Observaciones del ordeño, calidad de leche, comportamiento del animal..."></textarea>
+                                <small class="text-muted">Máximo 1000 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Ordeño
+                            </button>
+                            <a href="/listaordeno/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#28a745',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#28a745',
+                titleColor: '#155724',
+                messageColor: '#2c5e1a',
+                backgroundColor: '#d4edda',
+                borderBottom: '3px solid #28a745',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        // Fecha no puede ser futura
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha no puede ser futura");
+
+        // Litros debe ser mayor a 0
+        jQuery.validator.addMethod("litrosValidos", function(value, element) {
+            if (!value) return false;
+            return parseFloat(value) > 0;
+        }, "Los litros deben ser mayores a 0");
+
+        // Temperatura leche en rango razonable
+        jQuery.validator.addMethod("tempLecheValida", function(value, element) {
+            if (!value) return true;
+            let temp = parseFloat(value);
+            return temp >= 0 && temp <= 50;
+        }, "Temperatura de leche inválida (0-50°C)");
+
+        // Temperatura ambiental en rango razonable
+        jQuery.validator.addMethod("tempAmbienteValida", function(value, element) {
+            if (!value) return true;
+            let temp = parseFloat(value);
+            return temp >= -10 && temp <= 50;
+        }, "Temperatura ambiental inválida (-10 a 50°C)");
+
+        // Animal debe ser vaca en producción
+        jQuery.validator.addMethod("vacaProduccion", function(value, element) {
+            if (!value) return false;
+            let selected = $(element).find('option:selected').text().toLowerCase();
+            return selected.includes('vaca_leche');
+        }, "El animal debe ser una vaca en producción de leche");
+
+        // ==========================================
+        // FUNCION: MOSTRAR INDICADOR DE RENDIMIENTO
+        // ==========================================
+        function mostrarIndicadorRendimiento() {
+            let litros = parseFloat($('#txt_litros_or').val());
+            let $indicador = $('#indicador-rendimiento');
+            let $texto = $('#texto-rendimiento');
+            
+            if (!litros || litros <= 0) {
+                $indicador.addClass('d-none');
+                return;
+            }
+            
+            let colorFondo, colorTexto, mensaje;
+            
+            if (litros >= 25) {
+                colorFondo = '#d4edda';
+                colorTexto = '#155724';
+                mensaje = '🏆 Excelente rendimiento: ' + litros + ' L (vacas de alta producción)';
+            } else if (litros >= 15) {
+                colorFondo = '#e8f5e9';
+                colorTexto = '#2e7d32';
+                mensaje = '✅ Buen rendimiento: ' + litros + ' L (producción normal)';
+            } else if (litros >= 8) {
+                colorFondo = '#fff3cd';
+                colorTexto = '#856404';
+                mensaje = '⚠️ Rendimiento bajo: ' + litros + ' L (revisar alimentación)';
+            } else {
+                colorFondo = '#fde8e8';
+                colorTexto = '#8B0000';
+                mensaje = '🚨 Rendimiento crítico: ' + litros + ' L (consultar veterinario)';
+            }
+            
+            $indicador
+                .removeClass('d-none')
+                .css({
+                    'background-color': colorFondo,
+                    'color': colorTexto,
+                    'border-left': '4px solid ' + colorTexto
+                });
+            
+            $texto.html(mensaje);
+        }
+
+        // ==========================================
+        // FUNCION: VERIFICAR TEMPERATURA LECHE
+        // ==========================================
+        function verificarTemperaturaLeche() {
+            let temp = parseFloat($('#txt_temperatura_leche_or').val());
+            if (!temp && temp !== 0) return;
+            
+            if (temp > 7) {
+                alertaAdvertencia('Temperatura alta', 'La temperatura de la leche (' + temp + '°C) excede el límite recomendado de 7°C. Riesgo de deterioro bacteriano.');
+            } else if (temp < 4) {
+                alertaAdvertencia('Temperatura baja', 'La temperatura de la leche (' + temp + '°C) está por debajo de 4°C. Verifique el termómetro.');
+            } else if (temp >= 4 && temp <= 7) {
+                alertaExito('Temperatura óptima', 'La temperatura de la leche (' + temp + '°C) está en el rango ideal (4-7°C).');
+            }
+        }
+
+        $(document).ready(function() {
+            
+            // Set fecha default a hoy
+            $('#txt_fecha_or').val(new Date().toISOString().split('T')[0]);
+
+            // ==========================================
+            // INDICADOR DE RENDIMIENTO AL CAMBIAR LITROS
+            // ==========================================
+            $('#txt_litros_or').on('input change', function() {
+                mostrarIndicadorRendimiento();
+            });
+
+            // ==========================================
+            // VERIFICAR TEMPERATURA AL PERDER FOCO
+            // ==========================================
+            $('#txt_temperatura_leche_or').on('blur', function() {
+                verificarTemperaturaLeche();
+            });
+
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_nuevo_ordeno").validate({
+                rules: {
+                    sel_animal_or: {
+                        required: true,
+                        vacaProduccion: true
+                    },
+                    txt_fecha_or: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    sel_turno_or: {
+                        required: true
+                    },
+                    txt_litros_or: {
+                        required: true,
+                        litrosValidos: true,
+                        number: true,
+                        min: 0.01,
+                        max: 99.99
+                    },
+                    txt_temperatura_leche_or: {
+                        tempLecheValida: true,
+                        number: true,
+                        min: 0,
+                        max: 50
+                    },
+                    txt_temperatura_ambiental_or: {
+                        tempAmbienteValida: true,
+                        number: true,
+                        min: -10,
+                        max: 50
+                    },
+                    txt_cantidad_concentrado_kg_or: {
+                        number: true,
+                        min: 0,
+                        max: 99.99
+                    },
+                    txt_observaciones_or: {
+                        maxlength: 1000
+                    }
+                },
+                messages: {
+                    sel_animal_or: {
+                        required: "Seleccione un animal",
+                        vacaProduccion: "El animal debe ser una vaca en producción de leche (vaca_leche)"
+                    },
+                    txt_fecha_or: {
+                        required: "La fecha es obligatoria",
+                        fechaNoFutura: "La fecha no puede ser futura"
+                    },
+                    sel_turno_or: {
+                        required: "Seleccione el turno de ordeño"
+                    },
+                    txt_litros_or: {
+                        required: "Los litros son obligatorios",
+                        litrosValidos: "Los litros deben ser mayores a 0",
+                        min: "Mínimo 0.01 litros",
+                        max: "Máximo 99.99 litros"
+                    },
+                    txt_temperatura_leche_or: {
+                        min: "Mínimo 0°C",
+                        max: "Máximo 50°C"
+                    },
+                    txt_temperatura_ambiental_or: {
+                        min: "Mínimo -10°C",
+                        max: "Máximo 50°C"
+                    },
+                    txt_cantidad_concentrado_kg_or: {
+                        min: "Mínimo 0 kg",
+                        max: "Máximo 99.99 kg"
+                    },
+                    txt_observaciones_or: {
+                        maxlength: "Máximo 1000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - OBSERVACIONES
+            // ==========================================
+            $('#txt_observaciones_or').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 1000) {
+                    $(this).val(valor.substring(0, 1000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 1000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - FECHA
+            // ==========================================
+            $('#txt_fecha_or').on('blur', function() {
+                let fecha = $(this).val();
+                let hoy = new Date();
+                hoy.setHours(23, 59, 59, 999);
+                
+                if (fecha && new Date(fecha) > hoy) {
+                    $(this).val(new Date().toISOString().split('T')[0]);
+                    alertaError('Fecha inválida', 'La fecha no puede ser futura. Se ha establecido la fecha de hoy.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - LITROS
+            // ==========================================
+            $('#txt_litros_or').on('blur', function() {
+                let litros = parseFloat($(this).val());
+                if (litros && litros <= 0) {
+                    $(this).val('');
+                    alertaError('Litros inválidos', 'Los litros deben ser mayores a 0.');
+                    $(this).focus();
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

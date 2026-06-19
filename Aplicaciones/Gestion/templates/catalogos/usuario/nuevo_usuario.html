@@ -1,0 +1,642 @@
+{% extends "plantilla.html" %}
+
+{% block titulo %}
+    Nuevo Usuario | Hacienda El Roble
+{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listadousuarios/" class="text-decoration-none" style="color: var(--color-primario);">Usuarios</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo Usuario</li>
+{% endblock %}
+
+{% block contenido %}
+
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-person-plus me-2"></i>Registrar Nuevo Usuario
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Cree una cuenta de usuario para el sistema
+            </p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos del Usuario
+                </div>
+
+                <div class="p-4">
+                    <form action="/guardarusuario/" id="frm_nuevo_usuario" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <!-- USERNAME -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_username_us">
+                                    <i class="bi bi-person-badge me-1"></i>Nombre de Usuario <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_username_us" 
+                                       id="txt_username_us" 
+                                       class="form-control" 
+                                       placeholder="Ej: jgonzalez, admin01..." 
+                                       maxlength="150" 
+                                       required>
+                                <small class="text-muted">Máximo 150 caracteres. Solo letras, números y guiones bajos.</small>
+                            </div>
+
+                            <!-- EMAIL -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_email_us">
+                                    <i class="bi bi-envelope me-1"></i>Correo Electrónico <span class="text-danger">*</span>
+                                </label>
+                                <input type="email" 
+                                       name="txt_email_us" 
+                                       id="txt_email_us" 
+                                       class="form-control" 
+                                       placeholder="Ej: usuario@correo.com..." 
+                                       maxlength="254" 
+                                       required>
+                                <small class="text-muted">Debe ser único y válido.</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- NOMBRE -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_nombre_us">
+                                    <i class="bi bi-person me-1"></i>Nombres <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_nombre_us" 
+                                       id="txt_nombre_us" 
+                                       class="form-control" 
+                                       placeholder="Ej: Juan Carlos..." 
+                                       maxlength="100" 
+                                       required>
+                                <small class="text-muted">Máximo 100 caracteres. Solo letras.</small>
+                            </div>
+
+                            <!-- APELLIDO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_apellido_us">
+                                    <i class="bi bi-person me-1"></i>Apellidos <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_apellido_us" 
+                                       id="txt_apellido_us" 
+                                       class="form-control" 
+                                       placeholder="Ej: González Pérez..." 
+                                       maxlength="100" 
+                                       required>
+                                <small class="text-muted">Máximo 100 caracteres. Solo letras.</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- CÉDULA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_cedula_us">
+                                    <i class="bi bi-card-text me-1"></i>Cédula / RUC
+                                </label>
+                                <input type="text" 
+                                       name="txt_cedula_us" 
+                                       id="txt_cedula_us" 
+                                       class="form-control" 
+                                       placeholder="Ej: 1234567890..." 
+                                       maxlength="20">
+                                <small class="text-muted">Máximo 20 caracteres. Solo números.</small>
+                            </div>
+
+                            <!-- TELÉFONO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_telefono_us">
+                                    <i class="bi bi-telephone me-1"></i>Teléfono
+                                </label>
+                                <input type="text" 
+                                       name="txt_telefono_us" 
+                                       id="txt_telefono_us" 
+                                       class="form-control" 
+                                       placeholder="Ej: 0987654321..." 
+                                       maxlength="20">
+                                <small class="text-muted">Máximo 20 caracteres. Solo números y guiones.</small>
+                            </div>
+                        </div>
+
+                        <!-- ROL -->
+                        <div class="mb-3">
+                            <label for="sel_rol_us">
+                                <i class="bi bi-shield me-1"></i>Rol del Sistema <span class="text-danger">*</span>
+                            </label>
+                            <select name="sel_rol_us" 
+                                    id="sel_rol_us" 
+                                    class="form-select" 
+                                    required>
+                                <option value="" selected disabled>Seleccione un rol...</option>
+                                <option value="administrador">Administrador</option>
+                                <option value="veterinario">Veterinario</option>
+                                <option value="capataz">Capataz</option>
+                                <option value="contador">Contador</option>
+                                <option value="dueño">Dueño</option>
+                            </select>
+                        </div>
+
+                        <div class="card mb-3" style="border: 1px solid #dc3545; background: #fff5f5;">
+                            <div class="card-header" style="background: #dc3545; color: white; font-weight: 600;">
+                                <i class="bi bi-shield-lock me-2"></i>Seguridad
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- CONTRASEÑA -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="txt_password_us">
+                                            <i class="bi bi-key me-1"></i>Contraseña <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="password" 
+                                                   name="txt_password_us" 
+                                                   id="txt_password_us" 
+                                                   class="form-control" 
+                                                   placeholder="Mínimo 8 caracteres" 
+                                                   maxlength="255"
+                                                   required>
+                                            <button class="btn btn-outline-secondary" type="button" id="btnMostrarPass1">
+                                                <i class="bi bi-eye" id="iconoOjo1"></i>
+                                            </button>
+                                        </div>
+                                        <small class="text-muted">Mínimo 8 caracteres. Use letras, números y símbolos.</small>
+                                        <div id="fuerzaPassword" class="mt-2">
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar" id="barraFuerza" role="progressbar" style="width: 0%"></div>
+                                            </div>
+                                            <small id="textoFuerza" class="text-muted"></small>
+                                        </div>
+                                    </div>
+
+                                    <!-- CONFIRMAR CONTRASEÑA -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="txt_confirm_password">
+                                            <i class="bi bi-key-fill me-1"></i>Confirmar Contraseña <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="password" 
+                                                   name="txt_confirm_password" 
+                                                   id="txt_confirm_password" 
+                                                   class="form-control" 
+                                                   placeholder="Repita la contraseña" 
+                                                   maxlength="255"
+                                                   required>
+                                            <button class="btn btn-outline-secondary" type="button" id="btnMostrarPass2">
+                                                <i class="bi bi-eye" id="iconoOjo2"></i>
+                                            </button>
+                                        </div>
+                                        <small class="text-muted">Debe coincidir exactamente.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ESTADO ACTIVO -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input type="checkbox" 
+                                       name="chk_activo_us" 
+                                       id="chk_activo_us" 
+                                       class="form-check-input" 
+                                       value="1" 
+                                       checked>
+                                <label class="form-check-label" for="chk_activo_us">
+                                    <i class="bi bi-check-circle me-1"></i>Usuario activo
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- BOTONES -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Crear Usuario
+                            </button>
+                            <a href="/listadousuarios/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+    <script>
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // Validaciones personalizadas
+        jQuery.validator.addMethod("usernameValido", function(value, element) {
+            return this.optional(element) || /^[a-zA-Z0-9_]+$/.test(value);
+        }, "Solo letras, números y guiones bajos");
+
+        jQuery.validator.addMethod("soloLetras", function(value, element) {
+            return this.optional(element) || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value);
+        }, "Solo se permiten letras");
+
+        jQuery.validator.addMethod("soloNumeros", function(value, element) {
+            return this.optional(element) || /^[0-9]+$/.test(value);
+        }, "Solo se permiten números");
+
+        jQuery.validator.addMethod("telefonoValido", function(value, element) {
+            return this.optional(element) || /^[0-9\-]+$/.test(value);
+        }, "Solo números y guiones");
+
+        jQuery.validator.addMethod("minDosLetras", function(value, element) {
+            return this.optional(element) || value.replace(/\s/g, '').length >= 2;
+        }, "Mínimo 2 letras");
+
+        jQuery.validator.addMethod("passwordSegura", function(value, element) {
+            return this.optional(element) || /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(value);
+        }, "Debe tener mayúscula, minúscula y número");
+
+        $(document).ready(function() {
+            $("#frm_nuevo_usuario").validate({
+                rules: {
+                    txt_username_us: {
+                        required: true,
+                        usernameValido: true,
+                        minlength: 3,
+                        maxlength: 150
+                    },
+                    txt_email_us: {
+                        required: true,
+                        email: true,
+                        maxlength: 254
+                    },
+                    txt_nombre_us: {
+                        required: true,
+                        soloLetras: true,
+                        minDosLetras: true,
+                        maxlength: 100
+                    },
+                    txt_apellido_us: {
+                        required: true,
+                        soloLetras: true,
+                        minDosLetras: true,
+                        maxlength: 100
+                    },
+                    txt_cedula_us: {
+                        soloNumeros: true,
+                        maxlength: 20
+                    },
+                    txt_telefono_us: {
+                        telefonoValido: true,
+                        maxlength: 20
+                    },
+                    sel_rol_us: {
+                        required: true
+                    },
+                    txt_password_us: {
+                        required: true,
+                        passwordSegura: true,
+                        minlength: 8,
+                        maxlength: 255
+                    },
+                    txt_confirm_password: {
+                        required: true,
+                        equalTo: "#txt_password_us"
+                    }
+                },
+                messages: {
+                    txt_username_us: {
+                        required: "El usuario es obligatorio",
+                        usernameValido: "Solo letras, números y guiones bajos",
+                        minlength: "Mínimo 3 caracteres",
+                        maxlength: "Máximo 150 caracteres"
+                    },
+                    txt_email_us: {
+                        required: "El correo es obligatorio",
+                        email: "Ingrese un correo válido",
+                        maxlength: "Máximo 254 caracteres"
+                    },
+                    txt_nombre_us: {
+                        required: "El nombre es obligatorio",
+                        soloLetras: "Solo se permiten letras",
+                        minDosLetras: "Mínimo 2 letras",
+                        maxlength: "Máximo 100 caracteres"
+                    },
+                    txt_apellido_us: {
+                        required: "El apellido es obligatorio",
+                        soloLetras: "Solo se permiten letras",
+                        minDosLetras: "Mínimo 2 letras",
+                        maxlength: "Máximo 100 caracteres"
+                    },
+                    txt_cedula_us: {
+                        soloNumeros: "Solo números permitidos",
+                        maxlength: "Máximo 20 dígitos"
+                    },
+                    txt_telefono_us: {
+                        telefonoValido: "Solo números y guiones",
+                        maxlength: "Máximo 20 caracteres"
+                    },
+                    sel_rol_us: {
+                        required: "Seleccione un rol"
+                    },
+                    txt_password_us: {
+                        required: "La contraseña es obligatoria",
+                        passwordSegura: "Debe tener mayúscula, minúscula, número y 8+ caracteres",
+                        minlength: "Mínimo 8 caracteres",
+                        maxlength: "Máximo 255 caracteres"
+                    },
+                    txt_confirm_password: {
+                        required: "Confirme la contraseña",
+                        equalTo: "Las contraseñas no coinciden"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                    if ($(element).hasClass('is-invalid')) {
+                        $(element).focus();
+                    }
+                }
+            });
+
+            // Mostrar/Ocultar contraseñas
+            $('#btnMostrarPass1').on('click', function() {
+                let input = $('#txt_password_us');
+                let icono = $('#iconoOjo1');
+                if (input.attr('type') === 'password') {
+                    input.attr('type', 'text');
+                    icono.removeClass('bi-eye').addClass('bi-eye-slash');
+                } else {
+                    input.attr('type', 'password');
+                    icono.removeClass('bi-eye-slash').addClass('bi-eye');
+                }
+            });
+
+            $('#btnMostrarPass2').on('click', function() {
+                let input = $('#txt_confirm_password');
+                let icono = $('#iconoOjo2');
+                if (input.attr('type') === 'password') {
+                    input.attr('type', 'text');
+                    icono.removeClass('bi-eye').addClass('bi-eye-slash');
+                } else {
+                    input.attr('type', 'password');
+                    icono.removeClass('bi-eye-slash').addClass('bi-eye');
+                }
+            });
+
+            // Medidor de fuerza de contraseña
+            $('#txt_password_us').on('input', function() {
+                let password = $(this).val();
+                let fuerza = 0;
+                
+                if (password.length >= 8) fuerza += 25;
+                if (password.match(/[a-z]+/)) fuerza += 15;
+                if (password.match(/[A-Z]+/)) fuerza += 20;
+                if (password.match(/[0-9]+/)) fuerza += 20;
+                if (password.match(/[^a-zA-Z0-9]+/)) fuerza += 20;
+
+                let barra = $('#barraFuerza');
+                let texto = $('#textoFuerza');
+                
+                barra.css('width', fuerza + '%');
+                
+                if (fuerza < 30) {
+                    barra.removeClass('bg-warning bg-success').addClass('bg-danger');
+                    texto.text('Débil').removeClass('text-warning text-success').addClass('text-danger');
+                } else if (fuerza < 70) {
+                    barra.removeClass('bg-danger bg-success').addClass('bg-warning');
+                    texto.text('Media').removeClass('text-danger text-success').addClass('text-warning');
+                } else {
+                    barra.removeClass('bg-danger bg-warning').addClass('bg-success');
+                    texto.text('Fuerte').removeClass('text-danger text-warning').addClass('text-success');
+                }
+            });
+
+            // Bloqueo en tiempo real - USERNAME
+            $('#txt_username_us').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
+                if (filtrado.length > 150) {
+                    filtrado = filtrado.substring(0, 150);
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 150 caracteres para el usuario.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'Solo letras, números y guiones bajos.');
+                }
+            });
+
+            // Bloqueo en tiempo real - NOMBRE
+            $('#txt_nombre_us, #txt_apellido_us').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                if (filtrado.length > 100) {
+                    filtrado = filtrado.substring(0, 100);
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 100 caracteres.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'Solo se permiten letras y espacios.');
+                }
+            });
+
+            // Bloqueo en tiempo real - CÉDULA
+            $('#txt_cedula_us').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^0-9]/g, '');
+                if (filtrado.length > 20) {
+                    filtrado = filtrado.substring(0, 20);
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 20 dígitos.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'Solo números permitidos.');
+                }
+            });
+
+            // Bloqueo en tiempo real - TELÉFONO
+            $('#txt_telefono_us').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^0-9\-]/g, '');
+                if (filtrado.length > 20) {
+                    filtrado = filtrado.substring(0, 20);
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 20 caracteres.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'Solo números y guiones.');
+                }
+            });
+
+            // Bloqueo teclas - USERNAME
+            $('#txt_username_us').on('keypress', function(e) {
+                let tecla = String.fromCharCode(e.which);
+                if (!/^[a-zA-Z0-9_]$/.test(tecla)) {
+                    e.preventDefault();
+                    alertaError('Tecla bloqueada', 'Solo letras, números y guiones bajos.');
+                    return false;
+                }
+            });
+
+            // Bloqueo teclas - NOMBRES
+            $('#txt_nombre_us, #txt_apellido_us').on('keypress', function(e) {
+                let tecla = String.fromCharCode(e.which);
+                if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]$/.test(tecla)) {
+                    e.preventDefault();
+                    alertaError('Tecla bloqueada', 'Solo se permiten letras.');
+                    return false;
+                }
+            });
+
+            // Bloqueo teclas - CÉDULA
+            $('#txt_cedula_us').on('keypress', function(e) {
+                let tecla = String.fromCharCode(e.which);
+                if (!/^[0-9]$/.test(tecla)) {
+                    e.preventDefault();
+                    alertaError('Tecla bloqueada', 'Solo números permitidos.');
+                    return false;
+                }
+            });
+
+            // PEGADO - USERNAME
+            $('#txt_username_us').on('paste', function(e) {
+                e.preventDefault();
+                let pegado = (e.originalEvent.clipboardData || window.clipboardData).getData('text');
+                let filtrado = pegado.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase().substring(0, 150);
+                $(this).val(filtrado);
+                if (pegado.toLowerCase().replace(/[^a-zA-Z0-9_]/g, '') !== filtrado.replace(/[^a-zA-Z0-9_]/g, '')) {
+                    alertaAdvertencia('Texto filtrado', 'Se han eliminado caracteres no permitidos.');
+                }
+            });
+
+            // PEGADO - NOMBRES
+            $('#txt_nombre_us, #txt_apellido_us').on('paste', function(e) {
+                e.preventDefault();
+                let pegado = (e.originalEvent.clipboardData || window.clipboardData).getData('text');
+                let filtrado = pegado.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '').substring(0, 100);
+                $(this).val(filtrado);
+                if (pegado !== filtrado) {
+                    alertaAdvertencia('Texto filtrado', 'Se han eliminado caracteres no permitidos.');
+                }
+            });
+
+            // PEGADO - CÉDULA
+            $('#txt_cedula_us').on('paste', function(e) {
+                e.preventDefault();
+                let pegado = (e.originalEvent.clipboardData || window.clipboardData).getData('text');
+                let filtrado = pegado.replace(/[^0-9]/g, '').substring(0, 20);
+                $(this).val(filtrado);
+                if (pegado.replace(/[^0-9]/g, '') !== filtrado.replace(/[^0-9]/g, '')) {
+                    alertaAdvertencia('Texto filtrado', 'Se han eliminado caracteres no permitidos.');
+                }
+            });
+
+            // BLUR - USERNAME
+            $('#txt_username_us').on('blur', function() {
+                let valor = $(this).val().trim();
+                if (valor.length > 0 && valor.length < 3) {
+                    $(this).val('');
+                    alertaError('Longitud insuficiente', 'Mínimo 3 caracteres. Campo limpiado.');
+                    $(this).focus();
+                }
+            });
+
+            // BLUR - NOMBRES
+            $('#txt_nombre_us, #txt_apellido_us').on('blur', function() {
+                let valor = $(this).val().trim();
+                if (valor.length === 1) {
+                    $(this).val('');
+                    alertaError('Longitud insuficiente', 'Mínimo 2 letras. Campo limpiado.');
+                    $(this).focus();
+                }
+            });
+        });
+    </script>
+{% endblock %}

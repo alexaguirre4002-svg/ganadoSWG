@@ -1,0 +1,472 @@
+editar_pesaje.html
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Editar Pesaje | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listapesaje/" class="text-decoration-none" style="color: var(--color-primario);">Pesajes</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Editar Pesaje</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-pencil-square me-2"></i>Editar Pesaje
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Modifique los datos del pesaje #<strong>{{ pesaje.id_pe }}</strong> - {{ pesaje.fk_an.codigo_an }}
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ALERTA DE ANIMAL ASOCIADO                  -->
+    <!-- ========================================== -->
+    <div class="row animate-fade-in mb-4">
+        <div class="col-12">
+            <div class="alert" style="background: #e8f5e9; border: 2px solid #2c5e1a; border-radius: 12px; color: #2c5e1a;">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <strong>Animal:</strong> 
+                <span class="badge" style="background:#28a745; color:white;"><i class="bi bi-emoji-smile me-1"></i>{{ pesaje.fk_an.codigo_an }}</span>
+                {% if pesaje.fk_an.nombre_an %}
+                <span class="ms-2">{{ pesaje.fk_an.nombre_an }}</span>
+                {% endif %}
+                <span class="badge ms-2" style="background:#6c757d; color:white;">{{ pesaje.fk_an.categoria_an }}</span>
+                <br><small class="ms-4">El animal no se puede cambiar. Si necesita corregirlo, elimine y cree un nuevo pesaje.</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE EDICION           -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-check"></i>Datos del Pesaje
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/procesareditarpesaje/" id="frm_editar_pesaje" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- CAMPO OCULTO: ID DEL PESAJE              -->
+                        <!-- ========================================== -->
+                        <input type="hidden" name="id_pe" value="{{ pesaje.id_pe }}">
+                        <input type="hidden" name="animal_actual" id="animal_actual" value="{{ pesaje.fk_an_id }}">
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: ANIMAL (SOLO LECTURA) Y FECHA    -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: ANIMAL (SOLO LECTURA) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_animal_pe">
+                                    <i class="bi bi-emoji-smile me-1"></i>Animal
+                                </label>
+                                <select name="sel_animal_pe" 
+                                        id="sel_animal_pe" 
+                                        class="form-select" 
+                                        disabled>
+                                    <option value="{{ pesaje.fk_an_id }}" selected>
+                                        {{ pesaje.fk_an.codigo_an }} - {{ pesaje.fk_an.nombre_an|default:'Sin nombre' }} ({{ pesaje.fk_an.categoria_an }})
+                                    </option>
+                                </select>
+                                <small class="text-muted">El animal no se puede modificar.</small>
+                            </div>
+
+                            <!-- CAMPO: FECHA DE PESAJE -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_pe">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Pesaje <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_pe" 
+                                       id="txt_fecha_pe" 
+                                       class="form-control" 
+                                       value="{{ pesaje.fecha_pe|date:'Y-m-d' }}"
+                                       required>
+                                <small class="text-muted">Fecha en que se realizó el pesaje. No puede ser futura.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: PESO Y CONDICION CORPORAL        -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: PESO KG -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_peso_kg_pe">
+                                    <i class="bi bi-speedometer2 me-1"></i>Peso (kg) <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_peso_kg_pe" 
+                                       id="txt_peso_kg_pe" 
+                                       class="form-control" 
+                                       value="{{ pesaje.peso_kg_pe|stringformat:'s' }}"
+                                       placeholder="Ej: 450.50"
+                                       required>
+                                <small class="text-muted">Peso en kilogramos. Máximo 9999.99 kg.</small>
+                            </div>
+
+                            <!-- CAMPO: CONDICION CORPORAL -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_condicion_corporal_pe">
+                                    <i class="bi bi-activity me-1"></i>Condición Corporal
+                                </label>
+                                <select name="txt_condicion_corporal_pe" 
+                                        id="txt_condicion_corporal_pe" 
+                                        class="form-select">
+                                    <option value="" {% if not pesaje.condicion_corporal_pe %}selected{% endif %}>Sin evaluar...</option>
+                                    <option value="1" {% if pesaje.condicion_corporal_pe == 1 %}selected{% endif %}>1 - Muy delgado</option>
+                                    <option value="2" {% if pesaje.condicion_corporal_pe == 2 %}selected{% endif %}>2 - Delgado</option>
+                                    <option value="3" {% if pesaje.condicion_corporal_pe == 3 %}selected{% endif %}>3 - Ideal</option>
+                                    <option value="4" {% if pesaje.condicion_corporal_pe == 4 %}selected{% endif %}>4 - Gordo</option>
+                                    <option value="5" {% if pesaje.condicion_corporal_pe == 5 %}selected{% endif %}>5 - Muy gordo</option>
+                                </select>
+                                <small class="text-muted">Escala de 1 a 5. Opcional.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: METODO DE PESAJE                   -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="sel_metodo_pe">
+                                    <i class="bi bi-tools me-1"></i>Método de Pesaje
+                                </label>
+                                <select name="sel_metodo_pe" 
+                                        id="sel_metodo_pe" 
+                                        class="form-select">
+                                    <option value="" {% if not pesaje.metodo_pe %}selected{% endif %}>Seleccione método...</option>
+                                    <option value="bascula" {% if pesaje.metodo_pe == 'bascula' %}selected{% endif %}>Báscula</option>
+                                    <option value="cinta_metrica" {% if pesaje.metodo_pe == 'cinta_metrica' %}selected{% endif %}>Cinta Métrica</option>
+                                    <option value="estimacion_visual" {% if pesaje.metodo_pe == 'estimacion_visual' %}selected{% endif %}>Estimación Visual</option>
+                                </select>
+                                <small class="text-muted">Método utilizado para obtener el peso. Opcional.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: OBSERVACIONES                      -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_observaciones_pe">
+                                    <i class="bi bi-journal-text me-1"></i>Observaciones
+                                </label>
+                                <textarea name="txt_observaciones_pe" 
+                                          id="txt_observaciones_pe" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          maxlength="2000"
+                                          placeholder="Observaciones del pesaje, condición del animal, recomendaciones...">{{ pesaje.observaciones_pe|default:'' }}</textarea>
+                                <small class="text-muted">Máximo 2000 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- INFORMACION DE AUDITORIA                   -->
+                        <!-- ========================================== -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="p-2 rounded" style="background: #f8f9fa; border-left: 3px solid #6c757d;">
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock-history me-1"></i>
+                                        <strong>Creado:</strong> {{ pesaje.created_at_pe|date:'d/m/Y H:i' }} | 
+                                        <strong>Última modificación:</strong> {{ pesaje.updated_at_pe|date:'d/m/Y H:i' }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                            <a href="/listapesaje/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#28a745',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#28a745',
+                titleColor: '#155724',
+                messageColor: '#2c5e1a',
+                backgroundColor: '#d4edda',
+                borderBottom: '3px solid #28a745',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        // Fecha no puede ser futura
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha de pesaje no puede ser futura");
+
+        // Peso debe ser un número positivo válido
+        jQuery.validator.addMethod("pesoValido", function(value, element) {
+            if (!value) return false;
+            let peso = parseFloat(value.replace(',', '.'));
+            return peso > 0 && peso <= 9999.99;
+        }, "El peso debe ser mayor a 0 y no exceder 9999.99 kg");
+
+        // Condición corporal debe estar entre 1 y 5
+        jQuery.validator.addMethod("condicionValida", function(value, element) {
+            if (!value) return true;
+            let condicion = parseInt(value);
+            return condicion >= 1 && condicion <= 5;
+        }, "La condición corporal debe estar entre 1 y 5");
+
+        $(document).ready(function() {
+
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_editar_pesaje").validate({
+                rules: {
+                    txt_fecha_pe: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    txt_peso_kg_pe: {
+                        required: true,
+                        pesoValido: true
+                    },
+                    txt_condicion_corporal_pe: {
+                        condicionValida: true
+                    },
+                    sel_metodo_pe: {
+                        // Opcional
+                    },
+                    txt_observaciones_pe: {
+                        maxlength: 2000
+                    }
+                },
+                messages: {
+                    txt_fecha_pe: {
+                        required: "La fecha de pesaje es obligatoria",
+                        fechaNoFutura: "La fecha de pesaje no puede ser futura"
+                    },
+                    txt_peso_kg_pe: {
+                        required: "El peso es obligatorio",
+                        pesoValido: "El peso debe ser mayor a 0 y no exceder 9999.99 kg"
+                    },
+                    txt_observaciones_pe: {
+                        maxlength: "Máximo 2000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - OBSERVACIONES
+            // ==========================================
+            $('#txt_observaciones_pe').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 2000) {
+                    $(this).val(valor.substring(0, 2000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 2000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - FECHA
+            // ==========================================
+            $('#txt_fecha_pe').on('blur', function() {
+                let fecha = $(this).val();
+                let hoy = new Date();
+                hoy.setHours(23, 59, 59, 999);
+                
+                if (fecha && new Date(fecha) > hoy) {
+                    $(this).val('{{ pesaje.fecha_pe|date:"Y-m-d" }}');
+                    alertaError('Fecha inválida', 'La fecha de pesaje no puede ser futura. Se ha restaurado la fecha original.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - PESO
+            // ==========================================
+            $('#txt_peso_kg_pe').on('blur', function() {
+                let valor = $(this).val().replace(',', '.');
+                let peso = parseFloat(valor);
+                if ($(this).val() && (isNaN(peso) || peso <= 0 || peso > 9999.99)) {
+                    $(this).val('{{ pesaje.peso_kg_pe|stringformat:"s" }}');
+                    alertaError('Peso inválido', 'El peso debe ser mayor a 0 y no exceder 9999.99 kg. Se ha restaurado el valor original.');
+                    $(this).focus();
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - CONDICION CORPORAL
+            // ==========================================
+            $('#txt_condicion_corporal_pe').on('change', function() {
+                let condicion = parseInt($(this).val());
+                if ($(this).val() && (isNaN(condicion) || condicion < 1 || condicion > 5)) {
+                    $(this).val('');
+                    alertaError('Condición inválida', 'La condición corporal debe estar entre 1 y 5.');
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

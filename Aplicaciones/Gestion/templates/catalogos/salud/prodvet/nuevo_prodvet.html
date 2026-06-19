@@ -1,0 +1,507 @@
+{% extends "plantilla.html" %}
+
+{% block titulo %}
+    Nuevo Producto Veterinario | Hacienda Joseph
+{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listadoprodvet/" class="text-decoration-none" style="color: var(--color-primario);">Productos Veterinarios</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo Producto</li>
+{% endblock %}
+
+{% block contenido %}
+
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-plus-circle me-2"></i>Registrar Nuevo Producto Veterinario
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Complete los datos del producto veterinario
+            </p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos del Producto
+                </div>
+                <div class="p-4">
+                    <form action="/guardarprodvet/" id="frm_nuevo_prodvet" method="post" class="form-hacienda">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="txt_codigo_pv">
+                                        <i class="bi bi-upc-scan me-1"></i>Código <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" name="txt_codigo_pv" id="txt_codigo_pv" class="form-control" placeholder="Ej: VET-001, MED-01..." maxlength="20" required>
+                                    <small class="text-muted">Letras, números y guiones. Máx 20.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="txt_nombre_pv">
+                                        <i class="bi bi-capsule me-1"></i>Nombre <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" name="txt_nombre_pv" id="txt_nombre_pv" class="form-control" placeholder="Ej: Ivermectina, Penicilina..." maxlength="100" required>
+                                    <small class="text-muted">Letras y espacios. Máx 100.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="sel_tipo_pv">
+                                        <i class="bi bi-tags me-1"></i>Tipo <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="txt_tipo_pv" id="sel_tipo_pv" class="form-select" required>
+                                        <option value="" selected disabled>Seleccione tipo...</option>
+                                        <option value="vacuna">Vacuna</option>
+                                        <option value="antibiotico">Antibiótico</option>
+                                        <option value="desparasitante">Desparasitante</option>
+                                        <option value="vitamina">Vitamina</option>
+                                        <option value="antiseptico">Antiséptico</option>
+                                        <option value="otro">Otro</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="txt_presentacion_pv">
+                                        <i class="bi bi-box-seam me-1"></i>Presentación
+                                    </label>
+                                    <input type="text" name="txt_presentacion_pv" id="txt_presentacion_pv" class="form-control" placeholder="Ej: Frasco 500ml, Caja x10..." maxlength="100">
+                                    <small class="text-muted">Letras, números y símbolos comunes. Máx 100.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="txt_stock_pv">
+                                        <i class="bi bi-boxes me-1"></i>Stock <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" name="txt_stock_pv" id="txt_stock_pv" class="form-control" placeholder="Ej: 50" step="0.01" min="0" required>
+                                    <small class="text-muted">Número decimal positivo.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="txt_stock_minimo_pv">
+                                        <i class="bi bi-bell me-1"></i>Stock Mínimo
+                                    </label>
+                                    <input type="number" name="txt_stock_minimo_pv" id="txt_stock_minimo_pv" class="form-control" placeholder="Ej: 10" step="0.01" min="0" value="10">
+                                    <small class="text-muted">Número decimal positivo.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="txt_unidad_medida_pv">
+                                        <i class="bi bi-rulers me-1"></i>Unidad de Medida <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" name="txt_unidad_medida_pv" id="txt_unidad_medida_pv" class="form-control" placeholder="Ej: ml, kg, unidades..." maxlength="50" required>
+                                    <small class="text-muted">Letras. Máx 50.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="txt_fecha_vencimiento_pv">
+                                        <i class="bi bi-calendar-x me-1"></i>Fecha Vencimiento
+                                    </label>
+                                    <input type="date" name="txt_fecha_vencimiento_pv" id="txt_fecha_vencimiento_pv" class="form-control">
+                                    <small class="text-muted">Debe ser una fecha futura.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="txt_proveedor_pv">
+                                        <i class="bi bi-truck me-1"></i>Proveedor
+                                    </label>
+                                    <input type="text" name="txt_proveedor_pv" id="txt_proveedor_pv" class="form-control" placeholder="Ej: AgroVet S.A...." maxlength="100">
+                                    <small class="text-muted">Letras y espacios. Máx 100.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="txt_costo_unitario_pv">
+                                        <i class="bi bi-currency-dollar me-1"></i>Costo Unitario
+                                    </label>
+                                    <input type="number" name="txt_costo_unitario_pv" id="txt_costo_unitario_pv" class="form-control" placeholder="Ej: 15.50" step="0.01" min="0">
+                                    <small class="text-muted">Número decimal positivo.</small>
+                                </div>
+                                <div class="mb-4">
+                                    <div class="form-check">
+                                        <input type="checkbox" name="chk_activo_pv" id="chk_activo_pv" class="form-check-input" value="1" checked>
+                                        <label class="form-check-label" for="chk_activo_pv">
+                                            <i class="bi bi-check-circle me-1"></i>Producto activo
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Producto
+                            </button>
+                            <a href="/listadoprodvet/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+    <script>
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // Solo letras (para nombre, unidad, proveedor)
+        jQuery.validator.addMethod("soloLetras", function(value, element) {
+            return this.optional(element) || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value);
+        }, "Solo se permiten letras");
+
+        // Letras y números (para presentación - permite 500ml, x10, etc.)
+        jQuery.validator.addMethod("presentacionValida", function(value, element) {
+            return this.optional(element) || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\.\-\/\(\)]+$/.test(value);
+        }, "Caracteres no permitidos");
+
+        // Código válido (letras, números, guiones)
+        jQuery.validator.addMethod("codigoValido", function(value, element) {
+            return this.optional(element) || /^[a-zA-Z0-9\-]+$/.test(value);
+        }, "Código inválido");
+
+        // Fecha futura
+        jQuery.validator.addMethod("fechaFutura", function(value, element) {
+            if (this.optional(element) || value === '') return true;
+            let hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            let fecha = new Date(value);
+            return fecha > hoy;
+        }, "La fecha debe ser futura");
+
+        $(document).ready(function() {
+            $("#frm_nuevo_prodvet").validate({
+                rules: {
+                    txt_codigo_pv: {
+                        required: true,
+                        codigoValido: true,
+                        minlength: 2,
+                        maxlength: 20
+                    },
+                    txt_nombre_pv: {
+                        required: true,
+                        soloLetras: true,
+                        minlength: 2,
+                        maxlength: 100
+                    },
+                    txt_tipo_pv: {
+                        required: true
+                    },
+                    txt_presentacion_pv: {
+                        presentacionValida: true,
+                        maxlength: 100
+                    },
+                    txt_stock_pv: {
+                        required: true,
+                        number: true,
+                        min: 0
+                    },
+                    txt_stock_minimo_pv: {
+                        number: true,
+                        min: 0
+                    },
+                    txt_unidad_medida_pv: {
+                        required: true,
+                        soloLetras: true,
+                        minlength: 1,
+                        maxlength: 50
+                    },
+                    txt_fecha_vencimiento_pv: {
+                        fechaFutura: true
+                    },
+                    txt_proveedor_pv: {
+                        soloLetras: true,
+                        maxlength: 100
+                    },
+                    txt_costo_unitario_pv: {
+                        number: true,
+                        min: 0
+                    }
+                },
+                messages: {
+                    txt_codigo_pv: {
+                        required: "El código es obligatorio",
+                        codigoValido: "Solo letras, números y guiones",
+                        minlength: "Mínimo 2 caracteres",
+                        maxlength: "Máximo 20 caracteres"
+                    },
+                    txt_nombre_pv: {
+                        required: "El nombre del producto es obligatorio",
+                        soloLetras: "Solo se permiten letras",
+                        minlength: "Mínimo 2 caracteres",
+                        maxlength: "Máximo 100 caracteres"
+                    },
+                    txt_tipo_pv: {
+                        required: "Seleccione el tipo de producto"
+                    },
+                    txt_presentacion_pv: {
+                        presentacionValida: "Solo letras, números y símbolos comunes (., -, /, ())",
+                        maxlength: "Máximo 100 caracteres"
+                    },
+                    txt_stock_pv: {
+                        required: "El stock es obligatorio",
+                        number: "Ingrese un número válido",
+                        min: "No puede ser negativo"
+                    },
+                    txt_stock_minimo_pv: {
+                        number: "Ingrese un número válido",
+                        min: "No puede ser negativo"
+                    },
+                    txt_unidad_medida_pv: {
+                        required: "La unidad de medida es obligatoria",
+                        soloLetras: "Solo se permiten letras",
+                        maxlength: "Máximo 50 caracteres"
+                    },
+                    txt_fecha_vencimiento_pv: {
+                        fechaFutura: "La fecha de vencimiento debe ser futura"
+                    },
+                    txt_proveedor_pv: {
+                        soloLetras: "Solo se permiten letras",
+                        maxlength: "Máximo 100 caracteres"
+                    },
+                    txt_costo_unitario_pv: {
+                        number: "Ingrese un número válido",
+                        min: "No puede ser negativo"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                    if ($(element).hasClass('is-invalid')) {
+                        $(element).focus();
+                    }
+                }
+            });
+
+            // BLOQUEO EN TIEMPO REAL - NOMBRE (solo letras)
+            $('#txt_nombre_pv').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                if (filtrado.length > 100) {
+                    filtrado = filtrado.substring(0, 100);
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 100 caracteres para el nombre.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'El nombre solo puede contener letras y espacios.');
+                }
+            });
+
+            // BLOQUEO EN TIEMPO REAL - PRESENTACIÓN (letras, números, símbolos comunes)
+            $('#txt_presentacion_pv').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\.\-\/\(\)]/g, '');
+                if (filtrado.length > 100) {
+                    filtrado = filtrado.substring(0, 100);
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 100 caracteres para la presentación.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'Solo letras, números y símbolos comunes (., -, /, paréntesis).');
+                }
+            });
+
+            // BLOQUEO EN TIEMPO REAL - UNIDAD MEDIDA (solo letras)
+            $('#txt_unidad_medida_pv').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                if (filtrado.length > 50) {
+                    filtrado = filtrado.substring(0, 50);
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 50 caracteres para la unidad.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'La unidad solo puede contener letras.');
+                }
+            });
+
+            // BLOQUEO EN TIEMPO REAL - PROVEEDOR (solo letras)
+            $('#txt_proveedor_pv').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                if (filtrado.length > 100) {
+                    filtrado = filtrado.substring(0, 100);
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 100 caracteres para el proveedor.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'El proveedor solo puede contener letras.');
+                }
+            });
+
+            // BLOQUEO EN TIEMPO REAL - CODIGO (letras, números, guiones)
+            $('#txt_codigo_pv').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^a-zA-Z0-9\-]/g, '');
+                if (filtrado.length > 20) {
+                    filtrado = filtrado.substring(0, 20);
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 20 caracteres para el código.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'El código solo puede contener letras, números y guiones.');
+                }
+            });
+
+            // BLOQUEO DE TECLAS - NOMBRE, UNIDAD, PROVEEDOR (solo letras)
+            $('#txt_nombre_pv, #txt_unidad_medida_pv, #txt_proveedor_pv').on('keypress', function(e) {
+                let tecla = String.fromCharCode(e.which);
+                if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]$/.test(tecla)) {
+                    e.preventDefault();
+                    alertaError('Tecla bloqueada', 'Solo se permiten letras en este campo.');
+                    return false;
+                }
+            });
+
+            // BLOQUEO DE TECLAS - PRESENTACIÓN (letras, números, símbolos permitidos)
+            $('#txt_presentacion_pv').on('keypress', function(e) {
+                let tecla = String.fromCharCode(e.which);
+                if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\.\-\/\(\)]$/.test(tecla)) {
+                    e.preventDefault();
+                    alertaError('Tecla bloqueada', 'Solo letras, números y símbolos comunes (., -, /, paréntesis).');
+                    return false;
+                }
+            });
+
+            // BLOQUEO DE TECLAS - CODIGO
+            $('#txt_codigo_pv').on('keypress', function(e) {
+                let tecla = String.fromCharCode(e.which);
+                if (!/^[a-zA-Z0-9\-]$/.test(tecla)) {
+                    e.preventDefault();
+                    alertaError('Tecla bloqueada', 'Solo letras, números y guiones.');
+                    return false;
+                }
+            });
+
+            // PEGADO DE TEXTO - NOMBRE, UNIDAD, PROVEEDOR
+            $('#txt_nombre_pv, #txt_unidad_medida_pv, #txt_proveedor_pv').on('paste', function(e) {
+                e.preventDefault();
+                let pegado = (e.originalEvent.clipboardData || window.clipboardData).getData('text');
+                let filtrado = pegado.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '').substring(0, 100);
+                $(this).val(filtrado);
+                if (pegado !== filtrado) {
+                    alertaAdvertencia('Texto filtrado', 'Se eliminaron caracteres no permitidos. Solo letras.');
+                }
+            });
+
+            // PEGADO DE TEXTO - PRESENTACIÓN
+            $('#txt_presentacion_pv').on('paste', function(e) {
+                e.preventDefault();
+                let pegado = (e.originalEvent.clipboardData || window.clipboardData).getData('text');
+                let filtrado = pegado.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\.\-\/\(\)]/g, '').substring(0, 100);
+                $(this).val(filtrado);
+                if (pegado !== filtrado) {
+                    alertaAdvertencia('Texto filtrado', 'Se eliminaron caracteres no permitidos.');
+                }
+            });
+
+            // PEGADO DE TEXTO - CODIGO
+            $('#txt_codigo_pv').on('paste', function(e) {
+                e.preventDefault();
+                let pegado = (e.originalEvent.clipboardData || window.clipboardData).getData('text');
+                let filtrado = pegado.replace(/[^a-zA-Z0-9\-]/g, '').substring(0, 20);
+                $(this).val(filtrado);
+                if (pegado !== filtrado) {
+                    alertaAdvertencia('Texto filtrado', 'Se eliminaron caracteres no permitidos.');
+                }
+            });
+
+            // VALIDACION BLUR - NOMBRE, UNIDAD, PROVEEDOR
+            $('#txt_nombre_pv, #txt_unidad_medida_pv, #txt_proveedor_pv').on('blur', function() {
+                let valor = $(this).val().trim();
+                if (valor.length === 1) {
+                    $(this).val('');
+                    alertaError('Longitud insuficiente', 'Debe ingresar al menos 2 letras. Campo limpiado.');
+                    $(this).focus();
+                }
+            });
+
+            // VALIDACION BLUR - CODIGO
+            $('#txt_codigo_pv').on('blur', function() {
+                let valor = $(this).val().trim();
+                if (valor.length === 1) {
+                    $(this).val('');
+                    alertaError('Longitud insuficiente', 'Debe ingresar al menos 2 caracteres. Campo limpiado.');
+                    $(this).focus();
+                }
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,467 @@
+{% extends "plantilla.html" %}
+
+{% block titulo %}
+    Editar Parto | Hacienda Joseph
+{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listaparto/" class="text-decoration-none" style="color: var(--color-primario);">Partos</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Editar Parto</li>
+{% endblock %}
+
+{% block contenido %}
+
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-pencil-square me-2"></i>Editar Parto
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Modifique los datos del parto #<strong>{{ parto.id_pa }}</strong> - {{ parto.fk_madre_pa.codigo_an }}
+            </p>
+        </div>
+    </div>
+
+    <div class="row animate-fade-in mb-4">
+        <div class="col-12">
+            <div class="alert" style="background: #fce4ec; border: 2px solid #ad1457; border-radius: 12px; color: #880e4f;">
+                <i class="bi bi-gender-female me-2"></i>
+                <strong>Madre:</strong> 
+                <span class="badge" style="background:#ad1457; color:white;"><i class="bi bi-emoji-smile me-1"></i>{{ parto.fk_madre_pa.codigo_an }}</span>
+                {% if parto.fk_madre_pa.nombre_an %}
+                <span class="ms-2">{{ parto.fk_madre_pa.nombre_an }}</span>
+                {% endif %}
+                <span class="badge ms-2" style="background:#6c757d; color:white;">{{ parto.fk_madre_pa.categoria_an }}</span>
+                <br><small class="ms-4">La madre no se puede cambiar. Si necesita corregirlo, elimine y cree un nuevo parto.</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-check"></i>Datos del Parto
+                </div>
+                <div class="p-4">
+                    <form action="/procesareditarparto/" id="frm_editar_parto" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <input type="hidden" name="id_pa" value="{{ parto.id_pa }}">
+                        <input type="hidden" name="madre_actual" id="madre_actual" value="{{ parto.fk_madre_pa_id }}">
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_madre_pa">
+                                    <i class="bi bi-gender-female me-1"></i>Madre
+                                </label>
+                                <select name="sel_madre_pa" id="sel_madre_pa" class="form-select" disabled>
+                                    <option value="{{ parto.fk_madre_pa_id }}" selected>
+                                        {{ parto.fk_madre_pa.codigo_an }} - {{ parto.fk_madre_pa.nombre_an|default:'Sin nombre' }} ({{ parto.fk_madre_pa.categoria_an }})
+                                    </option>
+                                </select>
+                                <small class="text-muted">La madre no se puede modificar.</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_pa">
+                                    <i class="bi bi-calendar-heart me-1"></i>Fecha del Parto <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" name="txt_fecha_pa" id="txt_fecha_pa" class="form-control" value="{{ parto.fecha_pa|date:'Y-m-d' }}" required>
+                                <small class="text-muted">Fecha en que ocurrió el parto. No puede ser futura.</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="sel_prenez_pa">
+                                    <i class="bi bi-heart me-1"></i>Preñez Asociada
+                                </label>
+                                <select name="sel_prenez_pa" id="sel_prenez_pa" class="form-select">
+                                    <option value="" {% if not parto.fk_pr_id %}selected{% endif %} data-madre-id="">
+                                        Sin preñez vinculada...
+                                    </option>
+                                    {% for prenez in prenez_disponibles %}
+                                        <option value="{{ prenez.id_pr }}"
+                                            {% if parto.fk_pr_id == prenez.id_pr %}selected{% endif %}
+                                            data-madre-id="{{ prenez.fk_an.id_an }}"
+                                            data-fecha-confirmacion="{{ prenez.fecha_confirmacion_pr|date:'Y-m-d' }}"
+                                            data-fecha-parto="{{ prenez.fecha_probable_parto_pr|date:'Y-m-d' }}">
+                                            #{{ prenez.id_pr }} - {{ prenez.fk_an.codigo_an }} - {{ prenez.fk_an.nombre_an|default:'Sin nombre' }}
+                                            | Conf: {{ prenez.fecha_confirmacion_pr|date:'d/m/Y' }} | Parto esp: {{ prenez.fecha_probable_parto_pr|date:'d/m/Y' }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted" id="msg_prenez">
+                                    {% if parto.fk_pr %}
+                                    <span style="color: #2c5e1a;"><i class="bi bi-check-circle me-1"></i>Preñez actual vinculada.</span>
+                                    {% else %}
+                                    Opcional. Vincule una preñez para trazabilidad.
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_tipo_parto_pa">
+                                    <i class="bi bi-activity me-1"></i>Tipo de Parto
+                                </label>
+                                <select name="sel_tipo_parto_pa" id="sel_tipo_parto_pa" class="form-select">
+                                    <option value="" {% if not parto.tipo_parto_pa %}selected{% endif %}>Seleccione tipo...</option>
+                                    <option value="normal" {% if parto.tipo_parto_pa == 'normal' %}selected{% endif %}>Normal</option>
+                                    <option value="distocico" {% if parto.tipo_parto_pa == 'distocico' %}selected{% endif %}>Distócico</option>
+                                    <option value="cesarea" {% if parto.tipo_parto_pa == 'cesarea' %}selected{% endif %}>Cesárea</option>
+                                </select>
+                                <small class="text-muted">Tipo de parto según asistencia requerida.</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_cria_sexo_pa">
+                                    <i class="bi bi-gender-ambiguous me-1"></i>Sexo de la Cría
+                                </label>
+                                <select name="sel_cria_sexo_pa" id="sel_cria_sexo_pa" class="form-select">
+                                    <option value="" {% if not parto.cria_sexo_pa %}selected{% endif %}>Seleccione sexo...</option>
+                                    <option value="M" {% if parto.cria_sexo_pa == 'M' %}selected{% endif %}>Macho</option>
+                                    <option value="H" {% if parto.cria_sexo_pa == 'H' %}selected{% endif %}>Hembra</option>
+                                </select>
+                                <small class="text-muted">Sexo de la cría nacida.</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_cria_peso_kg_pa">
+                                    <i class="bi bi-speedometer me-1"></i>Peso de la Cría (kg)
+                                </label>
+                                <input type="number" name="txt_cria_peso_kg_pa" id="txt_cria_peso_kg_pa" class="form-control" step="0.01" min="0.1" max="80" value="{{ parto.cria_peso_kg_pa|default:'' }}" placeholder="Ej: 32.50">
+                                <small class="text-muted">Peso al nacer en kilogramos. Máximo 80 kg.</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_cria_pa">
+                                    <i class="bi bi-link-45deg me-1"></i>Cría Vinculada
+                                </label>
+                                <select name="sel_cria_pa" id="sel_cria_pa" class="form-select">
+                                    <option value="" {% if not parto.fk_cria_pa_id %}selected{% endif %} data-sexo="">Sin cría vinculada...</option>
+                                    {% for cria in crias_disponibles %}
+                                        <option value="{{ cria.id_an }}"
+                                            {% if parto.fk_cria_pa_id == cria.id_an %}selected{% endif %}
+                                            data-sexo="{{ cria.sexo_an }}">
+                                            {{ cria.codigo_an }} - {{ cria.nombre_an|default:'Sin nombre' }} ({{ cria.sexo_an|yesno:"Macho,Hembra" }}) | {{ cria.categoria_an }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted" id="msg_cria">
+                                    {% if parto.fk_cria_pa %}
+                                    <span style="color: #2c5e1a;"><i class="bi bi-check-circle me-1"></i>Cría vinculada actualmente.</span>
+                                    {% else %}
+                                    Opcional. Vincule la cría si está registrada.
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="chk_asistencia_veterinaria_pa" id="chk_asistencia_veterinaria_pa" {% if parto.asistencia_veterinaria_pa %}checked{% endif %}>
+                                    <label class="form-check-label" for="chk_asistencia_veterinaria_pa">
+                                        <i class="bi bi-shield-plus me-1"></i>Requirió asistencia veterinaria
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_observaciones_pa">
+                                    <i class="bi bi-journal-text me-1"></i>Observaciones
+                                </label>
+                                <textarea name="txt_observaciones_pa" id="txt_observaciones_pa" class="form-control" rows="3" maxlength="2000" placeholder="Complicaciones, estado de la madre, estado de la cría, tratamiento post-parto...">{{ parto.observaciones_pa|default:'' }}</textarea>
+                                <small class="text-muted">Máximo 2000 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="p-2 rounded" style="background: #f8f9fa; border-left: 3px solid #6c757d;">
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock-history me-1"></i>
+                                        <strong>Creado:</strong> {{ parto.created_at_pa|date:'d/m/Y H:i' }} | 
+                                        <strong>Última modificación:</strong> {{ parto.updated_at_pa|date:'d/m/Y H:i' }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                            <a href="/listaparto/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+    <script>
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#28a745',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#28a745',
+                titleColor: '#155724',
+                messageColor: '#2c5e1a',
+                backgroundColor: '#d4edda',
+                borderBottom: '3px solid #28a745',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha del parto no puede ser futura");
+
+        jQuery.validator.addMethod("pesoValido", function(value, element) {
+            if (!value) return true;
+            let peso = parseFloat(value);
+            return peso > 0 && peso <= 80;
+        }, "El peso debe estar entre 0.1 y 80 kg");
+
+        $(document).ready(function() {
+
+            function filtrarPrenez() {
+                let madreActual = $('#madre_actual').val();
+                let $selectPrenez = $('#sel_prenez_pa');
+                
+                $selectPrenez.find('option').each(function() {
+                    let $option = $(this);
+                    let madreIdDePrenez = $option.data('madre-id');
+                    
+                    if (!madreIdDePrenez || madreIdDePrenez == madreActual) {
+                        $option.show();
+                    } else {
+                        $option.hide();
+                        if ($option.prop('selected')) {
+                            $option.prop('selected', false);
+                        }
+                    }
+                });
+            }
+
+            function filtrarCrias() {
+                let sexoCria = $('#sel_cria_sexo_pa').val();
+                let $selectCria = $('#sel_cria_pa');
+                
+                $selectCria.find('option').each(function() {
+                    let $option = $(this);
+                    let sexoCriaOption = $option.data('sexo');
+                    
+                    if (!sexoCriaOption || !sexoCria || sexoCriaOption === sexoCria) {
+                        $option.show();
+                    } else {
+                        $option.hide();
+                        if ($option.prop('selected')) {
+                            $option.prop('selected', false);
+                        }
+                    }
+                });
+            }
+
+            $('#sel_cria_sexo_pa').on('change', function() {
+                filtrarCrias();
+            });
+
+            $('#sel_prenez_pa').on('change', function() {
+                let selected = $(this).find('option:selected');
+                let fechaConfirmacion = selected.data('fecha-confirmacion');
+                
+                if (fechaConfirmacion) {
+                    $('#msg_prenez').html('<span style="color: #2c5e1a;"><i class="bi bi-check-circle me-1"></i>Preñez vinculada. Conf: ' + fechaConfirmacion + '</span>');
+                } else {
+                    $('#msg_prenez').html('<span class="text-muted">Sin preñez vinculada.</span>');
+                }
+            });
+
+            filtrarPrenez();
+
+            $("#frm_editar_parto").validate({
+                rules: {
+                    txt_fecha_pa: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    sel_prenez_pa: {},
+                    sel_tipo_parto_pa: {},
+                    sel_cria_sexo_pa: {},
+                    txt_cria_peso_kg_pa: {
+                        pesoValido: true
+                    },
+                    sel_cria_pa: {},
+                    txt_observaciones_pa: {
+                        maxlength: 2000
+                    }
+                },
+                messages: {
+                    txt_fecha_pa: {
+                        required: "La fecha del parto es obligatoria",
+                        fechaNoFutura: "La fecha del parto no puede ser futura"
+                    },
+                    txt_cria_peso_kg_pa: {
+                        pesoValido: "El peso debe estar entre 0.1 y 80 kg"
+                    },
+                    txt_observaciones_pa: {
+                        maxlength: "Máximo 2000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            $('#txt_observaciones_pa').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 2000) {
+                    $(this).val(valor.substring(0, 2000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 2000 caracteres.');
+                }
+            });
+
+            $('#txt_fecha_pa').on('blur', function() {
+                let fechaParto = $(this).val();
+                let hoy = new Date();
+                hoy.setHours(23, 59, 59, 999);
+                
+                if (fechaParto && new Date(fechaParto) > hoy) {
+                    $(this).val('{{ parto.fecha_pa|date:"Y-m-d" }}');
+                    alertaError('Fecha inválida', 'La fecha del parto no puede ser futura. Se ha restaurado la fecha original.');
+                }
+            });
+
+            $('#txt_cria_peso_kg_pa').on('blur', function() {
+                let peso = $(this).val();
+                if (peso) {
+                    let pesoNum = parseFloat(peso);
+                    if (pesoNum <= 0 || pesoNum > 80) {
+                        $(this).val('');
+                        alertaError('Peso inválido', 'El peso debe estar entre 0.1 y 80 kg.');
+                        $(this).focus();
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

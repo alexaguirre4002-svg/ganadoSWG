@@ -1,0 +1,886 @@
+{% extends "plantilla.html" %}
+{% load static %}
+
+{% block titulo %}
+Dashboard {{ modelo.codigo_mm }} | {{ modelo.nombre_mm }} | Hacienda Joseph
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a>
+</li>
+<li class="breadcrumb-item">
+    <a href="/dashboardml/" class="text-decoration-none" style="color: var(--color-primario);">Dashboard ML</a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">{{ modelo.codigo_mm }}</li>
+{% endblock %}
+
+{% block contenido %}
+
+<!-- HEADER DEL MODELO -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda" style="border-top: 5px solid 
+            {% if modelo.codigo_mm == 'AD-1' %}#e74c3c
+            {% elif modelo.codigo_mm == 'AD-2' %}#3498db
+            {% elif modelo.codigo_mm == 'AD-3' %}#9b59b6
+            {% elif modelo.codigo_mm == 'RL-4' %}#1abc9c
+            {% elif modelo.codigo_mm == 'RL-5' %}#f39c12
+            {% else %}#2c5e1a{% endif %};">
+            <div class="p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="fw-bold mb-0" style="color: var(--color-primario);">
+                            <i class="bi bi-cpu me-2"></i>{{ modelo.codigo_mm }} — {{ modelo.nombre_mm }}
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">
+                            <span class="badge rounded-pill me-2" style="background: 
+                                {% if modelo.tipo_modelo_mm == 'decision_tree_regressor' %}#e74c3c
+                                {% elif modelo.tipo_modelo_mm == 'decision_tree_classifier' %}#3498db
+                                {% elif modelo.tipo_modelo_mm == 'logistic_regression' %}#1abc9c
+                                {% else %}#6c757d{% endif %}; color: white;">
+                                {{ modelo.tipo_modelo_mm }}
+                            </span>
+                            <i class="bi bi-info-circle me-1"></i>{{ modelo.descripcion_mm|default:"Sin descripción" }}
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <a href="/listapredicciones/?modelo={{ modelo.id_mm }}" class="btn btn-hacienda me-2">
+                            <i class="bi bi-table me-2"></i>Ver Predicciones
+                        </a>
+                        <a href="/dashboardml/" class="btn btn-hacienda-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Volver
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TARJETAS ESTADÍSTICAS DEL MODELO -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3">
+            <i class="bi bi-bar-chart-line fs-2" style="color: var(--color-primario);"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total }}</h4>
+            <small class="text-muted">Total</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
+            <i class="bi bi-check-circle fs-2 text-success"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ aciertos }}</h4>
+            <small class="text-muted">Aciertos</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
+            <i class="bi bi-x-circle fs-2 text-danger"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ fallos }}</h4>
+            <small class="text-muted">Fallos</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #6c757d;">
+            <i class="bi bi-question-circle fs-2 text-secondary"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ sin_evaluar }}</h4>
+            <small class="text-muted">Sin Evaluar</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #17a2b8;">
+            <i class="bi bi-bullseye fs-2" style="color: #17a2b8;"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ precision }}%</h4>
+            <small class="text-muted">Precisión</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #fd7e14;">
+            <i class="bi bi-percent fs-2 text-warning"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ promedio_prob_pct }}%</h4>
+            <small class="text-muted">Prob. Promedio</small>
+        </div>
+    </div>
+</div>
+
+<!-- GRÁFICOS: DISTRIBUCIÓN DE PROBABILIDADES Y EVOLUCIÓN MENSUAL -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-6">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-pie-chart"></i>Distribución de Probabilidades
+            </div>
+            <div class="p-4">
+                <canvas id="chartProbabilidades" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-graph-up"></i>Evolución Mensual (Últimos 6 Meses)
+            </div>
+            <div class="p-4">
+                <canvas id="chartEvolucionMensual" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BARRA DE PRECISIÓN -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-bullseye"></i>Precisión del Modelo
+            </div>
+            <div class="p-4">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="fw-bold text-muted">Precisión General</span>
+                    <span class="fw-bold" style="color: 
+                        {% if precision >= 80 %}#28a745
+                        {% elif precision >= 60 %}#fd7e14
+                        {% else %}#dc3545{% endif %}; font-size: 24px;">
+                        {{ precision }}%
+                    </span>
+                </div>
+                <div class="progress" style="height: 35px; border-radius: 17px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated fw-bold" 
+                         role="progressbar" 
+                         style="width: {{ precision }}%; background: linear-gradient(90deg, 
+                            {% if precision >= 80 %}#28a745, #20c997
+                            {% elif precision >= 60 %}#fd7e14, #ffc107
+                            {% else %}#dc3545, #e74c3c{% endif %}); font-size: 16px;"
+                         aria-valuenow="{{ precision }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                        {{ precision }}%
+                    </div>
+                </div>
+                <div class="row mt-3 text-center">
+                    <div class="col-md-4">
+                        <div class="p-2 rounded" style="background: #d4edda;">
+                            <div class="fw-bold text-success" style="font-size: 20px;">{{ aciertos }}</div>
+                            <small class="text-muted">Aciertos</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-2 rounded" style="background: #f8d7da;">
+                            <div class="fw-bold text-danger" style="font-size: 20px;">{{ fallos }}</div>
+                            <small class="text-muted">Fallos</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-2 rounded" style="background: #e2e3e5;">
+                            <div class="fw-bold text-secondary" style="font-size: 20px;">{{ sin_evaluar }}</div>
+                            <small class="text-muted">Sin Evaluar</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PREDICCIONES POR ANIMAL (TOP 10) -->
+{% if predicciones_por_animal %}
+<div class="row mb-4 animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-emoji-smile"></i>Predicciones por Animal (Top 10)
+            </div>
+            <div class="p-4">
+                <div class="table-responsive">
+                    <table class="table table-hacienda align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>CÓDIGO</th>
+                                <th>NOMBRE</th>
+                                <th>CATEGORÍA</th>
+                                <th>TOTAL</th>
+                                <th>ACIERTOS</th>
+                                <th>FALLOS</th>
+                                <th>PRECISIÓN</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for animal in predicciones_por_animal %}
+                            <tr>
+                                <td class="fw-bold text-muted">{{ animal.fk_an__codigo_an }}</td>
+                                <td>{{ animal.fk_an__nombre_an|default:"Sin nombre" }}</td>
+                                <td>
+                                    <span class="badge rounded-pill" style="background: #e8f5e9; color: #2c5e1a;">
+                                        {{ animal.fk_an__categoria_an }}
+                                    </span>
+                                </td>
+                                <td class="fw-bold">{{ animal.cantidad }}</td>
+                                <td class="text-success fw-bold">{{ animal.aciertos|default:0 }}</td>
+                                <td class="text-danger fw-bold">{{ animal.fallos|default:0 }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1 me-2" style="height: 10px;">
+                                            <div class="progress-bar 
+                                                {% if animal.precision >= 80 %}bg-success
+                                                {% elif animal.precision >= 60 %}bg-warning
+                                                {% else %}bg-danger{% endif %}" 
+                                                role="progressbar" 
+                                                style="width: {{ animal.precision }}%">
+                                            </div>
+                                        </div>
+                                        <span class="fw-bold small">{{ animal.precision }}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- FEEDBACK PENDIENTE -->
+{% if feedback_pendiente %}
+<div class="row mb-4 animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda" style="border-left: 4px solid #fd7e14;">
+            <div class="card-header-hacienda">
+                <i class="bi bi-hourglass-split"></i>Feedback Pendiente
+                <span class="badge ms-2" style="background: #fd7e14; color: white;">{{ feedback_pendiente|length }}</span>
+            </div>
+            <div class="p-4">
+                <div class="table-responsive">
+                    <table class="table table-hacienda align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>ANIMAL</th>
+                                <th>RESULTADO PREDICHO</th>
+                                <th>PROBABILIDAD</th>
+                                <th>FECHA</th>
+                                <th>ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pred in feedback_pendiente %}
+                            <tr>
+                                <td class="fw-bold text-muted">#{{ pred.id_pm }}</td>
+                                <td>
+                                    {% if pred.fk_an %}
+                                    <span class="badge rounded-pill p-2" style="background: #e8f5e9; color: #2c5e1a; border: 1px solid #2c5e1a;">
+                                        <i class="bi bi-emoji-smile me-1"></i>{{ pred.fk_an.codigo_an }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold" style="color: #5c450e;">{{ pred.resultado_prediccion_pm }}</td>
+                                <td>
+                                    {% if pred.probabilidad_pm %}
+                                    <span class="fw-bold small">{{ pred.probabilidad_pm|floatformat:2|stringformat:'s' }}</span>
+                                    {% else %}
+                                    <span class="text-muted">---</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="text-muted"><i class="bi bi-calendar me-1"></i>{{ pred.fecha_prediccion_pm|date:'d/m/Y H:i' }}</span>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-warning" onclick="abrirFeedback({{ pred.id_pm }}, '{{ pred.resultado_prediccion_pm }}')" title="Registrar feedback">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- ÚLTIMAS 50 PREDICCIONES -->
+<div class="row animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-table"></i>Últimas 50 Predicciones
+            </div>
+            <div class="p-4">
+                <div class="table-responsive">
+                    <table id="tablaPrediccionesModelo" class="table table-hacienda align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>ANIMAL</th>
+                                <th>RESULTADO</th>
+                                <th>PROB.</th>
+                                <th>VALOR REAL</th>
+                                <th>ACIERTO</th>
+                                <th>FECHA</th>
+                                <th>ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pred in predicciones %}
+                            <tr>
+                                <td class="fw-bold text-muted">#{{ pred.id_pm }}</td>
+                                <td>
+                                    {% if pred.fk_an %}
+                                    <span class="badge rounded-pill p-2" style="background: #e8f5e9; color: #2c5e1a; border: 1px solid #2c5e1a;">
+                                        <i class="bi bi-emoji-smile me-1"></i>{{ pred.fk_an.codigo_an }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold" style="color: #5c450e;">{{ pred.resultado_prediccion_pm|default:"---" }}</td>
+                                <td>
+                                    {% if pred.probabilidad_pm %}
+                                    <span class="fw-bold small">{{ pred.probabilidad_pm|floatformat:2|stringformat:'s' }}</span>
+                                    {% else %}
+                                    <span class="text-muted">---</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if pred.valor_real_pm %}
+                                    <span class="fw-bold text-success"><i class="bi bi-check2-all me-1"></i>{{ pred.valor_real_pm }}</span>
+                                    {% else %}
+                                    <span class="badge rounded-pill" style="background: #fff3cd; color: #856404;"><i class="bi bi-hourglass me-1"></i>Pendiente</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if pred.acierto_pm == True %}
+                                    <span class="badge rounded-pill p-2" style="background: #d4edda; color: #155724; border: 1px solid #28a745;">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Acierto
+                                    </span>
+                                    {% elif pred.acierto_pm == False %}
+                                    <span class="badge rounded-pill p-2" style="background: #f8d7da; color: #721c24; border: 1px solid #dc3545;">
+                                        <i class="bi bi-x-circle-fill me-1"></i>Fallo
+                                    </span>
+                                    {% else %}
+                                    <span class="badge rounded-pill p-2" style="background: #e2e3e5; color: #383d41; border: 1px solid #6c757d;">
+                                        <i class="bi bi-question-circle me-1"></i>Sin evaluar
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="text-muted"><i class="bi bi-calendar me-1"></i>{{ pred.fecha_prediccion_pm|date:'d/m/Y H:i' }}</span>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-info" onclick="verDetalle({{ pred.id_pm }})" title="Ver detalle">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    {% if not pred.valor_real_pm %}
+                                    <button type="button" class="btn btn-sm btn-warning" onclick="abrirFeedback({{ pred.id_pm }}, '{{ pred.resultado_prediccion_pm|default:'' }}')" title="Registrar feedback">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center py-5">
+                                    <i class="bi bi-cpu fs-1 text-muted"></i>
+                                    <p class="mt-3 text-muted">No hay predicciones para este modelo</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block modales %}
+
+<!-- MODAL DETALLE -->
+<div class="modal fade" id="modalDetallePrediccion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-cpu-fill me-2" style="color: #DAA520;"></i>DETALLE DE LA PREDICCIÓN
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="background: #fff8e6;">
+                <div class="row g-0">
+                    <div class="col-md-4" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
+                        <div class="p-4 h-100 text-center">
+                            <i class="bi bi-cpu fs-1" style="color: #2c5e1a;"></i>
+                            <p class="mt-2 mb-0 fw-bold" style="color: #2c5e1a;" id="detalleModeloCodigo"></p>
+                            <p class="text-muted mb-0" style="font-size: 14px;" id="detalleModeloNombre"></p>
+                            <span class="badge mt-2" id="detalleModeloTipo"></span>
+                            <hr style="border-color: #d4c5a9;">
+                            <i class="bi bi-emoji-smile fs-3" style="color: #2c5e1a;"></i>
+                            <p class="mt-2 mb-0 fw-bold" style="color: #2c5e1a;" id="detalleAnimal"></p>
+                            <p class="text-muted mb-0" style="font-size: 13px;" id="detalleAnimalCategoria"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="p-4">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">ID PREDICCIÓN</label>
+                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<span id="detalleId"></span></p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <label class="text-muted small fw-bold">ESTADO</label>
+                                    <div id="detalleEstado"></div>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold"><i class="bi bi-lightning-charge me-1"></i>RESULTADO PREDICHO</label>
+                                <p class="mb-0 fw-bold" id="detalleResultado" style="color: #5c450e; font-size: 18px;"></p>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-percent me-1"></i>PROBABILIDAD</label>
+                                    <p class="mb-0" id="detalleProbabilidad" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar me-1"></i>FECHA PREDICCIÓN</label>
+                                    <p class="mb-0" id="detalleFecha" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold"><i class="bi bi-input-cursor me-1"></i>DATOS DE ENTRADA (JSON)</label>
+                                <div class="p-2 rounded" style="background: #f8f9fa; border: 1px solid #dee2e6;">
+                                    <pre id="detalleDatosEntrada" style="font-size: 12px; margin-bottom: 0; max-height: 200px; overflow-y: auto;"></pre>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-check2-all me-1"></i>VALOR REAL</label>
+                                    <p class="mb-0" id="detalleValorReal" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-bullseye me-1"></i>ACIERTO</label>
+                                    <p class="mb-0" id="detalleAcierto" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-0">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>EJECUTADO POR</label>
+                                    <p class="mb-0" id="detalleUsuario" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>REGISTRADO</label>
+                                    <p class="mb-0" id="detalleCreated" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL FEEDBACK -->
+<div class="modal fade" id="modalFeedbackPrediccion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: 2px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-pencil-square me-2" style="color: #DAA520;"></i>REGISTRAR FEEDBACK
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background: #fff8e6; padding: 25px;">
+                <p class="mb-3" style="color: #5c450e; font-size: 15px;">
+                    <i class="bi bi-info-circle me-1"></i>Ingrese el valor real observado para comparar con la predicción.
+                </p>
+                <input type="hidden" id="feedbackIdPm">
+                <div class="mb-3">
+                    <label class="fw-bold text-muted small">Resultado Predicho</label>
+                    <p class="mb-0 fw-bold" id="feedbackResultadoPredicho" style="color: #2c5e1a;"></p>
+                </div>
+                <div class="mb-3">
+                    <label for="feedbackValorReal" class="fw-bold text-muted small">
+                        <i class="bi bi-check2-all me-1"></i>Valor Real <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="feedbackValorReal" class="form-control" maxlength="100" placeholder="Ingrese el valor real observado...">
+                    <small class="text-muted">Máximo 100 caracteres.</small>
+                </div>
+                <div class="mb-3">
+                    <label for="feedbackAcierto" class="fw-bold text-muted small">
+                        <i class="bi bi-bullseye me-1"></i>¿Fue correcta? <span class="text-danger">*</span>
+                    </label>
+                    <select id="feedbackAcierto" class="form-select">
+                        <option value="">Seleccione...</option>
+                        <option value="1">Sí, acertó</option>
+                        <option value="0">No, falló</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-hacienda" onclick="guardarFeedback()">
+                    <i class="bi bi-save me-1"></i>Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    .dataTables_filter {
+        margin-bottom: 20px !important;
+        background: linear-gradient(135deg, #eef7e8, #dcefd0);
+        padding: 15px 20px;
+        border-radius: 18px;
+        border: 2px solid #b7d7a8;
+        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
+        display: flex !important;
+        align-items: center !important;
+        justify-content: end !important;
+        gap: 10px;
+    }
+    .dataTables_filter::before {
+        content: "🤖";
+        font-size: 28px;
+    }
+    .dataTables_filter label {
+        font-weight: bold;
+        color: var(--color-primario);
+        font-size: 17px;
+    }
+    .dataTables_filter input {
+        border-radius: 50px !important;
+        border: 3px solid var(--color-primario) !important;
+        padding: 10px 18px !important;
+        background-color: #ffffff !important;
+        color: var(--color-navbar) !important;
+        font-weight: 600 !important;
+        width: 280px !important;
+        transition: 0.3s !important;
+        box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08);
+        margin-left: 10px !important;
+    }
+    .dataTables_filter input:focus {
+        outline: none !important;
+        border-color: #8dc26f !important;
+        box-shadow: 0px 0px 12px rgba(44,94,26,0.4);
+        background-color: #f8fff5 !important;
+    }
+    .dataTables_length select {
+        border-radius: 10px !important;
+        border: 2px solid var(--color-primario) !important;
+        padding: 5px 10px !important;
+    }
+    .dataTables_paginate {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        margin-top: 25px !important;
+    }
+    .dataTables_paginate .pagination {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 0px !important;
+        flex-wrap: nowrap !important;
+    }
+    .paginate_button {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        border: none !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 14px !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        transition: 0.3s !important;
+        margin: 0 3px !important;
+        vertical-align: middle !important;
+        float: none !important;
+    }
+    .paginate_button.current {
+        background: var(--color-primario) !important;
+        color: white !important;
+        border: 2px solid #8dc26f !important;
+        box-shadow: 0px 0px 8px rgba(44,94,26,0.4);
+    }
+    .paginate_button:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+    .paginate_button.previous, .paginate_button.next {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 16px !important;
+    }
+    .paginate_button.previous:hover, .paginate_button.next:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+    pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $('#tablaPrediccionesModelo').DataTable({
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ registros",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                "infoEmpty": "No existen registros",
+                "infoFiltered": "(filtrado de _MAX_ registros)",
+                "search": "Buscar:",
+                "paginate": { "first": "", "last": "", "next": "›", "previous": "‹" }
+            },
+            "pageLength": 10,
+            "lengthMenu": [5,10,25,50],
+            "responsive": true,
+            "pagingType": "simple_numbers",
+            "order": [[6, "desc"]]
+        });
+    });
+
+    // Gráfico de distribución de probabilidades
+    var ctxProb = document.getElementById('chartProbabilidades').getContext('2d');
+    var chartProb = new Chart(ctxProb, {
+        type: 'doughnut',
+        data: {
+            labels: ['Alta (≥80%)', 'Media (50-79%)', 'Baja (<50%)'],
+            datasets: [{
+                data: [{{ prob_alta }}, {{ prob_media }}, {{ prob_baja }}],
+                backgroundColor: ['#28a745', '#fd7e14', '#dc3545'],
+                borderColor: ['#1e7e34', '#e56b0a', '#bd2130'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // Gráfico de evolución mensual
+    var ctxEvol = document.getElementById('chartEvolucionMensual').getContext('2d');
+    var chartEvol = new Chart(ctxEvol, {
+        type: 'line',
+        data: {
+            labels: [{% for mes in evolucion_mensual %}'{{ mes.mes }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+            datasets: [
+                {
+                    label: 'Total',
+                    data: [{% for mes in evolucion_mensual %}{{ mes.total }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                    borderColor: '#2c5e1a',
+                    backgroundColor: 'rgba(44, 94, 26, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Aciertos',
+                    data: [{% for mes in evolucion_mensual %}{{ mes.aciertos }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Fallos',
+                    data: [{% for mes in evolucion_mensual %}{{ mes.fallos }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                    borderColor: '#dc3545',
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'top' } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+
+    function alertaError(titulo, mensaje) {
+        iziToast.error({
+            title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+            message: mensaje,
+            position: 'center',
+            timeout: 4000,
+            transitionIn: 'fadeInDown',
+            transitionOut: 'fadeOutUp',
+            closeOnClick: true,
+            pauseOnHover: true,
+            progressBar: true,
+            progressBarColor: '#dc3545',
+            layout: 2,
+            close: true,
+            overlay: true,
+            overlayColor: 'rgba(26, 61, 15, 0.6)',
+            displayMode: 2,
+            maxWidth: 450,
+            iconColor: '#dc3545',
+            titleColor: '#8B0000',
+            messageColor: '#5c0000',
+            backgroundColor: '#fde8e8',
+            borderBottom: '3px solid #dc3545',
+            zindex: 99999,
+            titleSize: '18px',
+            messageSize: '15px',
+            padding: '20px'
+        });
+    }
+
+    function alertaExito(titulo, mensaje) {
+        iziToast.success({
+            title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+            message: mensaje,
+            position: 'center',
+            timeout: 3000,
+            transitionIn: 'fadeInDown',
+            transitionOut: 'fadeOutUp',
+            closeOnClick: true,
+            pauseOnHover: true,
+            progressBar: true,
+            progressBarColor: '#28a745',
+            layout: 2,
+            close: true,
+            overlay: true,
+            overlayColor: 'rgba(26, 61, 15, 0.6)',
+            displayMode: 2,
+            maxWidth: 450,
+            iconColor: '#28a745',
+            titleColor: '#155724',
+            messageColor: '#2c5e1a',
+            backgroundColor: '#d4edda',
+            borderBottom: '3px solid #28a745',
+            zindex: 99999,
+            titleSize: '18px',
+            messageSize: '15px',
+            padding: '20px'
+        });
+    }
+
+    function verDetalle(idPm) {
+        $.ajax({
+            url: '/detalleprediccion/' + idPm,
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    var d = response.data;
+                    document.getElementById('detalleId').textContent = d.id_pm;
+                    document.getElementById('detalleModeloCodigo').textContent = d.modelo.codigo;
+                    document.getElementById('detalleModeloNombre').textContent = d.modelo.nombre;
+                    document.getElementById('detalleModeloTipo').textContent = d.modelo.tipo;
+                    if (d.animal) {
+                        document.getElementById('detalleAnimal').textContent = d.animal.codigo;
+                        document.getElementById('detalleAnimalCategoria').textContent = d.animal.categoria;
+                    } else {
+                        document.getElementById('detalleAnimal').textContent = 'Sin animal';
+                        document.getElementById('detalleAnimalCategoria').textContent = '';
+                    }
+                    document.getElementById('detalleResultado').textContent = d.resultado_prediccion || '---';
+                    document.getElementById('detalleProbabilidad').innerHTML = d.probabilidad ? 
+                        '<span class="fw-bold">' + (d.probabilidad * 100).toFixed(2) + '%</span>' : '<span class="text-muted fst-italic">---</span>';
+                    document.getElementById('detalleFecha').textContent = d.fecha_prediccion;
+                    document.getElementById('detalleDatosEntrada').textContent = JSON.stringify(d.datos_entrada, null, 2) || 'No hay datos';
+                    document.getElementById('detalleValorReal').innerHTML = d.valor_real ? 
+                        '<span class="fw-bold text-success">' + d.valor_real + '</span>' : '<span class="text-muted fst-italic">Pendiente</span>';
+                    var aciertoHtml = '';
+                    if (d.acierto === true) {
+                        aciertoHtml = '<span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745;"><i class="bi bi-check-circle-fill me-1"></i> Acierto</span>';
+                    } else if (d.acierto === false) {
+                        aciertoHtml = '<span class="badge rounded-pill p-2" style="background:#f8d7da; color:#721c24; border: 1px solid #dc3545;"><i class="bi bi-x-circle-fill me-1"></i> Fallo</span>';
+                    } else {
+                        aciertoHtml = '<span class="badge rounded-pill p-2" style="background:#e2e3e5; color:#383d41; border: 1px solid #6c757d;"><i class="bi bi-question-circle me-1"></i> Sin evaluar</span>';
+                    }
+                    document.getElementById('detalleAcierto').innerHTML = aciertoHtml;
+                    document.getElementById('detalleEstado').innerHTML = aciertoHtml;
+                    document.getElementById('detalleUsuario').textContent = d.usuario;
+                    document.getElementById('detalleCreated').textContent = d.created_at;
+                    new bootstrap.Modal(document.getElementById('modalDetallePrediccion')).show();
+                } else {
+                    alertaError('Error', response.error || 'No se pudo cargar');
+                }
+            },
+            error: function() {
+                alertaError('Error', 'Error de conexión');
+            }
+        });
+    }
+
+    function abrirFeedback(idPm, resultadoPredicho) {
+        document.getElementById('feedbackIdPm').value = idPm;
+        document.getElementById('feedbackResultadoPredicho').textContent = resultadoPredicho || '---';
+        document.getElementById('feedbackValorReal').value = '';
+        document.getElementById('feedbackAcierto').value = '';
+        new bootstrap.Modal(document.getElementById('modalFeedbackPrediccion')).show();
+    }
+
+    function guardarFeedback() {
+        var idPm = document.getElementById('feedbackIdPm').value;
+        var valorReal = document.getElementById('feedbackValorReal').value.trim();
+        var acierto = document.getElementById('feedbackAcierto').value;
+        if (!valorReal) { alertaError('Campo requerido', 'Ingrese el valor real.'); return; }
+        if (valorReal.length > 100) { alertaError('Límite', 'Máximo 100 caracteres.'); return; }
+        if (acierto === '') { alertaError('Campo requerido', 'Seleccione si acertó.'); return; }
+        $.ajax({
+            url: '/feedbackprediccion/',
+            type: 'POST',
+            data: { 'id_pm': idPm, 'valor_real_pm': valorReal, 'acierto_pm': acierto, 'csrfmiddlewaretoken': '{{ csrf_token }}' },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    alertaExito('Guardado', response.message);
+                    bootstrap.Modal.getInstance(document.getElementById('modalFeedbackPrediccion')).hide();
+                    setTimeout(function() { location.reload(); }, 1500);
+                } else {
+                    alertaError('Error', response.error);
+                }
+            },
+            error: function() { alertaError('Error', 'Error de conexión'); }
+        });
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,653 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Nueva Dieta | Hacienda El Roble
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listadodietas/" class="text-decoration-none" style="color: var(--color-primario);">Dietas</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nueva Dieta</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-clipboard2-pulse me-2"></i>Registrar Nueva Dieta
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Complete la formulación nutricional de la dieta
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE DIETA             -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos de la Dieta
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/guardardieta/" id="frm_nueva_dieta" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <!-- ========================================== -->
+                            <!-- CAMPO: CÓDIGO                              -->
+                            <!-- Obligatorio, max 20, único, alfanumérico   -->
+                            <!-- ========================================== -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_codigo_di">
+                                    <i class="bi bi-upc-scan me-1"></i>Código <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_codigo_di" 
+                                       id="txt_codigo_di" 
+                                       class="form-control" 
+                                       placeholder="Ej: DIE-001, LEC-2024..." 
+                                       maxlength="20" 
+                                       required>
+                                <small class="text-muted">Máximo 20 caracteres. Solo letras, números y guiones.</small>
+                            </div>
+
+                            <!-- ========================================== -->
+                            <!-- CAMPO: NOMBRE                              -->
+                            <!-- Obligatorio, max 200                       -->
+                            <!-- ========================================== -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_nombre_di">
+                                    <i class="bi bi-tag me-1"></i>Nombre <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_nombre_di" 
+                                       id="txt_nombre_di" 
+                                       class="form-control" 
+                                       placeholder="Ej: Dieta alta producción leche, Dieta engorde novillos..." 
+                                       maxlength="200" 
+                                       required>
+                                <small class="text-muted">Máximo 200 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- CAMPO: CATEGORÍA OBJETIVO                  -->
+                        <!-- Obligatorio, selección predefinida         -->
+                        <!-- ========================================== -->
+                        <div class="mb-3">
+                            <label for="sel_categoria_objetivo_di">
+                                <i class="bi bi-bullseye me-1"></i>Categoría Objetivo <span class="text-danger">*</span>
+                            </label>
+                            <select name="sel_categoria_objetivo_di" 
+                                    id="sel_categoria_objetivo_di" 
+                                    class="form-select" 
+                                    required>
+                                <option value="" selected disabled>Seleccione una categoría...</option>
+                                <option value="vaca_lechera">Vaca Lechera</option>
+                                <option value="vaca_seca">Vaca Seca</option>
+                                <option value="ternero">Ternero</option>
+                                <option value="novillo">Novillo</option>
+                                <option value="toro">Toro</option>
+                                <option value="vaquilla">Vaquilla</option>
+                                <option value="general">General</option>
+                            </select>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- SECCION: COMPOSICIÓN NUTRICIONAL           -->
+                        <!-- ========================================== -->
+                        <div class="card mb-3" style="border: 1px solid #b7d7a8; background: #f8fff5;">
+                            <div class="card-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); color: white; font-weight: 600;">
+                                <i class="bi bi-graph-up me-2"></i>Composición Nutricional (Opcional)
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- MATERIA SECA -->
+                                    <div class="col-md-4 mb-3">
+                                        <label for="txt_materia_seca_kg_di">
+                                            <i class="bi bi-droplet me-1"></i>Materia Seca (kg)
+                                        </label>
+                                        <input type="text" 
+                                               name="txt_materia_seca_kg_di" 
+                                               id="txt_materia_seca_kg_di" 
+                                               class="form-control" 
+                                               placeholder="0.00">
+                                        <small class="text-muted">Máx 9999.99 kg</small>
+                                    </div>
+
+                                    <!-- ENERGÍA -->
+                                    <div class="col-md-4 mb-3">
+                                        <label for="txt_energia_mcal_di">
+                                            <i class="bi bi-lightning me-1"></i>Energía (Mcal)
+                                        </label>
+                                        <input type="text" 
+                                               name="txt_energia_mcal_di" 
+                                               id="txt_energia_mcal_di" 
+                                               class="form-control" 
+                                               placeholder="0.00">
+                                        <small class="text-muted">Máx 9999.99 Mcal</small>
+                                    </div>
+
+                                    <!-- PROTEÍNA CRUDA -->
+                                    <div class="col-md-4 mb-3">
+                                        <label for="txt_proteina_cruda_pct_di">
+                                            <i class="bi bi-egg me-1"></i>Proteína Cruda (%)
+                                        </label>
+                                        <input type="text" 
+                                               name="txt_proteina_cruda_pct_di" 
+                                               id="txt_proteina_cruda_pct_di" 
+                                               class="form-control" 
+                                               placeholder="0.00">
+                                        <small class="text-muted">Máx 999.99 %</small>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- FIBRA CRUDA -->
+                                    <div class="col-md-4 mb-3">
+                                        <label for="txt_fibra_cruda_pct_di">
+                                            <i class="bi bi-tree me-1"></i>Fibra Cruda (%)
+                                        </label>
+                                        <input type="text" 
+                                               name="txt_fibra_cruda_pct_di" 
+                                               id="txt_fibra_cruda_pct_di" 
+                                               class="form-control" 
+                                               placeholder="0.00">
+                                        <small class="text-muted">Máx 999.99 %</small>
+                                    </div>
+
+                                    <!-- CALCIO -->
+                                    <div class="col-md-4 mb-3">
+                                        <label for="txt_calcio_pct_di">
+                                            <i class="bi bi-bone me-1"></i>Calcio (%)
+                                        </label>
+                                        <input type="text" 
+                                               name="txt_calcio_pct_di" 
+                                               id="txt_calcio_pct_di" 
+                                               class="form-control" 
+                                               placeholder="0.00">
+                                        <small class="text-muted">Máx 999.99 %</small>
+                                    </div>
+
+                                    <!-- FÓSFORO -->
+                                    <div class="col-md-4 mb-3">
+                                        <label for="txt_fosforo_pct_di">
+                                            <i class="bi bi-activity me-1"></i>Fósforo (%)
+                                        </label>
+                                        <input type="text" 
+                                               name="txt_fosforo_pct_di" 
+                                               id="txt_fosforo_pct_di" 
+                                               class="form-control" 
+                                               placeholder="0.00">
+                                        <small class="text-muted">Máx 999.99 %</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- CAMPO: COSTO DIARIO ESTIMADO               -->
+                        <!-- Opcional, decimal positivo                   -->
+                        <!-- ========================================== -->
+                        <div class="mb-3">
+                            <label for="txt_costo_diario_estimado_di">
+                                <i class="bi bi-cash-coin me-1"></i>Costo Diario Estimado
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background: var(--color-primario); color: white; border: none;">$</span>
+                                <input type="text" 
+                                       name="txt_costo_diario_estimado_di" 
+                                       id="txt_costo_diario_estimado_di" 
+                                       class="form-control" 
+                                       placeholder="0.00">
+                            </div>
+                            <small class="text-muted">Máximo 999999.99. Use punto o coma decimal.</small>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- CAMPO: ESTADO ACTIVO                       -->
+                        <!-- Boolean, checkbox por defecto activo         -->
+                        <!-- ========================================== -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input type="checkbox" 
+                                       name="chk_activa_di" 
+                                       id="chk_activa_di" 
+                                       class="form-check-input" 
+                                       value="1" 
+                                       checked>
+                                <label class="form-check-label" for="chk_activa_di">
+                                    <i class="bi bi-check-circle me-1"></i>Dieta activa
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Dieta
+                            </button>
+                            <a href="/listadodietas/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#2c5e1a',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#2c5e1a',
+                titleColor: '#2c5e1a',
+                messageColor: '#1a3d0f',
+                backgroundColor: '#f0f7e8',
+                borderBottom: '3px solid #2c5e1a',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        // Solo letras, números y guiones (para código)
+        jQuery.validator.addMethod("codigoValido", function(value, element) {
+            return this.optional(element) || /^[a-zA-Z0-9\-]+$/.test(value);
+        }, "Solo letras, números y guiones");
+
+        // Nombre dieta: letras, números, espacios y caracteres comunes
+        jQuery.validator.addMethod("nombreDieta", function(value, element) {
+            return this.optional(element) || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.\,]+$/.test(value);
+        }, "Caracteres no permitidos");
+
+        // Decimal positivo o cero con límites
+        jQuery.validator.addMethod("decimalNutricional6", function(value, element) {
+            if (this.optional(element)) return true;
+            let val = parseFloat(value.replace(',', '.'));
+            return /^\d+([.,]\d{1,2})?$/.test(value) && val >= 0 && val < 10000;
+        }, "Debe ser entre 0 y 9999.99, máx 2 decimales");
+
+        // Decimal porcentaje (5 dígitos: 999.99)
+        jQuery.validator.addMethod("decimalPorcentaje", function(value, element) {
+            if (this.optional(element)) return true;
+            let val = parseFloat(value.replace(',', '.'));
+            return /^\d+([.,]\d{1,2})?$/.test(value) && val >= 0 && val < 1000;
+        }, "Debe ser entre 0 y 999.99, máx 2 decimales");
+
+        // Costo diario (8 dígitos: 999999.99)
+        jQuery.validator.addMethod("decimalCosto", function(value, element) {
+            if (this.optional(element)) return true;
+            let val = parseFloat(value.replace(',', '.'));
+            return /^\d+([.,]\d{1,2})?$/.test(value) && val >= 0 && val < 1000000;
+        }, "Debe ser entre 0 y 999999.99, máx 2 decimales");
+
+        $(document).ready(function() {
+            // ==========================================
+            // VALIDACIÓN DEL FORMULARIO
+            // ==========================================
+            $("#frm_nueva_dieta").validate({
+                rules: {
+                    txt_codigo_di: {
+                        required: true,
+                        codigoValido: true,
+                        minlength: 3,
+                        maxlength: 20
+                    },
+                    txt_nombre_di: {
+                        required: true,
+                        nombreDieta: true,
+                        minlength: 2,
+                        maxlength: 200
+                    },
+                    sel_categoria_objetivo_di: {
+                        required: true
+                    },
+                    txt_materia_seca_kg_di: {
+                        decimalNutricional6: true
+                    },
+                    txt_energia_mcal_di: {
+                        decimalNutricional6: true
+                    },
+                    txt_proteina_cruda_pct_di: {
+                        decimalPorcentaje: true
+                    },
+                    txt_fibra_cruda_pct_di: {
+                        decimalPorcentaje: true
+                    },
+                    txt_calcio_pct_di: {
+                        decimalPorcentaje: true
+                    },
+                    txt_fosforo_pct_di: {
+                        decimalPorcentaje: true
+                    },
+                    txt_costo_diario_estimado_di: {
+                        decimalCosto: true
+                    }
+                },
+                messages: {
+                    txt_codigo_di: {
+                        required: "El código es obligatorio",
+                        codigoValido: "Solo letras, números y guiones medios",
+                        minlength: "Mínimo 3 caracteres",
+                        maxlength: "Máximo 20 caracteres"
+                    },
+                    txt_nombre_di: {
+                        required: "El nombre es obligatorio",
+                        nombreDieta: "Solo letras, números, espacios, guiones y puntos",
+                        minlength: "Mínimo 2 caracteres",
+                        maxlength: "Máximo 200 caracteres"
+                    },
+                    sel_categoria_objetivo_di: {
+                        required: "Seleccione la categoría objetivo"
+                    },
+                    txt_materia_seca_kg_di: {
+                        decimalNutricional6: "Valor inválido (0 - 9999.99, máx 2 decimales)"
+                    },
+                    txt_energia_mcal_di: {
+                        decimalNutricional6: "Valor inválido (0 - 9999.99, máx 2 decimales)"
+                    },
+                    txt_proteina_cruda_pct_di: {
+                        decimalPorcentaje: "Valor inválido (0 - 999.99, máx 2 decimales)"
+                    },
+                    txt_fibra_cruda_pct_di: {
+                        decimalPorcentaje: "Valor inválido (0 - 999.99, máx 2 decimales)"
+                    },
+                    txt_calcio_pct_di: {
+                        decimalPorcentaje: "Valor inválido (0 - 999.99, máx 2 decimales)"
+                    },
+                    txt_fosforo_pct_di: {
+                        decimalPorcentaje: "Valor inválido (0 - 999.99, máx 2 decimales)"
+                    },
+                    txt_costo_diario_estimado_di: {
+                        decimalCosto: "Valor inválido (0 - 999999.99, máx 2 decimales)"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                    if ($(element).hasClass('is-invalid')) {
+                        $(element).focus();
+                    }
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - CÓDIGO
+            // ==========================================
+            $('#txt_codigo_di').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase();
+                if (filtrado.length > 20) {
+                    filtrado = filtrado.substring(0, 20);
+                    alertaAdvertencia('Límite alcanzado', 'Se ha alcanzado el máximo de 20 caracteres para el código.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'Solo se aceptan letras, números y guiones medios.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - NOMBRE
+            // ==========================================
+            $('#txt_nombre_di').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.\,]/g, '');
+                if (filtrado.length > 200) {
+                    filtrado = filtrado.substring(0, 200);
+                    alertaAdvertencia('Límite alcanzado', 'Se ha alcanzado el máximo de 200 caracteres para el nombre.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'Caracter ingresado no válido para nombre de dieta.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - DECIMALES NUTRICIONALES
+            // ==========================================
+            function validarDecimalNutricional(input, maxEnteros, maxDecimales) {
+                let valor = input.val();
+                let filtrado = valor.replace(/[^\d\.,]/g, '');
+                let partes = filtrado.split(/[\.,]/);
+                
+                if (partes.length > 2) {
+                    filtrado = partes[0] + '.' + partes.slice(1).join('');
+                }
+                
+                if (partes[0] && partes[0].length > maxEnteros) {
+                    partes[0] = partes[0].substring(0, maxEnteros);
+                    filtrado = partes.join('.');
+                    alertaAdvertencia('Límite alcanzado', 'Valor demasiado grande.');
+                }
+                
+                if (partes[1] && partes[1].length > maxDecimales) {
+                    partes[1] = partes[1].substring(0, maxDecimales);
+                    filtrado = partes.join('.');
+                    alertaAdvertencia('Límite decimal', 'Máximo ' + maxDecimales + ' decimales permitidos.');
+                }
+                
+                if (valor !== filtrado) {
+                    input.val(filtrado);
+                }
+            }
+
+            // Materia seca y energía: 4 enteros, 2 decimales (max 9999.99)
+            $('#txt_materia_seca_kg_di, #txt_energia_mcal_di').on('input', function() {
+                validarDecimalNutricional($(this), 4, 2);
+            });
+
+            // Porcentajes: 3 enteros, 2 decimales (max 999.99)
+            $('#txt_proteina_cruda_pct_di, #txt_fibra_cruda_pct_di, #txt_calcio_pct_di, #txt_fosforo_pct_di').on('input', function() {
+                validarDecimalNutricional($(this), 3, 2);
+            });
+
+            // Costo: 6 enteros, 2 decimales (max 999999.99)
+            $('#txt_costo_diario_estimado_di').on('input', function() {
+                validarDecimalNutricional($(this), 6, 2);
+            });
+
+            // ==========================================
+            // BLOQUEO DE TECLAS PROHIBIDAS - CÓDIGO
+            // ==========================================
+            $('#txt_codigo_di').on('keypress', function(e) {
+                let tecla = String.fromCharCode(e.which);
+                if (!/^[a-zA-Z0-9\-]$/.test(tecla)) {
+                    e.preventDefault();
+                    alertaError('Tecla bloqueada', 'Solo se permiten letras, números y guiones medios.');
+                    return false;
+                }
+            });
+
+            // ==========================================
+            // PEGADO DE TEXTO - BLOQUEO CÓDIGO
+            // ==========================================
+            $('#txt_codigo_di').on('paste', function(e) {
+                e.preventDefault();
+                let pegado = (e.originalEvent.clipboardData || window.clipboardData).getData('text');
+                let filtrado = pegado.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase().substring(0, 20);
+                $(this).val(filtrado);
+                if (pegado.toUpperCase().replace(/[^a-zA-Z0-9\-]/g, '') !== filtrado.replace(/[^a-zA-Z0-9\-]/g, '')) {
+                    alertaAdvertencia('Texto filtrado', 'Se han eliminado caracteres no permitidos. Solo letras, números y guiones.');
+                }
+            });
+
+            // ==========================================
+            // PEGADO DE TEXTO - BLOQUEO NOMBRE
+            // ==========================================
+            $('#txt_nombre_di').on('paste', function(e) {
+                e.preventDefault();
+                let pegado = (e.originalEvent.clipboardData || window.clipboardData).getData('text');
+                let filtrado = pegado.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-\.\,]/g, '').substring(0, 200);
+                $(this).val(filtrado);
+                if (pegado !== filtrado) {
+                    alertaAdvertencia('Texto filtrado', 'Se han eliminado caracteres no permitidos.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACIÓN AL PERDER FOCO - CÓDIGO
+            // ==========================================
+            $('#txt_codigo_di').on('blur', function() {
+                let valor = $(this).val().trim();
+                if (valor.length > 0 && valor.length < 3) {
+                    $(this).val('');
+                    alertaError('Longitud insuficiente', 'El código debe tener al menos 3 caracteres. El campo ha sido limpiado.');
+                    $(this).focus();
+                }
+            });
+
+            // ==========================================
+            // VALIDACIÓN AL PERDER FOCO - NOMBRE
+            // ==========================================
+            $('#txt_nombre_di').on('blur', function() {
+                let valor = $(this).val().trim();
+                if (valor.length === 1) {
+                    $(this).val('');
+                    alertaError('Longitud insuficiente', 'El nombre debe tener al menos 2 caracteres. El campo ha sido limpiado.');
+                    $(this).focus();
+                }
+            });
+        });
+    </script>
+{% endblock %}

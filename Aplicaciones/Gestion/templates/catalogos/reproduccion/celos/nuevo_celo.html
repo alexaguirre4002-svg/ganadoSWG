@@ -1,0 +1,335 @@
+{% extends "plantilla.html" %}
+
+{% block titulo %}
+    Nuevo Celo | Hacienda Joseph
+{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listacelo/" class="text-decoration-none" style="color: var(--color-primario);">Celos</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo Celo</li>
+{% endblock %}
+
+{% block contenido %}
+
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-plus-circle me-2"></i>Registrar Nuevo Celo
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Registre la observación de celo en hembras del hato
+            </p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos del Celo
+                </div>
+
+                <div class="p-4">
+                    <form action="/guardarcelo/" id="frm_nuevo_celo" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- FILA 1: FECHA OBSERVACIÓN Y ANIMAL -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_observacion_ce">
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha de Observación <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_observacion_ce" 
+                                       id="txt_fecha_observacion_ce" 
+                                       class="form-control" 
+                                       required>
+                                <small class="text-muted">Fecha en que se observó el celo.</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_animal_ce">
+                                    <i class="bi bi-emoji-smile me-1"></i>Animal (Hembra) <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_animal_ce" 
+                                        id="sel_animal_ce" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione una hembra...</option>
+                                    {% for animal in animales %}
+                                    <option value="{{ animal.id_an }}">{{ animal.codigo_an }} - {{ animal.nombre_an|default:'Sin nombre' }} ({{ animal.categoria_an }})</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Solo hembras en categorías reproductivas.</small>
+                            </div>
+                        </div>
+
+                        <!-- FILA 2: INTENSIDAD Y DURACIÓN -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_intensidad_ce">
+                                    <i class="bi bi-activity me-1"></i>Intensidad del Celo
+                                </label>
+                                <select name="sel_intensidad_ce" 
+                                        id="sel_intensidad_ce" 
+                                        class="form-select">
+                                    <option value="" selected>No especificada...</option>
+                                    <option value="baja">Baja</option>
+                                    <option value="media">Media</option>
+                                    <option value="alta">Alta</option>
+                                </select>
+                                <small class="text-muted">Intensidad observada del comportamiento de celo.</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_duracion_horas_ce">
+                                    <i class="bi bi-clock-history me-1"></i>Duración Aproximada (horas)
+                                </label>
+                                <input type="number" 
+                                       name="txt_duracion_horas_ce" 
+                                       id="txt_duracion_horas_ce" 
+                                       class="form-control" 
+                                       placeholder="Ej: 18" 
+                                       min="1"
+                                       max="72">
+                                <small class="text-muted">Duración estimada en horas (1-72). Promedio bovino: 12-18 hrs.</small>
+                            </div>
+                        </div>
+
+                        <!-- FILA 3: OBSERVACIONES -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_observaciones_ce">
+                                    <i class="bi bi-journal-text me-1"></i>Observaciones
+                                </label>
+                                <textarea name="txt_observaciones_ce" 
+                                          id="txt_observaciones_ce" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          maxlength="1000"
+                                          placeholder="Comportamiento observado: inquietud, monta sobre otras, berrido, hinchazón vulvar, mucus..."></textarea>
+                                <small class="text-muted">Máximo 1000 caracteres. Describa signos observados.</small>
+                            </div>
+                        </div>
+
+                        <!-- BOTONES DE ACCION -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Celo
+                            </button>
+                            <a href="/listacelo/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+    <script>
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha no puede ser futura");
+
+        jQuery.validator.addMethod("hembraReproductiva", function(value, element) {
+            // Validación adicional: solo hembras en categorías reproductivas
+            let categoria = $(element).find(':selected').text().toLowerCase();
+            let categoriasValidas = ['vaca_leche', 'vaca_seca', 'novilla', 'ternero'];
+            let esValida = false;
+            for (let cat of categoriasValidas) {
+                if (categoria.includes(cat)) {
+                    esValida = true;
+                    break;
+                }
+            }
+            // Permitir si no se ha seleccionado nada (required se encarga)
+            if (!value) return true;
+            return esValida;
+        }, "Seleccione una hembra en categoría reproductiva");
+
+        $(document).ready(function() {
+            
+            $('#txt_fecha_observacion_ce').val(new Date().toISOString().split('T')[0]);
+
+            $("#frm_nuevo_celo").validate({
+                rules: {
+                    txt_fecha_observacion_ce: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    sel_animal_ce: {
+                        required: true
+                    },
+                    sel_intensidad_ce: {
+                        required: false
+                    },
+                    txt_duracion_horas_ce: {
+                        digits: true,
+                        min: 1,
+                        max: 72
+                    },
+                    txt_observaciones_ce: {
+                        maxlength: 1000
+                    }
+                },
+                messages: {
+                    txt_fecha_observacion_ce: {
+                        required: "La fecha de observación es obligatoria",
+                        fechaNoFutura: "No puede registrar observaciones futuras"
+                    },
+                    sel_animal_ce: {
+                        required: "Seleccione una hembra"
+                    },
+                    txt_duracion_horas_ce: {
+                        digits: "Solo números enteros",
+                        min: "Mínimo 1 hora",
+                        max: "Máximo 72 horas"
+                    },
+                    txt_observaciones_ce: {
+                        maxlength: "Máximo 1000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - DURACIÓN HORAS
+            // ==========================================
+            $('#txt_duracion_horas_ce').on('input', function() {
+                let valor = $(this).val();
+                if (valor < 1 && valor !== '') {
+                    $(this).val('');
+                    alertaError('Valor inválido', 'La duración debe ser al menos 1 hora.');
+                }
+                if (valor > 72) {
+                    $(this).val(72);
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 72 horas.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - OBSERVACIONES
+            // ==========================================
+            $('#txt_observaciones_ce').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 1000) {
+                    $(this).val(valor.substring(0, 1000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 1000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACIÓN DE CATEGORÍA REPRODUCTIVA
+            // ==========================================
+            $('#sel_animal_ce').on('change', function() {
+                let texto = $(this).find(':selected').text().toLowerCase();
+                let categoriasReproductivas = ['vaca_leche', 'vaca_seca', 'novilla'];
+                let esReproductiva = false;
+                for (let cat of categoriasReproductivas) {
+                    if (texto.includes(cat)) {
+                        esReproductiva = true;
+                        break;
+                    }
+                }
+                if (!esReproductiva && $(this).val() !== '') {
+                    alertaAdvertencia('Advertencia', 'El animal seleccionado no es una hembra en categoría reproductiva. Considere seleccionar una vaca o novilla.');
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

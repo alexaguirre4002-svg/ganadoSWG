@@ -1,0 +1,607 @@
+{% extends "plantilla.html" %}
+{% load static %}
+
+{% block titulo %}
+Listado de Registros Clínicos | Hacienda Joseph
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a>
+</li>
+<li class="breadcrumb-item">
+    <a href="/listaanimal/" class="text-decoration-none" style="color: var(--color-primario);">Animales</a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">Registros Clínicos</li>
+{% endblock %}
+
+{% block contenido %}
+
+<!-- TARJETAS ESTADÍSTICAS -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3">
+            <i class="bi bi-file-medical fs-2" style="color: var(--color-primario);"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_registros }}</h4>
+            <small class="text-muted">Total Registros</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
+            <i class="bi bi-heart-pulse fs-2 text-success"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_curados }}</h4>
+            <small class="text-muted">Curados</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #ffc107;">
+            <i class="bi bi-band-aid fs-2 text-warning"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_en_tratamiento }}</h4>
+            <small class="text-muted">En Tratamiento</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #6f42c1;">
+            <i class="bi bi-virus fs-2" style="color: #6f42c1;"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_cronicos }}</h4>
+            <small class="text-muted">Crónicos</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
+            <i class="bi bi-heartbreak fs-2 text-danger"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_fallecidos }}</h4>
+            <small class="text-muted">Fallecidos</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #17a2b8;">
+            <i class="bi bi-currency-dollar fs-2" style="color: #17a2b8;"></i>
+            <h4 class="fw-bold mt-2 mb-0">${{ costo_total|default:"0.00" }}</h4>
+            <small class="text-muted">Costo Total</small>
+        </div>
+    </div>
+</div>
+
+<!-- TITULO -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-8">
+        <h2 class="fw-bold" style="color: var(--color-primario);">
+            <i class="bi bi-file-medical me-2"></i>
+            Listado de Registros Clínicos
+        </h2>
+        <p class="text-muted mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            Historial médico, diagnósticos y tratamientos veterinarios
+        </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="/nuevoregistroclinico/" class="btn btn-hacienda">
+            <i class="bi bi-plus-circle me-2"></i>
+            Nuevo Registro Clínico
+        </a>
+    </div>
+</div>
+
+<!-- TARJETA PRINCIPAL -->
+<div class="row animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-list-ul"></i>
+                Registros Clínicos Registrados
+            </div>
+            <div class="p-4">
+                <div class="table-responsive">
+                    <table id="tablaRegistrosClinicos" class="table table-hacienda align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>FECHA</th>
+                                <th>ANIMAL</th>
+                                <th>SÍNTOMAS</th>
+                                <th>DIAGNÓSTICO</th>
+                                <th>TRATAMIENTO</th>
+                                <th>DÍAS</th>
+                                <th>RESULTADO</th>
+                                <th>VETERINARIO</th>
+                                <th>COSTO</th>
+                                <th>ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for registro in registros %}
+                            <tr>
+                                <td class="fw-bold text-muted">#{{ registro.id_rc }}</td>
+                                <td>
+                                    <span class="fw-bold" style="color: #5c450e;">
+                                        <i class="bi bi-calendar-event me-1"></i>
+                                        {{ registro.fecha_rc|date:'d/m/Y' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill p-2" style="background: #e8f5e9; color: #2c5e1a; border: 1px solid #2c5e1a;">
+                                        <i class="bi bi-emoji-smile me-1"></i>
+                                        {{ registro.fk_an.codigo_an }}
+                                    </span>
+                                    {% if registro.fk_an.nombre_an %}
+                                    <br><small class="text-muted">{{ registro.fk_an.nombre_an }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="text-muted" style="font-size: 13px;">
+                                        {{ registro.sintomas_rc|truncatechars:50 }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if registro.diagnostico_rc %}
+                                    <span class="text-muted" style="font-size: 13px;">
+                                        {{ registro.diagnostico_rc|truncatechars:50 }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if registro.tratamiento_rc %}
+                                    <span class="text-muted" style="font-size: 13px;">
+                                        {{ registro.tratamiento_rc|truncatechars:50 }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if registro.dias_tratamiento_rc %}
+                                    <span class="badge rounded-pill p-2" style="background:#e3f2fd; color:#1565c0;">
+                                        <i class="bi bi-clock-history me-1"></i>{{ registro.dias_tratamiento_rc }} días
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if registro.resultado_rc == 'curado' %}
+                                    <span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745;">
+                                        <i class="bi bi-heart-pulse me-1"></i>Curado
+                                    </span>
+                                    {% elif registro.resultado_rc == 'en_tratamiento' %}
+                                    <span class="badge rounded-pill p-2" style="background:#fff3cd; color:#856404; border: 1px solid #ffc107;">
+                                        <i class="bi bi-band-aid me-1"></i>En Tratamiento
+                                    </span>
+                                    {% elif registro.resultado_rc == 'cronico' %}
+                                    <span class="badge rounded-pill p-2" style="background:#e2d4f0; color:#4a148c; border: 1px solid #6f42c1;">
+                                        <i class="bi bi-virus me-1"></i>Crónico
+                                    </span>
+                                    {% elif registro.resultado_rc == 'fallecido' %}
+                                    <span class="badge rounded-pill p-2" style="background:#f8d7da; color:#721c24; border: 1px solid #dc3545;">
+                                        <i class="bi bi-heartbreak me-1"></i>Fallecido
+                                    </span>
+                                    {% else %}
+                                    <span class="badge rounded-pill bg-secondary p-2">
+                                        <i class="bi bi-question-circle me-1"></i>Pendiente
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if registro.veterinario_rc %}
+                                    <span class="text-muted">
+                                        <i class="bi bi-person-badge me-1 text-success"></i>
+                                        {{ registro.veterinario_rc }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold">
+                                    {% if registro.costo_tratamiento_rc %}
+                                    <span style="color: #2c5e1a;">
+                                        <i class="bi bi-currency-dollar me-1"></i>
+                                        {{ registro.costo_tratamiento_rc }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-info" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalDetalleRegistro"
+                                            data-id="{{ registro.id_rc }}"
+                                            data-fecha="{{ registro.fecha_rc|date:'d/m/Y' }}"
+                                            data-animal="{{ registro.fk_an.codigo_an }}"
+                                            data-animal-nombre="{% if registro.fk_an.nombre_an %}{{ registro.fk_an.nombre_an }}{% else %}Sin nombre{% endif %}"
+                                            data-sintomas="{{ registro.sintomas_rc }}"
+                                            data-diagnostico="{% if registro.diagnostico_rc %}{{ registro.diagnostico_rc }}{% else %}Sin diagnóstico{% endif %}"
+                                            data-tratamiento="{% if registro.tratamiento_rc %}{{ registro.tratamiento_rc }}{% else %}Sin tratamiento{% endif %}"
+                                            data-dias="{% if registro.dias_tratamiento_rc %}{{ registro.dias_tratamiento_rc }}{% else %}---{% endif %}"
+                                            data-resultado="{% if registro.resultado_rc %}{{ registro.resultado_rc }}{% else %}pendiente{% endif %}"
+                                            data-veterinario="{% if registro.veterinario_rc %}{{ registro.veterinario_rc }}{% else %}---{% endif %}"
+                                            data-costo="{% if registro.costo_tratamiento_rc %}{{ registro.costo_tratamiento_rc }}{% else %}---{% endif %}"
+                                            data-usuario="{{ registro.fk_us_rc.username_us }}"
+                                            data-created="{{ registro.created_at_rc|date:'d/m/Y H:i' }}"
+                                            title="Ver detalle">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <a href="/editarregistroclinico/{{ registro.id_rc }}" class="btn btn-sm btn-hacienda-secondary" title="Editar">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalEliminarRegistro"
+                                            data-id="{{ registro.id_rc }}"
+                                            data-animal="{{ registro.fk_an.codigo_an }}"
+                                            data-fecha="{{ registro.fecha_rc|date:'d/m/Y' }}"
+                                            data-url="/eliminarregistroclinico/{{ registro.id_rc }}"
+                                            title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="11" class="text-center py-5">
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <p class="mt-3 text-muted">No hay registros clínicos registrados</p>
+                                    <a href="/nuevoregistroclinico/" class="btn btn-hacienda btn-sm mt-2">
+                                        <i class="bi bi-plus-circle me-2"></i>Registrar primer registro
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
+                <small class="text-muted">
+                    <i class="bi bi-bar-chart-line me-1"></i>
+                    Total de registros: <strong>{{ registros|length }}</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="modal fade" id="modalDetalleRegistro" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-file-medical-fill me-2" style="color: #DAA520;"></i>
+                    DETALLE DEL REGISTRO CLÍNICO
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="background: #fff8e6;">
+                <div class="row g-0">
+                    <div class="col-md-5" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
+                        <div class="p-4 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="bi bi-heart-pulse fs-1" style="color: #2c5e1a;"></i>
+                            <p class="mt-3 mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleAnimal"></p>
+                            <p class="text-muted mb-0" style="font-size: 14px;" id="detalleAnimalNombre"></p>
+                            <div class="mt-3 w-100 text-center">
+                                <span id="detalleResultadoBadge"></span>
+                            </div>
+                            <div class="mt-2 w-100 text-center">
+                                <small class="text-muted">Registro #<<span id="detalleId"></span></small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="p-4">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-event me-1"></i>FECHA ATENCIÓN</label>
+                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;" id="detalleFecha"></p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <label class="text-muted small fw-bold">RESULTADO</label>
+                                    <div id="detalleResultado"></div>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i>SÍNTOMAS</label>
+                                <p class="mb-0" id="detalleSintomas" style="color: #5c450e;"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold"><i class="bi bi-clipboard-pulse me-1"></i>DIAGNÓSTICO</label>
+                                <p class="mb-0" id="detalleDiagnostico" style="color: #5c450e; font-style: italic;"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold"><i class="bi bi-capsule me-1"></i>TRATAMIENTO</label>
+                                <p class="mb-0" id="detalleTratamiento" style="color: #5c450e; font-style: italic;"></p>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>DÍAS TRATAMIENTO</label>
+                                    <p class="mb-0" id="detalleDias" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person-badge me-1"></i>VETERINARIO</label>
+                                    <p class="mb-0" id="detalleVeterinario" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="mb-0">
+                                <label class="text-muted small fw-bold"><i class="bi bi-currency-dollar me-1"></i>COSTO TRATAMIENTO</label>
+                                <p class="mb-0 fw-bold" id="detalleCosto" style="color: #2c5e1a;"></p>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-0">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>REGISTRADO POR</label>
+                                    <p class="mb-0" id="detalleUsuario" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>FECHA REGISTRO</label>
+                                    <p class="mb-0" id="detalleCreated" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
+                    <i class="bi bi-pencil-square me-1"></i>Editar Registro
+                </a>
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL ELIMINAR -->
+<div class="modal fade" id="modalEliminarRegistro" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: 2px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
+                    CONFIRMAR ELIMINACIÓN
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background: #fff8e6; padding: 25px;">
+                <p style="color: #5c450e; font-size: 16px; margin-bottom: 0;">
+                    ¿Está seguro de eliminar el registro clínico del animal <strong id="animalRegistroModal" style="color: #2c5e1a;"></strong>?
+                </p>
+                <p class="mt-2 mb-0" style="color: #8B6914; font-size: 14px;">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Fecha: <span id="fechaRegistroModal"></span>
+                </p>
+                <p class="mt-2 mb-0" style="color: #c0392b; font-size: 13px;">
+                    <i class="bi bi-exclamation-diamond me-1"></i>
+                    Esta acción no se puede deshacer. Se eliminará el historial médico.
+                </p>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                </button>
+                <a href="#" id="btnConfirmarEliminarRegistro" class="btn btn-hacienda-warning">
+                    <i class="bi bi-check-lg me-1"></i>Sí, eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+<style>
+    .dataTables_filter {
+        margin-bottom: 20px !important;
+        background: linear-gradient(135deg, #eef7e8, #dcefd0);
+        padding: 15px 20px;
+        border-radius: 18px;
+        border: 2px solid #b7d7a8;
+        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
+        display: flex !important;
+        align-items: center !important;
+        justify-content: end !important;
+        gap: 10px;
+    }
+    .dataTables_filter::before {
+        content: "🩺";
+        font-size: 28px;
+    }
+    .dataTables_filter label {
+        font-weight: bold;
+        color: var(--color-primario);
+        font-size: 17px;
+    }
+    .dataTables_filter input {
+        border-radius: 50px !important;
+        border: 3px solid var(--color-primario) !important;
+        padding: 10px 18px !important;
+        background-color: #ffffff !important;
+        color: var(--color-navbar) !important;
+        font-weight: 600 !important;
+        width: 280px !important;
+        transition: 0.3s !important;
+        box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08);
+        margin-left: 10px !important;
+    }
+    .dataTables_filter input:focus {
+        outline: none !important;
+        border-color: #8dc26f !important;
+        box-shadow: 0px 0px 12px rgba(44,94,26,0.4);
+        background-color: #f8fff5 !important;
+    }
+    .dataTables_length select {
+        border-radius: 10px !important;
+        border: 2px solid var(--color-primario) !important;
+        padding: 5px 10px !important;
+    }
+    .dataTables_paginate {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        margin-top: 25px !important;
+    }
+    .dataTables_paginate .pagination {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 0px !important;
+        flex-wrap: nowrap !important;
+    }
+    .paginate_button {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        border: none !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 14px !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        transition: 0.3s !important;
+        margin: 0 3px !important;
+        vertical-align: middle !important;
+        float: none !important;
+    }
+    .paginate_button.current {
+        background: var(--color-primario) !important;
+        color: white !important;
+        border: 2px solid #8dc26f !important;
+        box-shadow: 0px 0px 8px rgba(44,94,26,0.4);
+    }
+    .paginate_button:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+    .paginate_button.previous, .paginate_button.next {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 16px !important;
+    }
+    .paginate_button.previous:hover, .paginate_button.next:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $('#tablaRegistrosClinicos').DataTable({
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ registros",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                "infoEmpty": "No existen registros",
+                "infoFiltered": "(filtrado de _MAX_ registros)",
+                "search": "Buscar:",
+                "paginate": {
+                    "first": "",
+                    "last": "",
+                    "next": "›",
+                    "previous": "‹"
+                }
+            },
+            "pageLength": 10,
+            "lengthMenu": [5,10,25,50,100],
+            "responsive": true,
+            "pagingType": "simple_numbers",
+            "order": [[1, "desc"]]
+        });
+    });
+</script>
+
+<script>
+    // Modal Detalle Registro
+    var modalDetalleRegistro = document.getElementById('modalDetalleRegistro');
+    modalDetalleRegistro.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        
+        var id = button.getAttribute('data-id');
+        var fecha = button.getAttribute('data-fecha');
+        var animal = button.getAttribute('data-animal');
+        var animalNombre = button.getAttribute('data-animal-nombre');
+        var sintomas = button.getAttribute('data-sintomas');
+        var diagnostico = button.getAttribute('data-diagnostico');
+        var tratamiento = button.getAttribute('data-tratamiento');
+        var dias = button.getAttribute('data-dias');
+        var resultado = button.getAttribute('data-resultado');
+        var veterinario = button.getAttribute('data-veterinario');
+        var costo = button.getAttribute('data-costo');
+        var usuario = button.getAttribute('data-usuario');
+        var created = button.getAttribute('data-created');
+        
+        document.getElementById('detalleId').textContent = id;
+        document.getElementById('detalleFecha').textContent = fecha;
+        document.getElementById('detalleAnimal').textContent = animal;
+        document.getElementById('detalleAnimalNombre').textContent = animalNombre;
+        document.getElementById('detalleSintomas').textContent = sintomas;
+        document.getElementById('detalleDiagnostico').textContent = diagnostico;
+        document.getElementById('detalleTratamiento').textContent = tratamiento;
+        document.getElementById('detalleDias').textContent = dias !== '---' ? dias + ' días' : '---';
+        document.getElementById('detalleVeterinario').textContent = veterinario;
+        document.getElementById('detalleCosto').textContent = costo !== '---' ? '$ ' + costo : '---';
+        document.getElementById('detalleUsuario').textContent = usuario;
+        document.getElementById('detalleCreated').textContent = created;
+        
+        var resultadoHtml = '';
+        var badgeHtml = '';
+        switch(resultado) {
+            case 'curado':
+                resultadoHtml = '<span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745;"><i class="bi bi-heart-pulse me-1"></i> Curado</span>';
+                badgeHtml = '<span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745; font-size: 14px;"><i class="bi bi-heart-pulse me-1"></i> Curado</span>';
+                break;
+            case 'en_tratamiento':
+                resultadoHtml = '<span class="badge rounded-pill p-2" style="background:#fff3cd; color:#856404; border: 1px solid #ffc107;"><i class="bi bi-band-aid me-1"></i> En Tratamiento</span>';
+                badgeHtml = '<span class="badge rounded-pill p-2" style="background:#fff3cd; color:#856404; border: 1px solid #ffc107; font-size: 14px;"><i class="bi bi-band-aid me-1"></i> En Tratamiento</span>';
+                break;
+            case 'cronico':
+                resultadoHtml = '<span class="badge rounded-pill p-2" style="background:#e2d4f0; color:#4a148c; border: 1px solid #6f42c1;"><i class="bi bi-virus me-1"></i> Crónico</span>';
+                badgeHtml = '<span class="badge rounded-pill p-2" style="background:#e2d4f0; color:#4a148c; border: 1px solid #6f42c1; font-size: 14px;"><i class="bi bi-virus me-1"></i> Crónico</span>';
+                break;
+            case 'fallecido':
+                resultadoHtml = '<span class="badge rounded-pill p-2" style="background:#f8d7da; color:#721c24; border: 1px solid #dc3545;"><i class="bi bi-heartbreak me-1"></i> Fallecido</span>';
+                badgeHtml = '<span class="badge rounded-pill p-2" style="background:#f8d7da; color:#721c24; border: 1px solid #dc3545; font-size: 14px;"><i class="bi bi-heartbreak me-1"></i> Fallecido</span>';
+                break;
+            default:
+                resultadoHtml = '<span class="badge rounded-pill bg-secondary p-2"><i class="bi bi-question-circle me-1"></i> Pendiente</span>';
+                badgeHtml = '<span class="badge rounded-pill bg-secondary p-2" style="font-size: 14px;"><i class="bi bi-question-circle me-1"></i> Pendiente</span>';
+        }
+        document.getElementById('detalleResultado').innerHTML = resultadoHtml;
+        document.getElementById('detalleResultadoBadge').innerHTML = badgeHtml;
+        
+        document.getElementById('btnEditarDesdeDetalle').href = '/editarregistroclinico/' + id;
+    });
+</script>
+
+<script>
+    // Modal Eliminar Registro
+    var modalEliminarRegistro = document.getElementById('modalEliminarRegistro');
+    modalEliminarRegistro.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var animal = button.getAttribute('data-animal');
+        var fecha = button.getAttribute('data-fecha');
+        var url = button.getAttribute('data-url');
+        
+        document.getElementById('animalRegistroModal').textContent = animal;
+        document.getElementById('fechaRegistroModal').textContent = fecha;
+        document.getElementById('btnConfirmarEliminarRegistro').setAttribute('href', url);
+    });
+</script>
+
+{% endblock %}

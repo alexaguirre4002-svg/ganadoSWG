@@ -1,0 +1,656 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Nuevo Parto | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listapartos/" class="text-decoration-none" style="color: var(--color-primario);">Partos</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo Parto</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-heart-pulse me-2"></i>Registrar Nuevo Parto
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Registre el parto de una vaca y la información de la cría
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE PARTO             -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos del Parto
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/guardarparto/" id="frm_nuevo_parto" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: MADRE Y PREÑEZ VINCULADA           -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: MADRE (FK) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_madre_pa">
+                                    <i class="bi bi-emoji-smile me-1"></i>Madre <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_madre_pa" 
+                                        id="sel_madre_pa" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione la madre...</option>
+                                    {% for animal in madres %}
+                                    <option value="{{ animal.id_an }}"
+                                            data-categoria="{{ animal.categoria_an }}"
+                                            data-codigo="{{ animal.codigo_an }}">
+                                        {{ animal.codigo_an }} - {{ animal.nombre_an|default:'Sin nombre' }} ({{ animal.categoria_an }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Solo vacas hembras activas en categoría reproductiva.</small>
+                            </div>
+
+                            <!-- CAMPO: PREÑEZ VINCULADA (FK) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_prenez_pa">
+                                    <i class="bi bi-heart me-1"></i>Preñez Asociada
+                                </label>
+                                <select name="sel_prenez_pa" 
+                                        id="sel_prenez_pa" 
+                                        class="form-select">
+                                    <option value="" selected data-madre-id="">Sin preñez vinculada...</option>
+                                    {% for prenez in preneces %}
+                                    <option value="{{ prenez.id_pr }}"
+                                            data-madre-id="{{ prenez.fk_an.id_an }}"
+                                            data-fecha-parto="{{ prenez.fecha_probable_parto_pr|date:'Y-m-d' }}">
+                                        #{{ prenez.id_pr }} - {{ prenez.fk_an.codigo_an }} | Conf: {{ prenez.fecha_confirmacion_pr|date:'d/m/Y' }} | Parto esp: {{ prenez.fecha_probable_parto_pr|date:'d/m/Y' }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted" id="msg_prenez">Opcional. Vincula la preñez que culminó en este parto.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: FECHA PARTO Y TIPO PARTO           -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: FECHA PARTO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_pa">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha del Parto <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_pa" 
+                                       id="txt_fecha_pa" 
+                                       class="form-control" 
+                                       required>
+                                <small class="text-muted">Fecha en que ocurrió el parto. No puede ser futura.</small>
+                                
+                                <!-- Indicador de comparación con fecha esperada -->
+                                <div id="indicador-fecha-parto" class="mt-2 p-2 rounded d-none" style="font-size: 0.9rem; font-weight: 500;">
+                                    <i class="bi bi-calculator me-1"></i>
+                                    <span id="texto-fecha-parto"></span>
+                                </div>
+                            </div>
+
+                            <!-- CAMPO: TIPO DE PARTO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_tipo_parto_pa">
+                                    <i class="bi bi-activity me-1"></i>Tipo de Parto
+                                </label>
+                                <select name="sel_tipo_parto_pa" 
+                                        id="sel_tipo_parto_pa" 
+                                        class="form-select">
+                                    <option value="" selected>Seleccione tipo...</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="distocico">Distócico</option>
+                                    <option value="cesarea">Cesárea</option>
+                                </select>
+                                <small class="text-muted">Tipo de parto según dificultad.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: ASISTENCIA VETERINARIA             -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" 
+                                           type="checkbox" 
+                                           name="chk_asistencia_veterinaria_pa" 
+                                           id="chk_asistencia_veterinaria_pa"
+                                           style="cursor: pointer;">
+                                    <label class="form-check-label" for="chk_asistencia_veterinaria_pa" style="cursor: pointer;">
+                                        <i class="bi bi-heart-pulse me-1"></i>¿Requirió asistencia veterinaria?
+                                    </label>
+                                </div>
+                                <small class="text-muted">Marque si hubo intervención veterinaria durante el parto.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- SECCION: DATOS DE LA CRÍA                  -->
+                        <!-- ========================================== -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h5 class="fw-bold mb-3" style="color: var(--color-primario);">
+                                    <i class="bi bi-baby me-2"></i>Datos de la Cría
+                                </h5>
+                                <hr style="border-color: #d4c5a9;">
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: SEXO Y PESO DE LA CRÍA             -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: SEXO CRÍA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_cria_sexo_pa">
+                                    <i class="bi bi-gender-ambiguous me-1"></i>Sexo de la Cría
+                                </label>
+                                <select name="sel_cria_sexo_pa" 
+                                        id="sel_cria_sexo_pa" 
+                                        class="form-select">
+                                    <option value="" selected>Seleccione sexo...</option>
+                                    <option value="M">Macho</option>
+                                    <option value="H">Hembra</option>
+                                </select>
+                                <small class="text-muted">Sexo del ternero/ternera nacido.</small>
+                            </div>
+
+                            <!-- CAMPO: PESO CRÍA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_cria_peso_kg_pa">
+                                    <i class="bi bi-speedometer me-1"></i>Peso de la Cría (kg)
+                                </label>
+                                <input type="number" 
+                                       name="txt_cria_peso_kg_pa" 
+                                       id="txt_cria_peso_kg_pa" 
+                                       class="form-control"
+                                       step="0.01"
+                                       min="5"
+                                       max="70"
+                                       placeholder="Ej: 32.50">
+                                <small class="text-muted">Peso al nacer en kilogramos. Rango típico: 25-45 kg.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 5: CRÍA VINCULADA COMO ANIMAL         -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="sel_cria_pa">
+                                    <i class="bi bi-link-45deg me-1"></i>Cría Registrada como Animal
+                                </label>
+                                <select name="sel_cria_pa" 
+                                        id="sel_cria_pa" 
+                                        class="form-select">
+                                    <option value="" selected>Sin vincular...</option>
+                                    {% for animal in crias_disponibles %}
+                                    <option value="{{ animal.id_an }}"
+                                            data-sexo="{{ animal.sexo_an }}">
+                                        {{ animal.codigo_an }} - {{ animal.nombre_an|default:'Sin nombre' }} ({{ animal.sexo_an }} - {{ animal.categoria_an }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Opcional. Vincule si la cría ya fue registrada como animal en el sistema.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 6: OBSERVACIONES                      -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_observaciones_pa">
+                                    <i class="bi bi-journal-text me-1"></i>Observaciones
+                                </label>
+                                <textarea name="txt_observaciones_pa" 
+                                          id="txt_observaciones_pa" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          maxlength="2000"
+                                          placeholder="Detalles del parto, estado de la madre, condiciones de la cría, complicaciones..."></textarea>
+                                <small class="text-muted">Máximo 2000 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Parto
+                            </button>
+                            <a href="/listapartos/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#28a745',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#28a745',
+                titleColor: '#155724',
+                messageColor: '#2c5e1a',
+                backgroundColor: '#d4edda',
+                borderBottom: '3px solid #28a745',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        // Fecha parto no puede ser futura
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha del parto no puede ser futura");
+
+        // Fecha parto debe ser razonable respecto a preñez (si está vinculada)
+        jQuery.validator.addMethod("fechaPartoRazonable", function(value, element) {
+            if (!value) return true;
+            let fechaEsperada = $('#sel_prenez_pa option:selected').data('fecha-parto');
+            if (!fechaEsperada) return true;
+            
+            let fechaParto = new Date(value);
+            let fechaEsp = new Date(fechaEsperada);
+            let diffDias = Math.abs((fechaParto - fechaEsp) / (1000 * 60 * 60 * 24));
+            
+            // Permitir ±60 días de diferencia con la fecha esperada
+            return diffDias <= 60;
+        }, "La fecha del parto difiere más de 60 días de la fecha esperada de la preñez");
+
+        // Peso de cría debe ser realista
+        jQuery.validator.addMethod("pesoCriaRealista", function(value, element) {
+            if (!value) return true;
+            let peso = parseFloat(value);
+            return peso >= 5 && peso <= 70;
+        }, "El peso de la cría debe estar entre 5 y 70 kg");
+
+        // Validar consistencia sexo cría con animal vinculado
+        jQuery.validator.addMethod("sexoCriaConsistente", function(value, element) {
+            let sexoCria = $('#sel_cria_sexo_pa').val();
+            let animalVinculado = $('#sel_cria_pa option:selected');
+            let sexoAnimal = animalVinculado.data('sexo');
+            
+            if (!sexoCria || !sexoAnimal) return true;
+            return sexoCria === sexoAnimal;
+        }, "El sexo seleccionado no coincide con el sexo del animal vinculado");
+
+        // Madre debe ser hembra reproductiva
+        jQuery.validator.addMethod("madreReproductiva", function(value, element) {
+            if (!value) return false;
+            let selected = $(element).find('option:selected');
+            let categoria = selected.data('categoria');
+            return ['vaca_leche', 'vaca_seca', 'novilla'].includes(categoria);
+        }, "La madre debe ser una hembra en categoría reproductiva");
+
+        // ==========================================
+        // FUNCION: CALCULAR DIFERENCIA CON FECHA ESPERADA
+        // ==========================================
+        function calcularDiferenciaFechaParto() {
+            let fechaParto = $('#txt_fecha_pa').val();
+            let fechaEsperada = $('#sel_prenez_pa option:selected').data('fecha-parto');
+            let $indicador = $('#indicador-fecha-parto');
+            let $texto = $('#texto-fecha-parto');
+            
+            if (!fechaParto || !fechaEsperada) {
+                $indicador.addClass('d-none');
+                return;
+            }
+            
+            let d1 = new Date(fechaParto);
+            let d2 = new Date(fechaEsperada);
+            let diffDias = Math.round((d1 - d2) / (1000 * 60 * 60 * 24));
+            
+            let colorFondo, colorTexto, mensaje;
+            
+            if (Math.abs(diffDias) <= 7) {
+                colorFondo = '#d4edda';
+                colorTexto = '#155724';
+                mensaje = '✅ Parto a término: ' + (diffDias >= 0 ? '+' : '') + diffDias + ' días de la fecha esperada';
+            } else if (Math.abs(diffDias) <= 21) {
+                colorFondo = '#fff3cd';
+                colorTexto = '#856404';
+                mensaje = '⚠️ Parto ' + (diffDias > 0 ? 'postérmino' : 'prematuro') + ': ' + Math.abs(diffDias) + ' días de diferencia';
+            } else {
+                colorFondo = '#fde8e8';
+                colorTexto = '#8B0000';
+                mensaje = '❌ Diferencia significativa: ' + Math.abs(diffDias) + ' días. Verifique las fechas.';
+            }
+            
+            $indicador
+                .removeClass('d-none')
+                .css({
+                    'background-color': colorFondo,
+                    'color': colorTexto,
+                    'border-left': '4px solid ' + colorTexto
+                });
+            
+            $texto.html(mensaje);
+        }
+
+        $(document).ready(function() {
+            
+            // Set fecha parto default a hoy
+            $('#txt_fecha_pa').val(new Date().toISOString().split('T')[0]);
+
+            // ==========================================
+            // FILTRAR PREÑECES POR MADRE SELECCIONADA
+            // ==========================================
+            function filtrarPreneces() {
+                let madreSeleccionada = $('#sel_madre_pa').val();
+                let $selectPrenez = $('#sel_prenez_pa');
+                
+                $selectPrenez.find('option').each(function() {
+                    let $option = $(this);
+                    let madreIdDePrenez = $option.data('madre-id');
+                    
+                    if (!madreIdDePrenez || madreIdDePrenez == madreSeleccionada) {
+                        $option.show();
+                    } else {
+                        $option.hide();
+                        if ($option.prop('selected')) {
+                            $option.prop('selected', false);
+                        }
+                    }
+                });
+                
+                let $opcionVisibleSeleccionada = $selectPrenez.find('option:selected:visible');
+                if ($opcionVisibleSeleccionada.length === 0) {
+                    $selectPrenez.val('');
+                }
+                
+                $selectPrenez.trigger('change');
+            }
+
+            $('#sel_madre_pa').on('change', function() {
+                filtrarPreneces();
+            });
+
+            filtrarPreneces();
+
+            // ==========================================
+            // AUTO-SELECCIONAR FECHA ESPERADA AL CAMBIAR PREÑEZ
+            // ==========================================
+            $('#sel_prenez_pa').on('change', function() {
+                let fechaEsperada = $(this).find('option:selected').data('fecha-parto');
+                
+                if (fechaEsperada) {
+                    // Sugerir la fecha esperada como fecha de parto si está vacía
+                    if (!$('#txt_fecha_pa').val()) {
+                        $('#txt_fecha_pa').val(fechaEsperada);
+                    }
+                    calcularDiferenciaFechaParto();
+                    $('#msg_prenez').html('<span style="color: #2c5e1a;"><i class="bi bi-check-circle me-1"></i>Preñez vinculada correctamente.</span>');
+                } else {
+                    $('#msg_prenez').html('<span class="text-muted">Sin preñez vinculada.</span>');
+                    $('#indicador-fecha-parto').addClass('d-none');
+                }
+            });
+
+            // ==========================================
+            // RECALCULAR AL CAMBIAR FECHA DE PARTO
+            // ==========================================
+            $('#txt_fecha_pa').on('change', function() {
+                calcularDiferenciaFechaParto();
+            });
+
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_nuevo_parto").validate({
+                rules: {
+                    sel_madre_pa: {
+                        required: true,
+                        madreReproductiva: true
+                    },
+                    sel_prenez_pa: {
+                        // Opcional
+                    },
+                    txt_fecha_pa: {
+                        required: true,
+                        fechaNoFutura: true,
+                        fechaPartoRazonable: true
+                    },
+                    sel_tipo_parto_pa: {
+                        // Opcional
+                    },
+                    sel_cria_sexo_pa: {
+                        // Opcional
+                    },
+                    txt_cria_peso_kg_pa: {
+                        pesoCriaRealista: true
+                    },
+                    sel_cria_pa: {
+                        sexoCriaConsistente: true
+                    },
+                    txt_observaciones_pa: {
+                        maxlength: 2000
+                    }
+                },
+                messages: {
+                    sel_madre_pa: {
+                        required: "Seleccione la madre",
+                        madreReproductiva: "La madre debe ser vaca_leche, vaca_seca o novilla"
+                    },
+                    txt_fecha_pa: {
+                        required: "La fecha del parto es obligatoria",
+                        fechaNoFutura: "La fecha del parto no puede ser futura",
+                        fechaPartoRazonable: "La fecha difiere demasiado de la fecha esperada de la preñez"
+                    },
+                    txt_cria_peso_kg_pa: {
+                        pesoCriaRealista: "El peso debe estar entre 5 y 70 kg"
+                    },
+                    sel_cria_pa: {
+                        sexoCriaConsistente: "El sexo no coincide con el animal vinculado"
+                    },
+                    txt_observaciones_pa: {
+                        maxlength: "Máximo 2000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - OBSERVACIONES
+            // ==========================================
+            $('#txt_observaciones_pa').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 2000) {
+                    $(this).val(valor.substring(0, 2000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 2000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - FECHA PARTO
+            // ==========================================
+            $('#txt_fecha_pa').on('blur', function() {
+                let fechaParto = $(this).val();
+                let hoy = new Date();
+                hoy.setHours(23, 59, 59, 999);
+                
+                if (fechaParto && new Date(fechaParto) > hoy) {
+                    $(this).val(new Date().toISOString().split('T')[0]);
+                    alertaError('Fecha inválida', 'La fecha del parto no puede ser futura. Se ha establecido la fecha de hoy.');
+                }
+                
+                calcularDiferenciaFechaParto();
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - PESO CRÍA
+            // ==========================================
+            $('#txt_cria_peso_kg_pa').on('blur', function() {
+                let peso = parseFloat($(this).val());
+                if (peso && (peso < 5 || peso > 70)) {
+                    $(this).val('');
+                    alertaError('Peso inválido', 'El peso de la cría debe estar entre 5 y 70 kg.');
+                    $(this).focus();
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

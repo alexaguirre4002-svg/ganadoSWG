@@ -1,0 +1,782 @@
+{% extends "plantilla.html" %}
+{% load static %}
+
+<!-- ========================================== -->
+<!-- TITULO                                    -->
+<!-- ========================================== -->
+{% block titulo %}
+Listado de Animales | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BREADCRUMB                                -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">
+        Inicio
+    </a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">
+    Animales
+</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- CONTENIDO PRINCIPAL                       -->
+<!-- ========================================== -->
+{% block contenido %}
+
+<!-- TARJETAS ESTADÍSTICAS -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3">
+            <i class="bi bi-clipboard-data fs-2" style="color: var(--color-primario);"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_animales }}</h4>
+            <small class="text-muted">Total Animales</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
+            <i class="bi bi-check-circle fs-2 text-success"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_activos }}</h4>
+            <small class="text-muted">Activos</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #E65100;">
+            <i class="bi bi-emoji-smile fs-2" style="color: #E65100;"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_terneros }}</h4>
+            <small class="text-muted">Terneros</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #1565C0;">
+            <i class="bi bi-droplet fs-2" style="color: #1565C0;"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_vacas_leche }}</h4>
+            <small class="text-muted">Vacas Leche</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #C62828;">
+            <i class="bi bi-lightning fs-2 text-danger"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_toros }}</h4>
+            <small class="text-muted">Toros</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #6c757d;">
+            <i class="bi bi-box-arrow-right fs-2 text-secondary"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_retirados }}</h4>
+            <small class="text-muted">Retirados</small>
+        </div>
+    </div>
+</div>
+
+<!-- TITULO -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-8">
+        <h2 class="fw-bold" style="color: var(--color-primario);">
+            <i class="bi bi-clipboard-data me-2"></i>
+            Listado de Animales
+        </h2>
+        <p class="text-muted mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            Gestión de inventario ganadero de la hacienda
+        </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="/nuevoanimal/" class="btn btn-hacienda">
+            <i class="bi bi-plus-circle me-2"></i>
+            Nuevo Animal
+        </a>
+    </div>
+</div>
+
+<!-- TARJETA PRINCIPAL -->
+<div class="row animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-list-ul"></i>
+                Animales Registrados
+            </div>
+            <div class="p-4">
+                <div class="table-responsive">
+                    <table id="tablaAnimales" class="table table-hacienda align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>CÓDIGO</th>
+                                <th>NOMBRE</th>
+                                <th>RAZA</th>
+                                <th>SEXO</th>
+                                <th>CATEGORÍA</th>
+                                <th>ESTADO</th>
+                                <th>PESO ACT.</th>
+                                <th>POTRERO</th>
+                                <th>ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for animal in animales %}
+                            <tr>
+                                <!-- ID -->
+                                <td class="fw-bold text-muted">#{{ animal.id_an }}</td>
+                                
+                                <!-- CÓDIGO -->
+                                <td class="fw-bold" style="color: var(--color-primario); font-size:16px;">
+                                    {{ animal.codigo_an }}
+                                </td>
+                                
+                                <!-- NOMBRE -->
+                                <td>
+                                    {% if animal.nombre_an %}
+                                        {{ animal.nombre_an }}
+                                    {% else %}
+                                        <span class="text-muted fst-italic">Sin nombre</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- RAZA -->
+                                <td>
+                                    {% if animal.fk_ra %}
+                                        <span class="badge rounded-pill p-2" style="background: #e8f5e9; color: #2c5e1a; border: 1px solid #2c5e1a;">
+                                            <i class="bi bi-diagram-2 me-1"></i>
+                                            {{ animal.fk_ra.nombre_ra }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted fst-italic">No especificada</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- SEXO -->
+                                <td>
+                                    {% if animal.sexo_an == 'M' %}
+                                    <span class="badge rounded-pill p-2" style="background:#87CEEB; color:#1a1a1a;">
+                                        <i class="bi bi-gender-male me-1"></i>
+                                        Macho
+                                    </span>
+                                    {% else %}
+                                    <span class="badge rounded-pill p-2" style="background:#FFB6C1; color:#1a1a1a;">
+                                        <i class="bi bi-gender-female me-1"></i>
+                                        Hembra
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- CATEGORIA -->
+                                <td>
+                                    {% if animal.categoria_an == 'ternero' %}
+                                    <span class="badge rounded-pill p-2" style="background:#FFF3E0; color:#E65100; border: 1px solid #E65100;">
+                                        <i class="bi bi-emoji-smile me-1"></i>
+                                        Ternero
+                                    </span>
+                                    {% elif animal.categoria_an == 'novilla' %}
+                                    <span class="badge rounded-pill p-2" style="background:#F3E5F5; color:#7B1FA2; border: 1px solid #7B1FA2;">
+                                        <i class="bi bi-emoji-neutral me-1"></i>
+                                        Novilla
+                                    </span>
+                                    {% elif animal.categoria_an == 'vaca_leche' %}
+                                    <span class="badge rounded-pill p-2" style="background:#E3F2FD; color:#1565C0; border: 1px solid #1565C0;">
+                                        <i class="bi bi-droplet me-1"></i>
+                                        Vaca Leche
+                                    </span>
+                                    {% elif animal.categoria_an == 'vaca_seca' %}
+                                    <span class="badge rounded-pill p-2" style="background:#FFF8E1; color:#F57F17; border: 1px solid #F57F17;">
+                                        <i class="bi bi-pause-circle me-1"></i>
+                                        Vaca Seca
+                                    </span>
+                                    {% elif animal.categoria_an == 'toro' %}
+                                    <span class="badge rounded-pill p-2" style="background:#FFEBEE; color:#C62828; border: 1px solid #C62828;">
+                                        <i class="bi bi-lightning me-1"></i>
+                                        Toro
+                                    </span>
+                                    {% elif animal.categoria_an == 'torito' %}
+                                    <span class="badge rounded-pill p-2" style="background:#ECEFF1; color:#455A64; border: 1px solid #455A64;">
+                                        <i class="bi bi-lightning-charge me-1"></i>
+                                        Torito
+                                    </span>
+                                    {% elif animal.categoria_an == 'ceba' %}
+                                    <span class="badge rounded-pill p-2" style="background:#E8F5E9; color:#2E7D32; border: 1px solid #2E7D32;">
+                                        <i class="bi bi-bullseye me-1"></i>
+                                        Ceba
+                                    </span>
+                                    {% else %}
+                                    <span class="badge rounded-pill bg-secondary p-2">{{ animal.categoria_an }}</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- ESTADO -->
+                                <td>
+                                    {% if animal.estado_an == 'activo' %}
+                                    <span class="badge rounded-pill bg-success p-2">
+                                        <i class="bi bi-check-circle"></i>
+                                        Activo
+                                    </span>
+                                    {% elif animal.estado_an == 'vendido' %}
+                                    <span class="badge rounded-pill p-2" style="background:#1976D2; color:white;">
+                                        <i class="bi bi-cash-coin"></i>
+                                        Vendido
+                                    </span>
+                                    {% elif animal.estado_an == 'muerto' %}
+                                    <span class="badge rounded-pill bg-dark p-2">
+                                        <i class="bi bi-heartbreak"></i>
+                                        Muerto
+                                    </span>
+                                    {% elif animal.estado_an == 'faenado' %}
+                                    <span class="badge rounded-pill p-2" style="background:#5D4037; color:white;">
+                                        <i class="bi bi-scissors"></i>
+                                        Faenado
+                                    </span>
+                                    {% elif animal.estado_an == 'retirado' %}
+                                    <span class="badge rounded-pill p-2" style="background:#757575; color:white;">
+                                        <i class="bi bi-box-arrow-right"></i>
+                                        Retirado
+                                    </span>
+                                    {% else %}
+                                    <span class="badge rounded-pill bg-secondary p-2">{{ animal.estado_an }}</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- PESO ACTUAL -->
+                                <td class="fw-bold">
+                                    {% if animal.peso_actual_kg_an %}
+                                        {{ animal.peso_actual_kg_an }} kg
+                                    {% else %}
+                                        <span class="text-muted fst-italic">No registrado</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- POTRERO -->
+                                <td>
+                                    {% if animal.fk_potrero_an %}
+                                        <i class="bi bi-geo-alt me-1 text-success"></i>
+                                        {{ animal.fk_potrero_an.nombre_po }}
+                                    {% else %}
+                                        <span class="text-muted fst-italic">Sin potrero</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- ACCIONES -->
+                                <td>
+                                    <!-- VER DETALLE (MODAL CON FOTO) -->
+                                    <button type="button" class="btn btn-sm btn-info" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalDetalleAnimal"
+                                            data-id="{{ animal.id_an }}"
+                                            data-codigo="{{ animal.codigo_an }}"
+                                            data-nombre="{{ animal.nombre_an|default:'Sin nombre' }}"
+                                            data-raza="{% if animal.fk_ra %}{{ animal.fk_ra.nombre_ra }}{% else %}No especificada{% endif %}"
+                                            data-sexo="{% if animal.sexo_an == 'M' %}Macho{% else %}Hembra{% endif %}"
+                                            data-categoria="{{ animal.categoria_an }}"
+                                            data-estado="{{ animal.estado_an }}"
+                                            data-peso-nacimiento="{% if animal.peso_nacimiento_kg_an %}{{ animal.peso_nacimiento_kg_an }}{% else %}No registrado{% endif %}"
+                                            data-peso-actual="{% if animal.peso_actual_kg_an %}{{ animal.peso_actual_kg_an }}{% else %}No registrado{% endif %}"
+                                            data-color="{% if animal.color_an %}{{ animal.color_an }}{% else %}No especificado{% endif %}"
+                                            data-fecha-nacimiento="{{ animal.fecha_nacimiento_an|date:'d/m/Y' }}"
+                                            data-fecha-ingreso="{{ animal.fecha_ingreso_an|date:'d/m/Y' }}"
+                                            data-fecha-salida="{% if animal.fecha_salida_an %}{{ animal.fecha_salida_an|date:'d/m/Y' }}{% else %}---{% endif %}"
+                                            data-motivo="{% if animal.motivo_salida_an %}{{ animal.motivo_salida_an }}{% else %}---{% endif %}"
+                                            data-condicion="{% if animal.condicion_corporal_an %}{{ animal.condicion_corporal_an }}/5{% else %}No evaluada{% endif %}"
+                                            data-senas="{% if animal.senas_particulares_an %}{{ animal.senas_particulares_an }}{% else %}Ninguna{% endif %}"
+                                            data-madre="{% if animal.fk_madre_an %}{{ animal.fk_madre_an.codigo_an }} - {{ animal.fk_madre_an.nombre_an|default:'Sin nombre' }}{% else %}No registrada{% endif %}"
+                                            data-padre="{% if animal.fk_padre_an %}{{ animal.fk_padre_an.codigo_an }} - {{ animal.fk_padre_an.nombre_an|default:'Sin nombre' }}{% else %}No registrado{% endif %}"
+                                            data-potrero="{% if animal.fk_potrero_an %}{{ animal.fk_potrero_an.nombre_po }}{% else %}Sin potrero{% endif %}"
+                                            data-foto="{% if animal.foto_an %}{{ animal.foto_an }}{% endif %}"
+                                            title="Ver detalle">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    
+                                    <!-- EDITAR -->
+                                    <a href="/editaranimal/{{ animal.id_an }}" class="btn btn-sm btn-hacienda-secondary" title="Editar">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    
+                                    <!-- ELIMINAR CON MODAL BOOTSTRAP -->
+                                    <button type="button" class="btn btn-sm btn-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalEliminarAnimal"
+                                            data-id="{{ animal.id_an }}"
+                                            data-codigo="{{ animal.codigo_an }}"
+                                            data-nombre="{{ animal.nombre_an|default:'Sin nombre' }}"
+                                            data-url="/eliminaranimal/{{ animal.id_an }}"
+                                            title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="10" class="text-center py-5">
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <p class="mt-3 text-muted">No hay animales registrados</p>
+                                    <a href="/nuevoanimal/" class="btn btn-hacienda btn-sm mt-2">
+                                        <i class="bi bi-plus-circle me-2"></i>Registrar primer animal
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
+                <small class="text-muted">
+                    <i class="bi bi-bar-chart-line me-1"></i>
+                    Total de animales: <strong>{{ animales|length }}</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL DETALLE ANIMAL - FOTO GRANDE         -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalDetalleAnimal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-eye-fill me-2" style="color: #DAA520;"></i>
+                    DETALLE DEL ANIMAL
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="background: #fff8e6;">
+                <div class="row g-0">
+                    <div class="col-md-5" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
+                        <div class="p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <div id="contenedorFotoAnimal" class="w-100 text-center" style="min-height: 300px; display: flex; align-items: center; justify-content: center;">
+                            </div>
+                            <p class="mt-3 mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleCodigoFoto"></p>
+                            <p class="text-muted mb-0" style="font-size: 14px;" id="detalleNombreFoto"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="p-4">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">CÓDIGO</label>
+                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;" id="detalleCodigo"></p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <label class="text-muted small fw-bold">ESTADO</label>
+                                    <div id="detalleEstado"></div>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-diagram-2 me-1"></i>RAZA</label>
+                                    <p class="mb-0" id="detalleRaza" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-gender-ambiguous me-1"></i>SEXO</label>
+                                    <p class="mb-0" id="detalleSexo" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-layers me-1"></i>CATEGORÍA</label>
+                                    <p class="mb-0" id="detalleCategoria" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-bar-chart-line me-1"></i>COND. CORPORAL</label>
+                                    <p class="mb-0" id="detalleCondicion" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-speedometer me-1"></i>PESO NACIMIENTO</label>
+                                    <p class="mb-0 fw-bold" id="detallePesoNacimiento" style="color: #2c5e1a;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-speedometer2 me-1"></i>PESO ACTUAL</label>
+                                    <p class="mb-0 fw-bold" id="detallePesoActual" style="color: #2c5e1a;"></p>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold"><i class="bi bi-palette me-1"></i>COLOR</label>
+                                <p class="mb-0" id="detalleColor" style="color: #5c450e;"></p>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-4">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-event me-1"></i>NACIMIENTO</label>
+                                    <p class="mb-0" id="detalleFechaNacimiento" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-4">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>INGRESO</label>
+                                    <p class="mb-0" id="detalleFechaIngreso" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-4">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-x me-1"></i>SALIDA</label>
+                                    <p class="mb-0" id="detalleFechaSalida" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="mb-3" id="filaMotivoSalida" style="display: none;">
+                                <label class="text-muted small fw-bold"><i class="bi bi-question-circle me-1"></i>MOTIVO SALIDA</label>
+                                <p class="mb-0" id="detalleMotivo" style="color: #c0392b;"></p>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-heart me-1"></i>MADRE</label>
+                                    <p class="mb-0" id="detalleMadre" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-heart-fill me-1"></i>PADRE</label>
+                                    <p class="mb-0" id="detallePadre" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold"><i class="bi bi-geo-alt me-1"></i>POTRERO</label>
+                                <p class="mb-0" id="detallePotrero" style="color: #5c450e;"></p>
+                            </div>
+                            <div class="mb-0">
+                                <label class="text-muted small fw-bold"><i class="bi bi-eye me-1"></i>SEÑAS PARTICULARES</label>
+                                <p class="mb-0" id="detalleSenas" style="color: #5c450e; font-style: italic;"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
+                    <i class="bi bi-pencil-square me-1"></i>Editar Animal
+                </a>
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL ELIMINAR ANIMAL                      -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalEliminarAnimal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: 2px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
+                    CONFIRMAR ELIMINACIÓN
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background: #fff8e6; padding: 25px;">
+                <p style="color: #5c450e; font-size: 16px; margin-bottom: 0;">
+                    ¿Está seguro de eliminar el animal <strong id="codigoAnimalModal" style="color: #2c5e1a;"></strong>?
+                </p>
+                <p class="mt-2 mb-0" style="color: #8B6914; font-size: 14px;">
+                    <i class="bi bi-info-circle me-1"></i>
+                    <span id="nombreAnimalModal"></span>
+                </p>
+                <p class="mt-2 mb-0" style="color: #c0392b; font-size: 13px;">
+                    <i class="bi bi-exclamation-diamond me-1"></i>
+                    Esta acción no se puede deshacer. Se eliminarán todos los registros asociados (movimientos, eventos sanitarios, ordeños, etc.).
+                </p>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                </button>
+                <a href="#" id="btnConfirmarEliminarAnimal" class="btn btn-hacienda-warning">
+                    <i class="bi bi-check-lg me-1"></i>Sí, eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- SCRIPTS EXTRA                              -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+<style>
+    .dataTables_filter {
+        margin-bottom: 20px !important;
+        background: linear-gradient(135deg, #eef7e8, #dcefd0);
+        padding: 15px 20px;
+        border-radius: 18px;
+        border: 2px solid #b7d7a8;
+        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
+        display: flex !important;
+        align-items: center !important;
+        justify-content: end !important;
+        gap: 10px;
+    }
+    .dataTables_filter::before {
+        content: "🐄";
+        font-size: 28px;
+    }
+    .dataTables_filter label {
+        font-weight: bold;
+        color: var(--color-primario);
+        font-size: 17px;
+    }
+    .dataTables_filter input {
+        border-radius: 50px !important;
+        border: 3px solid var(--color-primario) !important;
+        padding: 10px 18px !important;
+        background-color: #ffffff !important;
+        color: var(--color-navbar) !important;
+        font-weight: 600 !important;
+        width: 280px !important;
+        transition: 0.3s !important;
+        box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08);
+        margin-left: 10px !important;
+    }
+    .dataTables_filter input:focus {
+        outline: none !important;
+        border-color: #8dc26f !important;
+        box-shadow: 0px 0px 12px rgba(44,94,26,0.4);
+        background-color: #f8fff5 !important;
+    }
+    .dataTables_length select {
+        border-radius: 10px !important;
+        border: 2px solid var(--color-primario) !important;
+        padding: 5px 10px !important;
+    }
+    .dataTables_paginate {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        margin-top: 25px !important;
+    }
+    .dataTables_paginate .pagination {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 0px !important;
+        flex-wrap: nowrap !important;
+    }
+    .paginate_button {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        border: none !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 14px !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        transition: 0.3s !important;
+        margin: 0 3px !important;
+        vertical-align: middle !important;
+        float: none !important;
+    }
+    .paginate_button.current {
+        background: var(--color-primario) !important;
+        color: white !important;
+        border: 2px solid #8dc26f !important;
+        box-shadow: 0px 0px 8px rgba(44,94,26,0.4);
+    }
+    .paginate_button:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+    .paginate_button.previous, .paginate_button.next {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 16px !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        transition: 0.3s !important;
+        margin: 0 3px !important;
+        vertical-align: middle !important;
+        float: none !important;
+    }
+    .paginate_button.previous:hover, .paginate_button.next:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+    .foto-animal-detalle {
+        width: 100%;
+        height: 350px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 3px solid #DAA520;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        background-color: #f5f0e6;
+    }
+    .foto-animal-placeholder {
+        width: 100%;
+        height: 350px;
+        background: linear-gradient(135deg, #eef7e8, #dcefd0);
+        border-radius: 12px;
+        border: 3px dashed #b7d7a8;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #2c5e1a;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $('#tablaAnimales').DataTable({
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ registros",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                "infoEmpty": "No existen registros",
+                "infoFiltered": "(filtrado de _MAX_ registros)",
+                "search": "Buscar:",
+                "paginate": {
+                    "first": "",
+                    "last": "",
+                    "next": "›",
+                    "previous": "‹"
+                }
+            },
+            "pageLength": 10,
+            "lengthMenu": [5,10,25,50,100],
+            "responsive": true,
+            "pagingType": "simple_numbers"
+        });
+    });
+</script>
+
+<script>
+    // ==========================================
+    // MODAL DETALLE ANIMAL
+    // ==========================================
+    var modalDetalleAnimal = document.getElementById('modalDetalleAnimal');
+    modalDetalleAnimal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        
+        var id = button.getAttribute('data-id');
+        var codigo = button.getAttribute('data-codigo');
+        var nombre = button.getAttribute('data-nombre');
+        var raza = button.getAttribute('data-raza');
+        var sexo = button.getAttribute('data-sexo');
+        var categoria = button.getAttribute('data-categoria');
+        var estado = button.getAttribute('data-estado');
+        var pesoNacimiento = button.getAttribute('data-peso-nacimiento');
+        var pesoActual = button.getAttribute('data-peso-actual');
+        var color = button.getAttribute('data-color');
+        var fechaNacimiento = button.getAttribute('data-fecha-nacimiento');
+        var fechaIngreso = button.getAttribute('data-fecha-ingreso');
+        var fechaSalida = button.getAttribute('data-fecha-salida');
+        var motivo = button.getAttribute('data-motivo');
+        var condicion = button.getAttribute('data-condicion');
+        var senas = button.getAttribute('data-senas');
+        var madre = button.getAttribute('data-madre');
+        var padre = button.getAttribute('data-padre');
+        var potrero = button.getAttribute('data-potrero');
+        var foto = button.getAttribute('data-foto');
+        
+        document.getElementById('detalleCodigo').textContent = codigo;
+        document.getElementById('detalleCodigoFoto').textContent = codigo;
+        document.getElementById('detalleNombreFoto').textContent = nombre;
+        document.getElementById('detalleRaza').textContent = raza;
+        document.getElementById('detalleSexo').textContent = sexo;
+        document.getElementById('detalleCategoria').textContent = categoria;
+        document.getElementById('detalleCondicion').textContent = condicion;
+        document.getElementById('detallePesoNacimiento').textContent = pesoNacimiento + (pesoNacimiento !== 'No registrado' ? ' kg' : '');
+        document.getElementById('detallePesoActual').textContent = pesoActual + (pesoActual !== 'No registrado' ? ' kg' : '');
+        document.getElementById('detalleColor').textContent = color;
+        document.getElementById('detalleFechaNacimiento').textContent = fechaNacimiento;
+        document.getElementById('detalleFechaIngreso').textContent = fechaIngreso;
+        document.getElementById('detalleFechaSalida').textContent = fechaSalida;
+        document.getElementById('detalleMotivo').textContent = motivo;
+        document.getElementById('detalleMadre').textContent = madre;
+        document.getElementById('detallePadre').textContent = padre;
+        document.getElementById('detallePotrero').textContent = potrero;
+        document.getElementById('detalleSenas').textContent = senas;
+        
+        var filaMotivo = document.getElementById('filaMotivoSalida');
+        if (fechaSalida !== '---') {
+            filaMotivo.style.display = 'block';
+        } else {
+            filaMotivo.style.display = 'none';
+        }
+        
+        var estadoHtml = '';
+        switch(estado) {
+            case 'activo':
+                estadoHtml = '<span class="badge rounded-pill bg-success p-2"><i class="bi bi-check-circle"></i> Activo</span>';
+                break;
+            case 'vendido':
+                estadoHtml = '<span class="badge rounded-pill p-2" style="background:#1976D2; color:white;"><i class="bi bi-cash-coin"></i> Vendido</span>';
+                break;
+            case 'muerto':
+                estadoHtml = '<span class="badge rounded-pill bg-dark p-2"><i class="bi bi-heartbreak"></i> Muerto</span>';
+                break;
+            case 'faenado':
+                estadoHtml = '<span class="badge rounded-pill p-2" style="background:#5D4037; color:white;"><i class="bi bi-scissors"></i> Faenado</span>';
+                break;
+            case 'retirado':
+                estadoHtml = '<span class="badge rounded-pill p-2" style="background:#757575; color:white;"><i class="bi bi-box-arrow-right"></i> Retirado</span>';
+                break;
+            default:
+                estadoHtml = '<span class="badge rounded-pill bg-secondary p-2">' + estado + '</span>';
+        }
+        document.getElementById('detalleEstado').innerHTML = estadoHtml;
+        
+        var contenedorFoto = document.getElementById('contenedorFotoAnimal');
+        if (foto && foto.trim() !== '') {
+            var rutaFoto = foto.startsWith('/') ? foto : '/' + foto;
+            var imgHtml = '<img src="' + rutaFoto + '" class="foto-animal-detalle" alt="Foto de ' + codigo + '">';
+            contenedorFoto.innerHTML = imgHtml;
+            var img = contenedorFoto.querySelector('img');
+            img.onerror = function() {
+                contenedorFoto.innerHTML = 
+                    '<div class="foto-animal-placeholder">' +
+                    '<i class="bi bi-image fs-1 mb-2"></i>' +
+                    '<p class="mb-0 fw-bold">Imagen no disponible</p>' +
+                    '<p class="small text-muted">No se pudo cargar la imagen</p>' +
+                    '</div>';
+            };
+        } else {
+            contenedorFoto.innerHTML = 
+                '<div class="foto-animal-placeholder">' +
+                '<i class="bi bi-image fs-1 mb-2"></i>' +
+                '<p class="mb-0 fw-bold">Sin fotografía</p>' +
+                '<p class="small text-muted">No se ha registrado imagen</p>' +
+                '</div>';
+        }
+        
+        document.getElementById('btnEditarDesdeDetalle').href = '/editaranimal/' + id;
+    });
+</script>
+
+<script>
+    // ==========================================
+    // MODAL ELIMINAR ANIMAL
+    // ==========================================
+    var modalEliminarAnimal = document.getElementById('modalEliminarAnimal');
+    modalEliminarAnimal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var codigo = button.getAttribute('data-codigo');
+        var nombre = button.getAttribute('data-nombre');
+        var url = button.getAttribute('data-url');
+        
+        document.getElementById('codigoAnimalModal').textContent = codigo;
+        document.getElementById('nombreAnimalModal').textContent = nombre;
+        document.getElementById('btnConfirmarEliminarAnimal').setAttribute('href', url);
+    });
+</script>
+
+{% endblock %}

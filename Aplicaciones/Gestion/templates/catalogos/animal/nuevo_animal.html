@@ -1,0 +1,850 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Nuevo Animal | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listaanimal/" class="text-decoration-none" style="color: var(--color-primario);">Animales</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo Animal</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-plus-circle me-2"></i>Registrar Nuevo Animal
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Complete los datos del animal ganadero
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE ANIMAL            -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos del Animal
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/guardaranimal/" id="frm_nuevo_animal" method="post" class="form-hacienda" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: CODIGO Y NOMBRE                    -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: CODIGO DEL ANIMAL -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_codigo_an">
+                                    <i class="bi bi-upc-scan me-1"></i>Código del Animal <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_codigo_an" 
+                                       id="txt_codigo_an" 
+                                       class="form-control" 
+                                       placeholder="Ej: VAC-001, TOR-002..." 
+                                       maxlength="20" 
+                                       required>
+                                <small class="text-muted">Máximo 20 caracteres. Letras, números y guiones.</small>
+                            </div>
+
+                            <!-- CAMPO: NOMBRE DEL ANIMAL -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_nombre_an">
+                                    <i class="bi bi-tag me-1"></i>Nombre del Animal
+                                </label>
+                                <input type="text" 
+                                       name="txt_nombre_an" 
+                                       id="txt_nombre_an" 
+                                       class="form-control" 
+                                       placeholder="Ej: Luna, Toro Negro..." 
+                                       maxlength="100">
+                                <small class="text-muted">Máximo 100 letras. Solo mayúsculas y minúsculas.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: RAZA Y SEXO                        -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: RAZA (FK) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_raza_an">
+                                    <i class="bi bi-diagram-2 me-1"></i>Raza <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_raza_an" 
+                                        id="sel_raza_an" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione una raza...</option>
+                                    {% for raza in razas %}
+                                    <option value="{{ raza.id_ra }}">{{ raza.nombre_ra }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- CAMPO: SEXO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_sexo_an">
+                                    <i class="bi bi-gender-ambiguous me-1"></i>Sexo <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_sexo_an" 
+                                        id="sel_sexo_an" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione...</option>
+                                    <option value="M">Macho (M)</option>
+                                    <option value="H">Hembra (H)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: FECHA NACIMIENTO Y COLOR           -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: FECHA DE NACIMIENTO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_nacimiento_an">
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha de Nacimiento <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_nacimiento_an" 
+                                       id="txt_fecha_nacimiento_an" 
+                                       class="form-control" 
+                                       required>
+                            </div>
+
+                            <!-- CAMPO: COLOR -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_color_an">
+                                    <i class="bi bi-palette me-1"></i>Color
+                                </label>
+                                <input type="text" 
+                                       name="txt_color_an" 
+                                       id="txt_color_an" 
+                                       class="form-control" 
+                                       placeholder="Ej: Negro, Pinto, Caramelo..." 
+                                       maxlength="50">
+                                <small class="text-muted">Máximo 50 letras.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: PESOS (DECIMALES)                  -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: PESO AL NACIMIENTO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_peso_nacimiento_an">
+                                    <i class="bi bi-speedometer me-1"></i>Peso al Nacimiento (kg)
+                                </label>
+                                <input type="number" 
+                                       name="txt_peso_nacimiento_an" 
+                                       id="txt_peso_nacimiento_an" 
+                                       class="form-control" 
+                                       placeholder="Ej: 35.50" 
+                                       step="0.01"
+                                       min="0"
+                                       max="9999.99">
+                                <small class="text-muted">Máximo 9999.99 kg. Use punto para decimales.</small>
+                            </div>
+
+                            <!-- CAMPO: PESO ACTUAL -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_peso_actual_an">
+                                    <i class="bi bi-speedometer2 me-1"></i>Peso Actual (kg)
+                                </label>
+                                <input type="number" 
+                                       name="txt_peso_actual_an" 
+                                       id="txt_peso_actual_an" 
+                                       class="form-control" 
+                                       placeholder="Ej: 450.75" 
+                                       step="0.01"
+                                       min="0"
+                                       max="9999.99">
+                                <small class="text-muted">Máximo 9999.99 kg. Use punto para decimales.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 5: MADRE Y PADRE (FK AUTO-REFERENCIA) -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: MADRE -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_madre_an">
+                                    <i class="bi bi-heart me-1"></i>Madre
+                                </label>
+                                <select name="sel_madre_an" 
+                                        id="sel_madre_an" 
+                                        class="form-select">
+                                    <option value="" selected>Sin madre registrada...</option>
+                                    {% for hembra in hembras %}
+                                    <option value="{{ hembra.id_an }}">{{ hembra.codigo_an }} - {{ hembra.nombre_an|default:'Sin nombre' }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- CAMPO: PADRE -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_padre_an">
+                                    <i class="bi bi-heart-fill me-1"></i>Padre
+                                </label>
+                                <select name="sel_padre_an" 
+                                        id="sel_padre_an" 
+                                        class="form-select">
+                                    <option value="" selected>Sin padre registrado...</option>
+                                    {% for macho in machos %}
+                                    <option value="{{ macho.id_an }}">{{ macho.codigo_an }} - {{ macho.nombre_an|default:'Sin nombre' }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 6: POTRERO Y CATEGORIA                -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: POTRERO (FK) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_potrero_an">
+                                    <i class="bi bi-geo-alt me-1"></i>Potrero
+                                </label>
+                                <select name="sel_potrero_an" 
+                                        id="sel_potrero_an" 
+                                        class="form-select">
+                                    <option value="" selected>Sin potrero asignado...</option>
+                                    {% for potrero in potreros %}
+                                    <option value="{{ potrero.id_po }}">{{ potrero.codigo_po }} - {{ potrero.nombre_po }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- CAMPO: CATEGORIA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_categoria_an">
+                                    <i class="bi bi-layers me-1"></i>Categoría <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_categoria_an" 
+                                        id="sel_categoria_an" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione categoría...</option>
+                                    <option value="ternero">Ternero</option>
+                                    <option value="novilla">Novilla</option>
+                                    <option value="vaca_leche">Vaca de Leche</option>
+                                    <option value="vaca_seca">Vaca Seca</option>
+                                    <option value="toro">Toro</option>
+                                    <option value="torito">Torito</option>
+                                    <option value="ceba">Ceba</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 7: ESTADO Y CONDICION CORPORAL        -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: ESTADO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_estado_an">
+                                    <i class="bi bi-activity me-1"></i>Estado <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_estado_an" 
+                                        id="sel_estado_an" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="activo" selected>Activo</option>
+                                    <option value="vendido">Vendido</option>
+                                    <option value="muerto">Muerto</option>
+                                    <option value="faenado">Faenado</option>
+                                    <option value="retirado">Retirado</option>
+                                </select>
+                            </div>
+
+                            <!-- CAMPO: CONDICION CORPORAL -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_condicion_corporal_an">
+                                    <i class="bi bi-bar-chart-line me-1"></i>Condición Corporal (1-5)
+                                </label>
+                                <select name="sel_condicion_corporal_an" 
+                                        id="sel_condicion_corporal_an" 
+                                        class="form-select">
+                                    <option value="" selected>No evaluada...</option>
+                                    <option value="1">1 - Muy delgado</option>
+                                    <option value="2">2 - Delgado</option>
+                                    <option value="3">3 - Ideal</option>
+                                    <option value="4">4 - Gordo</option>
+                                    <option value="5">5 - Muy gordo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 8: FECHAS DE INGRESO/SALIDA           -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: FECHA DE INGRESO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_ingreso_an">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Ingreso <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_ingreso_an" 
+                                       id="txt_fecha_ingreso_an" 
+                                       class="form-control" 
+                                       required>
+                            </div>
+
+                            <!-- CAMPO: FECHA DE SALIDA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_salida_an">
+                                    <i class="bi bi-calendar-x me-1"></i>Fecha de Salida
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_salida_an" 
+                                       id="txt_fecha_salida_an" 
+                                       class="form-control">
+                                <small class="text-muted">Debe ser igual o posterior a la fecha de ingreso.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 9: MOTIVO SALIDA Y SEÑAS PARTICULARES -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: MOTIVO DE SALIDA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_motivo_salida_an">
+                                    <i class="bi bi-question-circle me-1"></i>Motivo de Salida
+                                </label>
+                                <input type="text" 
+                                       name="txt_motivo_salida_an" 
+                                       id="txt_motivo_salida_an" 
+                                       class="form-control" 
+                                       placeholder="Ej: Venta, Faena, Muerte natural..." 
+                                       maxlength="200">
+                                <small class="text-muted">Máximo 200 caracteres.</small>
+                            </div>
+
+                            <!-- CAMPO: SEÑAS PARTICULARES -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_senas_particulares_an">
+                                    <i class="bi bi-eye me-1"></i>Señas Particulares
+                                </label>
+                                <textarea name="txt_senas_particulares_an" 
+                                          id="txt_senas_particulares_an" 
+                                          class="form-control" 
+                                          rows="2" 
+                                          maxlength="1000"
+                                          placeholder="Marcas, cicatrices, características distintivas..."></textarea>
+                                <small class="text-muted">Máximo 1000 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 10: FOTO CON PREVIEW                  -->
+                        <!-- ========================================== -->
+                        <div class="mb-3">
+                            <label for="file_foto_an">
+                                <i class="bi bi-camera me-1"></i>Fotografía del Animal
+                            </label>
+                            <input type="file" 
+                                   name="file_foto_an" 
+                                   id="file_foto_an" 
+                                   class="form-control" 
+                                   accept="image/*">
+                            <small class="text-muted">Formatos: JPG, PNG. Máximo 5MB.</small>
+                            
+                            <!-- CONTENEDOR PREVIEW DE IMAGEN -->
+                            <div id="previewFotoContainer" class="mt-3 text-center" style="display: none;">
+                                <p class="text-muted small mb-2"><i class="bi bi-eye me-1"></i>Vista previa:</p>
+                                <img id="previewFoto" src="" alt="Vista previa" class="img-thumbnail" style="max-height: 150px; max-width: 100%; border: 2px solid #DAA520; border-radius: 8px;">
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Animal
+                            </button>
+                            <a href="/listaanimal/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        jQuery.validator.addMethod("soloLetras", function(value, element) {
+            return this.optional(element) || /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value);
+        }, "Solo se permiten letras");
+
+        jQuery.validator.addMethod("codigoValido", function(value, element) {
+            return this.optional(element) || /^[a-zA-Z0-9\-]+$/.test(value);
+        }, "Solo letras, números y guiones");
+
+        jQuery.validator.addMethod("minDosLetras", function(value, element) {
+            return this.optional(element) || value.replace(/\s/g, '').length >= 2;
+        }, "Mínimo 2 letras");
+
+        jQuery.validator.addMethod("fechaSalidaValida", function(value, element) {
+            if (value === '') return true;
+            let fechaIngreso = $('#txt_fecha_ingreso_an').val();
+            if (!fechaIngreso) return true;
+            return new Date(value) >= new Date(fechaIngreso);
+        }, "La fecha de salida debe ser igual o posterior a la fecha de ingreso");
+
+        jQuery.validator.addMethod("fechaNacimientoValida", function(value, element) {
+            if (!value) return true;
+            return new Date(value) <= new Date();
+        }, "La fecha de nacimiento no puede ser futura");
+
+        $(document).ready(function() {
+            
+            // Set fecha de ingreso default a hoy
+            $('#txt_fecha_ingreso_an').val(new Date().toISOString().split('T')[0]);
+
+            // ==========================================
+            // PREVIEW DE IMAGEN AL SELECCIONAR ARCHIVO
+            // ==========================================
+            $('#file_foto_an').on('change', function(e) {
+                let archivo = e.target.files[0];
+                if (archivo) {
+                    // Validar tipo
+                    let tiposPermitidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                    if (!tiposPermitidos.includes(archivo.type)) {
+                        alertaError('Formato inválido', 'Solo se permiten imágenes JPG, PNG o GIF.');
+                        $(this).val('');
+                        $('#previewFotoContainer').hide();
+                        return;
+                    }
+                    
+                    // Validar tamaño (5MB)
+                    if (archivo.size > 5 * 1024 * 1024) {
+                        alertaError('Tamaño excedido', 'La imagen no debe superar los 5MB.');
+                        $(this).val('');
+                        $('#previewFotoContainer').hide();
+                        return;
+                    }
+                    
+                    // Mostrar preview
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        $('#previewFoto').attr('src', e.target.result);
+                        $('#previewFotoContainer').show();
+                    };
+                    reader.readAsDataURL(archivo);
+                } else {
+                    $('#previewFotoContainer').hide();
+                }
+            });
+
+            // ==========================================
+            // VALIDACIÓN DEL FORMULARIO
+            // ==========================================
+            $("#frm_nuevo_animal").validate({
+                rules: {
+                    txt_codigo_an: {
+                        required: true,
+                        codigoValido: true,
+                        minlength: 3,
+                        maxlength: 20
+                    },
+                    txt_nombre_an: {
+                        soloLetras: true,
+                        minDosLetras: true,
+                        maxlength: 100
+                    },
+                    sel_raza_an: {
+                        required: true
+                    },
+                    sel_sexo_an: {
+                        required: true
+                    },
+                    txt_fecha_nacimiento_an: {
+                        required: true,
+                        fechaNacimientoValida: true
+                    },
+                    txt_color_an: {
+                        soloLetras: true,
+                        maxlength: 50
+                    },
+                    txt_peso_nacimiento_an: {
+                        number: true,
+                        min: 0,
+                        max: 9999.99
+                    },
+                    txt_peso_actual_an: {
+                        number: true,
+                        min: 0,
+                        max: 9999.99
+                    },
+                    sel_categoria_an: {
+                        required: true
+                    },
+                    sel_estado_an: {
+                        required: true
+                    },
+                    sel_condicion_corporal_an: {
+                        digits: true,
+                        range: [1, 5]
+                    },
+                    txt_fecha_ingreso_an: {
+                        required: true
+                    },
+                    txt_fecha_salida_an: {
+                        fechaSalidaValida: true
+                    },
+                    txt_motivo_salida_an: {
+                        maxlength: 200
+                    },
+                    txt_senas_particulares_an: {
+                        maxlength: 1000
+                    }
+                },
+                messages: {
+                    txt_codigo_an: {
+                        required: "El código del animal es obligatorio",
+                        codigoValido: "Solo letras, números y guiones",
+                        minlength: "Mínimo 3 caracteres",
+                        maxlength: "Máximo 20 caracteres"
+                    },
+                    txt_nombre_an: {
+                        soloLetras: "Solo se permiten letras",
+                        minDosLetras: "Mínimo 2 letras",
+                        maxlength: "Máximo 100 letras"
+                    },
+                    sel_raza_an: {
+                        required: "Seleccione una raza"
+                    },
+                    sel_sexo_an: {
+                        required: "Seleccione el sexo"
+                    },
+                    txt_fecha_nacimiento_an: {
+                        required: "La fecha de nacimiento es obligatoria",
+                        fechaNacimientoValida: "No puede ser una fecha futura"
+                    },
+                    txt_color_an: {
+                        soloLetras: "Solo se permiten letras",
+                        maxlength: "Máximo 50 letras"
+                    },
+                    txt_peso_nacimiento_an: {
+                        number: "Ingrese un número válido",
+                        min: "No puede ser negativo",
+                        max: "Máximo 9999.99 kg"
+                    },
+                    txt_peso_actual_an: {
+                        number: "Ingrese un número válido",
+                        min: "No puede ser negativo",
+                        max: "Máximo 9999.99 kg"
+                    },
+                    sel_categoria_an: {
+                        required: "Seleccione una categoría"
+                    },
+                    sel_estado_an: {
+                        required: "Seleccione el estado"
+                    },
+                    sel_condicion_corporal_an: {
+                        digits: "Solo números enteros",
+                        range: "Debe estar entre 1 y 5"
+                    },
+                    txt_fecha_ingreso_an: {
+                        required: "La fecha de ingreso es obligatoria"
+                    },
+                    txt_fecha_salida_an: {
+                        fechaSalidaValida: "Debe ser igual o posterior a la fecha de ingreso"
+                    },
+                    txt_motivo_salida_an: {
+                        maxlength: "Máximo 200 caracteres"
+                    },
+                    txt_senas_particulares_an: {
+                        maxlength: "Máximo 1000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - NOMBRE
+            // ==========================================
+            $('#txt_nombre_an').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                if (filtrado.length > 100) {
+                    filtrado = filtrado.substring(0, 100);
+                    alertaAdvertencia('Límite alcanzado', 'Se ha alcanzado el máximo de 100 letras para el nombre.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'Solo se aceptan letras. Números y símbolos están prohibidos.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - COLOR
+            // ==========================================
+            $('#txt_color_an').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                if (filtrado.length > 50) {
+                    filtrado = filtrado.substring(0, 50);
+                    alertaAdvertencia('Límite alcanzado', 'Se ha alcanzado el máximo de 50 letras para el color.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'Solo se aceptan letras. Números y símbolos están prohibidos.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - CODIGO
+            // ==========================================
+            $('#txt_codigo_an').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^a-zA-Z0-9\-]/g, '');
+                if (filtrado.length > 20) {
+                    filtrado = filtrado.substring(0, 20);
+                    alertaAdvertencia('Límite alcanzado', 'Se ha alcanzado el máximo de 20 caracteres para el código.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'Solo se aceptan letras, números y guiones.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - MOTIVO SALIDA
+            // ==========================================
+            $('#txt_motivo_salida_an').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 200) {
+                    $(this).val(valor.substring(0, 200));
+                    alertaAdvertencia('Límite alcanzado', 'Se ha alcanzado el máximo de 200 caracteres para el motivo.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - SEÑAS
+            // ==========================================
+            $('#txt_senas_particulares_an').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 1000) {
+                    $(this).val(valor.substring(0, 1000));
+                    alertaAdvertencia('Límite alcanzado', 'Se ha alcanzado el máximo de 1000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO DE TECLAS PROHIBIDAS - NOMBRE Y COLOR
+            // ==========================================
+            $('#txt_nombre_an, #txt_color_an').on('keypress', function(e) {
+                let tecla = String.fromCharCode(e.which);
+                if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]$/.test(tecla)) {
+                    e.preventDefault();
+                    alertaError('Tecla bloqueada', 'Solo se permiten letras.');
+                    return false;
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO DE TECLAS PROHIBIDAS - CODIGO
+            // ==========================================
+            $('#txt_codigo_an').on('keypress', function(e) {
+                let tecla = String.fromCharCode(e.which);
+                if (!/^[a-zA-Z0-9\-]$/.test(tecla)) {
+                    e.preventDefault();
+                    alertaError('Tecla bloqueada', 'Solo letras, números y guiones.');
+                    return false;
+                }
+            });
+
+            // ==========================================
+            // PEGADO DE TEXTO - BLOQUEO NOMBRE/COLOR
+            // ==========================================
+            $('#txt_nombre_an, #txt_color_an').on('paste', function(e) {
+                e.preventDefault();
+                let pegado = (e.originalEvent.clipboardData || window.clipboardData).getData('text');
+                let filtrado = pegado.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                let max = $(this).attr('id') === 'txt_nombre_an' ? 100 : 50;
+                filtrado = filtrado.substring(0, max);
+                $(this).val(filtrado);
+                if (pegado !== filtrado) {
+                    alertaAdvertencia('Texto filtrado', 'Se han eliminado caracteres no permitidos. Solo letras.');
+                }
+            });
+
+            // ==========================================
+            // PEGADO DE TEXTO - BLOQUEO CODIGO
+            // ==========================================
+            $('#txt_codigo_an').on('paste', function(e) {
+                e.preventDefault();
+                let pegado = (e.originalEvent.clipboardData || window.clipboardData).getData('text');
+                let filtrado = pegado.replace(/[^a-zA-Z0-9\-]/g, '').substring(0, 20);
+                $(this).val(filtrado);
+                if (pegado !== filtrado) {
+                    alertaAdvertencia('Texto filtrado', 'Se han eliminado caracteres no permitidos.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL CAMBIAR ESTADO
+            // ==========================================
+            $('#sel_estado_an').on('change', function() {
+                let estado = $(this).val();
+                if (estado !== 'activo') {
+                    $('#txt_fecha_salida_an').prop('required', true);
+                    if (!$('#txt_fecha_salida_an').val()) {
+                        $('#txt_fecha_salida_an').val(new Date().toISOString().split('T')[0]);
+                    }
+                } else {
+                    $('#txt_fecha_salida_an').prop('required', false).val('');
+                    $('#txt_motivo_salida_an').val('');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION FECHA SALIDA AL PERDER FOCO
+            // ==========================================
+            $('#txt_fecha_salida_an').on('blur', function() {
+                let fechaIngreso = $('#txt_fecha_ingreso_an').val();
+                let fechaSalida = $(this).val();
+                if (fechaSalida && fechaIngreso && new Date(fechaSalida) < new Date(fechaIngreso)) {
+                    $(this).val('');
+                    alertaError('Fecha inválida', 'La fecha de salida no puede ser anterior a la fecha de ingreso.');
+                    $(this).focus();
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

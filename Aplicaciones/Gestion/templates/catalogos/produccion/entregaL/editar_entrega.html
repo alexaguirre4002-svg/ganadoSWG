@@ -1,0 +1,503 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Editar Entrega de Leche | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listaentrega/" class="text-decoration-none" style="color: var(--color-primario);">Entregas de Leche</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Editar Entrega</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-pencil-square me-2"></i>Editar Entrega
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Modifique los datos de la entrega #<<strong>{{ entrega.id_el }}</strong> - {{ entrega.fecha_el|date:'d/m/Y' }}
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE EDICION           -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-check"></i>Datos de la Entrega
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/procesareditarentrega/" id="frm_editar_entrega" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- CAMPO OCULTO: ID DE LA ENTREGA           -->
+                        <!-- ========================================== -->
+                        <input type="hidden" name="id_el" value="{{ entrega.id_el }}">
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: FECHA Y LITROS TOTALES             -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: FECHA DE ENTREGA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_el">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Entrega <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_el" 
+                                       id="txt_fecha_el" 
+                                       class="form-control" 
+                                       value="{{ entrega.fecha_el|date:'Y-m-d' }}"
+                                       required>
+                                <small class="text-muted">Fecha de la entrega. No puede ser futura.</small>
+                            </div>
+
+                            <!-- CAMPO: LITROS TOTALES -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_litros_totales_el">
+                                    <i class="bi bi-droplet me-1"></i>Litros Totales <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_litros_totales_el" 
+                                       id="txt_litros_totales_el" 
+                                       class="form-control"
+                                       value="{{ entrega.litros_totales_el|stringformat:'s' }}"
+                                       required
+                                       placeholder="Ej: 150.50">
+                                <small class="text-muted">Litros totales entregados. Debe ser mayor a 0.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: CLIENTE Y PRECIO POR LITRO         -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: CLIENTE -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_cliente_el">
+                                    <i class="bi bi-person me-1"></i>Cliente
+                                </label>
+                                <input type="text" 
+                                       name="txt_cliente_el" 
+                                       id="txt_cliente_el" 
+                                       class="form-control"
+                                       maxlength="200"
+                                       value="{{ entrega.cliente_el|default:'' }}"
+                                       placeholder="Nombre del cliente">
+                                <small class="text-muted">Cliente que recibe la entrega. Opcional.</small>
+                            </div>
+
+                            <!-- CAMPO: PRECIO POR LITRO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_precio_litro_el">
+                                    <i class="bi bi-currency-dollar me-1"></i>Precio por Litro
+                                </label>
+                                <input type="text" 
+                                       name="txt_precio_litro_el" 
+                                       id="txt_precio_litro_el" 
+                                       class="form-control"
+                                       value="{{ entrega.precio_litro_el|stringformat:'s'|default:'' }}"
+                                       placeholder="Ej: 0.45">
+                                <small class="text-muted">Precio por litro en dólares. Si ingresa, se calcula el monto total automáticamente.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: GUÍA DE REMISIÓN                   -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_guia_remision_el">
+                                    <i class="bi bi-file-text me-1"></i>Guía de Remisión
+                                </label>
+                                <input type="text" 
+                                       name="txt_guia_remision_el" 
+                                       id="txt_guia_remision_el" 
+                                       class="form-control"
+                                       maxlength="50"
+                                       value="{{ entrega.guia_remision_el|default:'' }}"
+                                       placeholder="Número de guía">
+                                <small class="text-muted">Número de guía de remisión. Opcional.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: OBSERVACIONES                      -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_observaciones_el">
+                                    <i class="bi bi-journal-text me-1"></i>Observaciones
+                                </label>
+                                <textarea name="txt_observaciones_el" 
+                                          id="txt_observaciones_el" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          maxlength="1000"
+                                          placeholder="Observaciones de la entrega, condiciones del transporte, notas...">{{ entrega.observaciones_el|default:'' }}</textarea>
+                                <small class="text-muted">Máximo 1000 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- INDICADOR DE MONTO TOTAL (NUEVO)           -->
+                        <!-- ========================================== -->
+                        <div id="indicador-monto" class="mt-2 p-2 rounded d-none" style="font-size: 0.9rem; font-weight: 500;">
+                            <i class="bi bi-calculator me-1"></i>
+                            <span id="texto-monto"></span>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- INFORMACION DE AUDITORIA                   -->
+                        <!-- ========================================== -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="p-2 rounded" style="background: #f8f9fa; border-left: 3px solid #6c757d;">
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock-history me-1"></i>
+                                        <strong>Creado:</strong> {{ entrega.created_at_el|date:'d/m/Y H:i' }} | 
+                                        <strong>Última modificación:</strong> {{ entrega.updated_at_el|date:'d/m/Y H:i' }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                            <a href="/listaentrega/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#28a745',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#28a745',
+                titleColor: '#155724',
+                messageColor: '#2c5e1a',
+                backgroundColor: '#d4edda',
+                borderBottom: '3px solid #28a745',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        // Fecha no puede ser futura
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha no puede ser futura");
+
+        // Litros debe ser mayor a 0
+        jQuery.validator.addMethod("litrosValidos", function(value, element) {
+            if (!value) return false;
+            return parseFloat(value) > 0;
+        }, "Los litros deben ser mayores a 0");
+
+        // Precio no puede ser negativo
+        jQuery.validator.addMethod("precioValido", function(value, element) {
+            if (!value) return true;
+            return parseFloat(value) >= 0;
+        }, "El precio no puede ser negativo");
+
+        // ==========================================
+        // FUNCION: CALCULAR MONTO TOTAL
+        // ==========================================
+        function calcularMontoTotal() {
+            let litros = $('#txt_litros_totales_el').val();
+            let precio = $('#txt_precio_litro_el').val();
+            let $indicador = $('#indicador-monto');
+            let $texto = $('#texto-monto');
+            
+            if (litros && precio) {
+                let monto = parseFloat(litros) * parseFloat(precio);
+                $indicador
+                    .removeClass('d-none')
+                    .css({
+                        'background-color': '#d4edda',
+                        'color': '#155724',
+                        'border-left': '4px solid #28a745'
+                    });
+                $texto.html('✅ Monto total calculado: $' + monto.toFixed(2));
+            } else {
+                $indicador.addClass('d-none');
+            }
+        }
+
+        $(document).ready(function() {
+            
+            // Calcular monto al cargar si hay datos
+            calcularMontoTotal();
+
+            // ==========================================
+            // RECALCULAR MONTO AL CAMBIAR VALORES
+            // ==========================================
+            $('#txt_litros_totales_el, #txt_precio_litro_el').on('change', function() {
+                calcularMontoTotal();
+            });
+
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_editar_entrega").validate({
+                rules: {
+                    txt_fecha_el: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    txt_litros_totales_el: {
+                        required: true,
+                        litrosValidos: true
+                    },
+                    txt_cliente_el: {
+                        maxlength: 200
+                    },
+                    txt_precio_litro_el: {
+                        precioValido: true
+                    },
+                    txt_guia_remision_el: {
+                        maxlength: 50
+                    },
+                    txt_observaciones_el: {
+                        maxlength: 1000
+                    }
+                },
+                messages: {
+                    txt_fecha_el: {
+                        required: "La fecha de entrega es obligatoria",
+                        fechaNoFutura: "La fecha no puede ser futura"
+                    },
+                    txt_litros_totales_el: {
+                        required: "Los litros totales son obligatorios",
+                        litrosValidos: "Los litros deben ser mayores a 0"
+                    },
+                    txt_cliente_el: {
+                        maxlength: "Máximo 200 caracteres"
+                    },
+                    txt_guia_remision_el: {
+                        maxlength: "Máximo 50 caracteres"
+                    },
+                    txt_observaciones_el: {
+                        maxlength: "Máximo 1000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - OBSERVACIONES
+            // ==========================================
+            $('#txt_observaciones_el').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 1000) {
+                    $(this).val(valor.substring(0, 1000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 1000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - FECHA
+            // ==========================================            
+            $('#txt_fecha_el').on('blur', function() {
+                let fecha = $(this).val();
+                let hoy = new Date();
+                hoy.setHours(23, 59, 59, 999);
+                
+                if (fecha && new Date(fecha) > hoy) {
+                    $(this).val('{{ entrega.fecha_el|date:"Y-m-d" }}');
+                    alertaError('Fecha inválida', 'La fecha no puede ser futura. Se ha restaurado la fecha original.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - LITROS
+            // ==========================================
+            $('#txt_litros_totales_el').on('blur', function() {
+                let valor = $(this).val();
+                if (valor) {
+                    let litros = parseFloat(valor);
+                    if (litros <= 0) {
+                        $(this).val('');
+                        alertaError('Valor inválido', 'Los litros deben ser mayores a 0.');
+                        $(this).focus();
+                    }
+                }
+                calcularMontoTotal();
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - PRECIO
+            // ==========================================
+            $('#txt_precio_litro_el').on('blur', function() {
+                let valor = $(this).val();
+                if (valor) {
+                    let precio = parseFloat(valor);
+                    if (precio < 0) {
+                        $(this).val('');
+                        alertaError('Valor inválido', 'El precio no puede ser negativo.');
+                        $(this).focus();
+                    }
+                }
+                calcularMontoTotal();
+            });
+
+        });
+    </script>
+{% endblock %}

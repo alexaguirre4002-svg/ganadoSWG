@@ -1,0 +1,442 @@
+{% extends "plantilla.html" %}
+
+{% block titulo %}
+    Nuevo Registro Clínico | Hacienda Joseph
+{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listaregistroclinico/" class="text-decoration-none" style="color: var(--color-primario);">Registros Clínicos</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo Registro Clínico</li>
+{% endblock %}
+
+{% block contenido %}
+
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-plus-circle me-2"></i>Registrar Nuevo Registro Clínico
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Registre síntomas, diagnósticos, tratamientos y seguimiento veterinario
+            </p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos del Registro Clínico
+                </div>
+
+                <div class="p-4">
+                    <form action="/guardarregistroclinico/" id="frm_nuevo_registro" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- FILA 1: FECHA Y ANIMAL -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_rc">
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha de Atención <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_rc" 
+                                       id="txt_fecha_rc" 
+                                       class="form-control" 
+                                       required>
+                                <small class="text-muted">Fecha en que se atendió al animal.</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_animal_rc">
+                                    <i class="bi bi-emoji-smile me-1"></i>Animal <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_animal_rc" 
+                                        id="sel_animal_rc" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione un animal...</option>
+                                    {% for animal in animales %}
+                                    <option value="{{ animal.id_an }}">{{ animal.codigo_an }} - {{ animal.nombre_an|default:'Sin nombre' }} ({{ animal.categoria_an }})</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Animal que recibió atención veterinaria.</small>
+                            </div>
+                        </div>
+
+                        <!-- FILA 2: SÍNTOMAS (OBLIGATORIO) -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_sintomas_rc">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>Síntomas <span class="text-danger">*</span>
+                                </label>
+                                <textarea name="txt_sintomas_rc" 
+                                          id="txt_sintomas_rc" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          maxlength="2000"
+                                          placeholder="Describa los síntomas observados: fiebre, tos, decaimiento, secreciones, etc..."
+                                          required></textarea>
+                                <small class="text-muted">Máximo 2000 caracteres. Sea específico y detallado.</small>
+                            </div>
+                        </div>
+
+                        <!-- FILA 3: DIAGNÓSTICO Y TRATAMIENTO -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_diagnostico_rc">
+                                    <i class="bi bi-clipboard-pulse me-1"></i>Diagnóstico
+                                </label>
+                                <textarea name="txt_diagnostico_rc" 
+                                          id="txt_diagnostico_rc" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          maxlength="2000"
+                                          placeholder="Diagnóstico presuntivo o confirmado por el veterinario..."></textarea>
+                                <small class="text-muted">Máximo 2000 caracteres. Opcional si aún no se tiene diagnóstico.</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_tratamiento_rc">
+                                    <i class="bi bi-capsule me-1"></i>Tratamiento
+                                </label>
+                                <textarea name="txt_tratamiento_rc" 
+                                          id="txt_tratamiento_rc" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          maxlength="2000"
+                                          placeholder="Medicamentos, dosis, frecuencia, duración..."></textarea>
+                                <small class="text-muted">Máximo 2000 caracteres. Opcional si aún no se inicia tratamiento.</small>
+                            </div>
+                        </div>
+
+                        <!-- FILA 4: DÍAS TRATAMIENTO Y RESULTADO -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_dias_tratamiento_rc">
+                                    <i class="bi bi-clock-history me-1"></i>Días de Tratamiento
+                                </label>
+                                <input type="number" 
+                                       name="txt_dias_tratamiento_rc" 
+                                       id="txt_dias_tratamiento_rc" 
+                                       class="form-control" 
+                                       placeholder="Ej: 7" 
+                                       min="1"
+                                       max="365">
+                                <small class="text-muted">Duración estimada del tratamiento en días (1-365).</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_resultado_rc">
+                                    <i class="bi bi-activity me-1"></i>Resultado
+                                </label>
+                                <select name="sel_resultado_rc" 
+                                        id="sel_resultado_rc" 
+                                        class="form-select">
+                                    <option value="" selected>Sin resultado aún...</option>
+                                    <option value="curado">Curado</option>
+                                    <option value="en_tratamiento">En Tratamiento</option>
+                                    <option value="cronico">Crónico</option>
+                                    <option value="fallecido">Fallecido</option>
+                                </select>
+                                <small class="text-muted">Estado actual del animal respecto a esta atención.</small>
+                            </div>
+                        </div>
+
+                        <!-- FILA 5: VETERINARIO Y COSTO -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_veterinario_rc">
+                                    <i class="bi bi-person-badge me-1"></i>Veterinario Responsable
+                                </label>
+                                <input type="text" 
+                                       name="txt_veterinario_rc" 
+                                       id="txt_veterinario_rc" 
+                                       class="form-control" 
+                                       placeholder="Ej: Dr. Juan Pérez..." 
+                                       maxlength="100">
+                                <small class="text-muted">Máximo 100 caracteres.</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_costo_tratamiento_rc">
+                                    <i class="bi bi-currency-dollar me-1"></i>Costo del Tratamiento
+                                </label>
+                                <input type="text" 
+                                       name="txt_costo_tratamiento_rc" 
+                                       id="txt_costo_tratamiento_rc" 
+                                       class="form-control" 
+                                       placeholder="Ej: 150.00" 
+                                       maxlength="11">
+                                <small class="text-muted">Máximo 999999.99. Use punto (.) decimal.</small>
+                            </div>
+                        </div>
+
+                        <!-- BOTONES DE ACCION -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Registro
+                            </button>
+                            <a href="/listaregistroclinico/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+    <script>
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        jQuery.validator.addMethod("costoValido", function(value, element) {
+            if (!value) return true;
+            let regex = /^\d{1,6}(\.\d{1,2})?$/;
+            return regex.test(value);
+        }, "Formato inválido. Use punto (.) decimal. Máximo 2 decimales.");
+
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha no puede ser futura");
+
+        $(document).ready(function() {
+            
+            $('#txt_fecha_rc').val(new Date().toISOString().split('T')[0]);
+
+            $("#frm_nuevo_registro").validate({
+                rules: {
+                    txt_fecha_rc: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    sel_animal_rc: {
+                        required: true
+                    },
+                    txt_sintomas_rc: {
+                        required: true,
+                        maxlength: 2000
+                    },
+                    txt_diagnostico_rc: {
+                        maxlength: 2000
+                    },
+                    txt_tratamiento_rc: {
+                        maxlength: 2000
+                    },
+                    txt_dias_tratamiento_rc: {
+                        digits: true,
+                        min: 1,
+                        max: 365
+                    },
+                    sel_resultado_rc: {
+                        required: false
+                    },
+                    txt_veterinario_rc: {
+                        maxlength: 100
+                    },
+                    txt_costo_tratamiento_rc: {
+                        costoValido: true
+                    }
+                },
+                messages: {
+                    txt_fecha_rc: {
+                        required: "La fecha de atención es obligatoria",
+                        fechaNoFutura: "No puede registrar atenciones futuras"
+                    },
+                    sel_animal_rc: {
+                        required: "Seleccione un animal"
+                    },
+                    txt_sintomas_rc: {
+                        required: "Los síntomas son obligatorios",
+                        maxlength: "Máximo 2000 caracteres"
+                    },
+                    txt_diagnostico_rc: {
+                        maxlength: "Máximo 2000 caracteres"
+                    },
+                    txt_tratamiento_rc: {
+                        maxlength: "Máximo 2000 caracteres"
+                    },
+                    txt_dias_tratamiento_rc: {
+                        digits: "Solo números enteros",
+                        min: "Mínimo 1 día",
+                        max: "Máximo 365 días"
+                    },
+                    txt_veterinario_rc: {
+                        maxlength: "Máximo 100 caracteres"
+                    },
+                    txt_costo_tratamiento_rc: {
+                        costoValido: "Formato inválido. Ej: 150.00"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            $('#txt_costo_tratamiento_rc').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^0-9.]/g, '');
+                let partes = filtrado.split('.');
+                if (partes.length > 2) {
+                    filtrado = partes[0] + '.' + partes.slice(1).join('');
+                }
+                if (partes.length === 2 && partes[1].length > 2) {
+                    filtrado = partes[0] + '.' + partes[1].substring(0, 2);
+                }
+                if (partes[0].length > 6) {
+                    partes[0] = partes[0].substring(0, 6);
+                    filtrado = partes.length === 2 ? partes[0] + '.' + partes[1] : partes[0];
+                }
+                if (parseFloat(filtrado) > 999999.99) {
+                    filtrado = '999999.99';
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 999999.99.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                }
+            });
+
+            $('#txt_dias_tratamiento_rc').on('input', function() {
+                let valor = $(this).val();
+                if (valor < 1 && valor !== '') {
+                    $(this).val('');
+                    alertaError('Valor inválido', 'Los días de tratamiento deben ser al menos 1.');
+                }
+                if (valor > 365) {
+                    $(this).val(365);
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 365 días.');
+                }
+            });
+
+            $('#txt_veterinario_rc').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 100) {
+                    $(this).val(valor.substring(0, 100));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 100 caracteres.');
+                }
+            });
+
+            $('#txt_sintomas_rc').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 2000) {
+                    $(this).val(valor.substring(0, 2000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 2000 caracteres.');
+                }
+            });
+
+            $('#txt_diagnostico_rc').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 2000) {
+                    $(this).val(valor.substring(0, 2000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 2000 caracteres.');
+                }
+            });
+
+            $('#txt_tratamiento_rc').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 2000) {
+                    $(this).val(valor.substring(0, 2000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 2000 caracteres.');
+                }
+            });
+
+            $('#frm_nuevo_registro').on('submit', function(e) {
+                let costo = $('#txt_costo_tratamiento_rc').val();
+                if (costo) {
+                    costo = costo.replace(',', '.');
+                    $('#txt_costo_tratamiento_rc').val(costo);
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

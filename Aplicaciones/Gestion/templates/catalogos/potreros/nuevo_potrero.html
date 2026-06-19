@@ -1,0 +1,575 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Nuevo Potrero | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listapotrero/" class="text-decoration-none" style="color: var(--color-primario);">Potreros</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo Potrero</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-plus-circle me-2"></i>Registrar Nuevo Potrero
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Complete los datos del potrero o pastura
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE POTRERO           -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos del Potrero
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/guardarpotrero/" id="frm_nuevo_potrero" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: CODIGO Y NOMBRE                    -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: CODIGO DEL POTRERO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_codigo_po">
+                                    <i class="bi bi-upc-scan me-1"></i>Código del Potrero <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_codigo_po" 
+                                       id="txt_codigo_po" 
+                                       class="form-control" 
+                                       placeholder="Ej: POT-001, PAST-A..." 
+                                       maxlength="20" 
+                                       required>
+                                <small class="text-muted">Máximo 20 caracteres. Letras, números y guiones.</small>
+                            </div>
+
+                            <!-- CAMPO: NOMBRE DEL POTRERO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_nombre_po">
+                                    <i class="bi bi-tag me-1"></i>Nombre del Potrero <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_nombre_po" 
+                                       id="txt_nombre_po" 
+                                       class="form-control" 
+                                       placeholder="Ej: Potrero El Carmen, Pastura Norte..." 
+                                       maxlength="100" 
+                                       required>
+                                <small class="text-muted">Máximo 100 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: HECTAREAS Y CAPACIDAD              -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: HECTAREAS -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_hectareas_po">
+                                    <i class="bi bi-rulers me-1"></i>Hectáreas <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                    name="txt_hectareas_po" 
+                                    id="txt_hectareas_po" 
+                                    class="form-control" 
+                                    placeholder="Ej: 12.50" 
+                                    maxlength="7"
+                                    required>
+                                <small class="text-muted">Use punto (.) como separador decimal. Ej: 12.50</small>
+                            </div>
+
+                            <!-- CAMPO: CAPACIDAD MAXIMA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_capacidad_maxima_po">
+                                    <i class="bi bi-people me-1"></i>Capacidad Máxima (animales) <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" 
+                                       name="txt_capacidad_maxima_po" 
+                                       id="txt_capacidad_maxima_po" 
+                                       class="form-control" 
+                                       placeholder="Ej: 25" 
+                                       min="1"
+                                       max="999999"
+                                       required>
+                                <small class="text-muted">Mínimo 1 animal.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: ESTADO                             -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_estado_po">
+                                    <i class="bi bi-activity me-1"></i>Estado <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_estado_po" 
+                                        id="sel_estado_po" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione estado...</option>
+                                    <option value="disponible">Disponible</option>
+                                    <option value="ocupado">Ocupado</option>
+                                    <option value="en_descanso">En Descanso</option>
+                                    <option value="inactivo">Inactivo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: COORDENADAS GPS                    -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: LATITUD -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_latitud_po">
+                                    <i class="bi bi-geo me-1"></i>Latitud
+                                </label>
+                                <input type="number" 
+                                       name="txt_latitud_po" 
+                                       id="txt_latitud_po" 
+                                       class="form-control" 
+                                       placeholder="Ej: -0.9316" 
+                                       step="any"
+                                       min="-90"
+                                       max="90">
+                                <small class="text-muted">Entre -90 y 90. Opcional.</small>
+                            </div>
+
+                            <!-- CAMPO: LONGITUD -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_longitud_po">
+                                    <i class="bi bi-geo me-1"></i>Longitud
+                                </label>
+                                <input type="number" 
+                                       name="txt_longitud_po" 
+                                       id="txt_longitud_po" 
+                                       class="form-control" 
+                                       placeholder="Ej: -78.6125" 
+                                       step="any"
+                                       min="-180"
+                                       max="180">
+                                <small class="text-muted">Entre -180 y 180. Opcional.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 5: OBSERVACIONES                      -->
+                        <!-- ========================================== -->
+                        <div class="mb-3">
+                            <label for="txt_observaciones_po">
+                                <i class="bi bi-journal-text me-1"></i>Observaciones
+                            </label>
+                            <textarea name="txt_observaciones_po" 
+                                      id="txt_observaciones_po" 
+                                      class="form-control" 
+                                      rows="3" 
+                                      maxlength="1000"
+                                      placeholder="Características del terreno, tipo de pasto, notas importantes..."></textarea>
+                            <small class="text-muted">Máximo 1000 caracteres.</small>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Potrero
+                            </button>
+                            <a href="/listapotrero/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        jQuery.validator.addMethod("codigoValido", function(value, element) {
+            return this.optional(element) || /^[a-zA-Z0-9\-]+$/.test(value);
+        }, "Solo letras, números y guiones");
+
+        jQuery.validator.addMethod("hectareasValidas", function(value, element) {
+            if (!value) return true;
+            let num = parseFloat(value);
+            return num > 0 && num <= 9999.99;
+        }, "Debe ser mayor a 0 y máximo 9999.99");
+
+        jQuery.validator.addMethod("latitudValida", function(value, element) {
+            if (!value) return true;
+            let num = parseFloat(value);
+            return num >= -90 && num <= 90;
+        }, "Debe estar entre -90 y 90");
+
+        jQuery.validator.addMethod("longitudValida", function(value, element) {
+            if (!value) return true;
+            let num = parseFloat(value);
+            return num >= -180 && num <= 180;
+        }, "Debe estar entre -180 y 180");
+
+        $(document).ready(function() {
+            
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_nuevo_potrero").validate({
+                rules: {
+                    txt_codigo_po: {
+                        required: true,
+                        codigoValido: true,
+                        minlength: 2,
+                        maxlength: 20
+                    },
+                    txt_nombre_po: {
+                        required: true,
+                        minlength: 2,
+                        maxlength: 100
+                    },
+                    txt_hectareas_po: {
+                        required: true,
+                        hectareasValidas: true,
+                        number: true
+                    },
+                    txt_capacidad_maxima_po: {
+                        required: true,
+                        digits: true,
+                        min: 1,
+                        max: 999999
+                    },
+                    sel_estado_po: {
+                        required: true
+                    },
+                    txt_latitud_po: {
+                        latitudValida: true,
+                        number: true
+                    },
+                    txt_longitud_po: {
+                        longitudValida: true,
+                        number: true
+                    },
+                    txt_observaciones_po: {
+                        maxlength: 1000
+                    }
+                },
+                messages: {
+                    txt_codigo_po: {
+                        required: "El código es obligatorio",
+                        codigoValido: "Solo letras, números y guiones",
+                        minlength: "Mínimo 2 caracteres",
+                        maxlength: "Máximo 20 caracteres"
+                    },
+                    txt_nombre_po: {
+                        required: "El nombre es obligatorio",
+                        minlength: "Mínimo 2 caracteres",
+                        maxlength: "Máximo 100 caracteres"
+                    },
+                    txt_hectareas_po: {
+                        required: "Las hectáreas son obligatorias",
+                        hectareasValidas: "Debe ser mayor a 0 y máximo 9999.99",
+                        number: "Ingrese un número válido"
+                    },
+                    txt_capacidad_maxima_po: {
+                        required: "La capacidad máxima es obligatoria",
+                        digits: "Solo números enteros",
+                        min: "Mínimo 1 animal",
+                        max: "Máximo 999999"
+                    },
+                    sel_estado_po: {
+                        required: "Seleccione un estado"
+                    },
+                    txt_latitud_po: {
+                        latitudValida: "Debe estar entre -90 y 90",
+                        number: "Ingrese un número válido"
+                    },
+                    txt_longitud_po: {
+                        longitudValida: "Debe estar entre -180 y 180",
+                        number: "Ingrese un número válido"
+                    },
+                    txt_observaciones_po: {
+                        maxlength: "Máximo 1000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - CODIGO
+            // ==========================================
+            $('#txt_codigo_po').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase();
+                if (filtrado.length > 20) {
+                    filtrado = filtrado.substring(0, 20);
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 20 caracteres para el código.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'Solo letras, números y guiones.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - NOMBRE
+            // ==========================================
+            $('#txt_nombre_po').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 100) {
+                    $(this).val(valor.substring(0, 100));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 100 caracteres para el nombre.');
+                }
+            });
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - HECTAREAS (CORREGIDO)
+            // ==========================================
+            $('#txt_hectareas_po').on('input', function() {
+                let valor = $(this).val();
+                // Solo permitir números y UN punto decimal
+                let filtrado = valor.replace(/[^0-9.]/g, '');
+                // Evitar múltiples puntos
+                let partes = filtrado.split('.');
+                if (partes.length > 2) {
+                    filtrado = partes[0] + '.' + partes.slice(1).join('');
+                }
+                // Limitar a 2 decimales
+                if (partes.length === 2 && partes[1].length > 2) {
+                    filtrado = partes[0] + '.' + partes[1].substring(0, 2);
+                }
+                // Limitar longitud total (6 enteros + 1 punto + 2 decimales = 9)
+                if (filtrado.length > 9) {
+                    filtrado = filtrado.substring(0, 9);
+                }
+                // Validar máximo 9999.99
+                let numVal = parseFloat(filtrado);
+                if (numVal > 9999.99) {
+                    filtrado = '9999.99';
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 9999.99 hectáreas.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                }
+            });
+
+            // ==========================================
+            // VALIDACION ANTES DE ENVIAR - CONVERTIR COMA A PUNTO
+            // ==========================================
+            $('#frm_nuevo_potrero').on('submit', function(e) {
+                let hectareas = $('#txt_hectareas_po').val();
+                // Reemplazar coma por punto por si acaso
+                hectareas = hectareas.replace(',', '.');
+                $('#txt_hectareas_po').val(hectareas);
+                
+                // Validar que sea número válido con máximo 2 decimales
+                let regex = /^\d{1,4}(\.\d{1,2})?$/;
+                if (!regex.test(hectareas)) {
+                    e.preventDefault();
+                    alertaError('Formato inválido', 'Las hectáreas deben tener formato: 12.50 (máximo 2 decimales)');
+                    return false;
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - CAPACIDAD
+            // ==========================================
+            $('#txt_capacidad_maxima_po').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^0-9]/g, '');
+                if (parseInt(filtrado) > 999999) {
+                    filtrado = '999999';
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 999999 animales.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                    alertaError('Caracter no permitido', 'Solo se permiten números enteros.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - OBSERVACIONES
+            // ==========================================
+            $('#txt_observaciones_po').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 1000) {
+                    $(this).val(valor.substring(0, 1000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 1000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO DE TECLAS PROHIBIDAS - CODIGO
+            // ==========================================
+            $('#txt_codigo_po').on('keypress', function(e) {
+                let tecla = String.fromCharCode(e.which);
+                if (!/^[a-zA-Z0-9\-]$/.test(tecla)) {
+                    e.preventDefault();
+                    alertaError('Tecla bloqueada', 'Solo letras, números y guiones.');
+                    return false;
+                }
+            });
+
+            // ==========================================
+            // PEGADO DE TEXTO - BLOQUEO CODIGO
+            // ==========================================
+            $('#txt_codigo_po').on('paste', function(e) {
+                e.preventDefault();
+                let pegado = (e.originalEvent.clipboardData || window.clipboardData).getData('text');
+                let filtrado = pegado.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase().substring(0, 20);
+                $(this).val(filtrado);
+                if (pegado !== filtrado) {
+                    alertaAdvertencia('Texto filtrado', 'Se han eliminado caracteres no permitidos.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION NUMERICOS AL PERDER FOCO
+            // ==========================================
+            $('#txt_latitud_po').on('blur', function() {
+                let valor = parseFloat($(this).val());
+                if (valor && (valor < -90 || valor > 90)) {
+                    $(this).val('');
+                    alertaError('Latitud inválida', 'Debe estar entre -90 y 90.');
+                    $(this).focus();
+                }
+            });
+
+            $('#txt_longitud_po').on('blur', function() {
+                let valor = parseFloat($(this).val());
+                if (valor && (valor < -180 || valor > 180)) {
+                    $(this).val('');
+                    alertaError('Longitud inválida', 'Debe estar entre -180 y 180.');
+                    $(this).focus();
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

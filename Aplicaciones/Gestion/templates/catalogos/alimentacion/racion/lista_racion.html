@@ -1,0 +1,736 @@
+{% extends "plantilla.html" %}
+{% load static %}
+
+<!-- ========================================== -->
+<!-- TITULO                                    -->
+<!-- ========================================== -->
+{% block titulo %}
+Listado de Raciones | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BREADCRUMB                                -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">
+        Inicio
+    </a>
+</li>
+<li class="breadcrumb-item">
+    <a href="/listaanimal/" class="text-decoration-none" style="color: var(--color-primario);">
+        Animales
+    </a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">
+    Raciones
+</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- CONTENIDO PRINCIPAL                       -->
+<!-- ========================================== -->
+{% block contenido %}
+
+<!-- TARJETAS ESTADÍSTICAS -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3">
+            <i class="bi bi-basket fs-2" style="color: var(--color-primario);"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_raciones }}</h4>
+            <small class="text-muted">Total Raciones</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #17a2b8;">
+            <i class="bi bi-graph-up fs-2" style="color: #17a2b8;"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ eficiencia_promedio }}%</h4>
+            <small class="text-muted">Eficiencia Prom.</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #fd7e14;">
+            <i class="bi bi-box-seam fs-2 text-warning"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_ofrecido|stringformat:".2f" }}</h4>
+            <small class="text-muted">Kg Ofrecidos</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
+            <i class="bi bi-trash fs-2 text-danger"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_desperdicio|stringformat:".2f" }}</h4>
+            <small class="text-muted">Kg Desperdicio</small>
+        </div>
+    </div>
+</div>
+
+<!-- TITULO -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-8">
+        <h2 class="fw-bold" style="color: var(--color-primario);">
+            <i class="bi bi-basket me-2"></i>
+            Listado de Raciones
+        </h2>
+        <p class="text-muted mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            Gestión de raciones alimenticias, seguimiento de consumo, eficiencia y desperdicio
+        </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="/nuevaracion/" class="btn btn-hacienda">
+            <i class="bi bi-plus-circle me-2"></i>
+            Nueva Ración
+        </a>
+    </div>
+</div>
+
+<!-- TARJETA PRINCIPAL -->
+<div class="row animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-list-ul"></i>
+                Raciones Registradas
+            </div>
+            <div class="p-4">
+                <div class="table-responsive">
+                    <table id="tablaRacion" class="table table-hacienda align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>ANIMAL</th>
+                                <th>DIETA</th>
+                                <th>INSUMO</th>
+                                <th>FECHA INICIO</th>
+                                <th>FECHA FIN</th>
+                                <th>OFRECIDO (kg)</th>
+                                <th>CONSUMIDO (kg)</th>
+                                <th>DESPERDICIO (kg)</th>
+                                <th>EFICIENCIA</th>
+                                <th>REGISTRADO POR</th>
+                                <th>ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for racion in raciones_list %}
+                            <tr>
+                                <!-- ID -->
+                                <td class="fw-bold text-muted">#{{ racion.id_ra }}</td>
+                                
+                                <!-- ANIMAL -->
+                                <td>
+                                    <span class="badge rounded-pill p-2" style="background: #e8f5e9; color: #2c5e1a; border: 1px solid #2c5e1a;">
+                                        <i class="bi bi-emoji-smile me-1"></i>
+                                        {{ racion.fk_an.codigo_an }}
+                                    </span>
+                                    {% if racion.fk_an.nombre_an %}
+                                    <br><small class="text-muted">{{ racion.fk_an.nombre_an }}</small>
+                                    {% endif %}
+                                    <br><small class="text-muted"><i class="bi bi-tag me-1"></i>{{ racion.fk_an.categoria_an }}</small>
+                                </td>
+                                
+                                <!-- DIETA -->
+                                <td>
+                                    <span class="badge rounded-pill p-2" style="background:#fff3cd; color:#856404; border: 1px solid #fd7e14;">
+                                        <i class="bi bi-clipboard-data me-1"></i>
+                                        {{ racion.fk_di.codigo_di }}
+                                    </span>
+                                    <br><small class="text-muted fw-bold">{{ racion.fk_di.nombre_di }}</small>
+                                    <br><small class="text-muted"><i class="bi bi-bullseye me-1"></i>{{ racion.fk_di.categoria_objetivo_di }}</small>
+                                </td>
+                                
+                                <!-- INSUMO -->
+                                <td>
+                                    {% if racion.fk_ia %}
+                                    <span class="badge rounded-pill p-2" style="background:#e3f2fd; color:#0d47a1; border: 1px solid #17a2b8;">
+                                        <i class="bi bi-box-seam me-1"></i>
+                                        {{ racion.fk_ia.codigo_ia }}
+                                    </span>
+                                    <br><small class="text-muted">{{ racion.fk_ia.nombre_ia }}</small>
+                                    <br><small class="text-muted"><i class="bi bi-layers me-1"></i>{{ racion.fk_ia.tipo_ia }}</small>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">
+                                        <i class="bi bi-dash-circle me-1"></i>Sin insumo
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- FECHA INICIO -->
+                                <td>
+                                    <span class="fw-bold" style="color: #5c450e;">
+                                        <i class="bi bi-calendar-check me-1"></i>
+                                        {{ racion.fecha_inicio_ra|date:'d/m/Y' }}
+                                    </span>
+                                </td>
+                                
+                                <!-- FECHA FIN -->
+                                <td>
+                                    {% if racion.fecha_fin_ra %}
+                                    <span class="fw-bold" style="color: #5c450e;">
+                                        <i class="bi bi-calendar-x me-1"></i>
+                                        {{ racion.fecha_fin_ra|date:'d/m/Y' }}
+                                    </span>
+                                    {% else %}
+                                    <span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745;">
+                                        <i class="bi bi-infinity me-1"></i>En curso
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- OFRECIDO -->
+                                <td>
+                                    <span class="fw-bold" style="color: #2c5e1a;">
+                                        {{ racion.cantidad_ofrecida_kg_ra|stringformat:"s" }} kg
+                                    </span>
+                                </td>
+                                
+                                <!-- CONSUMIDO -->
+                                <td>
+                                    {% if racion.cantidad_consumida_kg_ra %}
+                                    <span class="fw-bold" style="color: #17a2b8;">
+                                        {{ racion.cantidad_consumida_kg_ra|stringformat:"s" }} kg
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- DESPERDICIO -->
+                                <td>
+                                    {% if racion.desperdicio_kg_ra %}
+                                    <span class="fw-bold 
+                                        {% if racion.desperdicio_pct > 20 %}
+                                            text-danger
+                                        {% elif racion.desperdicio_pct > 10 %}
+                                            text-warning
+                                        {% else %}
+                                            text-success
+                                        {% endif %}
+                                    ">
+                                        {{ racion.desperdicio_kg_ra|stringformat:"s" }} kg
+                                        {% if racion.desperdicio_pct %}
+                                        <br><small>({{ racion.desperdicio_pct }}%)</small>
+                                        {% endif %}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">---</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- EFICIENCIA -->
+                                <td>
+                                    {% if racion.eficiencia is not None %}
+                                    <div class="progress" style="height: 20px; border-radius: 10px;">
+                                        <div class="progress-bar 
+                                            {% if racion.eficiencia >= 90 %}
+                                                bg-success
+                                            {% elif racion.eficiencia >= 70 %}
+                                                bg-info
+                                            {% elif racion.eficiencia >= 50 %}
+                                                bg-warning
+                                            {% else %}
+                                                bg-danger
+                                            {% endif %}
+                                        " role="progressbar" 
+                                           style="width: {{ racion.eficiencia }}%;" 
+                                           aria-valuenow="{{ racion.eficiencia }}" 
+                                           aria-valuemin="0" 
+                                           aria-valuemax="100">
+                                            {{ racion.eficiencia }}%
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">Sin datos</span>
+                                    {% endif %}
+                                </td>
+                                <!-- REGISTRADO POR -->
+                                <td>
+                                    <span class="text-muted">
+                                        <i class="bi bi-person me-1 text-success"></i>
+                                        {{ racion.fk_us_ra.username_us }}
+                                    </span>
+                                    <br><small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>{{ racion.created_at_ra|date:'d/m/Y H:i' }}
+                                    </small>
+                                </td>
+                                
+                                <!-- ACCIONES -->
+                                <td>
+                                    <!-- VER DETALLE (MODAL) -->
+                                    <button type="button" class="btn btn-sm btn-info" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalDetalleRacion"
+                                            data-id="{{ racion.id_ra }}"
+                                            data-animal="{{ racion.fk_an.codigo_an }}"
+                                            data-animal-nombre="{% if racion.fk_an.nombre_an %}{{ racion.fk_an.nombre_an }}{% else %}Sin nombre{% endif %}"
+                                            data-animal-categoria="{{ racion.fk_an.categoria_an }}"
+                                            data-dieta-codigo="{{ racion.fk_di.codigo_di }}"
+                                            data-dieta-nombre="{{ racion.fk_di.nombre_di }}"
+                                            data-dieta-categoria="{{ racion.fk_di.categoria_objetivo_di }}"
+                                            data-insumo="{% if racion.fk_ia %}{{ racion.fk_ia.codigo_ia }}|{{ racion.fk_ia.nombre_ia }}|{{ racion.fk_ia.tipo_ia }}{% else %}---{% endif %}"
+                                            data-fecha-inicio="{{ racion.fecha_inicio_ra|date:'d/m/Y' }}"
+                                            data-fecha-fin="{% if racion.fecha_fin_ra %}{{ racion.fecha_fin_ra|date:'d/m/Y' }}{% else %}---{% endif %}"
+                                            data-ofrecido="{{ racion.cantidad_ofrecida_kg_ra|stringformat:'s' }}"
+                                            data-consumido="{% if racion.cantidad_consumida_kg_ra %}{{ racion.cantidad_consumida_kg_ra|stringformat:'s' }}{% else %}---{% endif %}"
+                                            data-desperdicio="{% if racion.desperdicio_kg_ra %}{{ racion.desperdicio_kg_ra|stringformat:'s' }}{% else %}---{% endif %}"
+                                            data-eficiencia="{% if racion.eficiencia is not None %}{{ racion.eficiencia }}{% else %}---{% endif %}"
+                                            data-desperdicio-pct="{% if racion.desperdicio_pct is not None %}{{ racion.desperdicio_pct }}{% else %}---{% endif %}"
+                                            data-dias-potrero="{% if racion.dias_en_potrero_ra %}{{ racion.dias_en_potrero_ra }}{% else %}---{% endif %}"
+                                            data-estado="{{ racion.estado }}"
+                                            data-usuario="{{ racion.fk_us_ra.username_us }}"
+                                            data-created="{{ racion.created_at_ra|date:'d/m/Y H:i' }}"
+                                            data-updated="{{ racion.updated_at_ra|date:'d/m/Y H:i' }}"
+                                            title="Ver detalle">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    
+                                    <!-- EDITAR -->
+                                    <a href="/editarracion/{{ racion.id_ra }}" class="btn btn-sm btn-hacienda-secondary" title="Editar">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    
+                                    <!-- ELIMINAR -->
+                                    <button type="button" class="btn btn-sm btn-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalEliminarRacion"
+                                            data-id="{{ racion.id_ra }}"
+                                            data-animal="{{ racion.fk_an.codigo_an }}"
+                                            data-dieta="{{ racion.fk_di.nombre_di }}"
+                                            data-fecha-inicio="{{ racion.fecha_inicio_ra|date:'d/m/Y' }}"
+                                            data-url="/eliminaracion/{{ racion.id_ra }}"
+                                            title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="13" class="text-center py-5">
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <p class="mt-3 text-muted">No hay raciones registradas</p>
+                                    <a href="/nuevaracion/" class="btn btn-hacienda btn-sm mt-2">
+                                        <i class="bi bi-plus-circle me-2"></i>Registrar primera ración
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
+                <small class="text-muted">
+                    <i class="bi bi-bar-chart-line me-1"></i>
+                    Total de raciones: <strong>{{ raciones_list|length }}</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL DETALLE RACIÓN                       -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalDetalleRacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-basket-fill me-2" style="color: #DAA520;"></i>
+                    DETALLE DE LA RACIÓN
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="background: #fff8e6;">
+                <div class="row g-0">
+                    <div class="col-md-5" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
+                        <div class="p-4 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="bi bi-basket fs-1" style="color: #2c5e1a;"></i>
+                            <p class="mt-3 mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleAnimal"></p>
+                            <p class="text-muted mb-0" style="font-size: 14px;" id="detalleAnimalNombre"></p>
+                            <p class="text-muted mb-0" style="font-size: 13px;" id="detalleAnimalCategoria"></p>
+                            <div class="mt-3 w-100 text-center">
+                                <span id="detalleEstadoBadge"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="p-4">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">ID RACIÓN</label>
+                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<span id="detalleId"></span></p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <label class="text-muted small fw-bold">ESTADO</label>
+                                    <div id="detalleEstado"></div>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clipboard-data me-1"></i>DIETA</label>
+                                    <p class="mb-0" id="detalleDieta" style="color: #5c450e;"></p>
+                                    <p class="mb-0 small text-muted" id="detalleDietaCategoria"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-box-seam me-1"></i>INSUMO</label>
+                                    <p class="mb-0" id="detalleInsumo" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>FECHA INICIO</label>
+                                    <p class="mb-0" id="detalleFechaInicio" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-x me-1"></i>FECHA FIN</label>
+                                    <p class="mb-0" id="detalleFechaFin" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-4">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-up-circle me-1"></i>OFRECIDO</label>
+                                    <p class="mb-0 fw-bold" id="detalleOfrecido" style="color: #2c5e1a;"></p>
+                                </div>
+                                <div class="col-4">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-down-circle me-1"></i>CONSUMIDO</label>
+                                    <p class="mb-0 fw-bold" id="detalleConsumido" style="color: #17a2b8;"></p>
+                                </div>
+                                <div class="col-4">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-trash me-1"></i>DESPERDICIO</label>
+                                    <p class="mb-0 fw-bold" id="detalleDesperdicio" style="color: #dc3545;"></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-graph-up me-1"></i>EFICIENCIA</label>
+                                    <div id="detalleEficiencia"></div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>DÍAS EN POTRERO</label>
+                                    <p class="mb-0" id="detalleDiasPotrero" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-0">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>REGISTRADO POR</label>
+                                    <p class="mb-0" id="detalleUsuario" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>FECHA REGISTRO</label>
+                                    <p class="mb-0" id="detalleCreated" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="row mt-2 mb-0">
+                                <div class="col-12">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-clockwise me-1"></i>ÚLTIMA MODIFICACIÓN</label>
+                                    <p class="mb-0" id="detalleUpdated" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
+                    <i class="bi bi-pencil-square me-1"></i>Editar Ración
+                </a>
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL ELIMINAR RACIÓN                      -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalEliminarRacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: 2px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
+                    CONFIRMAR ELIMINACIÓN
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background: #fff8e6; padding: 25px;">
+                <p style="color: #5c450e; font-size: 16px; margin-bottom: 0;">
+                    ¿Está seguro de eliminar la ración del animal <strong id="animalRacionModal" style="color: #2c5e1a;"></strong>?
+                </p>
+                <p class="mt-2 mb-0" style="color: #8B6914; font-size: 14px;">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Dieta: <span id="dietaRacionModal"></span> | Inicio: <span id="fechaInicioModal"></span>
+                </p>
+                <p class="mt-2 mb-0" style="color: #c0392b; font-size: 13px;">
+                    <i class="bi bi-exclamation-diamond me-1"></i>
+                    Esta acción no se puede deshacer. El stock del insumo vinculado será restaurado.
+                </p>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                </button>
+                <a href="#" id="btnConfirmarEliminarRacion" class="btn btn-hacienda-warning">
+                    <i class="bi bi-check-lg me-1"></i>Sí, eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- SCRIPTS EXTRA                              -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+<style>
+    .dataTables_filter {
+        margin-bottom: 20px !important;
+        background: linear-gradient(135deg, #eef7e8, #dcefd0);
+        padding: 15px 20px;
+        border-radius: 18px;
+        border: 2px solid #b7d7a8;
+        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
+        display: flex !important;
+        align-items: center !important;
+        justify-content: end !important;
+        gap: 10px;
+    }
+    .dataTables_filter::before {
+        content: "🐄";
+        font-size: 28px;
+    }
+    .dataTables_filter label {
+        font-weight: bold;
+        color: var(--color-primario);
+        font-size: 17px;
+    }
+    .dataTables_filter input {
+        border-radius: 50px !important;
+        border: 3px solid var(--color-primario) !important;
+        padding: 10px 18px !important;
+        background-color: #ffffff !important;
+        color: var(--color-navbar) !important;
+        font-weight: 600 !important;
+        width: 280px !important;
+        transition: 0.3s !important;
+        box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08);
+        margin-left: 10px !important;
+    }
+    .dataTables_filter input:focus {
+        outline: none !important;
+        border-color: #8dc26f !important;
+        box-shadow: 0px 0px 12px rgba(44,94,26,0.4);
+        background-color: #f8fff5 !important;
+    }
+    .dataTables_length select {
+        border-radius: 10px !important;
+        border: 2px solid var(--color-primario) !important;
+        padding: 5px 10px !important;
+    }
+    .dataTables_paginate {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        margin-top: 25px !important;
+    }
+    .dataTables_paginate .pagination {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 0px !important;
+        flex-wrap: nowrap !important;
+    }
+    .paginate_button {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        border: none !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 14px !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        transition: 0.3s !important;
+        margin: 0 3px !important;
+        vertical-align: middle !important;
+        float: none !important;
+    }
+    .paginate_button.current {
+        background: var(--color-primario) !important;
+        color: white !important;
+        border: 2px solid #8dc26f !important;
+        box-shadow: 0px 0px 8px rgba(44,94,26,0.4);
+    }
+    .paginate_button:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+    .paginate_button.previous, .paginate_button.next {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 16px !important;
+    }
+    .paginate_button.previous:hover, .paginate_button.next:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $('#tablaRacion').DataTable({
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ registros",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                "infoEmpty": "No existen registros",
+                "infoFiltered": "(filtrado de _MAX_ registros)",
+                "search": "Buscar:",
+                "paginate": {
+                    "first": "",
+                    "last": "",
+                    "next": "›",
+                    "previous": "‹"
+                }
+            },
+            "pageLength": 10,
+            "lengthMenu": [5,10,25,50,100],
+            "responsive": true,
+            "pagingType": "simple_numbers",
+            "order": [[4, "desc"]]
+        });
+    });
+</script>
+
+<script>
+    // Modal Detalle Ración
+    var modalDetalleRacion = document.getElementById('modalDetalleRacion');
+    modalDetalleRacion.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        
+        var id = button.getAttribute('data-id');
+        var animal = button.getAttribute('data-animal');
+        var animalNombre = button.getAttribute('data-animal-nombre');
+        var animalCategoria = button.getAttribute('data-animal-categoria');
+        var dietaCodigo = button.getAttribute('data-dieta-codigo');
+        var dietaNombre = button.getAttribute('data-dieta-nombre');
+        var dietaCategoria = button.getAttribute('data-dieta-categoria');
+        var insumo = button.getAttribute('data-insumo');
+        var fechaInicio = button.getAttribute('data-fecha-inicio');
+        var fechaFin = button.getAttribute('data-fecha-fin');
+        var ofrecido = button.getAttribute('data-ofrecido');
+        var consumido = button.getAttribute('data-consumido');
+        var desperdicio = button.getAttribute('data-desperdicio');
+        var eficiencia = button.getAttribute('data-eficiencia');
+        var desperdicioPct = button.getAttribute('data-desperdicio-pct');
+        var diasPotrero = button.getAttribute('data-dias-potrero');
+        var estado = button.getAttribute('data-estado');
+        var usuario = button.getAttribute('data-usuario');
+        var created = button.getAttribute('data-created');
+        var updated = button.getAttribute('data-updated');
+        
+        document.getElementById('detalleId').textContent = id;
+        document.getElementById('detalleAnimal').textContent = animal;
+        document.getElementById('detalleAnimalNombre').textContent = animalNombre;
+        document.getElementById('detalleAnimalCategoria').textContent = animalCategoria;
+        document.getElementById('detalleFechaInicio').textContent = fechaInicio;
+        document.getElementById('detalleFechaFin').textContent = fechaFin !== '---' ? fechaFin : 'En curso (sin fecha de fin)';
+        document.getElementById('detalleOfrecido').textContent = ofrecido + ' kg';
+        document.getElementById('detalleConsumido').textContent = consumido !== '---' ? consumido + ' kg' : 'Sin registrar';
+        document.getElementById('detalleDesperdicio').textContent = desperdicio !== '---' ? desperdicio + ' kg' : 'Sin registrar';
+        document.getElementById('detalleDiasPotrero').textContent = diasPotrero !== '---' ? diasPotrero + ' días' : 'No aplica';
+        document.getElementById('detalleUsuario').textContent = usuario;
+        document.getElementById('detalleCreated').textContent = created;
+        document.getElementById('detalleUpdated').textContent = updated;
+        
+        // Dieta
+        document.getElementById('detalleDieta').innerHTML = 
+            '<span class="badge rounded-pill p-2" style="background:#fff3cd; color:#856404; border: 1px solid #fd7e14;">' +
+            '<i class="bi bi-clipboard-data me-1"></i>' + dietaCodigo + '</span><br>' +
+            '<span class="fw-bold">' + dietaNombre + '</span>';
+        document.getElementById('detalleDietaCategoria').textContent = 'Categoría objetivo: ' + dietaCategoria;
+        
+        // Insumo
+        var insumoHtml = '';
+        if (insumo !== '---') {
+            var partes = insumo.split('|');
+            insumoHtml = '<span class="badge rounded-pill p-2" style="background:#e3f2fd; color:#0d47a1; border: 1px solid #17a2b8;">' +
+                '<i class="bi bi-box-seam me-1"></i>' + partes[0] + '</span><br>' +
+                '<span class="fw-bold">' + partes[1] + '</span><br>' +
+                '<small class="text-muted">Tipo: ' + partes[2] + '</small>';
+        } else {
+            insumoHtml = '<span class="text-muted fst-italic"><i class="bi bi-dash-circle me-1"></i>Sin insumo vinculado</span>';
+        }
+        document.getElementById('detalleInsumo').innerHTML = insumoHtml;
+        
+        // Eficiencia
+        var eficienciaHtml = '';
+        if (eficiencia !== '---') {
+            var efNum = parseFloat(eficiencia);
+            var colorClass = efNum >= 90 ? 'bg-success' : efNum >= 70 ? 'bg-info' : efNum >= 50 ? 'bg-warning' : 'bg-danger';
+            eficienciaHtml = '<div class="progress" style="height: 20px; border-radius: 10px;">' +
+                '<div class="progress-bar ' + colorClass + '" role="progressbar" style="width: ' + efNum + '%;" ' +
+                'aria-valuenow="' + efNum + '" aria-valuemin="0" aria-valuemax="100">' + efNum + '%</div></div>';
+        } else {
+            eficienciaHtml = '<span class="text-muted fst-italic">Sin datos suficientes</span>';
+        }
+        document.getElementById('detalleEficiencia').innerHTML = eficienciaHtml;
+        
+        // Estado
+        var estadoHtml = '';
+        var badgeHtml = '';
+        if (estado === 'activa') {
+            estadoHtml = '<span class="badge rounded-pill p-2" style="background:#28a745; color:white;">' +
+                '<i class="bi bi-check-circle me-1"></i> Activa</span>';
+            badgeHtml = '<span class="badge rounded-pill p-2" style="background:#28a745; color:white; font-size: 14px;">' +
+                '<i class="bi bi-check-circle me-1"></i> Activa</span>';
+        } else {
+            estadoHtml = '<span class="badge rounded-pill p-2" style="background:#6c757d; color:white;">' +
+                '<i class="bi bi-check-circle-fill me-1"></i> Finalizada</span>';
+            badgeHtml = '<span class="badge rounded-pill p-2" style="background:#6c757d; color:white; font-size: 14px;">' +
+                '<i class="bi bi-check-circle-fill me-1"></i> Finalizada</span>';
+        }
+        document.getElementById('detalleEstado').innerHTML = estadoHtml;
+        document.getElementById('detalleEstadoBadge').innerHTML = badgeHtml;
+        
+        document.getElementById('btnEditarDesdeDetalle').href = '/editarracion/' + id;
+    });
+</script>
+
+<script>
+    // Modal Eliminar Ración
+    var modalEliminarRacion = document.getElementById('modalEliminarRacion');
+    modalEliminarRacion.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var animal = button.getAttribute('data-animal');
+        var dieta = button.getAttribute('data-dieta');
+        var fechaInicio = button.getAttribute('data-fecha-inicio');
+        var url = button.getAttribute('data-url');
+        
+        document.getElementById('animalRacionModal').textContent = animal;
+        document.getElementById('dietaRacionModal').textContent = dieta;
+        document.getElementById('fechaInicioModal').textContent = fechaInicio;
+        document.getElementById('btnConfirmarEliminarRacion').setAttribute('href', url);
+    });
+</script>
+
+{% endblock %}

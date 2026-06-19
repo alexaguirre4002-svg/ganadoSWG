@@ -1,0 +1,643 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Editar Preñez | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listaprenez/" class="text-decoration-none" style="color: var(--color-primario);">Preñeces</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Editar Preñez</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-pencil-square me-2"></i>Editar Preñez
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Modifique los datos de la preñez #<strong>{{ prenez.id_pr }}</strong> - {{ prenez.fk_an.codigo_an }}
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ALERTA DE ANIMAL ASOCIADO                  -->
+    <!-- ========================================== -->
+    <div class="row animate-fade-in mb-4">
+        <div class="col-12">
+            <div class="alert" style="background: #e8f5e9; border: 2px solid #2c5e1a; border-radius: 12px; color: #2c5e1a;">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <strong>Animal:</strong> 
+                <span class="badge" style="background:#28a745; color:white;"><i class="bi bi-emoji-smile me-1"></i>{{ prenez.fk_an.codigo_an }}</span>
+                {% if prenez.fk_an.nombre_an %}
+                <span class="ms-2">{{ prenez.fk_an.nombre_an }}</span>
+                {% endif %}
+                <span class="badge ms-2" style="background:#6c757d; color:white;">{{ prenez.fk_an.categoria_an }}</span>
+                <br><small class="ms-4">El animal no se puede cambiar. Si necesita corregirlo, elimine y cree una nueva preñez.</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE EDICION           -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-check"></i>Datos de la Preñez
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/procesareditarprenez/" id="frm_editar_prenez" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- CAMPO OCULTO: ID DE LA PREÑEZ            -->
+                        <!-- ========================================== -->
+                        <input type="hidden" name="id_pr" value="{{ prenez.id_pr }}">
+                        <input type="hidden" name="animal_actual" id="animal_actual" value="{{ prenez.fk_an_id }}">
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: ANIMAL (SOLO LECTURA) Y FECHA CONF. -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: ANIMAL (SOLO LECTURA) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_animal_pr">
+                                    <i class="bi bi-emoji-smile me-1"></i>Animal
+                                </label>
+                                <select name="sel_animal_pr" 
+                                        id="sel_animal_pr" 
+                                        class="form-select" 
+                                        disabled>
+                                    <option value="{{ prenez.fk_an_id }}" selected>
+                                        {{ prenez.fk_an.codigo_an }} - {{ prenez.fk_an.nombre_an|default:'Sin nombre' }} ({{ prenez.fk_an.categoria_an }})
+                                    </option>
+                                </select>
+                                <small class="text-muted">El animal no se puede modificar.</small>
+                            </div>
+
+                            <!-- CAMPO: FECHA CONFIRMACIÓN -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_confirmacion_pr">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Confirmación <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_confirmacion_pr" 
+                                       id="txt_fecha_confirmacion_pr" 
+                                       class="form-control" 
+                                       value="{{ prenez.fecha_confirmacion_pr|date:'Y-m-d' }}"
+                                       required>
+                                <small class="text-muted">Fecha en que se confirmó la preñez. No puede ser futura.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: INSEMINACIÓN ASOCIADA (FK)         -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="sel_inseminacion_pr">
+                                    <i class="bi bi-droplet me-1"></i>Inseminación Asociada
+                                </label>
+                                <select name="sel_inseminacion_pr" 
+                                        id="sel_inseminacion_pr" 
+                                        class="form-select">
+
+                                    <option value="" {% if not prenez.fk_in_id %}selected{% endif %} data-animal-id="">
+                                        Sin inseminación...
+                                    </option>
+
+                                    {% for inseminacion in inseminaciones %}
+
+                                        <option value="{{ inseminacion.id_in }}" 
+                                                {% if prenez.fk_in_id == inseminacion.id_in %}selected{% endif %}
+                                                data-fecha="{{ inseminacion.fecha_in|date:'Y-m-d' }}"
+                                                data-tipo="{{ inseminacion.tipo_inseminacion_in }}"
+                                                data-animal-id="{{ inseminacion.fk_an.id_an }}">
+
+                                            #{{ inseminacion.id_in }}
+                                            -
+                                            {{ inseminacion.fk_an.nombre_an }}
+                                            |
+                                            {{ inseminacion.fk_an.codigo_an }}
+                                            |
+                                            {{ inseminacion.fecha_in|date:'d/m/Y' }}
+
+                                            {% if inseminacion.tipo_inseminacion_in == 'natural' %}
+                                                | Natural
+                                            {% else %}
+                                                | Artificial
+                                            {% endif %}
+
+                                            {% if inseminacion.fk_toro_in %}
+                                                | Toro: {{ inseminacion.fk_toro_in.nombre_an }}
+                                            {% endif %}
+
+                                        </option>
+
+                                    {% endfor %}
+
+                                </select>
+                                <small class="text-muted" id="msg_inseminacion">
+                                    {% if prenez.fk_in %}
+                                    <span style="color: #2c5e1a;"><i class="bi bi-check-circle me-1"></i>Inseminación actual vinculada.</span>
+                                    {% else %}
+                                    Opcional. Vincule una inseminación para trazabilidad reproductiva.
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: MÉTODO DIAGNÓSTICO Y FECHA PROB. PARTO -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: MÉTODO DIAGNÓSTICO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_metodo_diagnostico_pr">
+                                    <i class="bi bi-activity me-1"></i>Método de Diagnóstico
+                                </label>
+                                <select name="sel_metodo_diagnostico_pr" 
+                                        id="sel_metodo_diagnostico_pr" 
+                                        class="form-select">
+                                    <option value="" {% if not prenez.metodo_diagnostico_pr %}selected{% endif %}>Seleccione método...</option>
+                                    <option value="palpacion" {% if prenez.metodo_diagnostico_pr == 'palpacion' %}selected{% endif %}>Palpación</option>
+                                    <option value="ultrasonido" {% if prenez.metodo_diagnostico_pr == 'ultrasonido' %}selected{% endif %}>Ultrasonido</option>
+                                    <option value="sangre" {% if prenez.metodo_diagnostico_pr == 'sangre' %}selected{% endif %}>Sangre</option>
+                                    <option value="otro" {% if prenez.metodo_diagnostico_pr == 'otro' %}selected{% endif %}>Otro</option>
+                                </select>
+                                <small class="text-muted">Método utilizado para confirmar la preñez.</small>
+                            </div>
+
+                            <!-- CAMPO: FECHA PROBABLE PARTO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_probable_parto_pr">
+                                    <i class="bi bi-calendar-heart me-1"></i>Fecha Probable de Parto <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_probable_parto_pr" 
+                                       id="txt_fecha_probable_parto_pr" 
+                                       class="form-control"
+                                       value="{{ prenez.fecha_probable_parto_pr|date:'Y-m-d' }}"
+                                       required>
+                                <small class="text-muted">Debe ser posterior a la fecha de confirmación.</small>
+                                
+                                <!-- ========================================== -->
+                                <!-- INDICADOR DE DÍAS DE GESTACIÓN (NUEVO)     -->
+                                <!-- ========================================== -->
+                                <div id="indicador-gestacion" class="mt-2 p-2 rounded d-none" style="font-size: 0.9rem; font-weight: 500;">
+                                    <i class="bi bi-calculator me-1"></i>
+                                    <span id="texto-gestacion"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: OBSERVACIONES                      -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_observaciones_pr">
+                                    <i class="bi bi-journal-text me-1"></i>Observaciones
+                                </label>
+                                <textarea name="txt_observaciones_pr" 
+                                          id="txt_observaciones_pr" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          maxlength="1000"
+                                          placeholder="Observaciones del diagnóstico, condición de la vaca, recomendaciones...">{{ prenez.observaciones_pr|default:'' }}</textarea>
+                                <small class="text-muted">Máximo 1000 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- INFORMACION DE AUDITORIA                   -->
+                        <!-- ========================================== -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="p-2 rounded" style="background: #f8f9fa; border-left: 3px solid #6c757d;">
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock-history me-1"></i>
+                                        <strong>Creado:</strong> {{ prenez.created_at_pr|date:'d/m/Y H:i' }} | 
+                                        <strong>Última modificación:</strong> {{ prenez.updated_at_pr|date:'d/m/Y H:i' }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                            <a href="/listaprenez/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#28a745',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#28a745',
+                titleColor: '#155724',
+                messageColor: '#2c5e1a',
+                backgroundColor: '#d4edda',
+                borderBottom: '3px solid #28a745',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        // Fecha confirmación no puede ser futura
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha de confirmación no puede ser futura");
+
+        // Fecha probable parto debe ser posterior a fecha confirmación
+        jQuery.validator.addMethod("fechaPartoPosterior", function(value, element) {
+            if (!value) return true;
+            let fechaConf = $('#txt_fecha_confirmacion_pr').val();
+            if (!fechaConf) return true;
+            return new Date(value) > new Date(fechaConf);
+        }, "La fecha probable de parto debe ser posterior a la fecha de confirmación");
+
+        // Fecha probable parto no puede ser muy lejana (> 365 días desde confirmación)
+        jQuery.validator.addMethod("fechaPartoRazonable", function(value, element) {
+            if (!value) return true;
+            let fechaConf = $('#txt_fecha_confirmacion_pr').val();
+            if (!fechaConf) return true;
+            let diff = (new Date(value) - new Date(fechaConf)) / (1000 * 60 * 60 * 24);
+            return diff <= 365;
+        }, "La fecha probable de parto no puede exceder 365 días desde la confirmación");
+
+        // ==========================================
+        // FUNCION: CALCULAR Y MOSTRAR DÍAS DE GESTACIÓN
+        // ==========================================
+        function calcularDiasGestion() {
+            let fechaConf = $('#txt_fecha_confirmacion_pr').val();
+            let fechaParto = $('#txt_fecha_probable_parto_pr').val();
+            let $indicador = $('#indicador-gestacion');
+            let $texto = $('#texto-gestacion');
+            
+            // Si falta alguna fecha, ocultar el indicador
+            if (!fechaConf || !fechaParto) {
+                $indicador.addClass('d-none');
+                return;
+            }
+            
+            let d1 = new Date(fechaConf);
+            let d2 = new Date(fechaParto);
+            let diffMs = d2 - d1;
+            let dias = Math.round(diffMs / (1000 * 60 * 60 * 24));
+            
+            // Si las fechas son inválidas o negativas, ocultar
+            if (dias <= 0) {
+                $indicador.addClass('d-none');
+                return;
+            }
+            
+            // Determinar el color y mensaje según los días
+            let colorFondo, colorTexto, mensaje;
+            
+            if (dias < 21) {
+                // Muy temprano - Rojo
+                colorFondo = '#fde8e8';
+                colorTexto = '#8B0000';
+                mensaje = '⚠️ Gestación muy temprana: ' + dias + ' días (mínimo recomendado: 21 días)';
+            } else if (dias < 45) {
+                // Temprano - Amarillo
+                colorFondo = '#fff8e6';
+                colorTexto = '#8B6914';
+                mensaje = '⏳ Gestación temprana: ' + dias + ' días (recomendado: ≥45 días para confirmar)';
+            } else if (dias < 150) {
+                // Normal temprana - Verde claro
+                colorFondo = '#e8f5e9';
+                colorTexto = '#2e7d32';
+                mensaje = '✅ Gestación en desarrollo: ' + dias + ' días';
+            } else if (dias < 270) {
+                // Normal avanzada - Verde
+                colorFondo = '#d4edda';
+                colorTexto = '#155724';
+                mensaje = '✅ Gestación avanzada: ' + dias + ' días';
+            } else if (dias <= 290) {
+                // Término - Azul
+                colorFondo = '#e3f2fd';
+                colorTexto = '#0d47a1';
+                mensaje = '🐄 ¡A término! ' + dias + ' días de gestación (parto inminente)';
+            } else {
+                // Postérmino - Naranja
+                colorFondo = '#fff3e0';
+                colorTexto = '#e65100';
+                mensaje = '⚠️ Postérmino: ' + dias + ' días (revisar con veterinario)';
+            }
+            
+            // Mostrar el indicador con los estilos correspondientes
+            $indicador
+                .removeClass('d-none')
+                .css({
+                    'background-color': colorFondo,
+                    'color': colorTexto,
+                    'border-left': '4px solid ' + colorTexto
+                });
+            
+            $texto.html(mensaje);
+        }
+
+        $(document).ready(function() {
+            
+            // ==========================================
+            // CALCULAR DÍAS DE GESTACIÓN AL CARGAR LA PÁGINA
+            // ==========================================
+            calcularDiasGestion();
+
+            // ==========================================
+            // CÁLCULO AUTOMÁTICO FECHA PROBABLE PARTO
+            // ==========================================
+            $('#sel_inseminacion_pr').on('change', function() {
+                let selected = $(this).find('option:selected');
+                let fechaInseminacion = selected.data('fecha');
+                let inseminacionId = selected.val();
+                
+                if (fechaInseminacion) {
+                    let fechaParto = new Date(fechaInseminacion);
+                    fechaParto.setDate(fechaParto.getDate() + 280);
+                    
+                    // Confirmar antes de cambiar si ya había una fecha
+                    let fechaActual = $('#txt_fecha_probable_parto_pr').val();
+                    if (fechaActual) {
+                        // Solo actualizar si la inseminación cambió realmente
+                        let inseminacionAnterior = "{{ prenez.fk_in_id|default:'' }}";
+                        if (inseminacionId != inseminacionAnterior) {
+                            $('#txt_fecha_probable_parto_pr').val(fechaParto.toISOString().split('T')[0]);
+                            calcularDiasGestion();
+                            alertaExito('Fecha actualizada', 'Fecha probable de parto recalculada (280 días desde inseminación)');
+                        }
+                    } else {
+                        $('#txt_fecha_probable_parto_pr').val(fechaParto.toISOString().split('T')[0]);
+                        calcularDiasGestion();
+                    }
+                    
+                    $('#msg_inseminacion').html('<span style="color: #2c5e1a;"><i class="bi bi-check-circle me-1"></i>Inseminación vinculada correctamente.</span>');
+                } else {
+                    $('#msg_inseminacion').html('<span class="text-muted">Sin inseminación vinculada.</span>');
+                }
+            });
+
+            // ==========================================
+            // RECALCULAR DÍAS AL CAMBIAR FECHAS
+            // ==========================================
+            $('#txt_fecha_confirmacion_pr').on('change', function() {
+                calcularDiasGestion();
+            });
+
+            $('#txt_fecha_probable_parto_pr').on('change', function() {
+                calcularDiasGestion();
+            });
+
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_editar_prenez").validate({
+                rules: {
+                    txt_fecha_confirmacion_pr: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    sel_inseminacion_pr: {
+                        // Opcional
+                    },
+                    sel_metodo_diagnostico_pr: {
+                        // Opcional
+                    },
+                    txt_fecha_probable_parto_pr: {
+                        required: true,
+                        fechaPartoPosterior: true,
+                        fechaPartoRazonable: true
+                    },
+                    txt_observaciones_pr: {
+                        maxlength: 1000
+                    }
+                },
+                messages: {
+                    txt_fecha_confirmacion_pr: {
+                        required: "La fecha de confirmación es obligatoria",
+                        fechaNoFutura: "La fecha de confirmación no puede ser futura"
+                    },
+                    txt_fecha_probable_parto_pr: {
+                        required: "La fecha probable de parto es obligatoria",
+                        fechaPartoPosterior: "Debe ser posterior a la fecha de confirmación",
+                        fechaPartoRazonable: "No puede exceder 365 días desde la confirmación"
+                    },
+                    txt_observaciones_pr: {
+                        maxlength: "Máximo 1000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - OBSERVACIONES
+            // ==========================================
+            $('#txt_observaciones_pr').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 1000) {
+                    $(this).val(valor.substring(0, 1000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 1000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - FECHAS
+            // ==========================================            
+            $('#txt_fecha_probable_parto_pr').on('blur', function() {
+                let fechaConf = $('#txt_fecha_confirmacion_pr').val();
+                let fechaParto = $(this).val();
+                
+                if (fechaParto && fechaConf) {
+                    if (new Date(fechaParto) <= new Date(fechaConf)) {
+                        $(this).val('');
+                        alertaError('Fecha inválida', 'La fecha probable de parto debe ser posterior a la fecha de confirmación.');
+                        $(this).focus();
+                    }
+                    
+                    let diff = (new Date(fechaParto) - new Date(fechaConf)) / (1000 * 60 * 60 * 24);
+                    if (diff > 365) {
+                        $(this).val('');
+                        alertaError('Fecha inválida', 'La fecha probable de parto no puede exceder 365 días desde la confirmación.');
+                        $(this).focus();
+                    }
+                }
+                
+                // Recalcular días de gestación al perder foco
+                calcularDiasGestion();
+            });
+
+            $('#txt_fecha_confirmacion_pr').on('blur', function() {
+                let fechaConf = $(this).val();
+                let hoy = new Date();
+                hoy.setHours(23, 59, 59, 999);
+                
+                if (fechaConf && new Date(fechaConf) > hoy) {
+                    $(this).val('{{ prenez.fecha_confirmacion_pr|date:"Y-m-d" }}');
+                    alertaError('Fecha inválida', 'La fecha de confirmación no puede ser futura. Se ha restaurado la fecha original.');
+                }
+                
+                // Recalcular días de gestación al perder foco
+                calcularDiasGestion();
+            });
+
+        });
+    </script>
+{% endblock %}

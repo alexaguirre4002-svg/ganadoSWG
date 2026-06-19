@@ -1,0 +1,605 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Editar Movimiento | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listamovimiento/" class="text-decoration-none" style="color: var(--color-primario);">Movimientos</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Editar Movimiento</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-pencil-square me-2"></i>Editar Movimiento
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Modifique los datos del movimiento de <strong>{{ movimiento.fk_an.codigo_an }}</strong>
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ALERTA DE TIPO DE MOVIMIENTO               -->
+    <!-- ========================================== -->
+    <div class="row animate-fade-in mb-4">
+        <div class="col-12">
+            <div class="alert" style="background: #e8f5e9; border: 2px solid #2c5e1a; border-radius: 12px; color: #2c5e1a;">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <strong>Tipo de movimiento:</strong> 
+                {% if movimiento.tipo_movimiento_ma == 'compra' %}
+                    <span class="badge" style="background:#28a745; color:white;"><i class="bi bi-cart-plus me-1"></i>Compra</span>
+                {% elif movimiento.tipo_movimiento_ma == 'venta' %}
+                    <span class="badge" style="background:#dc3545; color:white;"><i class="bi bi-cart-dash me-1"></i>Venta</span>
+                {% elif movimiento.tipo_movimiento_ma == 'traslado' %}
+                    <span class="badge" style="background:#6f42c1; color:white;"><i class="bi bi-geo-alt me-1"></i>Traslado</span>
+                {% elif movimiento.tipo_movimiento_ma == 'nacimiento' %}
+                    <span class="badge" style="background:#fd7e14; color:white;"><i class="bi bi-heart-pulse me-1"></i>Nacimiento</span>
+                {% elif movimiento.tipo_movimiento_ma == 'muerte' %}
+                    <span class="badge" style="background:#6c757d; color:white;"><i class="bi bi-heartbreak me-1"></i>Muerte</span>
+                {% elif movimiento.tipo_movimiento_ma == 'faena' %}
+                    <span class="badge" style="background:#c0392b; color:white;"><i class="bi bi-scissors me-1"></i>Faena</span>
+                {% endif %}
+                <br><small class="ms-4">El tipo de movimiento no se puede cambiar. Si necesita corregirlo, elimine y cree uno nuevo.</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE EDICION           -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-check"></i>Datos del Movimiento
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/procesareditarmovimiento/" id="frm_editar_movimiento" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- CAMPO OCULTO: ID DEL MOVIMIENTO            -->
+                        <!-- ========================================== -->
+                        <input type="hidden" name="id_ma" value="{{ movimiento.id_ma }}">
+                        <input type="hidden" name="tipo_actual" id="tipo_actual" value="{{ movimiento.tipo_movimiento_ma }}">
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: TIPO (DESHABILITADO) Y FECHA       -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: TIPO DE MOVIMIENTO (SOLO LECTURA) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_tipo_movimiento_ma">
+                                    <i class="bi bi-arrow-left-right me-1"></i>Tipo de Movimiento
+                                </label>
+                                <select name="sel_tipo_movimiento_ma" 
+                                        id="sel_tipo_movimiento_ma" 
+                                        class="form-select" 
+                                        disabled>
+                                    <option value="compra" {% if movimiento.tipo_movimiento_ma == 'compra' %}selected{% endif %}>Compra</option>
+                                    <option value="venta" {% if movimiento.tipo_movimiento_ma == 'venta' %}selected{% endif %}>Venta</option>
+                                    <option value="traslado" {% if movimiento.tipo_movimiento_ma == 'traslado' %}selected{% endif %}>Traslado</option>
+                                    <option value="nacimiento" {% if movimiento.tipo_movimiento_ma == 'nacimiento' %}selected{% endif %}>Nacimiento</option>
+                                    <option value="muerte" {% if movimiento.tipo_movimiento_ma == 'muerte' %}selected{% endif %}>Muerte</option>
+                                    <option value="faena" {% if movimiento.tipo_movimiento_ma == 'faena' %}selected{% endif %}>Faena</option>
+                                </select>
+                                <small class="text-muted">El tipo no se puede modificar.</small>
+                            </div>
+
+                            <!-- CAMPO: FECHA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_ma">
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha del Movimiento <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_ma" 
+                                       id="txt_fecha_ma" 
+                                       class="form-control" 
+                                       value="{{ movimiento.fecha_ma|date:'Y-m-d' }}"
+                                       required>
+                                <small class="text-muted">Fecha en que ocurrió el movimiento.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: ANIMAL (FK)                        -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="sel_animal_ma">
+                                    <i class="bi bi-emoji-smile me-1"></i>Animal <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_animal_ma" 
+                                        id="sel_animal_ma" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" disabled>Seleccione un animal...</option>
+                                    {% for animal in animales %}
+                                    <option value="{{ animal.id_an }}" {% if movimiento.fk_an_id == animal.id_an %}selected{% endif %}>
+                                        {{ animal.codigo_an }} - {{ animal.nombre_an|default:'Sin nombre' }} ({{ animal.categoria_an }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Animal involucrado en el movimiento.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: POTREROS (CONDICIONALES)           -->
+                        <!-- ========================================== -->
+                        <div class="row" id="fila_potreros">
+                            <!-- CAMPO: POTRERO ORIGEN -->
+                            <div class="col-md-6 mb-3" id="campo_origen">
+                                <label for="sel_potrero_origen_ma">
+                                    <i class="bi bi-geo-alt me-1"></i>Potrero Origen
+                                </label>
+                                <select name="sel_potrero_origen_ma" 
+                                        id="sel_potrero_origen_ma" 
+                                        class="form-select">
+                                    <option value="">Sin potrero origen...</option>
+                                    {% for potrero in potreros %}
+                                    <option value="{{ potrero.id_po }}" {% if movimiento.fk_potrero_origen_ma_id == potrero.id_po %}selected{% endif %}>
+                                        {{ potrero.codigo_po }} - {{ potrero.nombre_po }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- CAMPO: POTRERO DESTINO -->
+                            <div class="col-md-6 mb-3" id="campo_destino">
+                                <label for="sel_potrero_destino_ma">
+                                    <i class="bi bi-geo-alt-fill me-1"></i>Potrero Destino
+                                </label>
+                                <select name="sel_potrero_destino_ma" 
+                                        id="sel_potrero_destino_ma" 
+                                        class="form-select">
+                                    <option value="">Sin potrero destino...</option>
+                                    {% for potrero in potreros %}
+                                    <option value="{{ potrero.id_po }}" {% if movimiento.fk_potrero_destino_ma_id == potrero.id_po %}selected{% endif %}>
+                                        {{ potrero.codigo_po }} - {{ potrero.nombre_po }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: PRECIO (CONDICIONAL)               -->
+                        <!-- ========================================== -->
+                        <div class="row" id="fila_precio">
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_precio_ma">
+                                    <i class="bi bi-currency-dollar me-1"></i>Precio <span class="text-danger" id="required_precio" style="display: none;">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_precio_ma" 
+                                       id="txt_precio_ma" 
+                                       class="form-control" 
+                                       {% if movimiento.precio_ma is not None %}
+                                       value="{{ movimiento.precio_ma|stringformat:'.2f' }}"
+                                       {% endif %}
+                                       placeholder="Ej: 1500.00" 
+                                       maxlength="13">
+                                <small class="text-muted">Máximo 99999999.99. Use punto (.) decimal.</small>
+                            </div>
+
+                            <!-- CAMPO: COMPRADOR/VENDEDOR -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_comprador_vendedor_ma">
+                                    <i class="bi bi-person me-1"></i>Comprador/Vendedor
+                                </label>
+                                <input type="text" 
+                                       name="txt_comprador_vendedor_ma" 
+                                       id="txt_comprador_vendedor_ma" 
+                                       class="form-control" 
+                                       value="{{ movimiento.comprador_vendedor_ma|default:'' }}" 
+                                       placeholder="Ej: Juan Pérez, Ganadería XYZ..." 
+                                       maxlength="200">
+                                <small class="text-muted">Máximo 200 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 5: DOCUMENTO SOPORTE                  -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_documento_soporte_ma">
+                                    <i class="bi bi-file-earmark me-1"></i>Documento Soporte
+                                </label>
+                                <input type="text" 
+                                       name="txt_documento_soporte_ma" 
+                                       id="txt_documento_soporte_ma" 
+                                       class="form-control" 
+                                       value="{{ movimiento.documento_soporte_ma|default:'' }}" 
+                                       placeholder="Ej: Factura #001, Guía de remisión..." 
+                                       maxlength="255">
+                                <small class="text-muted">Máximo 255 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 6: MOTIVO                             -->
+                        <!-- ========================================== -->
+                        <div class="mb-3">
+                            <label for="txt_motivo_ma">
+                                <i class="bi bi-journal-text me-1"></i>Motivo/Observaciones
+                            </label>
+                            <textarea name="txt_motivo_ma" 
+                                      id="txt_motivo_ma" 
+                                      class="form-control" 
+                                      rows="3" 
+                                      maxlength="1000"
+                                      placeholder="Describa el motivo u observaciones del movimiento...">{{ movimiento.motivo_ma|default:'' }}</textarea>
+                            <small class="text-muted">Máximo 1000 caracteres.</small>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- INFORMACION DE AUDITORIA                   -->
+                        <!-- ========================================== -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="p-2 rounded" style="background: #f8f9fa; border-left: 3px solid #6c757d;">
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock-history me-1"></i>
+                                        <strong>Creado:</strong> {{ movimiento.created_at_ma|date:'d/m/Y H:i' }} | 
+                                        <strong>Última modificación:</strong> {{ movimiento.updated_at_ma|date:'d/m/Y H:i' }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                            <a href="/listamovimiento/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        jQuery.validator.addMethod("precioValido", function(value, element) {
+            if (!value) return true;
+            let regex = /^\d{1,8}(\.\d{1,2})?$/;
+            return regex.test(value);
+        }, "Formato inválido. Use punto (.) decimal. Máximo 2 decimales.");
+
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha no puede ser futura");
+
+        $(document).ready(function() {
+            
+            // ==========================================
+            // CONFIGURAR VISIBILIDAD SEGUN TIPO ACTUAL
+            // ==========================================
+            function configurarCamposSegunTipo() {
+                let tipo = $('#tipo_actual').val();
+                
+                // Mostrar/ocultar precio según tipo
+                if (tipo === 'compra' || tipo === 'venta') {
+                    $('#fila_precio').show();
+                    $('#required_precio').show();
+                    $('#txt_precio_ma').prop('required', true);
+                } else {
+                    $('#fila_precio').hide();
+                    $('#required_precio').hide();
+                    $('#txt_precio_ma').prop('required', false).val('');
+                    $('#txt_comprador_vendedor_ma').val('');
+                }
+                
+                // Lógica de potreros según tipo
+                if (tipo === 'traslado') {
+                    $('#campo_origen label').html('<i class="bi bi-geo-alt me-1"></i>Potrero Origen <span class="text-danger">*</span>');
+                    $('#sel_potrero_origen_ma').prop('required', true);
+                    $('#campo_destino label').html('<i class="bi bi-geo-alt-fill me-1"></i>Potrero Destino <span class="text-danger">*</span>');
+                    $('#sel_potrero_destino_ma').prop('required', true);
+                    $('#campo_origen').show();
+                    $('#campo_destino').show();
+                } else if (tipo === 'compra' || tipo === 'nacimiento') {
+                    $('#campo_origen').hide();
+                    $('#sel_potrero_origen_ma').prop('required', false);
+                    $('#campo_destino').show();
+                    $('#campo_destino label').html('<i class="bi bi-geo-alt-fill me-1"></i>Potrero Destino <span class="text-danger">*</span>');
+                    $('#sel_potrero_destino_ma').prop('required', true);
+                } else if (tipo === 'venta' || tipo === 'muerte' || tipo === 'faena') {
+                    $('#campo_destino').hide();
+                    $('#sel_potrero_destino_ma').prop('required', false);
+                    $('#campo_origen').show();
+                    $('#campo_origen label').html('<i class="bi bi-geo-alt me-1"></i>Potrero Origen <span class="text-danger">*</span>');
+                    $('#sel_potrero_origen_ma').prop('required', true);
+                } else {
+                    $('#campo_origen').show();
+                    $('#campo_destino').show();
+                    $('#campo_origen label').html('<i class="bi bi-geo-alt me-1"></i>Potrero Origen');
+                    $('#campo_destino label').html('<i class="bi bi-geo-alt-fill me-1"></i>Potrero Destino');
+                    $('#sel_potrero_origen_ma').prop('required', false);
+                    $('#sel_potrero_destino_ma').prop('required', false);
+                }
+            }
+            
+            // Ejecutar al cargar
+            configurarCamposSegunTipo();
+
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_editar_movimiento").validate({
+                rules: {
+                    txt_fecha_ma: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    sel_animal_ma: {
+                        required: true
+                    },
+                    sel_potrero_origen_ma: {
+                        required: function() {
+                            let tipo = $('#tipo_actual').val();
+                            return tipo === 'traslado' || tipo === 'venta' || tipo === 'muerte' || tipo === 'faena';
+                        }
+                    },
+                    sel_potrero_destino_ma: {
+                        required: function() {
+                            let tipo = $('#tipo_actual').val();
+                            return tipo === 'traslado' || tipo === 'compra' || tipo === 'nacimiento';
+                        }
+                    },
+                    txt_precio_ma: {
+                        required: function() {
+                            let tipo = $('#tipo_actual').val();
+                            return tipo === 'compra' || tipo === 'venta';
+                        },
+                        precioValido: true
+                    },
+                    txt_comprador_vendedor_ma: {
+                        maxlength: 200
+                    },
+                    txt_documento_soporte_ma: {
+                        maxlength: 255
+                    },
+                    txt_motivo_ma: {
+                        maxlength: 1000
+                    }
+                },
+                messages: {
+                    txt_fecha_ma: {
+                        required: "La fecha es obligatoria",
+                        fechaNoFutura: "No puede ser una fecha futura"
+                    },
+                    sel_animal_ma: {
+                        required: "Seleccione un animal"
+                    },
+                    sel_potrero_origen_ma: {
+                        required: "El potrero origen es obligatorio para este tipo de movimiento"
+                    },
+                    sel_potrero_destino_ma: {
+                        required: "El potrero destino es obligatorio para este tipo de movimiento"
+                    },
+                    txt_precio_ma: {
+                        required: "El precio es obligatorio para compra/venta",
+                        precioValido: "Formato inválido. Ej: 1500.00"
+                    },
+                    txt_comprador_vendedor_ma: {
+                        maxlength: "Máximo 200 caracteres"
+                    },
+                    txt_documento_soporte_ma: {
+                        maxlength: "Máximo 255 caracteres"
+                    },
+                    txt_motivo_ma: {
+                        maxlength: "Máximo 1000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - PRECIO
+            // ==========================================
+            $('#txt_precio_ma').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^0-9.]/g, '');
+                let partes = filtrado.split('.');
+                if (partes.length > 2) {
+                    filtrado = partes[0] + '.' + partes.slice(1).join('');
+                }
+                if (partes.length === 2 && partes[1].length > 2) {
+                    filtrado = partes[0] + '.' + partes[1].substring(0, 2);
+                }
+                if (partes[0].length > 8) {
+                    partes[0] = partes[0].substring(0, 8);
+                    filtrado = partes.length === 2 ? partes[0] + '.' + partes[1] : partes[0];
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - TEXTOS
+            // ==========================================
+            $('#txt_comprador_vendedor_ma').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 200) {
+                    $(this).val(valor.substring(0, 200));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 200 caracteres.');
+                }
+            });
+
+            $('#txt_documento_soporte_ma').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 255) {
+                    $(this).val(valor.substring(0, 255));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 255 caracteres.');
+                }
+            });
+
+            $('#txt_motivo_ma').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 1000) {
+                    $(this).val(valor.substring(0, 1000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 1000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - PRECIO
+            // ==========================================
+            $('#txt_precio_ma').on('blur', function() {
+                let valor = $(this).val();
+                if (valor) {
+                    let regex = /^\d{1,8}(\.\d{1,2})?$/;
+                    if (!regex.test(valor)) {
+                        alertaError('Precio inválido', 'Use formato: 1500.00 (máximo 2 decimales)');
+                        $(this).focus();
+                    }
+                }
+            });
+
+            // ==========================================
+            // SANITIZACION ANTES DE ENVIAR
+            // ==========================================
+            $('#frm_editar_movimiento').on('submit', function(e) {
+                let precio = $('#txt_precio_ma').val();
+                if (precio) {
+                    precio = precio.replace(',', '.');
+                    $('#txt_precio_ma').val(precio);
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

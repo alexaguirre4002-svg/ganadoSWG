@@ -1,0 +1,422 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Editar Raza | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listaraza/" class="text-decoration-none" style="color: var(--color-primario);">Razas</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Editar Raza</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-pencil-square me-2"></i>Editar Raza
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Modifique los datos de la raza <strong>{{ raza.nombre_ra }}</strong>
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ALERTA DE ANIMALES ASOCIADOS               -->
+    <!-- ========================================== -->
+    {% if total_animales > 0 %}
+    <div class="row animate-fade-in mb-4">
+        <div class="col-12">
+            <div class="alert" style="background: #fff3cd; border: 2px solid #fd7e14; border-radius: 12px; color: #856404;">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Atención:</strong> Esta raza tiene <strong>{{ total_animales }} animal(es)</strong> asociado(s).
+                <br><small class="ms-4">Si cambia el tipo de producción, considere el impacto en los registros existentes.</small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE EDICION           -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-check"></i>Datos de la Raza
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/procesareditarraza/" id="frm_editar_raza" method="post" class="form-hacienda">
+                        {% csrf_token %}
+                        <!-- ========================================== -->
+                        <!-- CAMPO OCULTO: ID DE LA RAZA              -->
+                        <!-- ========================================== -->
+                        <input type="hidden" name="id_ra" value="{{ raza.id_ra }}">
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: NOMBRE Y TIPO PRODUCCIÓN           -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- NOMBRE -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_nombre_ra">
+                                    <i class="bi bi-tag me-1"></i>Nombre de la Raza <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                    name="txt_nombre_ra" 
+                                    id="txt_nombre_ra" 
+                                    class="form-control" 
+                                    maxlength="100"
+                                    value="{{ raza.nombre_ra }}"
+                                    placeholder="Ej: Holstein, Jersey, Brahman..."
+                                    required>
+                                <small class="text-muted">Nombre único de la raza. Máximo 100 caracteres.</small>
+                            </div>
+
+                            <!-- ORIGEN -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_origen_ra">
+                                    <i class="bi bi-globe me-1"></i>Origen
+                                </label>
+                                <input type="text" 
+                                    name="txt_origen_ra" 
+                                    id="txt_origen_ra" 
+                                    class="form-control" 
+                                    maxlength="100"
+                                    value="{% if raza.origen_ra %}{{ raza.origen_ra }}{% endif %}"
+                                    placeholder="Ej: Suiza, India, Estados Unidos...">
+                                <small class="text-muted">País o región de origen. Máximo 100 caracteres.</small>
+                            </div>
+                        </div>
+                        <!-- ========================================== -->
+                        <!-- FILA 3: DESCRIPCIÓN                        -->
+                        <!-- ========================================== -->
+                        <div class="row justify-content-center">
+                            <div class="col-md-11 mb-3">
+                                <label for="txt_descripcion_ra">
+                                    <i class="bi bi-journal-text me-1"></i>Descripción
+                                </label>
+                                <textarea name="txt_descripcion_ra" 
+                                          id="txt_descripcion_ra" 
+                                          class="form-control" 
+                                          rows="4" 
+                                          maxlength="1000"
+                                          placeholder="Características físicas, temperamentales, adaptación al clima, rendimiento productivo...">{{ raza.descripcion_ra|default:'' }}</textarea>
+                                <small class="text-muted">Descripción detallada de la raza. Máximo 1000 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: ESTADO                             -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" 
+                                           type="checkbox" 
+                                           name="chk_activo_ra" 
+                                           id="chk_activo_ra" 
+                                           value="1"
+                                           {% if raza.activo_ra %}checked{% endif %}>
+                                    <label class="form-check-label" for="chk_activo_ra">
+                                        <i class="bi bi-check-circle me-1"></i>Raza Activa
+                                    </label>
+                                </div>
+                                <small class="text-muted">
+                                    Si está desactivada, no aparecerá en los selectores de animales.
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- INFORMACION DE AUDITORIA                   -->
+                        <!-- ========================================== -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="p-2 rounded" style="background: #f8f9fa; border-left: 3px solid #6c757d;">
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock-history me-1"></i>
+                                        <strong>Creado:</strong> {{ raza.created_at_ra|date:'d/m/Y H:i' }} | 
+                                        <strong>Última modificación:</strong> {{ raza.updated_at_ra|date:'d/m/Y H:i' }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                            <a href="/listaraza/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#28a745',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#28a745',
+                titleColor: '#155724',
+                messageColor: '#2c5e1a',
+                backgroundColor: '#d4edda',
+                borderBottom: '3px solid #28a745',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        // Nombre único (verificación AJAX simulada - se valida en servidor)
+        jQuery.validator.addMethod("nombreValido", function(value, element) {
+            if (!value) return false;
+            // Solo letras, espacios, guiones y acentos
+            return /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-]+$/.test(value);
+        }, "El nombre solo puede contener letras, espacios y guiones");
+
+        // Origen válido (solo letras y espacios)
+        jQuery.validator.addMethod("origenValido", function(value, element) {
+            if (!value) return true; // Opcional
+            return /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-,]+$/.test(value);
+        }, "El origen solo puede contener letras, espacios, comas y guiones");
+
+        $(document).ready(function() {
+            
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_editar_raza").validate({
+                rules: {
+                    txt_nombre_ra: {
+                        required: true,
+                        nombreValido: true,
+                        maxlength: 100,
+                        minlength: 2
+                    },
+                    txt_origen_ra: {
+                        origenValido: true,
+                        maxlength: 100
+                    },
+                    txt_descripcion_ra: {
+                        maxlength: 1000
+                    }
+                },
+                messages: {
+                    txt_nombre_ra: {
+                        required: "El nombre de la raza es obligatorio",
+                        nombreValido: "Solo letras, espacios y guiones",
+                        maxlength: "Máximo 100 caracteres",
+                        minlength: "Mínimo 2 caracteres"
+                    },
+                    txt_origen_ra: {
+                        origenValido: "Solo letras, espacios, comas y guiones",
+                        maxlength: "Máximo 100 caracteres"
+                    },
+                    txt_descripcion_ra: {
+                        maxlength: "Máximo 1000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - NOMBRE
+            // ==========================================
+            $('#txt_nombre_ra').on('input', function() {
+                let valor = $(this).val();
+                let limpio = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-]/g, '');
+                if (valor !== limpio) {
+                    $(this).val(limpio);
+                    alertaAdvertencia('Caracteres inválidos', 'Solo se permiten letras, espacios y guiones.');
+                }
+                if (valor.length > 100) {
+                    $(this).val(valor.substring(0, 100));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 100 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - ORIGEN
+            // ==========================================
+            $('#txt_origen_ra').on('input', function() {
+                let valor = $(this).val();
+                let limpio = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-,]/g, '');
+                if (valor !== limpio) {
+                    $(this).val(limpio);
+                }
+                if (valor.length > 100) {
+                    $(this).val(valor.substring(0, 100));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 100 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - DESCRIPCIÓN
+            // ==========================================
+            $('#txt_descripcion_ra').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 1000) {
+                    $(this).val(valor.substring(0, 1000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 1000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - NOMBRE
+            // ==========================================
+            $('#txt_nombre_ra').on('blur', function() {
+                let valor = $(this).val().trim();
+                if (valor.length < 2 && valor.length > 0) {
+                    alertaError('Nombre muy corto', 'El nombre debe tener al menos 2 caracteres.');
+                    $(this).focus();
+                }
+            });
+        });
+    </script>
+{% endblock %}

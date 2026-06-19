@@ -1,0 +1,652 @@
+{% extends "plantilla.html" %}
+{% load static %}
+
+<!-- ========================================== -->
+<!-- TITULO                                    -->
+<!-- ========================================== -->
+{% block titulo %}
+Listado de Dietas | Hacienda El Roble
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BREADCRUMB                                -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">
+        Inicio
+    </a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">
+    Dietas
+</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- CONTENIDO PRINCIPAL                       -->
+<!-- ========================================== -->
+{% block contenido %}
+
+<!-- TARJETAS ESTADÍSTICAS -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3">
+            <i class="bi bi-clipboard2-pulse fs-2" style="color: var(--color-primario);"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_dietas }}</h4>
+            <small class="text-muted">Total Dietas</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
+            <i class="bi bi-check-circle fs-2 text-success"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_activas }}</h4>
+            <small class="text-muted">Dietas Activas</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
+            <i class="bi bi-x-circle fs-2 text-danger"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_inactivas }}</h4>
+            <small class="text-muted">Dietas Inactivas</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #fd7e14;">
+            <i class="bi bi-currency-dollar fs-2 text-warning"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ costo_total_diario }}</h4>
+            <small class="text-muted">Costo Total/Día</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #fd7e14;">
+            <i class="bi bi-currency-dollar fs-2 text-warning"></i>
+            <h4 class="fw-bold mt-2 mb-0">${{ costo_promedio_diario|floatformat:2 }}</h4>
+            <small class="text-muted">Costo Promedio/Día</small>
+        </div>
+    </div>
+</div>
+
+<!-- TITULO -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-8">
+        <h2 class="fw-bold" style="color: var(--color-primario);">
+            <i class="bi bi-clipboard2-pulse me-2"></i>
+            Listado de Dietas
+        </h2>
+        <p class="text-muted mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            Gestión de formulaciones nutricionales y planes alimenticios
+        </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="/nuevadieta/" class="btn btn-hacienda">
+            <i class="bi bi-plus-circle me-2"></i>
+            Nueva Dieta
+        </a>
+    </div>
+</div>
+
+<!-- TARJETA PRINCIPAL -->
+<div class="row animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-list-ul"></i>
+                Dietas Registradas
+            </div>
+            <div class="p-4">
+                <div class="table-responsive">
+                    <table id="tablaDietas" class="table table-hacienda align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>CÓDIGO</th>
+                                <th>NOMBRE</th>
+                                <th>CATEGORÍA</th>
+                                <th>MAT. SECA</th>
+                                <th>PROTEÍNA</th>
+                                <th>COSTO/DÍA</th>
+                                <th>ESTADO</th>
+                                <th>ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in dietas_con_datos %}
+                            <tr>
+                                <!-- ID -->
+                                <td class="fw-bold text-muted">#{{ item.dieta.id_di }}</td>
+                                
+                                <!-- CÓDIGO -->
+                                <td class="fw-bold" style="color: var(--color-primario); font-size:16px;">
+                                    {{ item.dieta.codigo_di }}
+                                </td>
+                                
+                                <!-- NOMBRE -->
+                                <td class="fw-bold" style="font-size:16px;">
+                                    {{ item.dieta.nombre_di }}
+                                </td>
+                                
+                                <!-- CATEGORÍA -->
+                                <td>
+                                    {% if item.dieta.categoria_objetivo_di == 'vaca_lechera' %}
+                                    <span class="badge rounded-pill p-2" style="background:#3498db; color:white; border: 1px solid #2980b9;">
+                                        <i class="bi bi-droplet me-1"></i>Vaca Lechera
+                                    </span>
+                                    {% elif item.dieta.categoria_objetivo_di == 'vaca_seca' %}
+                                    <span class="badge rounded-pill p-2" style="background:#9b59b6; color:white; border: 1px solid #8e44ad;">
+                                        <i class="bi bi-pause-circle me-1"></i>Vaca Seca
+                                    </span>
+                                    {% elif item.dieta.categoria_objetivo_di == 'ternero' %}
+                                    <span class="badge rounded-pill p-2" style="background:#e67e22; color:white; border: 1px solid #d35400;">
+                                        <i class="bi bi-baby me-1"></i>Ternero
+                                    </span>
+                                    {% elif item.dieta.categoria_objetivo_di == 'novillo' %}
+                                    <span class="badge rounded-pill p-2" style="background:#27ae60; color:white; border: 1px solid #1e8449;">
+                                        <i class="bi bi-arrow-up-circle me-1"></i>Novillo
+                                    </span>
+                                    {% elif item.dieta.categoria_objetivo_di == 'toro' %}
+                                    <span class="badge rounded-pill p-2" style="background:#c0392b; color:white; border: 1px solid #a93226;">
+                                        <i class="bi bi-gender-male me-1"></i>Toro
+                                    </span>
+                                    {% elif item.dieta.categoria_objetivo_di == 'vaquilla' %}
+                                    <span class="badge rounded-pill p-2" style="background:#f39c12; color:white; border: 1px solid #e67e22;">
+                                        <i class="bi bi-heart me-1"></i>Vaquilla
+                                    </span>
+                                    {% elif item.dieta.categoria_objetivo_di == 'general' %}
+                                    <span class="badge rounded-pill p-2" style="background:#95a5a6; color:white; border: 1px solid #7f8c8d;">
+                                        <i class="bi bi-grid me-1"></i>General
+                                    </span>
+                                    {% else %}
+                                    <span class="badge rounded-pill bg-secondary p-2">
+                                        {{ item.dieta.categoria_objetivo_di|title }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- MAT. SECA -->
+                                <td>
+                                    {% if item.dieta.materia_seca_kg_di %}
+                                    <span class="fw-bold">{{ item.dieta.materia_seca_kg_di }} <small class="text-muted">kg</small></span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">No especificado</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- PROTEÍNA -->
+                                <td>
+                                    {% if item.dieta.proteina_cruda_pct_di %}
+                                    <span class="fw-bold" style="color: var(--color-acento);">{{ item.dieta.proteina_cruda_pct_di }}%</span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">No especificado</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- COSTO/DÍA -->
+                                <td>
+                                    {% if item.dieta.costo_diario_estimado_di %}
+                                    <span class="fw-bold text-success">${{ item.dieta.costo_diario_estimado_di }}</span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">No calculado</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- ESTADO -->
+                                <td>
+                                    {% if item.dieta.activa_di %}
+                                    <span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745;">
+                                        <i class="bi bi-check-circle me-1"></i>Activa
+                                    </span>
+                                    {% else %}
+                                    <span class="badge rounded-pill p-2" style="background:#f8d7da; color:#721c24; border: 1px solid #dc3545;">
+                                        <i class="bi bi-x-circle me-1"></i>Inactiva
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- ACCIONES -->
+                                <td>
+                                    <!-- VER DETALLE (MODAL) -->
+                                    <button type="button" class="btn btn-sm btn-info" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalDetalleDieta"
+                                            data-id="{{ item.dieta.id_di }}"
+                                            data-codigo="{{ item.dieta.codigo_di }}"
+                                            data-nombre="{{ item.dieta.nombre_di }}"
+                                            data-categoria="{{ item.dieta.categoria_objetivo_di }}"
+                                            data-materia-seca="{% if item.dieta.materia_seca_kg_di %}{{ item.dieta.materia_seca_kg_di }} kg{% else %}No especificado{% endif %}"
+                                            data-proteina="{% if item.dieta.proteina_cruda_pct_di %}{{ item.dieta.proteina_cruda_pct_di }}%{% else %}No especificado{% endif %}"
+                                            data-costo="{% if item.dieta.costo_diario_estimado_di %}${{ item.dieta.costo_diario_estimado_di }}{% else %}No calculado{% endif %}"
+                                            data-activa="{% if item.dieta.activa_di %}true{% else %}false{% endif %}"
+                                            data-descripcion="{% if item.dieta.descripcion_di %}{{ item.dieta.descripcion_di }}{% else %}Sin descripción{% endif %}"
+                                            data-created="{% if item.dieta.created_at_di %}{{ item.dieta.created_at_di|date:'d/m/Y H:i' }}{% else %}---{% endif %}"
+                                            data-updated="{% if item.dieta.updated_at_di %}{{ item.dieta.updated_at_di|date:'d/m/Y H:i' }}{% else %}---{% endif %}"
+                                            title="Ver detalle">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    
+                                    <!-- EDITAR -->
+                                    <a href="/editardieta/{{ item.dieta.id_di }}" class="btn btn-sm btn-hacienda-secondary" title="Editar">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    
+                                    <!-- ELIMINAR -->
+                                    <button type="button" class="btn btn-sm btn-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalEliminarDieta"
+                                            data-id="{{ item.dieta.id_di }}"
+                                            data-nombre="{{ item.dieta.nombre_di }}"
+                                            data-codigo="{{ item.dieta.codigo_di }}"
+                                            data-url="/eliminardieta/{{ item.dieta.id_di }}"
+                                            title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center py-5">
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <p class="mt-3 text-muted">No hay dietas registradas</p>
+                                    <a href="/nuevadieta/" class="btn btn-hacienda btn-sm mt-2">
+                                        <i class="bi bi-plus-circle me-2"></i>Registrar primera dieta
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
+                <small class="text-muted">
+                    <i class="bi bi-bar-chart-line me-1"></i>
+                    Total de dietas: <strong>{{ dietas_con_datos|length }}</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL DETALLE DIETA                        -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalDetalleDieta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-clipboard2-pulse-fill me-2" style="color: #DAA520;"></i>
+                    DETALLE DE LA DIETA
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="background: #fff8e6;">
+                <div class="row g-0">
+                    <div class="col-md-5" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
+                        <div class="p-4 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="bi bi-clipboard2-pulse fs-1" style="color: #2c5e1a;"></i>
+                            <p class="mt-3 mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleCodigo"></p>
+                            <p class="text-muted mb-0" style="font-size: 14px;" id="detalleNombre"></p>
+                            <div class="mt-3 w-100 text-center">
+                                <span id="detalleEstadoBadge"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="p-4">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">ID DIETA</label>
+                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<<span id="detalleId"></span></p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <label class="text-muted small fw-bold">ESTADO</label>
+                                    <div id="detalleEstado"></div>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-grid me-1"></i>CATEGORÍA</label>
+                                    <p class="mb-0" id="detalleCategoria" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-currency-dollar me-1"></i>COSTO/DÍA</label>
+                                    <p class="mb-0 fw-bold" id="detalleCosto" style="color: var(--color-acento);"></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-box me-1"></i>MAT. SECA</label>
+                                    <p class="mb-0" id="detalleMateriaSeca" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-activity me-1"></i>PROTEÍNA</label>
+                                    <p class="mb-0" id="detalleProteina" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i>DESCRIPCIÓN</label>
+                                <p class="mb-0" id="detalleDescripcion" style="color: #5c450e; font-style: italic;"></p>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-0">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clock me-1"></i>FECHA REGISTRO</label>
+                                    <p class="mb-0" id="detalleCreated" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-clockwise me-1"></i>ÚLTIMA MODIFICACIÓN</label>
+                                    <p class="mb-0" id="detalleUpdated" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
+                    <i class="bi bi-pencil-square me-1"></i>Editar Dieta
+                </a>
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL ELIMINAR DIETA                       -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalEliminarDieta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: 2px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
+                    CONFIRMAR ELIMINACIÓN
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background: #fff8e6; padding: 25px;">
+                <p style="color: #5c450e; font-size: 16px; margin-bottom: 0;">
+                    ¿Está seguro de eliminar la dieta <strong id="nombreDietaModal" style="color: #2c5e1a;"></strong>?
+                </p>
+                <p class="mt-1 mb-0" style="color: #8B6914; font-size: 14px;">
+                    <i class="bi bi-upc-scan me-1"></i>Código: <span id="codigoDietaModal"></span>
+                </p>
+                <p class="mt-2 mb-0" style="color: #c0392b; font-size: 13px;">
+                    <i class="bi bi-exclamation-diamond me-1"></i>
+                    Esta acción no se puede deshacer. Se eliminará la dieta y podría afectar los planes de alimentación asociados.
+                </p>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                </button>
+                <a href="#" id="btnConfirmarEliminarDieta" class="btn btn-hacienda-warning">
+                    <i class="bi bi-check-lg me-1"></i>Sí, eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- SCRIPTS EXTRA                              -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+<style>
+    .dataTables_filter {
+        margin-bottom: 20px !important;
+        background: linear-gradient(135deg, #eef7e8, #dcefd0);
+        padding: 15px 20px;
+        border-radius: 18px;
+        border: 2px solid #b7d7a8;
+        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
+        display: flex !important;
+        align-items: center !important;
+        justify-content: end !important;
+        gap: 10px;
+    }
+    .dataTables_filter::before {
+        content: "🥗";
+        font-size: 28px;
+    }
+    .dataTables_filter label {
+        font-weight: bold;
+        color: var(--color-primario);
+        font-size: 17px;
+    }
+    .dataTables_filter input {
+        border-radius: 50px !important;
+        border: 3px solid var(--color-primario) !important;
+        padding: 10px 18px !important;
+        background-color: #ffffff !important;
+        color: var(--color-navbar) !important;
+        font-weight: 600 !important;
+        width: 280px !important;
+        transition: 0.3s !important;
+        box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08);
+        margin-left: 10px !important;
+    }
+    .dataTables_filter input:focus {
+        outline: none !important;
+        border-color: #8dc26f !important;
+        box-shadow: 0px 0px 12px rgba(44,94,26,0.4);
+        background-color: #f8fff5 !important;
+    }
+    .dataTables_length select {
+        border-radius: 10px !important;
+        border: 2px solid var(--color-primario) !important;
+        padding: 5px 10px !important;
+    }
+    .dataTables_paginate {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        margin-top: 25px !important;
+    }
+    .dataTables_paginate .pagination {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 0px !important;
+        flex-wrap: nowrap !important;
+    }
+    .dataTables_paginate .pagination span,
+    .dataTables_paginate .pagination a {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        vertical-align: middle !important;
+    }
+    .paginate_button {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        border: none !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 14px !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        transition: 0.3s !important;
+        margin: 0 3px !important;
+        vertical-align: middle !important;
+        float: none !important;
+    }
+    .paginate_button.current {
+        background: var(--color-primario) !important;
+        color: white !important;
+        border: 2px solid #8dc26f !important;
+        box-shadow: 0px 0px 8px rgba(44,94,26,0.4);
+    }
+    .paginate_button:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+    .paginate_button.previous,
+    .paginate_button.next {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 16px !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        transition: 0.3s !important;
+        margin: 0 3px !important;
+        vertical-align: middle !important;
+        float: none !important;
+    }
+    .paginate_button.previous:hover,
+    .paginate_button.next:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+    .paginate_button.previous::after,
+    .paginate_button.next::after {
+        display: none !important;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $('#tablaDietas').DataTable({
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ registros",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                "infoEmpty": "No existen registros",
+                "infoFiltered": "(filtrado de _MAX_ registros)",
+                "search": "Buscar:",
+                "paginate": {
+                    "first": "",
+                    "last": "",
+                    "next": "›",
+                    "previous": "‹"
+                }
+            },
+            "pageLength": 10,
+            "lengthMenu": [5,10,25,50,100],
+            "responsive": true,
+            "pagingType": "simple_numbers",
+            "order": [[0, "desc"]]
+        });
+    });
+</script>
+
+<script>
+    // Modal Detalle Dieta
+    var modalDetalleDieta = document.getElementById('modalDetalleDieta');
+    modalDetalleDieta.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        
+        var id = button.getAttribute('data-id');
+        var codigo = button.getAttribute('data-codigo');
+        var nombre = button.getAttribute('data-nombre');
+        var categoria = button.getAttribute('data-categoria');
+        var materiaSeca = button.getAttribute('data-materia-seca');
+        var proteina = button.getAttribute('data-proteina');
+        var costo = button.getAttribute('data-costo');
+        var activa = button.getAttribute('data-activa') === 'true';
+        var descripcion = button.getAttribute('data-descripcion');
+        var created = button.getAttribute('data-created');
+        var updated = button.getAttribute('data-updated');
+        
+        document.getElementById('detalleId').textContent = id;
+        document.getElementById('detalleCodigo').textContent = codigo;
+        document.getElementById('detalleNombre').textContent = nombre;
+        document.getElementById('detalleMateriaSeca').textContent = materiaSeca;
+        document.getElementById('detalleProteina').textContent = proteina;
+        document.getElementById('detalleCosto').textContent = costo;
+        document.getElementById('detalleDescripcion').textContent = descripcion;
+        document.getElementById('detalleCreated').textContent = created;
+        document.getElementById('detalleUpdated').textContent = updated;
+        
+        // Categoría
+        var categoriaTexto = '';
+        var categoriaHtml = '';
+        switch(categoria) {
+            case 'vaca_lechera': 
+                categoriaTexto = 'Vaca Lechera'; 
+                categoriaHtml = '<span class="badge rounded-pill p-2" style="background:#3498db; color:white; border: 1px solid #2980b9;"><i class="bi bi-droplet me-1"></i> Vaca Lechera</span>';
+                break;
+            case 'vaca_seca': 
+                categoriaTexto = 'Vaca Seca'; 
+                categoriaHtml = '<span class="badge rounded-pill p-2" style="background:#9b59b6; color:white; border: 1px solid #8e44ad;"><i class="bi bi-pause-circle me-1"></i> Vaca Seca</span>';
+                break;
+            case 'ternero': 
+                categoriaTexto = 'Ternero'; 
+                categoriaHtml = '<span class="badge rounded-pill p-2" style="background:#e67e22; color:white; border: 1px solid #d35400;"><i class="bi bi-baby me-1"></i> Ternero</span>';
+                break;
+            case 'novillo': 
+                categoriaTexto = 'Novillo'; 
+                categoriaHtml = '<span class="badge rounded-pill p-2" style="background:#27ae60; color:white; border: 1px solid #1e8449;"><i class="bi bi-arrow-up-circle me-1"></i> Novillo</span>';
+                break;
+            case 'toro': 
+                categoriaTexto = 'Toro'; 
+                categoriaHtml = '<span class="badge rounded-pill p-2" style="background:#c0392b; color:white; border: 1px solid #a93226;"><i class="bi bi-gender-male me-1"></i> Toro</span>';
+                break;
+            case 'vaquilla': 
+                categoriaTexto = 'Vaquilla'; 
+                categoriaHtml = '<span class="badge rounded-pill p-2" style="background:#f39c12; color:white; border: 1px solid #e67e22;"><i class="bi bi-heart me-1"></i> Vaquilla</span>';
+                break;
+            case 'general': 
+                categoriaTexto = 'General'; 
+                categoriaHtml = '<span class="badge rounded-pill p-2" style="background:#95a5a6; color:white; border: 1px solid #7f8c8d;"><i class="bi bi-grid me-1"></i> General</span>';
+                break;
+            default: 
+                categoriaTexto = categoria; 
+                categoriaHtml = '<span class="badge rounded-pill bg-secondary p-2">' + categoria + '</span>';
+        }
+        document.getElementById('detalleCategoria').innerHTML = categoriaHtml;
+        
+        // Estado
+        var estadoHtml = '';
+        var badgeHtml = '';
+        if (activa) {
+            estadoHtml = '<span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745;"><i class="bi bi-check-circle me-1"></i> Activa</span>';
+            badgeHtml = '<span class="badge rounded-pill p-2" style="background:#28a745; color:white; font-size: 14px;"><i class="bi bi-check-circle me-1"></i> Activa</span>';
+        } else {
+            estadoHtml = '<span class="badge rounded-pill p-2" style="background:#f8d7da; color:#721c24; border: 1px solid #dc3545;"><i class="bi bi-x-circle me-1"></i> Inactiva</span>';
+            badgeHtml = '<span class="badge rounded-pill p-2" style="background:#dc3545; color:white; font-size: 14px;"><i class="bi bi-x-circle me-1"></i> Inactiva</span>';
+        }
+        document.getElementById('detalleEstado').innerHTML = estadoHtml;
+        document.getElementById('detalleEstadoBadge').innerHTML = badgeHtml;
+        
+        document.getElementById('btnEditarDesdeDetalle').href = '/editardieta/' + id;
+    });
+</script>
+
+<script>
+    // Modal Eliminar Dieta
+    var modalEliminarDieta = document.getElementById('modalEliminarDieta');
+    modalEliminarDieta.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var nombre = button.getAttribute('data-nombre');
+        var codigo = button.getAttribute('data-codigo');
+        var url = button.getAttribute('data-url');
+        
+        document.getElementById('nombreDietaModal').textContent = nombre;
+        document.getElementById('codigoDietaModal').textContent = codigo;
+        document.getElementById('btnConfirmarEliminarDieta').setAttribute('href', url);
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,377 @@
+{% extends "plantilla.html" %}
+{% load static %}
+
+{% block titulo %}
+Dashboard Estadístico | Hacienda Joseph
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">Dashboard Estadístico</li>
+{% endblock %}
+
+{% block contenido %}
+
+<!-- TÍTULO -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-8">
+        <h2 class="fw-bold" style="color: var(--color-primario);">
+            <i class="bi bi-bar-chart-line me-2"></i>Dashboard Estadístico
+        </h2>
+        <p class="text-muted mb-0">
+            <i class="bi bi-info-circle me-1"></i>Análisis integral de la hacienda con Machine Learning
+        </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="{% url 'dashboardml' %}" class="btn btn-hacienda-secondary">
+            <i class="bi bi-cpu me-2"></i>Dashboard ML
+        </a>
+    </div>
+</div>
+
+<!-- RESUMEN GENERAL -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-3">
+        <div class="card-hacienda text-center p-3">
+            <i class="bi bi-droplet fs-2" style="color: var(--color-primario);"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_ingresos|floatformat:2 }}</h4>
+            <small class="text-muted">Total Ingresos ($)</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
+            <i class="bi bi-cash-stack fs-2 text-danger"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_costos|floatformat:2 }}</h4>
+            <small class="text-muted">Total Costos ($)</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid {% if balance >= 0 %}#28a745{% else %}#dc3545{% endif %};">
+            <i class="bi bi-wallet2 fs-2 {% if balance >= 0 %}text-success{% else %}text-danger{% endif %}"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ balance|floatformat:2 }}</h4>
+            <small class="text-muted">Balance ($)</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #17a2b8;">
+            <i class="bi bi-cow fs-2" style="color: #17a2b8;"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_animales }}</h4>
+            <small class="text-muted">Total Animales</small>
+        </div>
+    </div>
+</div>
+
+<!-- GRÁFICAS: PRODUCCIÓN -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-8">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-graph-up me-2"></i>Producción de Leche por Período
+            </div>
+            <div class="p-3">
+                <canvas id="graficaProduccion" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-pie-chart me-2"></i>Producción por Turno
+            </div>
+            <div class="p-3">
+                <canvas id="graficaTurnos" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- GRÁFICAS: CALIDAD Y ANIMALES -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-6">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-check-circle me-2"></i>Calidad de Leche por Período
+            </div>
+            <div class="p-3">
+                <canvas id="graficaCalidad" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-cow me-2"></i>Animales por Categoría
+            </div>
+            <div class="p-3">
+                <canvas id="graficaAnimales" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- GRÁFICA: FINANZAS -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-6">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-cash-coin me-2"></i>Costos por Categoría
+            </div>
+            <div class="p-3">
+                <canvas id="graficaCostos" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-trophy me-2"></i>Top 5 Animales Productores
+            </div>
+            <div class="p-3">
+                <table class="table table-sm table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Animal</th>
+                            <th class="text-end">Total Litros</th>
+                            <th class="text-end">Promedio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in produccion_animal %}
+                        <tr>
+                            <td><i class="bi bi-cow me-1"></i>{{ a.fk_an__codigo_an }}</td>
+                            <td class="text-end fw-bold">{{ a.total_litros|floatformat:2 }} L</td>
+                            <td class="text-end text-muted">{{ a.promedio|floatformat:2 }} L</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RECOMENDACIONES -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-lightbulb me-2"></i>Recomendaciones del Sistema (Machine Learning)
+            </div>
+            <div class="p-3">
+                <div class="row">
+                    {% for rec in recomendaciones %}
+                    <div class="col-md-6 mb-3">
+                        <div class="alert alert-{{ rec.tipo }} d-flex align-items-start mb-0">
+                            <i class="bi {{ rec.icono }} fs-4 me-3"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">{{ rec.titulo }}</h6>
+                                <p class="mb-0 small">{{ rec.texto }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ESTADO ML -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-cpu me-2"></i>Estado de Machine Learning
+            </div>
+            <div class="p-3">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <div class="p-3">
+                            {% if ml_estado.ad1 %}
+                            <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                            <h5 class="mt-2">AD-1: Activo</h5>
+                            <small class="text-muted">Predicción de Litros</small>
+                            {% else %}
+                            <i class="bi bi-x-circle-fill text-danger fs-1"></i>
+                            <h5 class="mt-2">AD-1: Inactivo</h5>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="p-3">
+                            {% if ml_estado.ad2 %}
+                            <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                            <h5 class="mt-2">AD-2: Activo</h5>
+                            <small class="text-muted">Predicción de Preñez</small>
+                            {% else %}
+                            <i class="bi bi-x-circle-fill text-danger fs-1"></i>
+                            <h5 class="mt-2">AD-2: Inactivo</h5>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="p-3">
+                            {% if ml_estado.rl4 %}
+                            <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                            <h5 class="mt-2">RL-4: Activo</h5>
+                            <small class="text-muted">Calidad de Leche</small>
+                            {% else %}
+                            <i class="bi bi-x-circle-fill text-danger fs-1"></i>
+                            <h5 class="mt-2">RL-4: Inactivo</h5>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+// Configuración general de Chart.js
+Chart.defaults.font.family = "'Segoe UI', 'Helvetica Neue', Arial, sans-serif";
+Chart.defaults.color = '#555';
+
+// Gráfica de Producción
+const ctxProd = document.getElementById('graficaProduccion').getContext('2d');
+new Chart(ctxProd, {
+    type: 'line',
+    data: {
+        labels: {{ prod_labels|safe|default:"[]" }},
+        datasets: [{
+            label: 'Litros Producción',
+            data: {{ prod_values|safe|default:"[]" }},
+            backgroundColor: 'rgba(74, 124, 34, 0.2)',
+            borderColor: '#4a7c22',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: '#4a7c22'
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.parsed.y + ' litros';
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: { display: true, text: 'Litros' }
+            }
+        }
+    }
+});
+
+// Gráfica de Turnos
+const ctxTurno = document.getElementById('graficaTurnos').getContext('2d');
+new Chart(ctxTurno, {
+    type: 'doughnut',
+    data: {
+        labels: {{ turno_labels|safe|default:"[]" }},
+        datasets: [{
+            data: {{ turno_values|safe|default:"[]" }},
+            backgroundColor: ['#4a7c22', '#fd7e14', '#17a2b8'],
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+
+// Gráfica de Calidad
+const ctxCalidad = document.getElementById('graficaCalidad').getContext('2d');
+new Chart(ctxCalidad, {
+    type: 'bar',
+    data: {
+        labels: {{ cal_labels|safe|default:"[]" }},
+        datasets: [
+            {
+                label: 'Aptos',
+                data: {{ cal_aptos|safe|default:"[]" }},
+                backgroundColor: '#28a745'
+            },
+            {
+                label: 'No Aptos',
+                data: {{ cal_no_aptos|safe|default:"[]" }},
+                backgroundColor: '#dc3545'
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            x: { stacked: true },
+            y: { stacked: true, beginAtZero: true }
+        }
+    }
+});
+
+// Gráfica de Animales
+const ctxAnimales = document.getElementById('graficaAnimales').getContext('2d');
+new Chart(ctxAnimales, {
+    type: 'bar',
+    data: {
+        labels: {{ cat_labels|safe|default:"[]" }},
+        datasets: [{
+            label: 'Cantidad',
+            data: {{ cat_values|safe|default:"[]" }},
+            backgroundColor: ['#4a7c22', '#17a2b8', '#fd7e14', '#6f42c1', '#dc3545'],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Gráfica de Costos
+const ctxCostos = document.getElementById('graficaCostos').getContext('2d');
+new Chart(ctxCostos, {
+    type: 'pie',
+    data: {
+        labels: {{ cost_labels|safe|default:"[]" }},
+        datasets: [{
+            data: {{ cost_values|safe|default:"[]" }},
+            backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#17a2b8', '#6f42c1'],
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'right' },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': $' + context.parsed.toFixed(2);
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

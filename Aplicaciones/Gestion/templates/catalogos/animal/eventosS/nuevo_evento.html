@@ -1,0 +1,626 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Nuevo Evento Sanitario | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listaeventosanitario/" class="text-decoration-none" style="color: var(--color-primario);">Eventos Sanitarios</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo Evento Sanitario</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-plus-circle me-2"></i>Registrar Nuevo Evento Sanitario
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Programe vacunaciones, desparasitaciones, vitaminaciones o pruebas de laboratorio
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE EVENTO            -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos del Evento Sanitario
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/guardareventosanitario/" id="frm_nuevo_evento" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: TIPO DE EVENTO Y FECHA PROGRAMADA   -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: TIPO DE EVENTO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_tipo_evento_es">
+                                    <i class="bi bi-shield-plus me-1"></i>Tipo de Evento <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_tipo_evento_es" 
+                                        id="sel_tipo_evento_es" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione tipo...</option>
+                                    <option value="vacunacion">Vacunación</option>
+                                    <option value="desparasitacion">Desparasitación</option>
+                                    <option value="vitaminacion">Vitaminación</option>
+                                    <option value="prueba_tuberculosis">Prueba Tuberculosis</option>
+                                    <option value="prueba_brucelosis">Prueba Brucelosis</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                                <small class="text-muted">Seleccione el tipo de evento sanitario.</small>
+                            </div>
+
+                            <!-- CAMPO: FECHA PROGRAMADA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_programada_es">
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha Programada <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_programada_es" 
+                                       id="txt_fecha_programada_es" 
+                                       class="form-control" 
+                                       required>
+                                <small class="text-muted">Fecha planificada para el evento.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: ANIMAL (FK)                        -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="sel_animal_es">
+                                    <i class="bi bi-emoji-smile me-1"></i>Animal <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_animal_es" 
+                                        id="sel_animal_es" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione un animal...</option>
+                                    {% for animal in animales %}
+                                    <option value="{{ animal.id_an }}">{{ animal.codigo_an }} - {{ animal.nombre_an|default:'Sin nombre' }} ({{ animal.categoria_an }})</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Animal al que se aplicará el evento sanitario.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: ESTADO                             -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_estado_es">
+                                    <i class="bi bi-activity me-1"></i>Estado <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_estado_es" 
+                                        id="sel_estado_es" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="pendiente" selected>Pendiente</option>
+                                    <option value="ejecutado">Ejecutado</option>
+                                    <option value="cancelado">Cancelado</option>
+                                    <option value="pospuesto">Pospuesto</option>
+                                </select>
+                                <small class="text-muted">Estado inicial del evento.</small>
+                            </div>
+
+                            <!-- CAMPO: FECHA EJECUTADA (condicional) -->
+                            <div class="col-md-6 mb-3" id="campo_fecha_ejecutada" style="display: none;">
+                                <label for="txt_fecha_ejecutada_es">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha Ejecutada <span class="text-danger" id="required_fecha_ejec" style="display: none;">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_ejecutada_es" 
+                                       id="txt_fecha_ejecutada_es" 
+                                       class="form-control">
+                                <small class="text-muted">Fecha real de ejecución. Obligatoria si estado es "Ejecutado".</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: PRODUCTO VETERINARIO Y DOSIS       -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: PRODUCTO VETERINARIO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_producto_es">
+                                    <i class="bi bi-box-seam me-1"></i>Producto Veterinario
+                                </label>
+                                <select name="sel_producto_es" 
+                                        id="sel_producto_es" 
+                                        class="form-select">
+                                    <option value="" selected>Sin producto...</option>
+                                    {% for producto in productos %}
+                                    <option value="{{ producto.id_pv }}">{{ producto.nombre_pv }} (Stock: {{ producto.stock_pv }} {{ producto.unidad_medida_pv }})</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Obligatorio para vacunación, desparasitación y vitaminación.</small>
+                            </div>
+
+                            <!-- CAMPO: DOSIS -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_dosis_es">
+                                    <i class="bi bi-droplet me-1"></i>Dosis
+                                </label>
+                                <input type="text" 
+                                       name="txt_dosis_es" 
+                                       id="txt_dosis_es" 
+                                       class="form-control" 
+                                       placeholder="Ej: 10.00" 
+                                       maxlength="11">
+                                <small class="text-muted">Máximo 999999.99 ml/unidades. Use punto (.) decimal.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 5: VÍA DE ADMINISTRACIÓN Y VETERINARIO -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: VÍA ADMINISTRACIÓN -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_via_administracion_es">
+                                    <i class="bi bi-activity me-1"></i>Vía de Administración
+                                </label>
+                                <select name="sel_via_administracion_es" 
+                                        id="sel_via_administracion_es" 
+                                        class="form-select">
+                                    <option value="" selected>Seleccione vía...</option>
+                                    <option value="oral">Oral</option>
+                                    <option value="subcutanea">Subcutánea</option>
+                                    <option value="intramuscular">Intramuscular</option>
+                                    <option value="intravenosa">Intravenosa</option>
+                                    <option value="topica">Tópica</option>
+                                </select>
+                                <small class="text-muted">Vía de aplicación del producto.</small>
+                            </div>
+
+                            <!-- CAMPO: VETERINARIO RESPONSABLE -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_veterinario_responsable_es">
+                                    <i class="bi bi-person-badge me-1"></i>Veterinario Responsable
+                                </label>
+                                <input type="text" 
+                                       name="txt_veterinario_responsable_es" 
+                                       id="txt_veterinario_responsable_es" 
+                                       class="form-control" 
+                                       placeholder="Ej: Dr. Juan Pérez..." 
+                                       maxlength="100">
+                                <small class="text-muted">Máximo 100 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 6: RESULTADO Y COSTO                    -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: RESULTADO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_resultado_es">
+                                    <i class="bi bi-journal-text me-1"></i>Resultado/Observaciones
+                                </label>
+                                <textarea name="txt_resultado_es" 
+                                          id="txt_resultado_es" 
+                                          class="form-control" 
+                                          rows="2" 
+                                          maxlength="1000"
+                                          placeholder="Resultados de la prueba, observaciones post-tratamiento..."></textarea>
+                                <small class="text-muted">Máximo 1000 caracteres.</small>
+                            </div>
+
+                            <!-- CAMPO: COSTO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_costo_es">
+                                    <i class="bi bi-currency-dollar me-1"></i>Costo
+                                </label>
+                                <input type="text" 
+                                       name="txt_costo_es" 
+                                       id="txt_costo_es" 
+                                       class="form-control" 
+                                       placeholder="Ej: 25.50" 
+                                       maxlength="11">
+                                <small class="text-muted">Máximo 999999.99. Use punto (.) decimal.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Evento
+                            </button>
+                            <a href="/listaeventosanitario/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        jQuery.validator.addMethod("dosisValida", function(value, element) {
+            if (!value) return true;
+            let regex = /^\d{1,6}(\.\d{1,2})?$/;
+            return regex.test(value);
+        }, "Formato inválido. Use punto (.) decimal. Máximo 2 decimales.");
+
+        jQuery.validator.addMethod("costoValido", function(value, element) {
+            if (!value) return true;
+            let regex = /^\d{1,6}(\.\d{1,2})?$/;
+            return regex.test(value);
+        }, "Formato inválido. Use punto (.) decimal. Máximo 2 decimales.");
+
+        jQuery.validator.addMethod("fechaEjecutadaValida", function(value, element) {
+            let estado = $('#sel_estado_es').val();
+            if (estado === 'ejecutado' && !value) return false;
+            if (!value) return true;
+            let fechaProg = $('#txt_fecha_programada_es').val();
+            if (!fechaProg) return true;
+            return new Date(value) >= new Date(fechaProg);
+        }, "La fecha ejecutada debe ser igual o posterior a la programada");
+
+        jQuery.validator.addMethod("productoRequerido", function(value, element) {
+            let tipo = $('#sel_tipo_evento_es').val();
+            let producto = $('#sel_producto_es').val();
+            if (tipo === 'vacunacion' || tipo === 'desparasitacion' || tipo === 'vitaminacion') {
+                return producto !== '';
+            }
+            return true;
+        }, "El producto es obligatorio para este tipo de evento");
+
+        jQuery.validator.addMethod("fechaNoPasada", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            return new Date(value) >= hoy;
+        }, "La fecha programada no puede ser pasada (use 'Ejecutado' si ya se realizó)");
+
+        $(document).ready(function() {
+            
+            // Set fecha programada default a hoy
+            $('#txt_fecha_programada_es').val(new Date().toISOString().split('T')[0]);
+
+            // ==========================================
+            // LOGICA CONDICIONAL SEGUN ESTADO
+            // ==========================================
+            $('#sel_estado_es').on('change', function() {
+                let estado = $(this).val();
+                if (estado === 'ejecutado') {
+                    $('#campo_fecha_ejecutada').show();
+                    $('#required_fecha_ejec').show();
+                    $('#txt_fecha_ejecutada_es').prop('required', true);
+                    // Si no tiene fecha, poner hoy
+                    if (!$('#txt_fecha_ejecutada_es').val()) {
+                        $('#txt_fecha_ejecutada_es').val(new Date().toISOString().split('T')[0]);
+                    }
+                } else {
+                    $('#campo_fecha_ejecutada').hide();
+                    $('#required_fecha_ejec').hide();
+                    $('#txt_fecha_ejecutada_es').prop('required', false).val('');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_nuevo_evento").validate({
+                rules: {
+                    sel_tipo_evento_es: {
+                        required: true
+                    },
+                    txt_fecha_programada_es: {
+                        required: true,
+                        fechaNoPasada: true
+                    },
+                    sel_animal_es: {
+                        required: true
+                    },
+                    sel_estado_es: {
+                        required: true
+                    },
+                    txt_fecha_ejecutada_es: {
+                        fechaEjecutadaValida: true
+                    },
+                    sel_producto_es: {
+                        productoRequerido: true
+                    },
+                    txt_dosis_es: {
+                        dosisValida: true
+                    },
+                    txt_veterinario_responsable_es: {
+                        maxlength: 100
+                    },
+                    txt_resultado_es: {
+                        maxlength: 1000
+                    },
+                    txt_costo_es: {
+                        costoValido: true
+                    }
+                },
+                messages: {
+                    sel_tipo_evento_es: {
+                        required: "Seleccione el tipo de evento"
+                    },
+                    txt_fecha_programada_es: {
+                        required: "La fecha programada es obligatoria",
+                        fechaNoPasada: "Use estado 'Ejecutado' para eventos pasados"
+                    },
+                    sel_animal_es: {
+                        required: "Seleccione un animal"
+                    },
+                    sel_estado_es: {
+                        required: "Seleccione el estado"
+                    },
+                    txt_fecha_ejecutada_es: {
+                        fechaEjecutadaValida: "Debe ser igual o posterior a la fecha programada"
+                    },
+                    sel_producto_es: {
+                        productoRequerido: "Seleccione un producto veterinario"
+                    },
+                    txt_dosis_es: {
+                        dosisValida: "Formato inválido. Ej: 10.00"
+                    },
+                    txt_veterinario_responsable_es: {
+                        maxlength: "Máximo 100 caracteres"
+                    },
+                    txt_resultado_es: {
+                        maxlength: "Máximo 1000 caracteres"
+                    },
+                    txt_costo_es: {
+                        costoValido: "Formato inválido. Ej: 25.50"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - DOSIS
+            // ==========================================
+            $('#txt_dosis_es').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^0-9.]/g, '');
+                let partes = filtrado.split('.');
+                if (partes.length > 2) {
+                    filtrado = partes[0] + '.' + partes.slice(1).join('');
+                }
+                if (partes.length === 2 && partes[1].length > 2) {
+                    filtrado = partes[0] + '.' + partes[1].substring(0, 2);
+                }
+                if (partes[0].length > 6) {
+                    partes[0] = partes[0].substring(0, 6);
+                    filtrado = partes.length === 2 ? partes[0] + '.' + partes[1] : partes[0];
+                }
+                if (parseFloat(filtrado) > 999999.99) {
+                    filtrado = '999999.99';
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 999999.99.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - COSTO
+            // ==========================================
+            $('#txt_costo_es').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^0-9.]/g, '');
+                let partes = filtrado.split('.');
+                if (partes.length > 2) {
+                    filtrado = partes[0] + '.' + partes.slice(1).join('');
+                }
+                if (partes.length === 2 && partes[1].length > 2) {
+                    filtrado = partes[0] + '.' + partes[1].substring(0, 2);
+                }
+                if (partes[0].length > 6) {
+                    partes[0] = partes[0].substring(0, 6);
+                    filtrado = partes.length === 2 ? partes[0] + '.' + partes[1] : partes[0];
+                }
+                if (parseFloat(filtrado) > 999999.99) {
+                    filtrado = '999999.99';
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 999999.99.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - VETERINARIO
+            // ==========================================
+            $('#txt_veterinario_responsable_es').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 100) {
+                    $(this).val(valor.substring(0, 100));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 100 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - RESULTADO
+            // ==========================================
+            $('#txt_resultado_es').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 1000) {
+                    $(this).val(valor.substring(0, 1000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 1000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL CAMBIAR TIPO - PRODUCTO REQUERIDO
+            // ==========================================
+            $('#sel_tipo_evento_es').on('change', function() {
+                let tipo = $(this).val();
+                if (tipo === 'vacunacion' || tipo === 'desparasitacion' || tipo === 'vitaminacion') {
+                    $('#sel_producto_es').addClass('is-required');
+                    // Validar visualmente
+                    if (!$('#sel_producto_es').val()) {
+                        $('#sel_producto_es').addClass('is-invalid');
+                    }
+                } else {
+                    $('#sel_producto_es').removeClass('is-required is-invalid');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - FECHAS
+            // ==========================================
+            $('#txt_fecha_ejecutada_es').on('blur', function() {
+                let fechaProg = $('#txt_fecha_programada_es').val();
+                let fechaEjec = $(this).val();
+                if (fechaEjec && fechaProg && new Date(fechaEjec) < new Date(fechaProg)) {
+                    $(this).val('');
+                    alertaError('Fecha inválida', 'La fecha ejecutada no puede ser anterior a la programada.');
+                    $(this).focus();
+                }
+            });
+
+            // ==========================================
+            // SANITIZACION ANTES DE ENVIAR
+            // ==========================================
+            $('#frm_nuevo_evento').on('submit', function(e) {
+                let dosis = $('#txt_dosis_es').val();
+                let costo = $('#txt_costo_es').val();
+                if (dosis) {
+                    dosis = dosis.replace(',', '.');
+                    $('#txt_dosis_es').val(dosis);
+                }
+                if (costo) {
+                    costo = costo.replace(',', '.');
+                    $('#txt_costo_es').val(costo);
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

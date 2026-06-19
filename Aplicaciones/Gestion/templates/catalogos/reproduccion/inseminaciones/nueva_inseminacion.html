@@ -1,0 +1,634 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Nueva Inseminación | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listainseminacion/" class="text-decoration-none" style="color: var(--color-primario);">Inseminaciones</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nueva Inseminación</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-droplet me-2"></i>Registrar Nueva Inseminación
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Registre inseminaciones naturales o artificiales del ganado
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE INSEMINACIÓN      -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos de la Inseminación
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/guardarinseminacion/" id="frm_nueva_inseminacion" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: HEMBRA Y FECHA                     -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: HEMBRA (FK_AN) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_hembra_in">
+                                    <i class="bi bi-gender-female me-1"></i>Hembra <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_hembra_in" 
+                                        id="sel_hembra_in" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione una hembra...</option>
+                                    {% for hembra in hembras %}
+                                    <option value="{{ hembra.id_an }}">
+                                        {{ hembra.codigo_an }} - {{ hembra.nombre_an|default:'Sin nombre' }} 
+                                        ({{ hembra.fk_ra.nombre_ra|default:'Sin raza' }}) | 
+                                        {{ hembra.categoria_an }} | 
+                                        CC: {{ hembra.condicion_corporal_an|default:'N/D' }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Seleccione la hembra a inseminar. Solo hembras activas.</small>
+                            </div>
+
+                            <!-- CAMPO: FECHA INSEMINACIÓN -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_in">
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha de Inseminación <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_in" 
+                                       id="txt_fecha_in" 
+                                       class="form-control" 
+                                       required>
+                                <small class="text-muted">Fecha en que se realizó la inseminación.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: TIPO DE INSEMINACIÓN               -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_tipo_inseminacion_in">
+                                    <i class="bi bi-eyedropper me-1"></i>Tipo de Inseminación <span class="text-danger">*</span>
+                                </label>
+                                <select name="sel_tipo_inseminacion_in" 
+                                        id="sel_tipo_inseminacion_in" 
+                                        class="form-select" 
+                                        required>
+                                    <option value="" selected disabled>Seleccione tipo...</option>
+                                    <option value="natural">Natural</option>
+                                    <option value="artificial">Artificial</option>
+                                </select>
+                                <small class="text-muted">Natural: monta directa con toro. Artificial: inseminación con semen procesado.</small>
+                            </div>
+
+                            <!-- CAMPO: DÍA DEL CICLO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_dia_ciclo_in">
+                                    <i class="bi bi-calendar-week me-1"></i>Día del Ciclo
+                                </label>
+                                <input type="number" 
+                                       name="txt_dia_ciclo_in" 
+                                       id="txt_dia_ciclo_in" 
+                                       class="form-control" 
+                                       min="1" 
+                                       max="21"
+                                       placeholder="Ej: 10">
+                                <small class="text-muted">Día del ciclo estral (1-21). Opcional pero recomendado.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: TORO (NATURAL) / LOTE SEMEN (ART.) -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: TORO (SOLO NATURAL) -->
+                            <div class="col-md-6 mb-3" id="campo_toro" style="display: none;">
+                                <label for="sel_toro_in">
+                                    <i class="bi bi-gender-male me-1"></i>Toro <span class="text-danger" id="required_toro" style="display: none;">*</span>
+                                </label>
+                                <select name="sel_toro_in" 
+                                        id="sel_toro_in" 
+                                        class="form-select">
+                                    <option value="" selected>Seleccione un toro...</option>
+                                    {% for toro in toros %}
+                                    <option value="{{ toro.id_an }}">
+                                        {{ toro.codigo_an }} - {{ toro.nombre_an|default:'Sin nombre' }} 
+                                        ({{ toro.fk_ra.nombre_ra|default:'Sin raza' }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Toro reproductor. Obligatorio para inseminación natural.</small>
+                            </div>
+
+                            <!-- CAMPO: LOTE DE SEMEN (SOLO ARTIFICIAL) -->
+                            <div class="col-md-6 mb-3" id="campo_lote" style="display: none;">
+                                <label for="txt_lote_semen_in">
+                                    <i class="bi bi-box-seam me-1"></i>Lote de Semen <span class="text-danger" id="required_lote" style="display: none;">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_lote_semen_in" 
+                                       id="txt_lote_semen_in" 
+                                       class="form-control" 
+                                       placeholder="Ej: LOT-2024-001" 
+                                       maxlength="50">
+                                <small class="text-muted">Código del lote de semen. Obligatorio para inseminación artificial.</small>
+                            </div>
+
+                            <!-- CAMPO: CONDICIÓN CORPORAL -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_condicion_corporal_in">
+                                    <i class="bi bi-heart-pulse me-1"></i>Condición Corporal
+                                </label>
+                                <select name="sel_condicion_corporal_in" 
+                                        id="sel_condicion_corporal_in" 
+                                        class="form-select">
+                                    <option value="" selected>No evaluada</option>
+                                    <option value="1">1 - Muy delgada</option>
+                                    <option value="2">2 - Delgada</option>
+                                    <option value="3">3 - Media</option>
+                                    <option value="4">4 - Buena</option>
+                                    <option value="5">5 - Muy buena</option>
+                                </select>
+                                <small class="text-muted">Escala 1-5. Recomendado mínimo 2.5 para inseminar.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: RESULTADO Y FECHA RESULTADO        -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: RESULTADO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_resultado_in">
+                                    <i class="bi bi-clipboard-check me-1"></i>Resultado
+                                </label>
+                                <select name="sel_resultado_in" 
+                                        id="sel_resultado_in" 
+                                        class="form-select">
+                                    <option value="" selected>Pendiente</option>
+                                    <option value="preñada">Preñada</option>
+                                    <option value="no_preñada">No Preñada</option>
+                                </select>
+                                <small class="text-muted">Deje pendiente si aún no se confirma el resultado.</small>
+                            </div>
+
+                            <!-- CAMPO: FECHA RESULTADO (condicional) -->
+                            <div class="col-md-6 mb-3" id="campo_fecha_resultado" style="display: none;">
+                                <label for="txt_fecha_resultado_in">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Resultado <span class="text-danger" id="required_fecha_resultado" style="display: none;">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_resultado_in" 
+                                       id="txt_fecha_resultado_in" 
+                                       class="form-control">
+                                <small class="text-muted">Fecha en que se confirmó el resultado. Obligatoria si hay resultado.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 5: VETERINARIO Y COSTO                -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: VETERINARIO RESPONSABLE -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_veterinario_in">
+                                    <i class="bi bi-person-badge me-1"></i>Veterinario Responsable
+                                </label>
+                                <input type="text" 
+                                       name="txt_veterinario_in" 
+                                       id="txt_veterinario_in" 
+                                       class="form-control" 
+                                       placeholder="Ej: Dr. Juan Pérez..." 
+                                       maxlength="100">
+                                <small class="text-muted">Máximo 100 caracteres.</small>
+                            </div>
+
+                            <!-- CAMPO: COSTO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_costo_in">
+                                    <i class="bi bi-currency-dollar me-1"></i>Costo
+                                </label>
+                                <input type="text" 
+                                       name="txt_costo_in" 
+                                       id="txt_costo_in" 
+                                       class="form-control" 
+                                       placeholder="Ej: 25.50" 
+                                       maxlength="11">
+                                <small class="text-muted">Máximo 999999.99. Use punto (.) decimal.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Inseminación
+                            </button>
+                            <a href="/listainseminacion/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+        
+        jQuery.validator.addMethod("costoValido", function(value, element) {
+            if (!value) return true;
+            let regex = /^\d{1,6}(\.\d{1,2})?$/;
+            return regex.test(value);
+        }, "Formato inválido. Use punto (.) decimal. Máximo 2 decimales.");
+
+        jQuery.validator.addMethod("diaCicloValido", function(value, element) {
+            if (!value) return true;
+            let num = parseInt(value);
+            return num >= 1 && num <= 21;
+        }, "El día del ciclo debe estar entre 1 y 21");
+
+        jQuery.validator.addMethod("fechaResultadoValida", function(value, element) {
+            let resultado = $('#sel_resultado_in').val();
+            if ((resultado === 'preñada' || resultado === 'no_preñada') && !value) return false;
+            if (!value) return true;
+            let fechaInseminacion = $('#txt_fecha_in').val();
+            if (!fechaInseminacion) return true;
+            return new Date(value) >= new Date(fechaInseminacion);
+        }, "La fecha de resultado debe ser igual o posterior a la inseminación");
+
+        jQuery.validator.addMethod("toroRequerido", function(value, element) {
+            let tipo = $('#sel_tipo_inseminacion_in').val();
+            if (tipo === 'natural') {
+                return value !== '';
+            }
+            return true;
+        }, "Seleccione un toro para inseminación natural");
+
+        jQuery.validator.addMethod("loteRequerido", function(value, element) {
+            let tipo = $('#sel_tipo_inseminacion_in').val();
+            if (tipo === 'artificial') {
+                return value.trim() !== '';
+            }
+            return true;
+        }, "Ingrese el lote de semen para inseminación artificial");
+
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha no puede ser futura");
+
+        $(document).ready(function() {
+            
+            // Set fecha default a hoy
+            $('#txt_fecha_in').val(new Date().toISOString().split('T')[0]);
+
+            // ==========================================
+            // LOGICA CONDICIONAL SEGUN TIPO INSEMINACIÓN
+            // ==========================================
+            $('#sel_tipo_inseminacion_in').on('change', function() {
+                let tipo = $(this).val();
+                if (tipo === 'natural') {
+                    $('#campo_toro').show();
+                    $('#required_toro').show();
+                    $('#sel_toro_in').prop('required', true);
+                    $('#campo_lote').hide();
+                    $('#required_lote').hide();
+                    $('#txt_lote_semen_in').prop('required', false).val('');
+                } else if (tipo === 'artificial') {
+                    $('#campo_toro').hide();
+                    $('#required_toro').hide();
+                    $('#sel_toro_in').prop('required', false).val('');
+                    $('#campo_lote').show();
+                    $('#required_lote').show();
+                    $('#txt_lote_semen_in').prop('required', true);
+                } else {
+                    $('#campo_toro').hide();
+                    $('#required_toro').hide();
+                    $('#sel_toro_in').prop('required', false).val('');
+                    $('#campo_lote').hide();
+                    $('#required_lote').hide();
+                    $('#txt_lote_semen_in').prop('required', false).val('');
+                }
+            });
+
+            // ==========================================
+            // LOGICA CONDICIONAL SEGUN RESULTADO
+            // ==========================================
+            $('#sel_resultado_in').on('change', function() {
+                let resultado = $(this).val();
+                if (resultado === 'preñada' || resultado === 'no_preñada') {
+                    $('#campo_fecha_resultado').show();
+                    $('#required_fecha_resultado').show();
+                    $('#txt_fecha_resultado_in').prop('required', true);
+                    // Si no tiene fecha, poner hoy
+                    if (!$('#txt_fecha_resultado_in').val()) {
+                        $('#txt_fecha_resultado_in').val(new Date().toISOString().split('T')[0]);
+                    }
+                } else {
+                    $('#campo_fecha_resultado').hide();
+                    $('#required_fecha_resultado').hide();
+                    $('#txt_fecha_resultado_in').prop('required', false).val('');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_nueva_inseminacion").validate({
+                rules: {
+                    sel_hembra_in: {
+                        required: true
+                    },
+                    txt_fecha_in: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    sel_tipo_inseminacion_in: {
+                        required: true
+                    },
+                    sel_toro_in: {
+                        toroRequerido: true
+                    },
+                    txt_lote_semen_in: {
+                        loteRequerido: true,
+                        maxlength: 50
+                    },
+                    txt_dia_ciclo_in: {
+                        diaCicloValido: true
+                    },
+                    sel_resultado_in: {
+                        required: false
+                    },
+                    txt_fecha_resultado_in: {
+                        fechaResultadoValida: true
+                    },
+                    txt_veterinario_in: {
+                        maxlength: 100
+                    },
+                    txt_costo_in: {
+                        costoValido: true
+                    }
+                },
+                messages: {
+                    sel_hembra_in: {
+                        required: "Seleccione la hembra a inseminar"
+                    },
+                    txt_fecha_in: {
+                        required: "La fecha de inseminación es obligatoria",
+                        fechaNoFutura: "La fecha no puede ser futura"
+                    },
+                    sel_tipo_inseminacion_in: {
+                        required: "Seleccione el tipo de inseminación"
+                    },
+                    sel_toro_in: {
+                        toroRequerido: "Seleccione el toro reproductor"
+                    },
+                    txt_lote_semen_in: {
+                        loteRequerido: "Ingrese el lote de semen",
+                        maxlength: "Máximo 50 caracteres"
+                    },
+                    txt_dia_ciclo_in: {
+                        diaCicloValido: "El día del ciclo debe estar entre 1 y 21"
+                    },
+                    txt_fecha_resultado_in: {
+                        fechaResultadoValida: "Debe ser igual o posterior a la fecha de inseminación"
+                    },
+                    txt_veterinario_in: {
+                        maxlength: "Máximo 100 caracteres"
+                    },
+                    txt_costo_in: {
+                        costoValido: "Formato inválido. Ej: 25.50"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - COSTO
+            // ==========================================
+            $('#txt_costo_in').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^0-9.]/g, '');
+                let partes = filtrado.split('.');
+                if (partes.length > 2) {
+                    filtrado = partes[0] + '.' + partes.slice(1).join('');
+                }
+                if (partes.length === 2 && partes[1].length > 2) {
+                    filtrado = partes[0] + '.' + partes[1].substring(0, 2);
+                }
+                if (partes[0].length > 6) {
+                    partes[0] = partes[0].substring(0, 6);
+                    filtrado = partes.length === 2 ? partes[0] + '.' + partes[1] : partes[0];
+                }
+                if (parseFloat(filtrado) > 999999.99) {
+                    filtrado = '999999.99';
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 999999.99.');
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - DÍA CICLO
+            // ==========================================
+            $('#txt_dia_ciclo_in').on('input', function() {
+                let valor = $(this).val();
+                let filtrado = valor.replace(/[^0-9]/g, '');
+                if (filtrado) {
+                    let num = parseInt(filtrado);
+                    if (num > 21) {
+                        filtrado = '21';
+                        alertaAdvertencia('Límite alcanzado', 'El día del ciclo máximo es 21.');
+                    }
+                    if (num < 1 && filtrado.length > 0) {
+                        filtrado = '1';
+                    }
+                }
+                if (valor !== filtrado) {
+                    $(this).val(filtrado);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - LOTE SEMEN
+            // ==========================================
+            $('#txt_lote_semen_in').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 50) {
+                    $(this).val(valor.substring(0, 50));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 50 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - VETERINARIO
+            // ==========================================
+            $('#txt_veterinario_in').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 100) {
+                    $(this).val(valor.substring(0, 100));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 100 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - FECHAS
+            // ==========================================
+            $('#txt_fecha_resultado_in').on('blur', function() {
+                let fechaInseminacion = $('#txt_fecha_in').val();
+                let fechaResultado = $(this).val();
+                if (fechaResultado && fechaInseminacion && new Date(fechaResultado) < new Date(fechaInseminacion)) {
+                    $(this).val('');
+                    alertaError('Fecha inválida', 'La fecha de resultado no puede ser anterior a la inseminación.');
+                    $(this).focus();
+                }
+            });
+
+            // ==========================================
+            // SANITIZACION ANTES DE ENVIAR
+            // ==========================================
+            $('#frm_nueva_inseminacion').on('submit', function(e) {
+                let costo = $('#txt_costo_in').val();
+                if (costo) {
+                    costo = costo.replace(',', '.');
+                    $('#txt_costo_in').val(costo);
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

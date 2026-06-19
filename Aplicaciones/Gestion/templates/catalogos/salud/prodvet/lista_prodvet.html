@@ -1,0 +1,686 @@
+{% extends "plantilla.html" %}
+{% load static %}
+
+<!-- ========================================== -->
+<!-- TITULO                                    -->
+<!-- ========================================== -->
+{% block titulo %}
+Listado de Productos Veterinarios | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BREADCRUMB                                -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">
+        Inicio
+    </a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">
+    Productos Veterinarios
+</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- CONTENIDO PRINCIPAL                       -->
+<!-- ========================================== -->
+{% block contenido %}
+
+<!-- TARJETAS ESTADÍSTICAS -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3">
+            <i class="bi bi-capsule-pill fs-2" style="color: var(--color-primario);"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_prodvet }}</h4>
+            <small class="text-muted">Total Productos</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
+            <i class="bi bi-check-circle fs-2 text-success"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_activos }}</h4>
+            <small class="text-muted">Activos</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #87CEEB;">
+            <i class="bi bi-shield-plus fs-2" style="color: #87CEEB;"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_vacunas }}</h4>
+            <small class="text-muted">Vacunas</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #e74c3c;">
+            <i class="bi bi-capsule fs-2 text-danger"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_antibioticos }}</h4>
+            <small class="text-muted">Antibióticos</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #2ecc71;">
+            <i class="bi bi-heart-pulse fs-2" style="color: #2ecc71;"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_vitaminas }}</h4>
+            <small class="text-muted">Vitaminas</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
+            <i class="bi bi-exclamation-triangle fs-2 text-danger"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_stock_bajo }}</h4>
+            <small class="text-muted">Stock Bajo</small>
+        </div>
+    </div>
+</div>
+
+<!-- TITULO -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-8">
+        <h2 class="fw-bold" style="color: var(--color-primario);">
+            <i class="bi bi-capsule-pill me-2"></i>
+            Listado de Productos Veterinarios
+        </h2>
+        <p class="text-muted mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            Gestión de productos veterinarios de la hacienda
+        </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="/nuevoprodvet/" class="btn btn-hacienda">
+            <i class="bi bi-plus-circle me-2"></i>
+            Nuevo Producto
+        </a>
+    </div>
+</div>
+
+<!-- TARJETA PRINCIPAL -->
+<div class="row animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-grid-3x3"></i>
+                Productos Registrados
+            </div>
+            <div class="p-4">
+                <div class="table-responsive">
+                    <table id="tablaProdVet" class="table table-hacienda align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>CÓDIGO</th>
+                                <th>NOMBRE</th>
+                                <th>TIPO</th>
+                                <th>PRESENTACIÓN</th>
+                                <th>STOCK</th>
+                                <th>STOCK MÍN</th>
+                                <th>UNIDAD</th>
+                                <th>VENCIMIENTO</th>
+                                <th>PROVEEDOR</th>
+                                <th>COSTO</th>
+                                <th>ESTADO</th>
+                                <th>ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for producto in prodvet %}
+                            <tr>
+                                <!-- ID -->
+                                <td class="fw-bold text-muted">#{{ producto.id_pv }}</td>
+                                
+                                <!-- CODIGO -->
+                                <td>
+                                    <span class="badge rounded-pill" style="background: var(--color-primario); color:white; padding:10px 15px; font-size:15px;">
+                                        {{ producto.codigo_pv }}
+                                    </span>
+                                </td>
+                                
+                                <!-- NOMBRE -->
+                                <td class="fw-bold" style="color: var(--color-primario); font-size:18px;">
+                                    {{ producto.nombre_pv }}
+                                </td>
+                                
+                                <!-- TIPO -->
+                                <td>
+                                    {% if producto.tipo_pv == 'vacuna' %}
+                                    <span class="badge rounded-pill p-2" style="background:#87CEEB; color:#1a1a1a;">
+                                        <i class="bi bi-shield-plus me-1"></i>
+                                        Vacuna
+                                    </span>
+                                    {% elif producto.tipo_pv == 'antibiotico' %}
+                                    <span class="badge rounded-pill p-2" style="background:#e74c3c; color:white;">
+                                        <i class="bi bi-capsule me-1"></i>
+                                        Antibiótico
+                                    </span>
+                                    {% elif producto.tipo_pv == 'desparasitante' %}
+                                    <span class="badge rounded-pill p-2" style="background: var(--color-acento); color:#1a1a1a;">
+                                        <i class="bi bi-bug me-1"></i>
+                                        Desparasitante
+                                    </span>
+                                    {% elif producto.tipo_pv == 'vitamina' %}
+                                    <span class="badge rounded-pill p-2" style="background:#2ecc71; color:white;">
+                                        <i class="bi bi-heart-pulse me-1"></i>
+                                        Vitamina
+                                    </span>
+                                    {% elif producto.tipo_pv == 'antiseptico' %}
+                                    <span class="badge rounded-pill p-2" style="background:#9b59b6; color:white;">
+                                        <i class="bi bi-droplet me-1"></i>
+                                        Antiséptico
+                                    </span>
+                                    {% elif producto.tipo_pv == 'otro' %}
+                                    <span class="badge rounded-pill p-2" style="background:#95a5a6; color:white;">
+                                        <i class="bi bi-box me-1"></i>
+                                        Otro
+                                    </span>
+                                    {% else %}
+                                    <span class="badge rounded-pill bg-secondary p-2">{{ producto.tipo_pv }}</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- PRESENTACION -->
+                                <td>
+                                    {% if producto.presentacion_pv %}
+                                        {{ producto.presentacion_pv }}
+                                    {% else %}
+                                        <span class="text-muted fst-italic">N/A</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- STOCK -->
+                                <td>
+                                    {% if producto.stock_pv <= producto.stock_minimo_pv %}
+                                    <span class="text-danger fw-bold">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                        {{ producto.stock_pv }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-success fw-bold">
+                                        {{ producto.stock_pv }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- STOCK MINIMO -->
+                                <td>{{ producto.stock_minimo_pv }}</td>
+                                
+                                <!-- UNIDAD MEDIDA -->
+                                <td>{{ producto.unidad_medida_pv }}</td>
+                                
+                                <!-- FECHA VENCIMIENTO -->
+                                <td>
+                                    {% if producto.fecha_vencimiento_pv %}
+                                        <i class="bi bi-calendar-check me-1 text-success"></i>
+                                        {{ producto.fecha_vencimiento_pv|date:"d/m/Y" }}
+                                    {% else %}
+                                        <span class="text-muted fst-italic">N/A</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- PROVEEDOR -->
+                                <td>
+                                    {% if producto.proveedor_pv %}
+                                        <i class="bi bi-truck me-1 text-muted"></i>
+                                        {{ producto.proveedor_pv }}
+                                    {% else %}
+                                        <span class="text-muted fst-italic">N/A</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- COSTO UNITARIO -->
+                                <td>
+                                    {% if producto.costo_unitario_pv %}
+                                        <span class="fw-bold" style="color: var(--color-primario);">
+                                            <i class="bi bi-currency-dollar me-1"></i>
+                                            {{ producto.costo_unitario_pv }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted fst-italic">N/A</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- ESTADO -->
+                                <td>
+                                    {% if producto.activo_pv %}
+                                    <span class="badge rounded-pill bg-success p-2">
+                                        <i class="bi bi-check-circle"></i>
+                                        Activo
+                                    </span>
+                                    {% else %}
+                                    <span class="badge rounded-pill bg-danger p-2">
+                                        <i class="bi bi-x-circle"></i>
+                                        Inactivo
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- ACCIONES -->
+                                <td>
+                                    <!-- VER DETALLE (MODAL) -->
+                                    <button type="button" class="btn btn-sm btn-info" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalDetalleProdVet"
+                                            data-id="{{ producto.id_pv }}"
+                                            data-codigo="{{ producto.codigo_pv }}"
+                                            data-nombre="{{ producto.nombre_pv }}"
+                                            data-tipo="{{ producto.tipo_pv }}"
+                                            data-presentacion="{% if producto.presentacion_pv %}{{ producto.presentacion_pv }}{% else %}N/A{% endif %}"
+                                            data-stock="{{ producto.stock_pv }}"
+                                            data-stock-minimo="{{ producto.stock_minimo_pv }}"
+                                            data-unidad="{{ producto.unidad_medida_pv }}"
+                                            data-vencimiento="{% if producto.fecha_vencimiento_pv %}{{ producto.fecha_vencimiento_pv|date:'d/m/Y' }}{% else %}N/A{% endif %}"
+                                            data-proveedor="{% if producto.proveedor_pv %}{{ producto.proveedor_pv }}{% else %}N/A{% endif %}"
+                                            data-costo="{% if producto.costo_unitario_pv %}{{ producto.costo_unitario_pv }}{% else %}N/A{% endif %}"
+                                            data-activo="{% if producto.activo_pv %}Activo{% else %}Inactivo{% endif %}"
+                                            data-created="{{ producto.created_at_pv|date:'d/m/Y H:i' }}"
+                                            title="Ver detalle">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    
+                                    <!-- EDITAR -->
+                                    <a href="/editarprodvet/{{ producto.id_pv }}" class="btn btn-sm btn-hacienda-secondary">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    
+                                    <!-- ELIMINAR CON MODAL BOOTSTRAP -->
+                                    <button type="button" class="btn btn-sm btn-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalEliminarProdVet"
+                                            data-id="{{ producto.id_pv }}"
+                                            data-nombre="{{ producto.nombre_pv }}"
+                                            data-url="/eliminarprodvet/{{ producto.id_pv }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="13" class="text-center py-5">
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <p class="mt-3 text-muted">No hay productos veterinarios registrados</p>
+                                    <a href="/nuevoprodvet/" class="btn btn-hacienda btn-sm mt-2">
+                                        <i class="bi bi-plus-circle me-2"></i>Registrar primer producto
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
+                <small class="text-muted">
+                    <i class="bi bi-bar-chart-line me-1"></i>
+                    Total de productos: <strong>{{ prodvet|length }}</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL DETALLE PRODUCTO VETERINARIO         -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalDetalleProdVet" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-capsule-pill-fill me-2" style="color: #DAA520;"></i>
+                    DETALLE DEL PRODUCTO
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="background: #fff8e6;">
+                <div class="row g-0">
+                    <div class="col-md-5" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
+                        <div class="p-4 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="bi bi-capsule-pill fs-1" style="color: #2c5e1a;"></i>
+                            <p class="mt-3 mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleCodigo"></p>
+                            <p class="text-muted mb-0" style="font-size: 14px;" id="detalleNombre"></p>
+                            <div class="mt-3 w-100 text-center">
+                                <span id="detalleTipoBadge"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="p-4">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">CÓDIGO</label>
+                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<span id="detalleId"></span></p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <label class="text-muted small fw-bold">ESTADO</label>
+                                    <div id="detalleEstado"></div>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-box me-1"></i>PRESENTACIÓN</label>
+                                    <p class="mb-0" id="detallePresentacion" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-layers me-1"></i>UNIDAD</label>
+                                    <p class="mb-0" id="detalleUnidad" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-box-seam me-1"></i>STOCK ACTUAL</label>
+                                    <p class="mb-0" id="detalleStock" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-exclamation-triangle me-1"></i>STOCK MÍNIMO</label>
+                                    <p class="mb-0" id="detalleStockMinimo" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>VENCIMIENTO</label>
+                                    <p class="mb-0" id="detalleVencimiento" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-currency-dollar me-1"></i>COSTO UNITARIO</label>
+                                    <p class="mb-0" id="detalleCosto" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold"><i class="bi bi-truck me-1"></i>PROVEEDOR</label>
+                                <p class="mb-0" id="detalleProveedor" style="color: #5c450e;"></p>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="mb-0">
+                                <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>REGISTRADO</label>
+                                <p class="mb-0" id="detalleCreated" style="color: #5c450e;"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
+                    <i class="bi bi-pencil-square me-1"></i>Editar Producto
+                </a>
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL ELIMINAR PRODUCTO VETERINARIO        -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalEliminarProdVet" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: 2px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
+                    CONFIRMAR ELIMINACIÓN
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background: #fff8e6; padding: 25px;">
+                <p style="color: #5c450e; font-size: 16px; margin-bottom: 0;">
+                    ¿Está seguro de eliminar el producto <strong id="nombreProdVetModal" style="color: #2c5e1a;"></strong>?
+                </p>
+                <p class="mt-2 mb-0" style="color: #8B6914; font-size: 14px;">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Esta acción no se puede deshacer.
+                </p>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                </button>
+                <a href="#" id="btnConfirmarEliminarProdVet" class="btn btn-hacienda-warning">
+                    <i class="bi bi-check-lg me-1"></i>Sí, eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- SCRIPTS EXTRA                              -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+<style>
+    .dataTables_filter {
+        margin-bottom: 20px !important;
+        background: linear-gradient(135deg, #eef7e8, #dcefd0);
+        padding: 15px 20px;
+        border-radius: 18px;
+        border: 2px solid #b7d7a8;
+        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
+        display: flex !important;
+        align-items: center !important;
+        justify-content: end !important;
+        gap: 10px;
+    }
+    .dataTables_filter::before {
+        content: "💊";
+        font-size: 28px;
+    }
+    .dataTables_filter label {
+        font-weight: bold;
+        color: var(--color-primario);
+        font-size: 17px;
+    }
+    .dataTables_filter input {
+        border-radius: 50px !important;
+        border: 3px solid var(--color-primario) !important;
+        padding: 10px 18px !important;
+        background-color: #ffffff !important;
+        color: var(--color-navbar) !important;
+        font-weight: 600 !important;
+        width: 280px !important;
+        transition: 0.3s !important;
+        box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08);
+        margin-left: 10px !important;
+    }
+    .dataTables_filter input:focus {
+        outline: none !important;
+        border-color: #8dc26f !important;
+        box-shadow: 0px 0px 12px rgba(44,94,26,0.4);
+        background-color: #f8fff5 !important;
+    }
+    .dataTables_length select {
+        border-radius: 10px !important;
+        border: 2px solid var(--color-primario) !important;
+        padding: 5px 10px !important;
+    }
+    .dataTables_paginate {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        margin-top: 25px !important;
+    }
+    .dataTables_paginate .pagination {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 0px !important;
+        flex-wrap: nowrap !important;
+    }
+    .paginate_button {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        border: none !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 14px !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        transition: 0.3s !important;
+        margin: 0 3px !important;
+        vertical-align: middle !important;
+        float: none !important;
+    }
+    .paginate_button.current {
+        background: var(--color-primario) !important;
+        color: white !important;
+        border: 2px solid #8dc26f !important;
+        box-shadow: 0px 0px 8px rgba(44,94,26,0.4);
+    }
+    .paginate_button:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+    .paginate_button.previous, .paginate_button.next {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 4px !important;
+        background: #dfeedd !important;
+        color: var(--color-primario) !important;
+        font-weight: bold !important;
+        font-size: 16px !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        transition: 0.3s !important;
+        margin: 0 3px !important;
+        vertical-align: middle !important;
+        float: none !important;
+    }
+    .paginate_button.previous:hover, .paginate_button.next:hover {
+        background: #3d7a24 !important;
+        color: white !important;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $('#tablaProdVet').DataTable({
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ registros",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                "infoEmpty": "No existen registros",
+                "infoFiltered": "(filtrado de _MAX_ registros)",
+                "search": "Buscar:",
+                "paginate": {
+                    "first": "",
+                    "last": "",
+                    "next": "›",
+                    "previous": "‹"
+                }
+            },
+            "pageLength": 5,
+            "lengthMenu": [5,10,25,50],
+            "responsive": true,
+            "pagingType": "simple_numbers"
+        });
+    });
+</script>
+
+<script>
+    // ==========================================
+    // MODAL DETALLE PRODUCTO VETERINARIO
+    // ==========================================
+    var modalDetalleProdVet = document.getElementById('modalDetalleProdVet');
+    modalDetalleProdVet.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        
+        var id = button.getAttribute('data-id');
+        var codigo = button.getAttribute('data-codigo');
+        var nombre = button.getAttribute('data-nombre');
+        var tipo = button.getAttribute('data-tipo');
+        var presentacion = button.getAttribute('data-presentacion');
+        var stock = button.getAttribute('data-stock');
+        var stockMinimo = button.getAttribute('data-stock-minimo');
+        var unidad = button.getAttribute('data-unidad');
+        var vencimiento = button.getAttribute('data-vencimiento');
+        var proveedor = button.getAttribute('data-proveedor');
+        var costo = button.getAttribute('data-costo');
+        var activo = button.getAttribute('data-activo');
+        var created = button.getAttribute('data-created');
+        
+        document.getElementById('detalleId').textContent = id;
+        document.getElementById('detalleCodigo').textContent = codigo;
+        document.getElementById('detalleNombre').textContent = nombre;
+        document.getElementById('detallePresentacion').textContent = presentacion;
+        document.getElementById('detalleUnidad').textContent = unidad;
+        document.getElementById('detalleStock').textContent = stock;
+        document.getElementById('detalleStockMinimo').textContent = stockMinimo;
+        document.getElementById('detalleVencimiento').textContent = vencimiento;
+        document.getElementById('detalleCosto').textContent = costo !== 'N/A' ? '$ ' + costo : costo;
+        document.getElementById('detalleProveedor').textContent = proveedor;
+        document.getElementById('detalleCreated').textContent = created;
+        
+        // Tipo con badge
+        var tipoHtml = '';
+        switch(tipo) {
+            case 'vacuna':
+                tipoHtml = '<span class="badge rounded-pill p-2" style="background:#87CEEB; color:#1a1a1a;"><i class="bi bi-shield-plus me-1"></i> Vacuna</span>';
+                break;
+            case 'antibiotico':
+                tipoHtml = '<span class="badge rounded-pill p-2" style="background:#e74c3c; color:white;"><i class="bi bi-capsule me-1"></i> Antibiótico</span>';
+                break;
+            case 'desparasitante':
+                tipoHtml = '<span class="badge rounded-pill p-2" style="background: var(--color-acento); color:#1a1a1a;"><i class="bi bi-bug me-1"></i> Desparasitante</span>';
+                break;
+            case 'vitamina':
+                tipoHtml = '<span class="badge rounded-pill p-2" style="background:#2ecc71; color:white;"><i class="bi bi-heart-pulse me-1"></i> Vitamina</span>';
+                break;
+            case 'antiseptico':
+                tipoHtml = '<span class="badge rounded-pill p-2" style="background:#9b59b6; color:white;"><i class="bi bi-droplet me-1"></i> Antiséptico</span>';
+                break;
+            case 'otro':
+                tipoHtml = '<span class="badge rounded-pill p-2" style="background:#95a5a6; color:white;"><i class="bi bi-box me-1"></i> Otro</span>';
+                break;
+            default:
+                tipoHtml = '<span class="badge rounded-pill bg-secondary p-2">' + tipo + '</span>';
+        }
+        document.getElementById('detalleTipoBadge').innerHTML = tipoHtml;
+        
+        // Estado
+        var estadoHtml = '';
+        if (activo === 'Activo') {
+            estadoHtml = '<span class="badge rounded-pill bg-success p-2"><i class="bi bi-check-circle me-1"></i> Activo</span>';
+        } else {
+            estadoHtml = '<span class="badge rounded-pill bg-danger p-2"><i class="bi bi-x-circle me-1"></i> Inactivo</span>';
+        }
+        document.getElementById('detalleEstado').innerHTML = estadoHtml;
+        
+        // Stock alerta
+        var stockElem = document.getElementById('detalleStock');
+        if (parseInt(stock) <= parseInt(stockMinimo)) {
+            stockElem.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> ' + stock + '</span>';
+        } else {
+            stockElem.innerHTML = '<span class="text-success fw-bold">' + stock + '</span>';
+        }
+        
+        document.getElementById('btnEditarDesdeDetalle').href = '/editarprodvet/' + id;
+    });
+</script>
+
+<script>
+    // ==========================================
+    // MODAL ELIMINAR PRODUCTO VETERINARIO
+    // ==========================================
+    var modalEliminarProdVet = document.getElementById('modalEliminarProdVet');
+    modalEliminarProdVet.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var nombre = button.getAttribute('data-nombre');
+        var url = button.getAttribute('data-url');
+        
+        document.getElementById('nombreProdVetModal').textContent = nombre;
+        document.getElementById('btnConfirmarEliminarProdVet').setAttribute('href', url);
+    });
+</script>
+
+{% endblock %}

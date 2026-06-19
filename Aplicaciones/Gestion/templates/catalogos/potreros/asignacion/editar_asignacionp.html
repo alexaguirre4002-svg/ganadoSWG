@@ -1,0 +1,600 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Editar Asignación de Potrero | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listaasignacionp/" class="text-decoration-none" style="color: var(--color-primario);">Asignaciones de Potrero</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Editar Asignación</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-pencil-square me-2"></i>Editar Asignación de Potrero
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Modifique los datos de la asignación #<<strong>{{ asignacion.id_ap }}</strong> - {{ asignacion.fk_an.codigo_an }} → {{ asignacion.fk_po.codigo_po }}
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ALERTA DE POTRERO Y ANIMAL ASOCIADOS       -->
+    <!-- ========================================== -->
+    <div class="row animate-fade-in mb-4">
+        <div class="col-12">
+            <div class="alert" style="background: #e8f5e9; border: 2px solid #2c5e1a; border-radius: 12px; color: #2c5e1a;">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <strong>Potrero:</strong> 
+                <span class="badge" style="background:#28a745; color:white;"><i class="bi bi-geo-alt me-1"></i>{{ asignacion.fk_po.codigo_po }}</span>
+                <span class="ms-2">{{ asignacion.fk_po.nombre_po }}</span>
+                <span class="badge ms-2" style="background:#6c757d; color:white;">{{ asignacion.fk_po.hectareas_po }} ha</span>
+                <br>
+                <strong class="ms-4">Animal:</strong>
+                <span class="badge" style="background:#fd7e14; color:white;"><i class="bi bi-emoji-smile me-1"></i>{{ asignacion.fk_an.codigo_an }}</span>
+                <span class="ms-2">{{ asignacion.fk_an.nombre_an|default:'Sin nombre' }}</span>
+                <span class="badge ms-2" style="background:#6c757d; color:white;">{{ asignacion.fk_an.categoria_an }}</span>
+                <br><small class="ms-4">El potrero y el animal no se pueden cambiar. Si necesita corregirlos, elimine y cree una nueva asignación.</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE EDICION           -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-check"></i>Datos de la Asignación
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/procesareditarasignacionp/" id="frm_editar_asignacionp" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- CAMPO OCULTO: ID DE LA ASIGNACIÓN        -->
+                        <!-- ========================================== -->
+                        <input type="hidden" name="id_ap" value="{{ asignacion.id_ap }}">
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: POTRERO Y ANIMAL (SOLO LECTURA)    -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: POTRERO (SOLO LECTURA) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_potrero_ap">
+                                    <i class="bi bi-geo-alt me-1"></i>Potrero
+                                </label>
+                                <select name="sel_potrero_ap" 
+                                        id="sel_potrero_ap" 
+                                        class="form-select" 
+                                        disabled>
+                                    <option value="{{ asignacion.fk_po_id }}" selected>
+                                        {{ asignacion.fk_po.codigo_po }} - {{ asignacion.fk_po.nombre_po }} 
+                                        ({{ asignacion.fk_po.hectareas_po }} ha)
+                                    </option>
+                                </select>
+                                <small class="text-muted">El potrero no se puede modificar.</small>
+                            </div>
+
+                            <!-- CAMPO: ANIMAL (SOLO LECTURA) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_animal_ap">
+                                    <i class="bi bi-emoji-smile me-1"></i>Animal
+                                </label>
+                                <select name="sel_animal_ap" 
+                                        id="sel_animal_ap" 
+                                        class="form-select" 
+                                        disabled>
+                                    <option value="{{ asignacion.fk_an_id }}" selected>
+                                        {{ asignacion.fk_an.codigo_an }} - {{ asignacion.fk_an.nombre_an|default:'Sin nombre' }} 
+                                        ({{ asignacion.fk_an.categoria_an }})
+                                    </option>
+                                </select>
+                                <small class="text-muted">El animal no se puede modificar.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: FECHAS INGRESO Y SALIDA ESTIMADA   -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: FECHA INGRESO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_ingreso_ap">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Ingreso <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_ingreso_ap" 
+                                       id="txt_fecha_ingreso_ap" 
+                                       class="form-control" 
+                                       value="{{ asignacion.fecha_ingreso_ap|date:'Y-m-d' }}"
+                                       required>
+                                <small class="text-muted">Fecha en que el animal ingresó al potrero. No puede ser futura.</small>
+                            </div>
+
+                            <!-- CAMPO: FECHA SALIDA ESTIMADA -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_salida_estimada_ap">
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha de Salida Estimada
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_salida_estimada_ap" 
+                                       id="txt_fecha_salida_estimada_ap" 
+                                       class="form-control"
+                                       value="{% if asignacion.fecha_salida_estimada_ap %}{{ asignacion.fecha_salida_estimada_ap|date:'Y-m-d' }}{% endif %}">
+                                <small class="text-muted">Opcional. Debe ser posterior a la fecha de ingreso.</small>
+                                
+                                <!-- Indicador de duración -->
+                                <div id="indicador-duracion" class="mt-2 p-2 rounded d-none" style="font-size: 0.9rem; font-weight: 500;">
+                                    <i class="bi bi-calculator me-1"></i>
+                                    <span id="texto-duracion"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: FECHA SALIDA REAL (PARA FINALIZAR) -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_salida_real_ap">
+                                    <i class="bi bi-calendar-x-fill me-1"></i>Fecha de Salida Real
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_salida_real_ap" 
+                                       id="txt_fecha_salida_real_ap" 
+                                       class="form-control"
+                                       value="{% if asignacion.fecha_salida_real_ap %}{{ asignacion.fecha_salida_real_ap|date:'Y-m-d' }}{% endif %}">
+                                <small class="text-muted">
+                                    {% if asignacion.fecha_salida_real_ap %}
+                                    <span class="text-success"><i class="bi bi-check-circle me-1"></i>Asignación finalizada el {{ asignacion.fecha_salida_real_ap|date:'d/m/Y' }}</span>
+                                    {% else %}
+                                    Ingrese la fecha de salida real para finalizar esta asignación. No puede ser futura ni anterior a la fecha de ingreso.
+                                    {% endif %}
+                                </small>
+                            </div>
+
+                            <!-- CAMPO: DIAS DESCANSO POSTERIOR -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_dias_descanso_posterior_ap">
+                                    <i class="bi bi-pause-circle me-1"></i>Días de Descanso Posterior
+                                </label>
+                                <input type="number" 
+                                       name="txt_dias_descanso_posterior_ap" 
+                                       id="txt_dias_descanso_posterior_ap" 
+                                       class="form-control"
+                                       value="{{ asignacion.dias_descanso_posterior_ap }}"
+                                       min="0"
+                                       step="1">
+                                <small class="text-muted">Días de descanso del potrero después de la salida.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: OBSERVACIONES                      -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_observaciones_ap">
+                                    <i class="bi bi-journal-text me-1"></i>Observaciones
+                                </label>
+                                <textarea name="txt_observaciones_ap" 
+                                          id="txt_observaciones_ap" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          maxlength="1000"
+                                          placeholder="Observaciones sobre la asignación, condiciones del potrero, razones del traslado...">{{ asignacion.observaciones_ap|default:'' }}</textarea>
+                                <small class="text-muted">Máximo 1000 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- INFORMACION DE AUDITORIA                   -->
+                        <!-- ========================================== -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="p-2 rounded" style="background: #f8f9fa; border-left: 3px solid #6c757d;">
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock-history me-1"></i>
+                                        <strong>Creado:</strong> {{ asignacion.created_at_ap|date:'d/m/Y H:i' }} | 
+                                        <strong>Última modificación:</strong> {{ asignacion.updated_at_ap|date:'d/m/Y H:i' }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                            <a href="/listaasignacionp/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#28a745',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#28a745',
+                titleColor: '#155724',
+                messageColor: '#2c5e1a',
+                backgroundColor: '#d4edda',
+                borderBottom: '3px solid #28a745',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS JQUERY VALIDATE
+        // ==========================================
+        
+        // Fecha ingreso no puede ser futura
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha de ingreso no puede ser futura");
+
+        // Fecha salida real no puede ser futura
+        jQuery.validator.addMethod("salidaRealNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha de salida real no puede ser futura");
+
+        // Fecha salida estimada debe ser posterior a fecha ingreso
+        jQuery.validator.addMethod("salidaEstimadaPosterior", function(value, element) {
+            if (!value) return true;
+            let fechaIngreso = $('#txt_fecha_ingreso_ap').val();
+            if (!fechaIngreso) return true;
+            return new Date(value) > new Date(fechaIngreso);
+        }, "La fecha de salida estimada debe ser posterior a la fecha de ingreso");
+
+        // Fecha salida real debe ser posterior o igual a fecha ingreso
+        jQuery.validator.addMethod("salidaRealPosterior", function(value, element) {
+            if (!value) return true;
+            let fechaIngreso = $('#txt_fecha_ingreso_ap').val();
+            if (!fechaIngreso) return true;
+            return new Date(value) >= new Date(fechaIngreso);
+        }, "La fecha de salida real no puede ser anterior a la fecha de ingreso");
+
+        // ==========================================
+        // FUNCION: CALCULAR Y MOSTRAR DURACIÓN
+        // ==========================================
+        function calcularDuracion() {
+            let fechaIngreso = $('#txt_fecha_ingreso_ap').val();
+            let fechaSalida = $('#txt_fecha_salida_estimada_ap').val();
+            let $indicador = $('#indicador-duracion');
+            let $texto = $('#texto-duracion');
+            
+            if (!fechaIngreso || !fechaSalida) {
+                $indicador.addClass('d-none');
+                return;
+            }
+            
+            let d1 = new Date(fechaIngreso);
+            let d2 = new Date(fechaSalida);
+            let diffMs = d2 - d1;
+            let dias = Math.round(diffMs / (1000 * 60 * 60 * 24));
+            
+            if (dias <= 0) {
+                $indicador.removeClass('d-none')
+                    .css({
+                        'background-color': '#fde8e8',
+                        'color': '#8B0000',
+                        'border-left': '4px solid #dc3545'
+                    });
+                $texto.html('⚠️ La fecha de salida debe ser posterior a la de ingreso');
+                return;
+            }
+            
+            let colorFondo, colorTexto, mensaje;
+            
+            if (dias < 7) {
+                colorFondo = '#fff8e6';
+                colorTexto = '#8B6914';
+                mensaje = '⏳ Permanencia corta: ' + dias + ' días';
+            } else if (dias < 30) {
+                colorFondo = '#e8f5e9';
+                colorTexto = '#2e7d32';
+                mensaje = '✅ Permanencia normal: ' + dias + ' días';
+            } else if (dias < 90) {
+                colorFondo = '#d4edda';
+                colorTexto = '#155724';
+                mensaje = '✅ Permanencia extendida: ' + dias + ' días';
+            } else {
+                colorFondo = '#fff3e0';
+                colorTexto = '#e65100';
+                mensaje = '⚠️ Permanencia muy larga: ' + dias + ' días (revisar)';
+            }
+            
+            $indicador
+                .removeClass('d-none')
+                .css({
+                    'background-color': colorFondo,
+                    'color': colorTexto,
+                    'border-left': '4px solid ' + colorTexto
+                });
+            
+            $texto.html(mensaje);
+        }
+
+        $(document).ready(function() {
+            
+            // Calcular duración al cargar la página
+            calcularDuracion();
+
+            // ==========================================
+            // EVENTOS PARA CÁLCULOS EN TIEMPO REAL
+            // ==========================================
+            
+            $('#txt_fecha_ingreso_ap, #txt_fecha_salida_estimada_ap').on('change', function() {
+                calcularDuracion();
+            });
+
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_editar_asignacionp").validate({
+                rules: {
+                    txt_fecha_ingreso_ap: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    txt_fecha_salida_estimada_ap: {
+                        salidaEstimadaPosterior: true
+                    },
+                    txt_fecha_salida_real_ap: {
+                        salidaRealNoFutura: true,
+                        salidaRealPosterior: true
+                    },
+                    txt_dias_descanso_posterior_ap: {
+                        digits: true,
+                        min: 0
+                    },
+                    txt_observaciones_ap: {
+                        maxlength: 1000
+                    }
+                },
+                messages: {
+                    txt_fecha_ingreso_ap: {
+                        required: "La fecha de ingreso es obligatoria",
+                        fechaNoFutura: "La fecha de ingreso no puede ser futura"
+                    },
+                    txt_fecha_salida_estimada_ap: {
+                        salidaEstimadaPosterior: "La fecha de salida estimada debe ser posterior a la de ingreso"
+                    },
+                    txt_fecha_salida_real_ap: {
+                        salidaRealNoFutura: "La fecha de salida real no puede ser futura",
+                        salidaRealPosterior: "La fecha de salida real no puede ser anterior a la de ingreso"
+                    },
+                    txt_dias_descanso_posterior_ap: {
+                        digits: "Debe ser un número entero",
+                        min: "No puede ser negativo"
+                    },
+                    txt_observaciones_ap: {
+                        maxlength: "Máximo 1000 caracteres"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - OBSERVACIONES
+            // ==========================================
+            $('#txt_observaciones_ap').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 1000) {
+                    $(this).val(valor.substring(0, 1000));
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 1000 caracteres.');
+                }
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - FECHAS
+            // ==========================================            
+            $('#txt_fecha_salida_estimada_ap').on('blur', function() {
+                let fechaIngreso = $('#txt_fecha_ingreso_ap').val();
+                let fechaSalida = $(this).val();
+                
+                if (fechaSalida && fechaIngreso) {
+                    if (new Date(fechaSalida) <= new Date(fechaIngreso)) {
+                        $(this).val('{% if asignacion.fecha_salida_estimada_ap %}{{ asignacion.fecha_salida_estimada_ap|date:"Y-m-d" }}{% endif %}');
+                        alertaError('Fecha inválida', 'La fecha de salida estimada debe ser posterior a la fecha de ingreso. Se ha restaurado la fecha original.');
+                        $(this).focus();
+                    }
+                }
+                
+                calcularDuracion();
+            });
+
+            $('#txt_fecha_salida_real_ap').on('blur', function() {
+                let fechaIngreso = $('#txt_fecha_ingreso_ap').val();
+                let fechaSalida = $(this).val();
+                let hoy = new Date();
+                hoy.setHours(23, 59, 59, 999);
+                
+                if (fechaSalida) {
+                    if (new Date(fechaSalida) > hoy) {
+                        $(this).val('{% if asignacion.fecha_salida_real_ap %}{{ asignacion.fecha_salida_real_ap|date:"Y-m-d" }}{% endif %}');
+                        alertaError('Fecha inválida', 'La fecha de salida real no puede ser futura. Se ha restaurado la fecha original.');
+                        $(this).focus();
+                        return;
+                    }
+                    
+                    if (fechaIngreso && new Date(fechaSalida) < new Date(fechaIngreso)) {
+                        $(this).val('{% if asignacion.fecha_salida_real_ap %}{{ asignacion.fecha_salida_real_ap|date:"Y-m-d" }}{% endif %}');
+                        alertaError('Fecha inválida', 'La fecha de salida real no puede ser anterior a la fecha de ingreso. Se ha restaurado la fecha original.');
+                        $(this).focus();
+                    }
+                }
+            });
+
+            $('#txt_fecha_ingreso_ap').on('blur', function() {
+                let fechaIngreso = $(this).val();
+                let hoy = new Date();
+                hoy.setHours(23, 59, 59, 999);
+                
+                if (fechaIngreso && new Date(fechaIngreso) > hoy) {
+                    $(this).val('{{ asignacion.fecha_ingreso_ap|date:"Y-m-d" }}');
+                    alertaError('Fecha inválida', 'La fecha de ingreso no puede ser futura. Se ha restaurado la fecha original.');
+                }
+                
+                calcularDuracion();
+            });
+
+        });
+    </script>
+{% endblock %}

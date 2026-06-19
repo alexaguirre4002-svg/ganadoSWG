@@ -1,0 +1,480 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Nueva Raza | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listaraza/" class="text-decoration-none" style="color: var(--color-primario);">Razas</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nueva Raza</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-tag me-2"></i>Registrar Nueva Raza
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Registre una nueva raza ganadera en el catálogo de la hacienda
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE RAZA              -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-plus"></i>Datos de la Raza
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/guardarraza/" id="frm_nueva_raza" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: NOMBRE Y ORIGEN                    -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- NOMBRE -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_nombre_ra">
+                                    <i class="bi bi-tag me-1"></i>Nombre de la Raza <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                    name="txt_nombre_ra" 
+                                    id="txt_nombre_ra" 
+                                    class="form-control" 
+                                    maxlength="100"
+                                    value="{{ raza.nombre_ra }}"
+                                    placeholder="Ej: Holstein, Jersey, Brahman..."
+                                    required>
+                                <small class="text-muted">Solo letras y espacios. Mín. 2, máx. 100 caracteres.</small>
+                            </div>
+
+                            <!-- ORIGEN -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_origen_ra">
+                                    <i class="bi bi-globe me-1"></i>Origen
+                                </label>
+                                <input type="text" 
+                                    name="txt_origen_ra" 
+                                    id="txt_origen_ra" 
+                                    class="form-control" 
+                                    maxlength="100"
+                                    value="{% if raza.origen_ra %}{{ raza.origen_ra }}{% endif %}"
+                                    placeholder="Ej: Suiza, India, Estados Unidos...">
+                                <small class="text-muted">País o región de origen. Solo letras, comas y guiones.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: DESCRIPCIÓN                        -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="txt_descripcion_ra">
+                                    <i class="bi bi-journal-text me-1"></i>Descripción
+                                </label>
+                                <textarea name="txt_descripcion_ra" 
+                                          id="txt_descripcion_ra" 
+                                          class="form-control" 
+                                          rows="4" 
+                                          maxlength="1000"
+                                          placeholder="Características físicas, temperamentales, adaptación al clima, rendimiento productivo..."></textarea>
+                                <small class="text-muted">Descripción detallada de la raza. Máximo 1000 caracteres.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: ESTADO (DEFAULT TRUE)              -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" 
+                                           type="checkbox" 
+                                           name="chk_activo_ra" 
+                                           id="chk_activo_ra" 
+                                           value="1"
+                                           checked>
+                                    <label class="form-check-label" for="chk_activo_ra">
+                                        <i class="bi bi-check-circle me-1"></i>Raza Activa
+                                    </label>
+                                </div>
+                                <small class="text-muted">Si está desactivada, no aparecerá en los selectores de animales.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Raza
+                            </button>
+                            <a href="/listaraza/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#28a745',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#28a745',
+                titleColor: '#155724',
+                messageColor: '#2c5e1a',
+                backgroundColor: '#d4edda',
+                borderBottom: '3px solid #28a745',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // UTILIDAD: CAPITALIZAR PRIMERA LETRA
+        // Convierte "holstein" → "Holstein"
+        // ==========================================
+        function capitalizarPalabras(str) {
+            return str.replace(/\b\w/g, function(c) {
+                return c.toUpperCase();
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS
+        // ==========================================
+
+        // NOMBRE: Solo letras, espacios y guiones (sin números)
+        jQuery.validator.addMethod("nombreValido", function(value, element) {
+            if (!value) return false;
+            return /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-]+$/.test(value);
+        }, "El nombre solo puede contener letras, espacios y guiones. No se permiten números.");
+
+        // NOMBRE: Debe comenzar con letra mayúscula
+        jQuery.validator.addMethod("nombreMayuscula", function(value, element) {
+            if (!value) return false;
+            return /^[A-ZÁÉÍÓÚÑÜ]/.test(value.trim());
+        }, "El nombre debe comenzar con letra mayúscula.");
+
+        // NOMBRE: No puede ser solo espacios o guiones
+        jQuery.validator.addMethod("nombreNoVacio", function(value, element) {
+            return value.trim().replace(/[-\s]/g, '').length > 0;
+        }, "El nombre no puede contener únicamente espacios o guiones.");
+
+        // ORIGEN: Solo letras, espacios, comas y guiones (sin números)
+        jQuery.validator.addMethod("origenValido", function(value, element) {
+            if (!value) return true; // Es opcional
+            return /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-,]+$/.test(value);
+        }, "El origen solo puede contener letras, espacios, comas y guiones. No se permiten números.");
+
+        // ORIGEN: Debe comenzar con letra mayúscula si tiene contenido
+        jQuery.validator.addMethod("origenMayuscula", function(value, element) {
+            if (!value.trim()) return true; // Es opcional
+            return /^[A-ZÁÉÍÓÚÑÜ]/.test(value.trim());
+        }, "El origen debe comenzar con letra mayúscula.");
+
+        // DESCRIPCIÓN: No puede contener solo espacios
+        jQuery.validator.addMethod("descripcionNoVacia", function(value, element) {
+            if (!value.trim()) return true; // Es opcional
+            return value.trim().length >= 10;
+        }, "Si ingresa una descripción, debe tener al menos 10 caracteres.");
+
+        $(document).ready(function() {
+            
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_nueva_raza").validate({
+                rules: {
+                    txt_nombre_ra: {
+                        required: true,
+                        nombreValido: true,
+                        nombreMayuscula: true,
+                        nombreNoVacio: true,
+                        maxlength: 100,
+                        minlength: 2
+                    },
+                    txt_origen_ra: {
+                        origenValido: true,
+                        origenMayuscula: true,
+                        maxlength: 100
+                    },
+                    txt_descripcion_ra: {
+                        descripcionNoVacia: true,
+                        maxlength: 1000
+                    }
+                },
+                messages: {
+                    txt_nombre_ra: {
+                        required: "El nombre de la raza es obligatorio.",
+                        nombreValido: "Solo letras, espacios y guiones. No se permiten números ni símbolos.",
+                        nombreMayuscula: "El nombre debe comenzar con letra mayúscula. Ej: Holstein",
+                        nombreNoVacio: "Ingrese un nombre de raza válido.",
+                        maxlength: "Máximo 100 caracteres permitidos.",
+                        minlength: "El nombre debe tener al menos 2 caracteres."
+                    },
+                    txt_origen_ra: {
+                        origenValido: "Solo letras, espacios, comas y guiones. No se permiten números.",
+                        origenMayuscula: "El origen debe comenzar con letra mayúscula. Ej: Suiza",
+                        maxlength: "Máximo 100 caracteres permitidos."
+                    },
+                    txt_descripcion_ra: {
+                        descripcionNoVacia: "Si ingresa una descripción, debe tener al menos 10 caracteres.",
+                        maxlength: "Máximo 1000 caracteres permitidos."
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - NOMBRE
+            // Bloquea números y caracteres especiales al escribir
+            // ==========================================
+            $('#txt_nombre_ra').on('input', function() {
+                let valor = $(this).val();
+
+                // Bloquear números en tiempo real
+                let sinNumeros = valor.replace(/[0-9]/g, '');
+                if (valor !== sinNumeros) {
+                    $(this).val(sinNumeros);
+                    alertaAdvertencia('Números no permitidos', 'El nombre de una raza no puede contener números.');
+                    valor = sinNumeros;
+                }
+
+                // Bloquear caracteres especiales (solo letras, espacios, guiones)
+                let limpio = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-]/g, '');
+                if (valor !== limpio) {
+                    $(this).val(limpio);
+                    alertaAdvertencia('Caracteres inválidos', 'Solo se permiten letras, espacios y guiones.');
+                    valor = limpio;
+                }
+
+                // Límite de caracteres
+                if (valor.length > 100) {
+                    $(this).val(valor.substring(0, 100));
+                    alertaAdvertencia('Límite alcanzado', 'El nombre no puede superar los 100 caracteres.');
+                }
+            });
+
+            // Auto-capitalizar nombre al perder el foco
+            $('#txt_nombre_ra').on('blur', function() {
+                let valor = $(this).val().trim();
+
+                // Validar longitud mínima
+                if (valor.length > 0 && valor.length < 2) {
+                    alertaError('Nombre muy corto', 'El nombre de la raza debe tener al menos 2 caracteres.');
+                    $(this).focus();
+                    return;
+                }
+
+                // Capitalizar primera letra de cada palabra
+                if (valor.length > 0) {
+                    let capitalizado = capitalizarPalabras(valor);
+                    if (valor !== capitalizado) {
+                        $(this).val(capitalizado);
+                        alertaAdvertencia('Formato corregido', 'Se capitalizó automáticamente el nombre de la raza.');
+                    }
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - ORIGEN
+            // Bloquea números y caracteres especiales al escribir
+            // ==========================================
+            $('#txt_origen_ra').on('input', function() {
+                let valor = $(this).val();
+
+                // Bloquear números en tiempo real
+                let sinNumeros = valor.replace(/[0-9]/g, '');
+                if (valor !== sinNumeros) {
+                    $(this).val(sinNumeros);
+                    alertaAdvertencia('Números no permitidos', 'El origen de una raza no puede contener números.');
+                    valor = sinNumeros;
+                }
+
+                // Bloquear caracteres especiales (solo letras, espacios, guiones, comas)
+                let limpio = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-,]/g, '');
+                if (valor !== limpio) {
+                    $(this).val(limpio);
+                    alertaAdvertencia('Caracteres inválidos', 'Solo se permiten letras, espacios, comas y guiones.');
+                    valor = limpio;
+                }
+
+                // Límite de caracteres
+                if (valor.length > 100) {
+                    $(this).val(valor.substring(0, 100));
+                    alertaAdvertencia('Límite alcanzado', 'El origen no puede superar los 100 caracteres.');
+                }
+            });
+
+            // Auto-capitalizar origen al perder el foco
+            $('#txt_origen_ra').on('blur', function() {
+                let valor = $(this).val().trim();
+                if (valor.length > 0) {
+                    let capitalizado = capitalizarPalabras(valor);
+                    if (valor !== capitalizado) {
+                        $(this).val(capitalizado);
+                        alertaAdvertencia('Formato corregido', 'Se capitalizó automáticamente el origen.');
+                    }
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - DESCRIPCIÓN
+            // Solo limita la longitud máxima
+            // ==========================================
+            $('#txt_descripcion_ra').on('input', function() {
+                let valor = $(this).val();
+                if (valor.length > 1000) {
+                    $(this).val(valor.substring(0, 1000));
+                    alertaAdvertencia('Límite alcanzado', 'La descripción no puede superar los 1000 caracteres.');
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

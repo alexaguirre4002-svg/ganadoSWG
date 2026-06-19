@@ -1,0 +1,899 @@
+{% extends "plantilla.html" %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- ========================================== -->
+{% block titulo %}
+    Editar Ración | Hacienda Joseph
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- ========================================== -->
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+    <li class="breadcrumb-item"><a href="/listaracion/" class="text-decoration-none" style="color: var(--color-primario);">Raciones</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Editar Ración</li>
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- ========================================== -->
+{% block contenido %}
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO                      -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--color-primario);">
+                <i class="bi bi-pencil-square me-2"></i>Editar Ración
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Modifique los datos de la ración #<<strong>{{ racion.id_ra }}</strong> - {{ racion.fk_an.codigo_an }}
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ALERTA DE ANIMAL Y DIETA ASOCIADOS         -->
+    <!-- ========================================== -->
+    <div class="row animate-fade-in mb-4">
+        <div class="col-12">
+            <div class="alert" style="background: #e8f5e9; border: 2px solid #2c5e1a; border-radius: 12px; color: #2c5e1a;">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <strong>Animal:</strong> 
+                <span class="badge" style="background:#28a745; color:white;"><i class="bi bi-emoji-smile me-1"></i>{{ racion.fk_an.codigo_an }}</span>
+                {% if racion.fk_an.nombre_an %}
+                <span class="ms-2">{{ racion.fk_an.nombre_an }}</span>
+                {% endif %}
+                <span class="badge ms-2" style="background:#6c757d; color:white;">{{ racion.fk_an.categoria_an }}</span>
+                <br>
+                <strong class="ms-4">Dieta:</strong>
+                <span class="badge" style="background:#fd7e14; color:white;"><i class="bi bi-clipboard-data me-1"></i>{{ racion.fk_di.codigo_di }}</span>
+                <span class="ms-2">{{ racion.fk_di.nombre_di }}</span>
+                <span class="badge ms-2" style="background:#6c757d; color:white;">{{ racion.fk_di.categoria_objetivo_di }}</span>
+                <br><small class="ms-4">El animal y la dieta no se pueden cambiar. Si necesita corregirlos, elimine y cree una nueva ración.</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: FORMULARIO DE EDICION           -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
+        <div class="col-md-10 col-lg-8">
+            <div class="card-hacienda">
+                
+                <!-- Header de la card -->
+                <div class="card-header-hacienda">
+                    <i class="bi bi-clipboard-check"></i>Datos de la Ración
+                </div>
+
+                <!-- Cuerpo del formulario -->
+                <div class="p-4">
+                    <form action="/procesareditarracion/" id="frm_editar_racion" method="post" class="form-hacienda">
+                        {% csrf_token %}
+
+                        <!-- ========================================== -->
+                        <!-- CAMPO OCULTO: ID DE LA RACIÓN            -->
+                        <!-- ========================================== -->
+                        <input type="hidden" name="id_ra" value="{{ racion.id_ra }}">
+                        <input type="hidden" name="animal_actual" id="animal_actual" value="{{ racion.fk_an_id }}">
+                        <input type="hidden" name="dieta_actual" id="dieta_actual" value="{{ racion.fk_di_id }}">
+                        <input type="hidden" name="insumo_anterior" id="insumo_anterior" value="{{ racion.fk_ia_id|default:'' }}">
+                        <input type="hidden" name="cantidad_anterior" id="cantidad_anterior" value="{{ racion.cantidad_ofrecida_kg_ra|stringformat:'s' }}">
+
+                        <!-- ========================================== -->
+                        <!-- FILA 1: ANIMAL Y DIETA (SOLO LECTURA)      -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: ANIMAL (SOLO LECTURA) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_animal_ra">
+                                    <i class="bi bi-emoji-smile me-1"></i>Animal
+                                </label>
+                                <select name="sel_animal_ra" 
+                                        id="sel_animal_ra" 
+                                        class="form-select" 
+                                        disabled>
+                                    <option value="{{ racion.fk_an_id }}" selected>
+                                        {{ racion.fk_an.codigo_an }} - {{ racion.fk_an.nombre_an|default:'Sin nombre' }} ({{ racion.fk_an.categoria_an }})
+                                    </option>
+                                </select>
+                                <small class="text-muted">El animal no se puede modificar.</small>
+                            </div>
+
+                            <!-- CAMPO: DIETA (SOLO LECTURA) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="sel_dieta_ra">
+                                    <i class="bi bi-clipboard-data me-1"></i>Dieta
+                                </label>
+                                <select name="sel_dieta_ra" 
+                                        id="sel_dieta_ra" 
+                                        class="form-select" 
+                                        disabled>
+                                    <option value="{{ racion.fk_di_id }}" selected>
+                                        {{ racion.fk_di.codigo_di }} - {{ racion.fk_di.nombre_di }} ({{ racion.fk_di.categoria_objetivo_di }})
+                                    </option>
+                                </select>
+                                <small class="text-muted">La dieta no se puede modificar.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 2: INSUMO ALIMENTICIO (PUEDE CAMBIAR) -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="sel_insumo_ra">
+                                    <i class="bi bi-box-seam me-1"></i>Insumo Alimenticio
+                                </label>
+                                <select name="sel_insumo_ra" 
+                                        id="sel_insumo_ra" 
+                                        class="form-select">
+                                    
+                                    <option value="" 
+                                            {% if not racion.fk_ia_id %}selected{% endif %} 
+                                            data-stock="">
+                                        Sin insumo...
+                                    </option>
+
+                                    {% for insumo in insumos %}
+                                        <option value="{{ insumo.id_ia }}"
+                                                {% if racion.fk_ia_id == insumo.id_ia %}selected{% endif %}
+                                                data-stock="{{ insumo.stock_kg_ia|stringformat:'s' }}"
+                                                data-tipo="{{ insumo.tipo_ia }}"
+                                                data-costo="{{ insumo.costo_kg_ia|default:''|stringformat:'s' }}">
+                                            
+                                            {{ insumo.codigo_ia }} - {{ insumo.nombre_ia }} 
+                                            | Stock: {{ insumo.stock_kg_ia|stringformat:"s" }} kg 
+                                            | {{ insumo.tipo_ia }}
+                                            
+                                            {% if racion.fk_ia_id == insumo.id_ia %}
+                                                (Actual)
+                                            {% endif %}
+                                        </option>
+                                    {% endfor %}
+
+                                </select>
+                                <small class="text-muted" id="msg_insumo">
+                                    {% if racion.fk_ia %}
+                                    <span style="color: #2c5e1a;"><i class="bi bi-check-circle me-1"></i>Insumo actual: {{ racion.fk_ia.nombre_ia }} (Stock: {{ racion.fk_ia.stock_kg_ia|stringformat:"s" }} kg)</span>
+                                    {% else %}
+                                    Opcional. Vincule un insumo para descontar stock automáticamente.
+                                    {% endif %}
+                                </small>
+                                
+                                <!-- Indicador de cambio de stock -->
+                                <div id="indicador-cambio-stock" class="mt-2 p-2 rounded d-none" style="font-size: 0.9rem; font-weight: 500;">
+                                    <i class="bi bi-calculator me-1"></i>
+                                    <span id="texto-cambio-stock"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 3: FECHAS INICIO Y FIN                -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: FECHA INICIO -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_inicio_ra">
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Inicio <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_inicio_ra" 
+                                       id="txt_fecha_inicio_ra" 
+                                       class="form-control" 
+                                       value="{{ racion.fecha_inicio_ra|date:'Y-m-d' }}"
+                                       required>
+                                <small class="text-muted">Fecha en que inicia la ración. No puede ser futura.</small>
+                            </div>
+
+                            <!-- CAMPO: FECHA FIN -->
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_fecha_fin_ra">
+                                    <i class="bi bi-calendar-x me-1"></i>Fecha de Fin
+                                </label>
+                                <input type="date" 
+                                       name="txt_fecha_fin_ra" 
+                                       id="txt_fecha_fin_ra" 
+                                       class="form-control"
+                                       value="{% if racion.fecha_fin_ra %}{{ racion.fecha_fin_ra|date:'Y-m-d' }}{% endif %}">
+                                <small class="text-muted">Opcional. Debe ser posterior o igual a la fecha de inicio.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 4: CANTIDADES (DECIMALES = TEXT)      -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <!-- CAMPO: CANTIDAD OFRECIDA -->
+                            <div class="col-md-4 mb-3">
+                                <label for="txt_cantidad_ofrecida_kg_ra">
+                                    <i class="bi bi-arrow-up-circle me-1"></i>Cantidad Ofrecida (kg) <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="txt_cantidad_ofrecida_kg_ra" 
+                                       id="txt_cantidad_ofrecida_kg_ra" 
+                                       class="form-control"
+                                       value="{{ racion.cantidad_ofrecida_kg_ra|stringformat:'s' }}"
+                                       required
+                                       inputmode="decimal"
+                                       pattern="^\d+(\.\d{1,2})?$">
+                                <small class="text-muted">Cantidad total ofrecida. Máx 9999.99 kg.</small>
+                            </div>
+
+                            <!-- CAMPO: CANTIDAD CONSUMIDA -->
+                            <div class="col-md-4 mb-3">
+                                <label for="txt_cantidad_consumida_kg_ra">
+                                    <i class="bi bi-arrow-down-circle me-1"></i>Cantidad Consumida (kg)
+                                </label>
+                                <input type="text" 
+                                       name="txt_cantidad_consumida_kg_ra" 
+                                       id="txt_cantidad_consumida_kg_ra" 
+                                       class="form-control"
+                                       value="{% if racion.cantidad_consumida_kg_ra %}{{ racion.cantidad_consumida_kg_ra|stringformat:'s' }}{% endif %}"
+                                       inputmode="decimal"
+                                       pattern="^\d+(\.\d{1,2})?$">
+                                <small class="text-muted">Opcional. No puede superar la cantidad ofrecida.</small>
+                            </div>
+
+                            <!-- CAMPO: DESPERDICIO -->
+                            <div class="col-md-4 mb-3">
+                                <label for="txt_desperdicio_kg_ra">
+                                    <i class="bi bi-trash me-1"></i>Desperdicio (kg)
+                                </label>
+                                <input type="text" 
+                                       name="txt_desperdicio_kg_ra" 
+                                       id="txt_desperdicio_kg_ra" 
+                                       class="form-control"
+                                       value="{% if racion.desperdicio_kg_ra %}{{ racion.desperdicio_kg_ra|stringformat:'s' }}{% endif %}"
+                                       inputmode="decimal"
+                                       pattern="^\d+(\.\d{1,2})?$">
+                                <small class="text-muted">Opcional. No puede superar lo no consumido.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- INDICADOR DE EFICIENCIA (NUEVO)            -->
+                        <!-- ========================================== -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div id="indicador-eficiencia" class="p-3 rounded d-none" style="font-size: 0.95rem; font-weight: 500; border-left: 4px solid;">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6">
+                                            <i class="bi bi-graph-up me-1"></i>
+                                            <span id="texto-eficiencia"></span>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="progress" style="height: 25px; border-radius: 12px;">
+                                                <div id="barra-eficiencia" class="progress-bar" role="progressbar" 
+                                                     style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                                    0%
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- FILA 5: DIAS EN POTRERO                    -->
+                        <!-- ========================================== -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="txt_dias_en_potrero_ra">
+                                    <i class="bi bi-clock-history me-1"></i>Días en Potrero
+                                </label>
+                                <input type="number" 
+                                       name="txt_dias_en_potrero_ra" 
+                                       id="txt_dias_en_potrero_ra" 
+                                       class="form-control"
+                                       value="{% if racion.dias_en_potrero_ra %}{{ racion.dias_en_potrero_ra }}{% endif %}"
+                                       placeholder="0"
+                                       min="0"
+                                       step="1">
+                                <small class="text-muted">Opcional. Días que el animal permanecerá en el potrero.</small>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- INFORMACION DE AUDITORIA                   -->
+                        <!-- ========================================== -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="p-2 rounded" style="background: #f8f9fa; border-left: 3px solid #6c757d;">
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock-history me-1"></i>
+                                        <strong>Creado:</strong> {{ racion.created_at_ra|date:'d/m/Y H:i' }} | 
+                                        <strong>Última modificación:</strong> {{ racion.updated_at_ra|date:'d/m/Y H:i' }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================== -->
+                        <!-- BOTONES DE ACCION                          -->
+                        <!-- ========================================== -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-hacienda flex-fill">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                            <a href="/listaracion/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                       -->
+<!-- Validaciones con jQuery Validate + iziToast  -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+    <script>
+        // ==========================================
+        // FUNCIONES DE ALERTA EMERGENTE IZITOAST
+        // ==========================================
+        
+        function alertaError(titulo, mensaje) {
+            iziToast.error({
+                title: '<i class="bi bi-x-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#dc3545',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-x-circle-fill',
+                iconColor: '#dc3545',
+                titleColor: '#8B0000',
+                messageColor: '#5c0000',
+                backgroundColor: '#fde8e8',
+                borderBottom: '3px solid #dc3545',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaAdvertencia(titulo, mensaje) {
+            iziToast.warning({
+                title: '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 4000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#DAA520',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-exclamation-triangle-fill',
+                iconColor: '#DAA520',
+                titleColor: '#8B6914',
+                messageColor: '#5c450e',
+                backgroundColor: '#fff8e6',
+                borderBottom: '3px solid #DAA520',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaExito(titulo, mensaje) {
+            iziToast.success({
+                title: '<i class="bi bi-check-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#28a745',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-check-circle-fill',
+                iconColor: '#28a745',
+                titleColor: '#155724',
+                messageColor: '#2c5e1a',
+                backgroundColor: '#d4edda',
+                borderBottom: '3px solid #28a745',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        function alertaInfo(titulo, mensaje) {
+            iziToast.info({
+                title: '<i class="bi bi-info-circle-fill me-2"></i>' + titulo,
+                message: mensaje,
+                position: 'center',
+                timeout: 3000,
+                transitionIn: 'fadeInDown',
+                transitionOut: 'fadeOutUp',
+                closeOnClick: true,
+                pauseOnHover: true,
+                progressBar: true,
+                progressBarColor: '#17a2b8',
+                layout: 2,
+                balloon: false,
+                close: true,
+                closeOnEscape: true,
+                overlay: true,
+                overlayClose: true,
+                overlayColor: 'rgba(26, 61, 15, 0.6)',
+                displayMode: 2,
+                maxWidth: 450,
+                icon: 'bi bi-info-circle-fill',
+                iconColor: '#17a2b8',
+                titleColor: '#0d47a1',
+                messageColor: '#0d47a1',
+                backgroundColor: '#e3f2fd',
+                borderBottom: '3px solid #17a2b8',
+                zindex: 99999,
+                titleSize: '18px',
+                messageSize: '15px',
+                padding: '20px'
+            });
+        }
+
+        // ==========================================
+        // VALIDACIONES PERSONALIZADAS JQUERY VALIDATE
+        // ==========================================
+        
+        // Fecha inicio no puede ser futura
+        jQuery.validator.addMethod("fechaNoFutura", function(value, element) {
+            if (!value) return true;
+            let hoy = new Date();
+            hoy.setHours(23, 59, 59, 999);
+            return new Date(value) <= hoy;
+        }, "La fecha de inicio no puede ser futura");
+
+        // Fecha fin debe ser posterior o igual a fecha inicio
+        jQuery.validator.addMethod("fechaFinPosterior", function(value, element) {
+            if (!value) return true;
+            let fechaInicio = $('#txt_fecha_inicio_ra').val();
+            if (!fechaInicio) return true;
+            return new Date(value) >= new Date(fechaInicio);
+        }, "La fecha de fin debe ser posterior o igual a la fecha de inicio");
+
+        // Decimal válido (hasta 2 decimales)
+        jQuery.validator.addMethod("decimalValido", function(value, element) {
+            if (!value) return true;
+            return /^\d+(\.\d{1,2})?$/.test(value);
+        }, "Ingrese un número válido con máximo 2 decimales");
+
+        // Cantidad consumida no supera ofrecida
+        jQuery.validator.addMethod("consumoValido", function(value, element) {
+            if (!value) return true;
+            let ofrecido = parseFloat($('#txt_cantidad_ofrecida_kg_ra').val()) || 0;
+            let consumido = parseFloat(value) || 0;
+            return consumido <= ofrecido;
+        }, "La cantidad consumida no puede superar la ofrecida");
+
+        // Desperdicio no supera lo no consumido
+        jQuery.validator.addMethod("desperdicioValido", function(value, element) {
+            if (!value) return true;
+            let ofrecido = parseFloat($('#txt_cantidad_ofrecida_kg_ra').val()) || 0;
+            let consumido = parseFloat($('#txt_cantidad_consumida_kg_ra').val()) || 0;
+            let desperdicio = parseFloat(value) || 0;
+            let noConsumido = ofrecido - consumido;
+            return desperdicio <= noConsumido;
+        }, "El desperdicio no puede superar lo no consumido");
+
+        // ==========================================
+        // FUNCION: CALCULAR Y MOSTRAR EFICIENCIA
+        // ==========================================
+        function calcularEficiencia() {
+            let ofrecido = parseFloat($('#txt_cantidad_ofrecida_kg_ra').val()) || 0;
+            let consumido = parseFloat($('#txt_cantidad_consumida_kg_ra').val()) || 0;
+            let desperdicio = parseFloat($('#txt_desperdicio_kg_ra').val()) || 0;
+            
+            let $indicador = $('#indicador-eficiencia');
+            let $texto = $('#texto-eficiencia');
+            let $barra = $('#barra-eficiencia');
+            
+            if (ofrecido <= 0) {
+                $indicador.addClass('d-none');
+                return;
+            }
+            
+            let eficiencia = 0;
+            let colorFondo, colorTexto, colorBarra, mensaje;
+            
+            if (consumido > 0) {
+                eficiencia = Math.round((consumido / ofrecido) * 100);
+                
+                let noConsumido = ofrecido - consumido;
+                if (desperdicio > noConsumido) {
+                    colorFondo = '#fde8e8';
+                    colorTexto = '#8B0000';
+                    colorBarra = 'bg-danger';
+                    mensaje = '⚠️ Error: Desperdicio (' + desperdicio.toFixed(2) + ' kg) supera lo no consumido (' + noConsumido.toFixed(2) + ' kg)';
+                    eficiencia = 0;
+                } else if (eficiencia >= 90) {
+                    colorFondo = '#d4edda';
+                    colorTexto = '#155724';
+                    colorBarra = 'bg-success';
+                    mensaje = '✅ Excelente eficiencia: ' + eficiencia + '% consumido';
+                } else if (eficiencia >= 70) {
+                    colorFondo = '#e3f2fd';
+                    colorTexto = '#0d47a1';
+                    colorBarra = 'bg-info';
+                    mensaje = 'ℹ️ Buena eficiencia: ' + eficiencia + '% consumido';
+                } else if (eficiencia >= 50) {
+                    colorFondo = '#fff8e6';
+                    colorTexto = '#8B6914';
+                    colorBarra = 'bg-warning';
+                    mensaje = '⚠️ Eficiencia regular: ' + eficiencia + '% consumido';
+                } else {
+                    colorFondo = '#fde8e8';
+                    colorTexto = '#8B0000';
+                    colorBarra = 'bg-danger';
+                    mensaje = '❌ Baja eficiencia: ' + eficiencia + '% consumido';
+                }
+            } else {
+                colorFondo = '#f8f9fa';
+                colorTexto = '#6c757d';
+                colorBarra = 'bg-secondary';
+                mensaje = '⏳ Ingrese cantidad consumida para calcular eficiencia';
+                eficiencia = 0;
+            }
+            
+            $indicador
+                .removeClass('d-none')
+                .css({
+                    'background-color': colorFondo,
+                    'color': colorTexto,
+                    'border-color': colorTexto
+                });
+            
+            $texto.html(mensaje);
+            $barra
+                .removeClass('bg-success bg-info bg-warning bg-danger bg-secondary')
+                .addClass(colorBarra)
+                .css('width', eficiencia + '%')
+                .attr('aria-valuenow', eficiencia)
+                .text(eficiencia > 0 ? eficiencia + '%' : '0%');
+        }
+
+        // ==========================================
+        // FUNCION: VERIFICAR CAMBIO DE STOCK
+        // ==========================================
+        function verificarCambioStock() {
+            let insumoSelect = $('#sel_insumo_ra option:selected');
+            let insumoActual = insumoSelect.val();
+            let insumoAnterior = $('#insumo_anterior').val();
+            let stock = parseFloat(insumoSelect.data('stock')) || 0;
+            let ofrecido = parseFloat($('#txt_cantidad_ofrecida_kg_ra').val()) || 0;
+            let cantidadAnterior = parseFloat($('#cantidad_anterior').val()) || 0;
+            
+            let $indicador = $('#indicador-cambio-stock');
+            let $texto = $('#texto-cambio-stock');
+            
+            if (!insumoActual && !insumoAnterior) {
+                $indicador.addClass('d-none');
+                return;
+            }
+            
+            let colorFondo, colorTexto, mensaje;
+            
+            // Caso 1: Cambió de insumo
+            if (insumoAnterior && insumoActual && insumoActual != insumoAnterior) {
+                if (ofrecido > stock) {
+                    colorFondo = '#fde8e8';
+                    colorTexto = '#8B0000';
+                    mensaje = '❌ Stock insuficiente del nuevo insumo: Necesita ' + ofrecido.toFixed(2) + ' kg, disponible ' + stock.toFixed(2) + ' kg';
+                } else {
+                    let restante = stock - ofrecido;
+                    colorFondo = '#fff8e6';
+                    colorTexto = '#8B6914';
+                    mensaje = '⚠️ Cambio de insumo: Se restaurará stock del insumo anterior y se descontará del nuevo. ' +
+                              'Nuevo stock quedará: ' + restante.toFixed(2) + ' kg';
+                }
+            }
+            // Caso 2: Desvinculó insumo
+            else if (insumoAnterior && !insumoActual) {
+                colorFondo = '#e3f2fd';
+                colorTexto = '#0d47a1';
+                mensaje = 'ℹ️ Se desvinculará el insumo. Stock anterior será restaurado: +' + cantidadAnterior.toFixed(2) + ' kg';
+            }
+            // Caso 3: Vinculó nuevo insumo
+            else if (!insumoAnterior && insumoActual) {
+                if (ofrecido > stock) {
+                    colorFondo = '#fde8e8';
+                    colorTexto = '#8B0000';
+                    mensaje = '❌ Stock insuficiente: Necesita ' + ofrecido.toFixed(2) + ' kg, disponible ' + stock.toFixed(2) + ' kg';
+                } else {
+                    let restante = stock - ofrecido;
+                    colorFondo = '#d4edda';
+                    colorTexto = '#155724';
+                    mensaje = '✅ Stock suficiente: ' + stock.toFixed(2) + ' kg disponibles, quedarán ' + restante.toFixed(2) + ' kg';
+                }
+            }
+            // Caso 4: Mismo insumo, cambió cantidad
+            else if (insumoAnterior && insumoActual && insumoActual == insumoAnterior) {
+                let diferencia = ofrecido - cantidadAnterior;
+                if (diferencia > 0) {
+                    // Necesita más
+                    if (diferencia > stock) {
+                        colorFondo = '#fde8e8';
+                        colorTexto = '#8B0000';
+                        mensaje = '❌ Stock insuficiente para aumento: Necesita ' + diferencia.toFixed(2) + ' kg adicionales, disponible ' + stock.toFixed(2) + ' kg';
+                    } else {
+                        let restante = stock - diferencia;
+                        colorFondo = '#fff8e6';
+                        colorTexto = '#8B6914';
+                        mensaje = '⚠️ Aumento de cantidad: Se descontarán ' + diferencia.toFixed(2) + ' kg adicionales. Stock quedará: ' + restante.toFixed(2) + ' kg';
+                    }
+                } else if (diferencia < 0) {
+                    // Devuelve stock
+                    colorFondo = '#d4edda';
+                    colorTexto = '#155724';
+                    mensaje = '✅ Reducción de cantidad: Se restaurarán ' + Math.abs(diferencia).toFixed(2) + ' kg al stock';
+                } else {
+                    $indicador.addClass('d-none');
+                    return;
+                }
+            }
+            
+            $indicador
+                .removeClass('d-none')
+                .css({
+                    'background-color': colorFondo,
+                    'color': colorTexto,
+                    'border-left': '4px solid ' + colorTexto
+                });
+            
+            $texto.html(mensaje);
+        }
+
+        $(document).ready(function() {
+            
+            // ==========================================
+            // CALCULAR EFICIENCIA AL CARGAR LA PÁGINA
+            // ==========================================
+            calcularEficiencia();
+            verificarCambioStock();
+
+            // ==========================================
+            // EVENTOS PARA CÁLCULOS EN TIEMPO REAL
+            // ==========================================
+            
+            $('#sel_insumo_ra').on('change', function() {
+                verificarCambioStock();
+                // Actualizar mensaje de insumo
+                let selected = $(this).find('option:selected');
+                if (selected.val()) {
+                    $('#msg_insumo').html('<span style="color: #2c5e1a;"><i class="bi bi-check-circle me-1"></i>Insumo seleccionado: ' + selected.text().split('|')[0].trim() + '</span>');
+                } else {
+                    $('#msg_insumo').html('<span class="text-muted">Sin insumo vinculado.</span>');
+                }
+            });
+
+            $('#txt_cantidad_ofrecida_kg_ra').on('input change', function() {
+                verificarCambioStock();
+                calcularEficiencia();
+            });
+
+            $('#txt_cantidad_consumida_kg_ra, #txt_desperdicio_kg_ra').on('input change', function() {
+                calcularEficiencia();
+            });
+
+            // ==========================================
+            // VALIDACION DEL FORMULARIO
+            // ==========================================
+            $("#frm_editar_racion").validate({
+                rules: {
+                    txt_fecha_inicio_ra: {
+                        required: true,
+                        fechaNoFutura: true
+                    },
+                    txt_fecha_fin_ra: {
+                        fechaFinPosterior: true
+                    },
+                    sel_insumo_ra: {
+                        // Opcional
+                    },
+                    txt_cantidad_ofrecida_kg_ra: {
+                        required: true,
+                        decimalValido: true,
+                        number: true,
+                        min: 0.01,
+                        max: 9999.99
+                    },
+                    txt_cantidad_consumida_kg_ra: {
+                        decimalValido: true,
+                        number: true,
+                        min: 0,
+                        consumoValido: true
+                    },
+                    txt_desperdicio_kg_ra: {
+                        decimalValido: true,
+                        number: true,
+                        min: 0,
+                        desperdicioValido: true
+                    },
+                    txt_dias_en_potrero_ra: {
+                        digits: true,
+                        min: 0
+                    }
+                },
+                messages: {
+                    txt_fecha_inicio_ra: {
+                        required: "La fecha de inicio es obligatoria",
+                        fechaNoFutura: "La fecha de inicio no puede ser futura"
+                    },
+                    txt_fecha_fin_ra: {
+                        fechaFinPosterior: "La fecha de fin debe ser posterior o igual a la de inicio"
+                    },
+                    txt_cantidad_ofrecida_kg_ra: {
+                        required: "La cantidad ofrecida es obligatoria",
+                        decimalValido: "Ingrese un número válido (máx. 2 decimales)",
+                        number: "Ingrese un número válido",
+                        min: "Debe ser mayor a 0",
+                        max: "Máximo 9999.99 kg"
+                    },
+                    txt_cantidad_consumida_kg_ra: {
+                        decimalValido: "Ingrese un número válido (máx. 2 decimales)",
+                        number: "Ingrese un número válido",
+                        min: "No puede ser negativo",
+                        consumoValido: "No puede superar la cantidad ofrecida"
+                    },
+                    txt_desperdicio_kg_ra: {
+                        decimalValido: "Ingrese un número válido (máx. 2 decimales)",
+                        number: "Ingrese un número válido",
+                        min: "No puede ser negativo",
+                        desperdicioValido: "No puede superar lo no consumido"
+                    },
+                    txt_dias_en_potrero_ra: {
+                        digits: "Debe ser un número entero",
+                        min: "No puede ser negativo"
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger small",
+                highlight: function(element) {
+                    $(element).addClass("is-invalid");
+                },
+                unhighlight: function(element) {
+                    $(element).removeClass("is-invalid");
+                },
+                invalidHandler: function(event, validator) {
+                    let errores = validator.numberOfInvalids();
+                    if (errores) {
+                        alertaError('Formulario incompleto', 'Existen ' + errores + ' campo(s) con errores. Por favor corríjalos antes de continuar.');
+                    }
+                },
+                onfocusout: function(element) {
+                    this.element(element);
+                },
+                submitHandler: function(form) {
+                    // Validación final de stock antes de enviar
+                    let insumoSelect = $('#sel_insumo_ra option:selected');
+                    let insumoActual = insumoSelect.val();
+                    let insumoAnterior = $('#insumo_anterior').val();
+                    let stock = parseFloat(insumoSelect.data('stock')) || 0;
+                    let ofrecido = parseFloat($('#txt_cantidad_ofrecida_kg_ra').val()) || 0;
+                    let cantidadAnterior = parseFloat($('#cantidad_anterior').val()) || 0;
+                    
+                    // Solo validar si hay cambio de insumo o aumento de cantidad
+                    if (insumoActual) {
+                        if (insumoAnterior && insumoActual != insumoAnterior) {
+                            // Cambió de insumo
+                            if (ofrecido > stock) {
+                                alertaError('Stock insuficiente', 
+                                    'El nuevo insumo solo tiene ' + stock.toFixed(2) + ' kg disponibles. ' +
+                                    'Necesita ' + ofrecido.toFixed(2) + ' kg.');
+                                return false;
+                            }
+                        } else if (insumoAnterior && insumoActual == insumoAnterior) {
+                            // Mismo insumo, verificar si aumentó
+                            let diferencia = ofrecido - cantidadAnterior;
+                            if (diferencia > 0 && diferencia > stock) {
+                                alertaError('Stock insuficiente', 
+                                    'Necesita ' + diferencia.toFixed(2) + ' kg adicionales, pero solo hay ' + 
+                                    stock.toFixed(2) + ' kg disponibles.');
+                                return false;
+                            }
+                        } else if (!insumoAnterior) {
+                            // Vinculó nuevo insumo
+                            if (ofrecido > stock) {
+                                alertaError('Stock insuficiente', 
+                                    'El insumo seleccionado solo tiene ' + stock.toFixed(2) + ' kg disponibles. ' +
+                                    'Necesita ' + ofrecido.toFixed(2) + ' kg.');
+                                return false;
+                            }
+                        }
+                    }
+                    
+                    form.submit();
+                }
+            });
+
+            // ==========================================
+            // BLOQUEO EN TIEMPO REAL - CANTIDADES
+            // ==========================================
+            $('#txt_cantidad_ofrecida_kg_ra, #txt_cantidad_consumida_kg_ra, #txt_desperdicio_kg_ra').on('input', function() {
+                let valor = $(this).val();
+                valor = valor.replace(',', '.');
+                if (valor && !/^\d*\.?\d{0,2}$/.test(valor)) {
+                    valor = valor.substring(0, valor.length - 1);
+                }
+                $(this).val(valor);
+            });
+
+            // ==========================================
+            // VALIDACION AL PERDER FOCO - FECHAS
+            // ==========================================            
+            $('#txt_fecha_fin_ra').on('blur', function() {
+                let fechaInicio = $('#txt_fecha_inicio_ra').val();
+                let fechaFin = $(this).val();
+                
+                if (fechaFin && fechaInicio) {
+                    if (new Date(fechaFin) < new Date(fechaInicio)) {
+                        $(this).val('{% if racion.fecha_fin_ra %}{{ racion.fecha_fin_ra|date:"Y-m-d" }}{% endif %}');
+                        alertaError('Fecha inválida', 'La fecha de fin debe ser posterior o igual a la fecha de inicio. Se ha restaurado la fecha original.');
+                        $(this).focus();
+                    }
+                }
+            });
+
+            $('#txt_fecha_inicio_ra').on('blur', function() {
+                let fechaInicio = $(this).val();
+                let hoy = new Date();
+                hoy.setHours(23, 59, 59, 999);
+                
+                if (fechaInicio && new Date(fechaInicio) > hoy) {
+                    $(this).val('{{ racion.fecha_inicio_ra|date:"Y-m-d" }}');
+                    alertaError('Fecha inválida', 'La fecha de inicio no puede ser futura. Se ha restaurado la fecha original.');
+                }
+            });
+
+        });
+    </script>
+{% endblock %}
