@@ -24,8 +24,7 @@ SECRET_KEY = 'django-insecure-^)r!fe^4tho3&ipvc$jupgg=pjj5%8+rhx2fysz7%q7p_lq#fx
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['ganadoswg.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
