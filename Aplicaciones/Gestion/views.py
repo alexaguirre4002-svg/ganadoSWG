@@ -9996,11 +9996,11 @@ def dashboardml(request):
     Dashboard de Machine Learning con predicciones automaticas.
     """
     from .ml_engine import modelo_esta_entrenado, predecir
-    
+
     estado_ad1 = modelo_esta_entrenado('AD-1')
     estado_ad2 = modelo_esta_entrenado('AD-2')
     estado_rl4 = modelo_esta_entrenado('RL-4')
-    
+
     metrica_ad1 = metrica_ad2 = metrica_rl4 = None
     try:
         m = ModeloML.objects.filter(codigo_mm='AD-1').first()
@@ -10014,25 +10014,83 @@ def dashboardml(request):
         m = ModeloML.objects.filter(codigo_mm='RL-4').first()
         if m: metrica_rl4 = round(float(m.valor_metrica_mm), 4) if m.valor_metrica_mm else None
     except: pass
-    
+
+    # ── AD-1: Prediccion de litros de leche ──
+    # AD-1 es regresion (predice numeros), no tiene probabilidad, por eso confianza = N/A
     predicciones_ad1 = []
     if estado_ad1:
-        for o in Ordeno.objects.filter(temperatura_ambiental_or__isnull=False, cantidad_concentrado_kg_or__isnull=False, temperatura_leche_or__isnull=False).order_by('-fecha_or')[:5]:
-            r = predecir('AD-1', {'temperatura_ambiental': float(o.temperatura_ambiental_or), 'cantidad_concentrado_kg': float(o.cantidad_concentrado_kg_or), 'temperatura_leche': float(o.temperatura_leche_or)})
+        for o in Ordeno.objects.filter(
+            temperatura_ambiental_or__isnull=False,
+            cantidad_concentrado_kg_or__isnull=False,
+            temperatura_leche_or__isnull=False
+        ).order_by('-fecha_or')[:5]:
+            r = predecir('AD-1', {
+                'temperatura_ambiental': float(o.temperatura_ambiental_or),
+                'cantidad_concentrado_kg': float(o.cantidad_concentrado_kg_or),
+                'temperatura_leche': float(o.temperatura_leche_or)
+            })
             if r['exito']:
-                predicciones_ad1.append({'animal': o.fk_an.codigo_an if o.fk_an else 'Sin nombre', 'temperatura_ambiental': o.temperatura_ambiental_or, 'cantidad_concentrado_kg': o.cantidad_concentrado_kg_or, 'temperatura_leche': o.temperatura_leche_or, 'prediccion': r['prediccion'], 'confianza': f"{r.get('probabilidad', 0)*100:.1f}%"})
-    
+                predicciones_ad1.append({
+                    'animal': o.fk_an.codigo_an if o.fk_an else 'Sin nombre',
+                    'temperatura_ambiental': o.temperatura_ambiental_or,
+                    'cantidad_concentrado_kg': o.cantidad_concentrado_kg_or,
+                    'temperatura_leche': o.temperatura_leche_or,
+                    'prediccion': r['prediccion'],
+                    'confianza': 'N/A'  # AD-1 es regresion, no tiene probabilidad
+                })
+
+    # ── AD-2: Prediccion de prenez (inseminaciones pendientes) ──
+    predicciones_ad2 = []
+    if estado_ad2:
+        for ins in Inseminacion.objects.filter(
+            resultado_in='pendiente',
+            condicion_corporal_in__isnull=False,
+            fecha_in__isnull=False
+        ).order_by('-fecha_in')[:5]:
+            dias = (date.today() - ins.fecha_in).days
+            r = predecir('AD-2', {
+                'dias_desde_inseminacion': dias,
+                'condicion_corporal': ins.condicion_corporal_in,
+                'dia_ciclo': ins.dia_ciclo_in or 14
+            })
+            if r['exito']:
+                predicciones_ad2.append({
+                    'animal': ins.fk_an.codigo_an if ins.fk_an else 'Sin nombre',
+                    'dias': dias,
+                    'condicion_corporal': ins.condicion_corporal_in,
+                    'prediccion': r['prediccion'],
+                    'confianza': f"{r.get('probabilidad', 0)*100:.1f}%"
+                })
+
+    # ── RL-4: Prediccion de calidad de leche ──
     predicciones_rl4 = []
     if estado_rl4:
-        for c in CalidadLeche.objects.filter(grasa_pct_cl__isnull=False, proteina_pct_cl__isnull=False, ccs_cl__isnull=False).order_by('-fecha_muestreo_cl')[:5]:
-            r = predecir('RL-4', {'grasa_pct': float(c.grasa_pct_cl), 'proteina_pct': float(c.proteina_pct_cl), 'ccs': float(c.ccs_cl)})
+        for c in CalidadLeche.objects.filter(
+            grasa_pct_cl__isnull=False,
+            proteina_pct_cl__isnull=False,
+            ccs_cl__isnull=False
+        ).order_by('-fecha_muestreo_cl')[:5]:
+            r = predecir('RL-4', {
+                'grasa_pct': float(c.grasa_pct_cl),
+                'proteina_pct': float(c.proteina_pct_cl),
+                'ccs': float(c.ccs_cl)
+            })
             if r['exito']:
-                predicciones_rl4.append({'animal': c.fk_an.codigo_an if c.fk_an else 'Sin nombre', 'grasa': c.grasa_pct_cl, 'proteina': c.proteina_pct_cl, 'ccs': c.ccs_cl, 'prediccion': r['prediccion'], 'confianza': f"{r.get('probabilidad', 0)*100:.1f}%"})
-    
+                predicciones_rl4.append({
+                    'animal': c.fk_an.codigo_an if c.fk_an else 'Sin nombre',
+                    'grasa': c.grasa_pct_cl,
+                    'proteina': c.proteina_pct_cl,
+                    'ccs': c.ccs_cl,
+                    'prediccion': r['prediccion'],
+                    'confianza': f"{r.get('probabilidad', 0)*100:.1f}%"
+                })
+
     return render(request, 'ML/prediccionML/dashboard/dashboard_ml.html', {
         'estado_ad1': estado_ad1, 'estado_ad2': estado_ad2, 'estado_rl4': estado_rl4,
         'metrica_ad1': metrica_ad1, 'metrica_ad2': metrica_ad2, 'metrica_rl4': metrica_rl4,
-        'predicciones_ad1': predicciones_ad1, 'predicciones_rl4': predicciones_rl4,
+        'predicciones_ad1': predicciones_ad1,
+        'predicciones_ad2': predicciones_ad2,
+        'predicciones_rl4': predicciones_rl4,
     })
 
 
@@ -10078,7 +10136,6 @@ def prediccion_ad1(request):
             if not resultado['exito']:
                 error = resultado['mensaje']
             else:
-                # Guardar prediccion en tabla PrediccionML para auditoria
                 from .models import ModeloML, PrediccionML
                 try:
                     modelo_db = ModeloML.objects.get(codigo_mm='AD-1')
@@ -10118,8 +10175,8 @@ def prediccion_ad2(request):
     if request.method == 'POST':
         datos = {
             'dias_desde_inseminacion': request.POST.get('dias_desde_inseminacion', '60'),
-            'temperatura_cuerpo': request.POST.get('temperatura_cuerpo', '38.5'),
-            'condicion_corporal': request.POST.get('condicion_corporal', '3.5'),
+            'condicion_corporal': request.POST.get('condicion_corporal', '3'),
+            'dia_ciclo': request.POST.get('dia_ciclo', '14'),
         }
         if not modelo_esta_entrenado('AD-2'):
             error = 'El modelo AD-2 NO esta entrenado. Ejecute: python manage.py entrenar_ml AD-2 --ejemplo'
@@ -10145,8 +10202,8 @@ def prediccion_ad2(request):
         'descripcion': 'Ingrese los datos de la inseminacion para predecir si la vaca esta preñada.',
         'campos': [
             {'nombre': 'dias_desde_inseminacion', 'label': 'Dias desde Inseminacion', 'tipo': 'number', 'paso': '1', 'valor': datos.get('dias_desde_inseminacion', '60')},
-            {'nombre': 'temperatura_cuerpo', 'label': 'Temperatura Corporal (°C)', 'tipo': 'number', 'paso': '0.1', 'valor': datos.get('temperatura_cuerpo', '38.5')},
-            {'nombre': 'condicion_corporal', 'label': 'Condicion Corporal (1-5)', 'tipo': 'number', 'paso': '0.1', 'valor': datos.get('condicion_corporal', '3.5')},
+            {'nombre': 'condicion_corporal', 'label': 'Condicion Corporal (1-5)', 'tipo': 'number', 'paso': '1', 'valor': datos.get('condicion_corporal', '3')},
+            {'nombre': 'dia_ciclo', 'label': 'Dia del Ciclo (1-21)', 'tipo': 'number', 'paso': '1', 'valor': datos.get('dia_ciclo', '14')},
         ],
         'resultado': resultado,
         'error': error,
@@ -10214,7 +10271,7 @@ def dashboard_grafico(request):
     """
     from .ml_engine import modelo_esta_entrenado
     from django.db.models.functions import ExtractMonth, ExtractYear
-    
+
     # === PRODUCCIÓN DE LECHE ===
     produccion_mes = Ordeno.objects.annotate(
         mes=ExtractMonth('fecha_or'),
@@ -10223,16 +10280,16 @@ def dashboard_grafico(request):
         total_litros=Sum('litros_or'),
         cantidad=Count('id_or')
     ).order_by('anio', 'mes')[:12]
-    
+
     produccion_animal = Ordeno.objects.values('fk_an__codigo_an').annotate(
         total_litros=Sum('litros_or'),
         promedio=Avg('litros_or')
     ).order_by('-total_litros')[:5]
-    
+
     litros_turno = Ordeno.objects.values('turno_or').annotate(
         total=Sum('litros_or')
     )
-    
+
     # === CALIDAD DE LECHE ===
     calidad_mes = CalidadLeche.objects.annotate(
         mes=ExtractMonth('fecha_muestreo_cl'),
@@ -10241,7 +10298,7 @@ def dashboard_grafico(request):
         aptos=Count('id_cl', filter=Q(resultado_cl='apto')),
         no_aptos=Count('id_cl', filter=Q(resultado_cl='no_apto'))
     ).order_by('anio', 'mes')[:12]
-    
+
     # === ANIMALES ===
     total_animales = Animal.objects.count()
     animales_categoria = Animal.objects.values('categoria_an').annotate(
@@ -10250,26 +10307,26 @@ def dashboard_grafico(request):
     animales_estado = Animal.objects.values('estado_an').annotate(
         cantidad=Count('id_an')
     )
-    
+
     # === FINANZAS ===
     total_costos = Costo.objects.aggregate(total=Sum('monto_co'))['total'] or 0
     total_ingresos = Ingreso.objects.aggregate(total=Sum('monto_total_ig'))['total'] or 0
     balance = float(total_ingresos) - float(total_costos)
-    
+
     costos_categoria = Costo.objects.values('categoria_co').annotate(
         total=Sum('monto_co')
     ).order_by('-total')[:5]
-    
+
     # === MACHINE LEARNING ===
     ml_estado = {
         'ad1': modelo_esta_entrenado('AD-1'),
         'ad2': modelo_esta_entrenado('AD-2'),
         'rl4': modelo_esta_entrenado('RL-4'),
     }
-    
+
     # === RECOMENDACIONES ===
     recomendaciones = []
-    
+
     if produccion_mes:
         ultimos_3 = list(produccion_mes)[-3:]
         if len(ultimos_3) >= 2:
@@ -10288,7 +10345,7 @@ def dashboard_grafico(request):
                     'titulo': 'Tendencia Negativa en Producción',
                     'texto': 'La producción ha disminuido. Se recomienda revisar la alimentación y estado de salud del ganado.'
                 })
-    
+
     calidad_total = CalidadLeche.objects.count()
     if calidad_total > 0:
         aptos_pct = CalidadLeche.objects.filter(resultado_cl='apto').count() / calidad_total * 100
@@ -10306,7 +10363,7 @@ def dashboard_grafico(request):
                 'titulo': 'Calidad de Leche Aceptable',
                 'texto': f'El {aptos_pct:.1f}% de las muestras son aptas. Mantener buenas prácticas de ordeño.'
             })
-    
+
     if balance < 0:
         recomendaciones.append({
             'tipo': 'danger',
@@ -10321,7 +10378,7 @@ def dashboard_grafico(request):
             'titulo': 'Balance Positivo',
             'texto': f'La hacienda tiene una utilidad de ${balance:.2f}. El manejo financiero es adecuado.'
         })
-    
+
     if ml_estado['ad1'] and ml_estado['rl4']:
         recomendaciones.append({
             'tipo': 'info',
@@ -10329,17 +10386,17 @@ def dashboard_grafico(request):
             'titulo': 'Machine Learning Activo',
             'texto': 'Los modelos de predicción están entrenados y listos para apoyar la toma de decisiones.'
         })
-    
+
     # === PREPARAR DATOS PARA GRÁFICAS ===
     meses_labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-    
+
     prod_labels = []
     prod_values = []
     for p in produccion_mes:
         label = f"{meses_labels[p['mes']-1]} {p['anio']}"
         prod_labels.append(label)
         prod_values.append(float(p['total_litros'] or 0))
-    
+
     cal_labels = []
     cal_aptos = []
     cal_no_aptos = []
@@ -10348,16 +10405,16 @@ def dashboard_grafico(request):
         cal_labels.append(label)
         cal_aptos.append(c['aptos'])
         cal_no_aptos.append(c['no_aptos'])
-    
+
     cat_labels = [a['categoria_an'] for a in animales_categoria]
     cat_values = [a['cantidad'] for a in animales_categoria]
-    
+
     cost_labels = [c['categoria_co'] for c in costos_categoria]
     cost_values = [float(c['total'] or 0) for c in costos_categoria]
-    
+
     turno_labels = [t['turno_or'] for t in litros_turno]
     turno_values = [float(t['total'] or 0) for t in litros_turno]
-    
+
     contexto = {
         'prod_labels': prod_labels,
         'prod_values': prod_values,
@@ -10379,10 +10436,13 @@ def dashboard_grafico(request):
         'ml_estado': ml_estado,
         'recomendaciones': recomendaciones,
     }
-    
+
     return render(request, 'dashboard_grafico.html', contexto)
 
-#PARA ACTUALIZAR ARCHIVOS ML 
+
+# ==========================================
+# PARA ACTUALIZAR ARCHIVOS ML DESDE RENDER
+# ==========================================
 from .ml_engine import entrenar_modelo
 
 def entrenar_modelos_render(request):
@@ -10390,10 +10450,10 @@ def entrenar_modelos_render(request):
     clave = request.GET.get('clave', '')
     if clave != 'mi_clave_secreta_123':
         return JsonResponse({'error': 'No autorizado'}, status=403)
-    
+
     resultados = {}
     resultados['AD-1'] = entrenar_modelo('AD-1', usar_datos_ejemplo=True)
     resultados['AD-2'] = entrenar_modelo('AD-2', usar_datos_ejemplo=True)
     resultados['RL-4'] = entrenar_modelo('RL-4', usar_datos_ejemplo=True)
-    
+
     return JsonResponse(resultados, safe=False)
