@@ -10386,9 +10386,12 @@ def dashboard_grafico(request):
 from .ml_engine import entrenar_modelo
 
 def entrenar_modelos_render(request):
-    """Vista temporal para entrenar modelos en Render"""
-    resultados = {}
+    # Solo funciona si pasas la clave correcta
+    clave = request.GET.get('clave', '')
+    if clave != 'mi_clave_secreta_123':
+        return JsonResponse({'error': 'No autorizado'}, status=403)
     
+    resultados = {}
     resultados['AD-1'] = entrenar_modelo('AD-1', usar_datos_ejemplo=True)
     resultados['AD-2'] = entrenar_modelo('AD-2', usar_datos_ejemplo=True)
     resultados['RL-4'] = entrenar_modelo('RL-4', usar_datos_ejemplo=True)
