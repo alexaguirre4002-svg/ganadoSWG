@@ -79,32 +79,39 @@ Dashboard Machine Learning | Hacienda Joseph
         <div class="card-hacienda">
             <div class="card-header-hacienda">
                 <i class="bi bi-droplet-fill me-2"></i>Predicciones Automaticas: Proxima Produccion de Leche
+                <small class="ms-2 fw-normal opacity-75">(ultimo ordeño por animal)</small>
             </div>
             <div class="p-3">
                 <table class="table table-hover table-bordered">
                     <thead class="table-light">
                         <tr>
                             <th>Animal</th>
+                            <th>Mes / Año</th>
                             <th>Temp. Ambiental</th>
                             <th>Concentrado (kg)</th>
                             <th>Temp. Leche</th>
                             <th>Prediccion (litros)</th>
-                            <th>Confianza</th>
+                            <th>Confianza (R²)</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for p in predicciones_ad1 %}
                         <tr>
-                            <td>{{ p.animal }}</td>
+                            <td class="fw-bold">{{ p.animal }}</td>
+                            <td><span class="badge" style="background:#e8f5e9; color:#2c5e1a;">{{ p.mes_anio }}</span></td>
                             <td>{{ p.temperatura_ambiental }}</td>
                             <td>{{ p.cantidad_concentrado_kg }}</td>
                             <td>{{ p.temperatura_leche }}</td>
                             <td class="fw-bold" style="color: var(--color-primario);">{{ p.prediccion }} L</td>
-                            <td><span class="badge bg-secondary">{{ p.confianza }}</span></td>
+                            <td><span class="badge bg-info text-dark">{{ p.confianza }}</span></td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                <small class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    R² mide qué tan bien explica el modelo la variación en producción. R² = 90%+ es excelente.
+                </small>
             </div>
         </div>
     </div>
@@ -118,13 +125,15 @@ Dashboard Machine Learning | Hacienda Joseph
         <div class="card-hacienda">
             <div class="card-header-hacienda">
                 <i class="bi bi-heart-pulse-fill me-2"></i>Predicciones Automaticas: Estado de Preñez
+                <small class="ms-2 fw-normal opacity-75">(inseminaciones pendientes por animal)</small>
             </div>
             <div class="p-3">
                 <table class="table table-hover table-bordered">
                     <thead class="table-light">
                         <tr>
                             <th>Animal</th>
-                            <th>Dias desde Inseminacion</th>
+                            <th>Mes / Año Inseminacion</th>
+                            <th>Dias transcurridos</th>
                             <th>Condicion Corporal</th>
                             <th>Prediccion</th>
                             <th>Confianza</th>
@@ -133,7 +142,8 @@ Dashboard Machine Learning | Hacienda Joseph
                     <tbody>
                         {% for p in predicciones_ad2 %}
                         <tr>
-                            <td>{{ p.animal }}</td>
+                            <td class="fw-bold">{{ p.animal }}</td>
+                            <td><span class="badge" style="background:#e8f5e9; color:#2c5e1a;">{{ p.mes_anio }}</span></td>
                             <td>{{ p.dias }} días</td>
                             <td>{{ p.condicion_corporal }}</td>
                             <td class="fw-bold">
@@ -161,12 +171,14 @@ Dashboard Machine Learning | Hacienda Joseph
         <div class="card-hacienda">
             <div class="card-header-hacienda">
                 <i class="bi bi-check-circle-fill me-2"></i>Predicciones Automaticas: Calidad de Leche
+                <small class="ms-2 fw-normal opacity-75">(ultima muestra por animal)</small>
             </div>
             <div class="p-3">
                 <table class="table table-hover table-bordered">
                     <thead class="table-light">
                         <tr>
                             <th>Animal</th>
+                            <th>Mes / Año Muestra</th>
                             <th>Grasa (%)</th>
                             <th>Proteina (%)</th>
                             <th>CCS</th>
@@ -177,7 +189,8 @@ Dashboard Machine Learning | Hacienda Joseph
                     <tbody>
                         {% for p in predicciones_rl4 %}
                         <tr>
-                            <td>{{ p.animal }}</td>
+                            <td class="fw-bold">{{ p.animal }}</td>
+                            <td><span class="badge" style="background:#e8f5e9; color:#2c5e1a;">{{ p.mes_anio }}</span></td>
                             <td>{{ p.grasa }}</td>
                             <td>{{ p.proteina }}</td>
                             <td>{{ p.ccs }}</td>

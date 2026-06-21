@@ -9994,6 +9994,9 @@ def eliminaingreso(request, id_ig):
 def dashboardml(request):
     """
     Dashboard de Machine Learning con predicciones automaticas.
+    - AD-1: Una prediccion por animal (ordeño mas reciente), muestra mes/año y R²
+    - AD-2: Inseminaciones pendientes, una por animal
+    - RL-4: Una prediccion por animal (muestra de calidad mas reciente), muestra mes/año
     """
     from .ml_engine import modelo_esta_entrenado, predecir
 
@@ -10015,15 +10018,24 @@ def dashboardml(request):
         if m: metrica_rl4 = round(float(m.valor_metrica_mm), 4) if m.valor_metrica_mm else None
     except: pass
 
-    # ── AD-1: Prediccion de litros de leche ──
-    # AD-1 es regresion (predice numeros), no tiene probabilidad, por eso confianza = N/A
+    # ── AD-1: UNA prediccion por animal, ordeño mas reciente ──
+    # Confianza muestra R² porque es regresion (no tiene probabilidad)
     predicciones_ad1 = []
     if estado_ad1:
-        for o in Ordeno.objects.filter(
+        # Obtener el ordeño mas reciente de cada animal (sin repetir animales)
+        animales_vistos = set()
+        ordenos = Ordeno.objects.filter(
             temperatura_ambiental_or__isnull=False,
             cantidad_concentrado_kg_or__isnull=False,
             temperatura_leche_or__isnull=False
-        ).order_by('-fecha_or')[:5]:
+        ).order_by('-fecha_or')
+
+        for o in ordenos:
+            id_animal = o.fk_an_id
+            if id_animal in animales_vistos:
+                continue  # ya procesamos este animal, saltar
+            animales_vistos.add(id_animal)
+
             r = predecir('AD-1', {
                 'temperatura_ambiental': float(o.temperatura_ambiental_or),
                 'cantidad_concentrado_kg': float(o.cantidad_concentrado_kg_or),
@@ -10032,21 +10044,33 @@ def dashboardml(request):
             if r['exito']:
                 predicciones_ad1.append({
                     'animal': o.fk_an.codigo_an if o.fk_an else 'Sin nombre',
+                    'mes_anio': o.fecha_or.strftime('%b %Y'),  # ej: "Jun 2026"
                     'temperatura_ambiental': o.temperatura_ambiental_or,
                     'cantidad_concentrado_kg': o.cantidad_concentrado_kg_or,
                     'temperatura_leche': o.temperatura_leche_or,
                     'prediccion': r['prediccion'],
-                    'confianza': 'N/A'  # AD-1 es regresion, no tiene probabilidad
+                    'confianza': f"R²: {round(metrica_ad1 * 100, 1)}%" if metrica_ad1 else 'N/A'
                 })
 
-    # ── AD-2: Prediccion de prenez (inseminaciones pendientes) ──
+            if len(predicciones_ad1) >= 5:
+                break  # maximo 5 animales diferentes
+
+    # ── AD-2: UNA prediccion por animal, inseminacion pendiente mas reciente ──
     predicciones_ad2 = []
     if estado_ad2:
-        for ins in Inseminacion.objects.filter(
+        animales_vistos_ad2 = set()
+        inseminaciones = Inseminacion.objects.filter(
             resultado_in='pendiente',
             condicion_corporal_in__isnull=False,
             fecha_in__isnull=False
-        ).order_by('-fecha_in')[:5]:
+        ).order_by('-fecha_in')
+
+        for ins in inseminaciones:
+            id_animal = ins.fk_an_id
+            if id_animal in animales_vistos_ad2:
+                continue
+            animales_vistos_ad2.add(id_animal)
+
             dias = (date.today() - ins.fecha_in).days
             r = predecir('AD-2', {
                 'dias_desde_inseminacion': dias,
@@ -10056,20 +10080,32 @@ def dashboardml(request):
             if r['exito']:
                 predicciones_ad2.append({
                     'animal': ins.fk_an.codigo_an if ins.fk_an else 'Sin nombre',
+                    'mes_anio': ins.fecha_in.strftime('%b %Y'),
                     'dias': dias,
                     'condicion_corporal': ins.condicion_corporal_in,
                     'prediccion': r['prediccion'],
                     'confianza': f"{r.get('probabilidad', 0)*100:.1f}%"
                 })
 
-    # ── RL-4: Prediccion de calidad de leche ──
+            if len(predicciones_ad2) >= 5:
+                break
+
+    # ── RL-4: UNA prediccion por animal, muestra mas reciente ──
     predicciones_rl4 = []
     if estado_rl4:
-        for c in CalidadLeche.objects.filter(
+        animales_vistos_rl4 = set()
+        calidades = CalidadLeche.objects.filter(
             grasa_pct_cl__isnull=False,
             proteina_pct_cl__isnull=False,
             ccs_cl__isnull=False
-        ).order_by('-fecha_muestreo_cl')[:5]:
+        ).order_by('-fecha_muestreo_cl')
+
+        for c in calidades:
+            id_animal = c.fk_an_id
+            if id_animal in animales_vistos_rl4:
+                continue
+            animales_vistos_rl4.add(id_animal)
+
             r = predecir('RL-4', {
                 'grasa_pct': float(c.grasa_pct_cl),
                 'proteina_pct': float(c.proteina_pct_cl),
@@ -10078,12 +10114,16 @@ def dashboardml(request):
             if r['exito']:
                 predicciones_rl4.append({
                     'animal': c.fk_an.codigo_an if c.fk_an else 'Sin nombre',
+                    'mes_anio': c.fecha_muestreo_cl.strftime('%b %Y'),
                     'grasa': c.grasa_pct_cl,
                     'proteina': c.proteina_pct_cl,
                     'ccs': c.ccs_cl,
                     'prediccion': r['prediccion'],
                     'confianza': f"{r.get('probabilidad', 0)*100:.1f}%"
                 })
+
+            if len(predicciones_rl4) >= 5:
+                break
 
     return render(request, 'ML/prediccionML/dashboard/dashboard_ml.html', {
         'estado_ad1': estado_ad1, 'estado_ad2': estado_ad2, 'estado_rl4': estado_rl4,
