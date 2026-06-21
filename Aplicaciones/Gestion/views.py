@@ -10381,3 +10381,16 @@ def dashboard_grafico(request):
     }
     
     return render(request, 'dashboard_grafico.html', contexto)
+
+#PARA ACTUALIZAR ARCHIVOS ML 
+from .ml_engine import entrenar_modelo
+
+def entrenar_modelos_render(request):
+    """Vista temporal para entrenar modelos en Render"""
+    resultados = {}
+    
+    resultados['AD-1'] = entrenar_modelo('AD-1', usar_datos_ejemplo=True)
+    resultados['AD-2'] = entrenar_modelo('AD-2', usar_datos_ejemplo=True)
+    resultados['RL-4'] = entrenar_modelo('RL-4', usar_datos_ejemplo=True)
+    
+    return JsonResponse(resultados, safe=False)
