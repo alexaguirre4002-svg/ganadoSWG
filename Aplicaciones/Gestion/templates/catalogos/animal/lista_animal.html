@@ -332,7 +332,7 @@ Listado de Animales | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL DETALLE ANIMAL - FOTO OCUPA TODO     -->
+<!-- MODAL DETALLE ANIMAL - CON FOTO GRANDE     -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalDetalleAnimal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -346,13 +346,18 @@ Listado de Animales | Hacienda Joseph
             </div>
             <div class="modal-body p-0" style="background: #fff8e6; overflow-y: auto;">
                 <div class="row g-0">
-                    <!-- COLUMNA DE LA FOTO - OCUPA TODO EL ESPACIO -->
+                    <!-- COLUMNA DE LA FOTO -->
                     <div class="col-md-6" style="background: #f5f0e6; border-right: 2px solid #d4c5a9; min-height: 500px; padding: 0;">
                         <div id="contenedorFotoAnimal" style="width: 100%; height: 100%; min-height: 500px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                            <!-- LA FOTO SE INSERTA AQUÍ CON object-fit: cover -->
+                            <img id="fotoAnimalDetalle" src="" alt="Foto del animal" style="width: 100%; height: 100%; min-height: 500px; object-fit: cover; border-radius: 12px; border: 3px solid #DAA520; box-shadow: 0 4px 15px rgba(0,0,0,0.2); background-color: #f5f0e6; display: none;">
+                            <div id="placeholderFoto" class="foto-animal-placeholder" style="width: 100%; height: 100%; min-height: 500px; background: linear-gradient(135deg, #eef7e8, #dcefd0); border-radius: 12px; border: 3px dashed #b7d7a8; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #2c5e1a;">
+                                <i class="bi bi-image fs-1 mb-2"></i>
+                                <p class="mb-0 fw-bold">Sin fotografía</p>
+                                <p class="small text-muted">No se ha registrado imagen</p>
+                            </div>
                         </div>
                     </div>
-                    <!-- COLUMNA DE DATOS (DERECHA) -->
+                    <!-- COLUMNA DE DATOS -->
                     <div class="col-md-6">
                         <div class="p-4" style="max-height: 600px; overflow-y: auto;">
                             <div class="row mb-3">
@@ -609,7 +614,7 @@ Listado de Animales | Hacienda Joseph
         background: #3d7a24 !important;
         color: white !important;
     }
-    /* ESTILOS PARA LA FOTO - OCUPA TODO EL CUADRO */
+    /* ESTILOS PARA LA FOTO */
     #contenedorFotoAnimal {
         width: 100%;
         height: 100%;
@@ -642,6 +647,8 @@ Listado de Animales | Hacienda Joseph
         align-items: center;
         justify-content: center;
         color: #2c5e1a;
+        padding: 20px;
+        text-align: center;
     }
 </style>
 
@@ -672,7 +679,7 @@ Listado de Animales | Hacienda Joseph
 
 <script>
     // ==========================================
-    // MODAL DETALLE ANIMAL - FOTO OCUPA TODO
+    // MODAL DETALLE ANIMAL - CON FOTO GRANDE
     // ==========================================
     var modalDetalleAnimal = document.getElementById('modalDetalleAnimal');
     modalDetalleAnimal.addEventListener('show.bs.modal', function (event) {
@@ -700,8 +707,6 @@ Listado de Animales | Hacienda Joseph
         var foto = button.getAttribute('data-foto');
         
         document.getElementById('detalleCodigo').textContent = codigo;
-        document.getElementById('detalleCodigoFoto').textContent = codigo;
-        document.getElementById('detalleNombreFoto').textContent = nombre;
         document.getElementById('detalleRaza').textContent = raza;
         document.getElementById('detalleSexo').textContent = sexo;
         document.getElementById('detalleCategoria').textContent = categoria;
@@ -750,26 +755,29 @@ Listado de Animales | Hacienda Joseph
         // ==========================================
         // MANEJO DE LA FOTO - OCUPA TODO EL CUADRO
         // ==========================================
-        var contenedorFoto = document.getElementById('contenedorFotoAnimal');
+        var imgFoto = document.getElementById('fotoAnimalDetalle');
+        var placeholder = document.getElementById('placeholderFoto');
+        
         if (foto && foto.trim() !== '') {
-            var imgHtml = '<img src="' + foto + '" alt="Foto de ' + codigo + '">';
-            contenedorFoto.innerHTML = imgHtml;
-            var img = contenedorFoto.querySelector('img');
-            img.onerror = function() {
-                contenedorFoto.innerHTML = 
-                    '<div class="foto-animal-placeholder">' +
+            imgFoto.src = foto;
+            imgFoto.style.display = 'block';
+            placeholder.style.display = 'none';
+            
+            imgFoto.onerror = function() {
+                imgFoto.style.display = 'none';
+                placeholder.style.display = 'flex';
+                placeholder.innerHTML = 
                     '<i class="bi bi-image fs-1 mb-2"></i>' +
                     '<p class="mb-0 fw-bold">Imagen no disponible</p>' +
-                    '<p class="small text-muted">No se pudo cargar la imagen</p>' +
-                    '</div>';
+                    '<p class="small text-muted">No se pudo cargar la imagen</p>';
             };
         } else {
-            contenedorFoto.innerHTML = 
-                '<div class="foto-animal-placeholder">' +
+            imgFoto.style.display = 'none';
+            placeholder.style.display = 'flex';
+            placeholder.innerHTML = 
                 '<i class="bi bi-image fs-1 mb-2"></i>' +
                 '<p class="mb-0 fw-bold">Sin fotografía</p>' +
-                '<p class="small text-muted">No se ha registrado imagen</p>' +
-                '</div>';
+                '<p class="small text-muted">No se ha registrado imagen</p>';
         }
         
         document.getElementById('btnEditarDesdeDetalle').href = '/editaranimal/' + id;
