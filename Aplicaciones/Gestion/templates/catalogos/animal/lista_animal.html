@@ -335,8 +335,8 @@ Listado de Animales | Hacienda Joseph
 <!-- MODAL DETALLE ANIMAL - FOTO GRANDE         -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalDetalleAnimal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden; max-height: 90vh;">
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-eye-fill me-2" style="color: #DAA520;"></i>
@@ -344,22 +344,24 @@ Listado de Animales | Hacienda Joseph
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0" style="background: #fff8e6;">
+            <div class="modal-body p-0" style="background: #fff8e6; overflow-y: auto;">
                 <div class="row g-0">
-                    <div class="col-md-5" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
+                    <!-- COLUMNA DE LA FOTO (IZQUIERDA) - AHORA MÁS GRANDE -->
+                    <div class="col-md-6" style="background: #f5f0e6; border-right: 2px solid #d4c5a9; min-height: 500px;">
                         <div class="p-3 h-100 d-flex flex-column align-items-center justify-content-center">
-                            <div id="contenedorFotoAnimal" class="w-100 text-center" style="min-height: 300px; display: flex; align-items: center; justify-content: center;">
+                            <div id="contenedorFotoAnimal" class="w-100 text-center" style="min-height: 400px; display: flex; align-items: center; justify-content: center;">
                             </div>
-                            <p class="mt-3 mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleCodigoFoto"></p>
-                            <p class="text-muted mb-0" style="font-size: 14px;" id="detalleNombreFoto"></p>
+                            <p class="mt-3 mb-0 fw-bold" style="color: #2c5e1a; font-size: 20px;" id="detalleCodigoFoto"></p>
+                            <p class="text-muted mb-0" style="font-size: 16px;" id="detalleNombreFoto"></p>
                         </div>
                     </div>
-                    <div class="col-md-7">
-                        <div class="p-4">
+                    <!-- COLUMNA DE DATOS (DERECHA) -->
+                    <div class="col-md-6">
+                        <div class="p-4" style="max-height: 600px; overflow-y: auto;">
                             <div class="row mb-3">
                                 <div class="col-6">
                                     <label class="text-muted small fw-bold">CÓDIGO</label>
-                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;" id="detalleCodigo"></p>
+                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleCodigo"></p>
                                 </div>
                                 <div class="col-6 text-end">
                                     <label class="text-muted small fw-bold">ESTADO</label>
@@ -612,8 +614,8 @@ Listado de Animales | Hacienda Joseph
     }
     .foto-animal-detalle {
         width: 100%;
-        height: 350px;
-        object-fit: cover;
+        height: 450px;
+        object-fit: contain;
         border-radius: 12px;
         border: 3px solid #DAA520;
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
@@ -621,7 +623,7 @@ Listado de Animales | Hacienda Joseph
     }
     .foto-animal-placeholder {
         width: 100%;
-        height: 350px;
+        height: 450px;
         background: linear-gradient(135deg, #eef7e8, #dcefd0);
         border-radius: 12px;
         border: 3px dashed #b7d7a8;
@@ -630,6 +632,24 @@ Listado de Animales | Hacienda Joseph
         align-items: center;
         justify-content: center;
         color: #2c5e1a;
+    }
+    /* ESTILO PARA QUE LA FOTO OCUPE TODO EL CUADRO */
+    #contenedorFotoAnimal {
+        width: 100%;
+        min-height: 450px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    #contenedorFotoAnimal img {
+        width: 100%;
+        height: 450px;
+        object-fit: contain;
+        border-radius: 12px;
+        border: 3px solid #DAA520;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        background-color: #f5f0e6;
     }
 </style>
 
@@ -660,7 +680,7 @@ Listado de Animales | Hacienda Joseph
 
 <script>
     // ==========================================
-    // MODAL DETALLE ANIMAL - CORREGIDO
+    // MODAL DETALLE ANIMAL - CORREGIDO CON FOTO GRANDE
     // ==========================================
     var modalDetalleAnimal = document.getElementById('modalDetalleAnimal');
     modalDetalleAnimal.addEventListener('show.bs.modal', function (event) {
@@ -736,13 +756,12 @@ Listado de Animales | Hacienda Joseph
         document.getElementById('detalleEstado').innerHTML = estadoHtml;
         
         // ==========================================
-        // MANEJO DE LA FOTO - CORREGIDO
+        // MANEJO DE LA FOTO - GRANDE Y COMPLETA
         // ==========================================
         var contenedorFoto = document.getElementById('contenedorFotoAnimal');
         if (foto && foto.trim() !== '') {
             // USAR LA URL DE CLOUDINARY DIRECTAMENTE
-            var rutaFoto = foto;
-            var imgHtml = '<img src="' + rutaFoto + '" class="foto-animal-detalle" alt="Foto de ' + codigo + '" style="max-width: 100%; max-height: 350px; object-fit: contain;">';
+            var imgHtml = '<img src="' + foto + '" alt="Foto de ' + codigo + '" style="width: 100%; height: 450px; object-fit: contain; border-radius: 12px; border: 3px solid #DAA520; box-shadow: 0 4px 15px rgba(0,0,0,0.2); background-color: #f5f0e6;">';
             contenedorFoto.innerHTML = imgHtml;
             var img = contenedorFoto.querySelector('img');
             img.onerror = function() {
