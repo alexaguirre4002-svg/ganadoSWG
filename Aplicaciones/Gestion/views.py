@@ -1786,12 +1786,13 @@ def guardar_auditoria(request, accion, modelo, objeto_id=None, descripcion=''):
 # ANIMALES
 # ==========================================
 #SE HIZO MODIFICACION AQUI PARA CLAUDINARY
+# SE HIZO MODIFICACION AQUI PARA CLAUDINARY
 def guardar_foto(request, campo_file, carpeta='animales'):
     """
     Guarda la foto en Cloudinary usando el Upload Preset.
     """
     if campo_file in request.FILES:
-        foto = request.FILES[campo_file]
+        foto = request.FILES[campo_file]  # ← CORREGIDO: sin comillas
         
         # Validar extensiones
         ext = os.path.splitext(foto.name)[1].lower()
