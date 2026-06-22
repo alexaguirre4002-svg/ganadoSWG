@@ -1788,35 +1788,20 @@ def guardar_auditoria(request, accion, modelo, objeto_id=None, descripcion=''):
 #SE HIZO MODIFICACION AQUI PARA CLAUDINARY
 # SE HIZO MODIFICACION AQUI PARA CLAUDINARY
 def guardar_foto(request, campo_file, carpeta='animales'):
-    """
-    Guarda la foto en Cloudinary usando el Upload Preset.
-    """
     if campo_file in request.FILES:
-        foto = request.FILES[campo_file]  # ← CORREGIDO: sin comillas
-        
-        # Validar extensiones
-        ext = os.path.splitext(foto.name)[1].lower()
-        if ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
-            return None, 'Formato de imagen no válido. Use JPG, PNG, GIF o WEBP.'
-        
-        # Validar tamaño (5MB max)
-        if foto.size > 5 * 1024 * 1024:
-            return None, 'La imagen excede el tamaño máximo de 5MB.'
-        
+        foto = request.FILES[campo_file]  # ← SIN COMILLAS
+        # ... validaciones ...
         try:
-            # SUBIR A CLOUDINARY usando el preset
             resultado = cloudinary.uploader.upload(
                 foto,
-                upload_preset='animal_fotos_preset'
+                upload_preset='animal_fotos_preset'  # ← CON EL PRESET
             )
             return resultado['secure_url'], None
-            
         except Exception as e:
-            # SI FALLA, GUARDA LOCALMENTE (FALLBACK)
+            # Fallback local
             fs = FileSystemStorage(location=f'media/{carpeta}/')
             filename = fs.save(foto.name, foto)
             return f'media/{carpeta}/{filename}', None
-    
     return None, None
 # VISTA: NUEVO ANIMAL (formulario)
 def nuevoanimal(request):

@@ -175,9 +175,9 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ======== CONFIGURACIÓN DE CLOUDINARY ========
 cloudinary.config(
-    cloud_name='dnf7nccg',
+    cloud_name='dnqf7nccg',  # ← CORREGIDO: con la 'q'
     api_key='324326838774969',
-    api_secret='XRZMsNoEGLASui9KgyehZojyugw',
+    api_secret='XRZMsNoEGLASui9KgyehZojyugw',  # ← TU API SECRET
     secure=True
 )
 
