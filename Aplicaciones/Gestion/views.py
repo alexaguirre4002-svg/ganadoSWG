@@ -17,6 +17,10 @@ from django.contrib.auth.hashers import make_password
 import random,string
 from django.core.files.storage import FileSystemStorage
 from django.db.models import F, Count, Q, Sum, Avg, Max, Min
+# ====== NUEVO: IMPORTS PARA CLOUDINARY ======
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 def inicio(request):
     return render(request,'inicio.html')
@@ -1781,28 +1785,37 @@ def guardar_auditoria(request, accion, modelo, objeto_id=None, descripcion=''):
 # ==========================================
 # ANIMALES
 # ==========================================
-
-# FUNCION AUXILIAR: GUARDAR FOTO
+#SE HIZO MODIFICACION AQUI PARA CLAUDINARY
 def guardar_foto(request, campo_file, carpeta='animales'):
     """
-    Guarda la foto subida y retorna la ruta relativa.
+    Guarda la foto en Cloudinary y retorna la URL.
     """
     if campo_file in request.FILES:
         foto = request.FILES[campo_file]
+        
         # Validar extensión
         ext = os.path.splitext(foto.name)[1].lower()
-        if ext not in ['.jpg', '.jpeg', '.png', '.gif']:
-            return None, 'Formato de imagen no válido. Use JPG, PNG o GIF.'
+        if ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+            return None, 'Formato de imagen no válido. Use JPG, PNG, GIF o WEBP.'
         
         # Validar tamaño (5MB max)
         if foto.size > 5 * 1024 * 1024:
             return None, 'La imagen excede el tamaño máximo de 5MB.'
         
-        fs = FileSystemStorage(location=f'media/{carpeta}/')
-        filename = fs.save(foto.name, foto)
-        return f'media/{carpeta}/{filename}', None
+        try:
+            # Subir a Cloudinary
+            resultado = cloudinary.uploader.upload(
+                foto,
+                folder=f'ganado/{carpeta}/',  # Organiza en carpetas en Cloudinary
+                transformation={'quality': 'auto'}  # Optimiza automáticamente
+            )
+            return resultado['secure_url'], None  # Retorna la URL segura
+            
+        except Exception as e:
+            return None, f'Error al subir a Cloudinary: {str(e)}'
     
     return None, None
+
 
 # VISTA: NUEVO ANIMAL (formulario)
 def nuevoanimal(request):
@@ -2049,14 +2062,17 @@ def eliminaranimal(request, id_an):
     
     try:
         # Eliminar foto si existe
-        if animalBdd.foto_an and os.path.exists(animalBdd.foto_an):
+        # Eliminar foto de Cloudinary si existe
+        if animalBdd.foto_an and 'cloudinary' in animalBdd.foto_an:
             try:
-                os.remove(animalBdd.foto_an)
+                # Extraer public_id de la URL
+                # Ejemplo: https://res.cloudinary.com/dnf7nccg/image/upload/v123/ganado/animales/foto.jpg
+                public_id = animalBdd.foto_an.split('/upload/')[-1].split('/')[-1].split('.')[0]
+                cloudinary.uploader.destroy(f'ganado/animales/{public_id}')
             except Exception:
-                pass
+                pass  # Si falla, no importa, la foto queda en Cloudinary
         
         animalBdd.delete()
-        
         # ==========================================
         # AUDITORÍA
         # ==========================================
@@ -2234,24 +2250,18 @@ def procesareditanimal(request):
             return redirect(f'/editaranimal/{id_an}')
         
         # ==========================================
-        # MANEJO DE FOTO
+        # MANEJO DE FOTO (CLOUDINARY)
         # ==========================================
         foto_path = animal.foto_an  # Conservar foto actual por defecto
-        
+
         if 'file_foto_an' in request.FILES:
-            # Hay nueva foto, eliminar la anterior si existe
-            if animal.foto_an and os.path.exists(animal.foto_an):
-                try:
-                    os.remove(animal.foto_an)
-                except Exception:
-                    pass
-            
-            # Guardar nueva foto
+            # Guardar nueva foto (Cloudinary sobrescribe automáticamente si usas mismo public_id)
             nueva_foto, error_foto = guardar_foto(request, 'file_foto_an')
             if error_foto:
                 messages.error(request, error_foto)
                 return redirect(f'/editaranimal/{id_an}')
             foto_path = nueva_foto
+            # No necesitas eliminar la anterior, Cloudinary maneja el almacenamiento
         
         # Si se envió foto_actual vacía y no hay nueva foto, mantener la actual
         # (el campo hidden foto_actual se usa para referencia)

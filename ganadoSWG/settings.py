@@ -159,3 +159,18 @@ DEFAULT_FROM_EMAIL = 'Hacienda El Roble <alpaaguirre1999@gmail.com>'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# ===== CONFIGURACIÓN DE CLOUDINARY =====
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+cloudinary.config(
+    cloud_name = ' dnqf7nccg',
+    api_key = ' 324326838774969',
+    api_secret = ' XRZMsNoEGLASui9KgyehZojyugw',
+    secure = True
+)
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# ===== FIN CONFIGURACIÓN CLOUDINARY =====
