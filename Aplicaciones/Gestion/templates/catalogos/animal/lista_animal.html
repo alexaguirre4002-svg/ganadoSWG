@@ -660,7 +660,7 @@ Listado de Animales | Hacienda Joseph
 
 <script>
     // ==========================================
-    // MODAL DETALLE ANIMAL
+    // MODAL DETALLE ANIMAL - CORREGIDO
     // ==========================================
     var modalDetalleAnimal = document.getElementById('modalDetalleAnimal');
     modalDetalleAnimal.addEventListener('show.bs.modal', function (event) {
@@ -735,10 +735,14 @@ Listado de Animales | Hacienda Joseph
         }
         document.getElementById('detalleEstado').innerHTML = estadoHtml;
         
+        // ==========================================
+        // MANEJO DE LA FOTO - CORREGIDO
+        // ==========================================
         var contenedorFoto = document.getElementById('contenedorFotoAnimal');
         if (foto && foto.trim() !== '') {
-            var rutaFoto = foto.startsWith('/') ? foto : '/' + foto;
-            var imgHtml = '<img src="' + rutaFoto + '" class="foto-animal-detalle" alt="Foto de ' + codigo + '">';
+            // USAR LA URL DE CLOUDINARY DIRECTAMENTE
+            var rutaFoto = foto;
+            var imgHtml = '<img src="' + rutaFoto + '" class="foto-animal-detalle" alt="Foto de ' + codigo + '" style="max-width: 100%; max-height: 350px; object-fit: contain;">';
             contenedorFoto.innerHTML = imgHtml;
             var img = contenedorFoto.querySelector('img');
             img.onerror = function() {
