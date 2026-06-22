@@ -12,6 +12,11 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import dj_database_url
 import os
 from pathlib import Path
+#CLAUDINARY
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -160,17 +165,21 @@ MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# ===== CONFIGURACIÓN DE CLOUDINARY =====
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
+# ==============================================
+# ARCHIVOS MEDIA (Fotos subidas)
+# ==============================================
 
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# ======== CONFIGURACIÓN DE CLOUDINARY ========
 cloudinary.config(
-    cloud_name = 'dnf7nccg',
-    api_key = '324326838774969',
-    api_secret = ' XRZMsNoEGLASui9KgyehZojyugw',
-    secure = True
+    cloud_name='dnf7nccg',
+    api_key='324326838774969',
+    api_secret='XRZMsNoEGLASui9KgyehZojyugw',
+    secure=True
 )
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-# ===== FIN CONFIGURACIÓN CLOUDINARY =====
+# ======== FIN CONFIGURACIÓN CLOUDINARY ========
