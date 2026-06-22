@@ -7,7 +7,7 @@
 <!-- del navegador para esta vista especifica   -->
 <!-- ========================================== -->
 {% block titulo %}
-    Inicio | Hacienda El Roble
+    Inicio | Hacienda Joseph
 {% endblock %}
 
 
@@ -37,7 +37,7 @@
                 <i class="bi bi-tree-fill me-2"></i>¡BIENVENIDOS!
             </h2>
             <h4 class="mb-2" style="color: var(--color-secundario);">
-                <i class="bi bi-clipboard-data me-2"></i>Sistema de Gestión de Hacienda Ganadera
+                <i class="bi bi-clipboard-data me-2"></i>Sistema de gestión de hacienda ganadera
             </h4>
             <p class="lead text-muted">
                 Control integral de su ganado, potreros y producción
@@ -72,7 +72,7 @@
                              style="height: 500px; object-fit: cover;" 
                              alt="Ganado en pastoreo">
                         <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
-                            <h5><i class="bi bi-geo-alt me-2"></i>Ganado en Pastoreo</h5>
+                            <h5><i class="bi bi-geo-alt me-2"></i>Ganado en pastoreo</h5>
                             <p>Control y seguimiento de nuestro rodeo en los potreros.</p>
                         </div>
                     </div>
@@ -96,7 +96,7 @@
                              style="height: 500px; object-fit: cover;" 
                              alt="Produccion lechera">
                         <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
-                            <h5><i class="bi bi-droplet me-2"></i>Producción Lechera</h5>
+                            <h5><i class="bi bi-droplet me-2"></i>Producción lechera</h5>
                             <p>Registro diario y control de calidad de la leche.</p>
                         </div>
                     </div>
@@ -124,50 +124,28 @@
     <!-- del sistema para agilizar la navegacion    -->
     <!-- ========================================== -->
     <div class="row justify-content-center mb-5 animate-fade-in">
-        <div class="col-md-10">
+        <div class="col-md-12">
             <div class="card-hacienda p-4">
                 <h4 class="text-center mb-4" style="color: var(--color-primario);">
-                    <i class="bi bi-lightning-charge me-2"></i>Accesos Rápidos
+                    <i class="bi bi-lightning-charge me-2"></i>Accesos rápidos
                 </h4>
-                
                 <div class="row g-3 text-center">
-                    
-                    <!-- Boton: Listado de Ganado -->
+                    <!-- 7. DASHBOARD ESTADÍSTICO -->
                     <div class="col-6 col-md-3">
-                        <a href="/listadoganado/" class="text-decoration-none">
-                            <div class="p-3 rounded-3" style="background: rgba(44,94,26,0.1); border: 2px solid var(--color-primario);">
-                                <i class="bi bi-clipboard-data fs-1" style="color: var(--color-primario);"></i>
-                                <p class="mt-2 mb-0 fw-bold" style="color: var(--color-primario);">Listado de Ganado</p>
+                        <a href="/dashboard-estadistico/" class="text-decoration-none">
+                            <div class="p-3 rounded-3" style="background: rgba(218,165,32,0.1); border: 2px solid var(--color-acento); transition: all 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                <i class="bi bi-bar-chart-line fs-1" style="color: var(--color-acento);"></i>
+                                <p class="mt-2 mb-0 fw-bold" style="color: var(--color-acento); font-size: 0.85rem;">Dashboard Estadístico</p>
                             </div>
                         </a>
                     </div>
 
-                    <!-- Boton: Agregar Animal -->
+                    <!-- 8. MACHINE LEARNING -->
                     <div class="col-6 col-md-3">
-                        <a href="/nuevoganado/" class="text-decoration-none">
-                            <div class="p-3 rounded-3" style="background: rgba(139,69,19,0.1); border: 2px solid var(--color-secundario);">
-                                <i class="bi bi-plus-circle fs-1" style="color: var(--color-secundario);"></i>
-                                <p class="mt-2 mb-0 fw-bold" style="color: var(--color-secundario);">Agregar Animal</p>
-                            </div>
-                        </a>
-                    </div>
-
-                    <!-- Boton: Vacunacion -->
-                    <div class="col-6 col-md-3">
-                        <a href="/vacunacion/" class="text-decoration-none">
-                            <div class="p-3 rounded-3" style="background: rgba(220,53,69,0.1); border: 2px solid #dc3545;">
-                                <i class="bi bi-shield-plus fs-1" style="color: #dc3545;"></i>
-                                <p class="mt-2 mb-0 fw-bold" style="color: #dc3545;">Vacunación</p>
-                            </div>
-                        </a>
-                    </div>
-
-                    <!-- Boton: Reportes -->
-                    <div class="col-6 col-md-3">
-                        <a href="/reportes/" class="text-decoration-none">
-                            <div class="p-3 rounded-3" style="background: rgba(218,165,32,0.1); border: 2px solid var(--color-acento);">
-                                <i class="bi bi-file-earmark-bar-graph fs-1" style="color: var(--color-acento);"></i>
-                                <p class="mt-2 mb-0 fw-bold" style="color: var(--color-acento);">Reportes</p>
+                        <a href="/dashboardml/" class="text-decoration-none">
+                            <div class="p-3 rounded-3" style="background: rgba(220,53,69,0.1); border: 2px solid #dc3545; transition: all 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                <i class="bi bi-cpu fs-1" style="color: #dc3545;"></i>
+                                <p class="mt-2 mb-0 fw-bold" style="color: #dc3545; font-size: 0.85rem;">Predicciones ML</p>
                             </div>
                         </a>
                     </div>
@@ -175,8 +153,7 @@
             </div>
         </div>
     </div>
-
-
+    
     <!-- ========================================== -->
     <!-- SECCION 4: INFORMACION DE LA HACIENDA      -->
     <!-- Datos basicos y descripcion del sistema    -->
@@ -185,7 +162,7 @@
         <div class="col-md-8 text-center">
             <div class="card-hacienda p-4">
                 <i class="bi bi-info-circle fs-1 mb-3" style="color: var(--color-primario);"></i>
-                <h4 style="color: var(--color-primario);">Sobre el Sistema</h4>
+                <h4 style="color: var(--color-primario);">Sobre el sistema</h4>
                 <p class="text-muted">
                     Este sistema permite gestionar de manera integral todos los procesos de la hacienda: 
                     registro de ganado, control de salud, planificación de reproducción, 
@@ -194,7 +171,7 @@
                 <hr style="border-color: var(--color-borde);">
                 <p class="mb-0">
                     <i class="bi bi-calendar3 me-2"></i>
-                    <strong>Temporada actual:</strong> 2024 - 2025
+                    <strong>Temporada actual:</strong> 2026 - 2026
                 </p>
             </div>
         </div>
