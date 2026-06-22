@@ -1788,7 +1788,7 @@ def guardar_auditoria(request, accion, modelo, objeto_id=None, descripcion=''):
 #SE HIZO MODIFICACION AQUI PARA CLAUDINARY
 def guardar_foto(request, campo_file, carpeta='animales'):
     """
-    Guarda la foto en Cloudinary y retorna la URL.
+    Guarda la foto en Cloudinary usando el Upload Preset.
     """
     if campo_file in request.FILES:
         foto = request.FILES[campo_file]
@@ -1803,19 +1803,17 @@ def guardar_foto(request, campo_file, carpeta='animales'):
             return None, 'La imagen excede el tamaño máximo de 5MB.'
         
         try:
-            # Subir a Cloudinary
+            # Subir a Cloudinary USANDO EL PRESET
             resultado = cloudinary.uploader.upload(
                 foto,
-                folder=f'ganado/{carpeta}/',  # Organiza en carpetas en Cloudinary
-                transformation={'quality': 'auto'}  # Optimiza automáticamente
+                upload_preset='animal_fotos_preset'  # ← Usa el preset que creaste
             )
-            return resultado['secure_url'], None  # Retorna la URL segura
+            return resultado['secure_url'], None
             
         except Exception as e:
             return None, f'Error al subir a Cloudinary: {str(e)}'
     
     return None, None
-
 
 # VISTA: NUEVO ANIMAL (formulario)
 def nuevoanimal(request):
