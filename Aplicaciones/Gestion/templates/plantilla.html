@@ -372,7 +372,6 @@
 <body>
 
     <!-- ===== NAVBAR PRINCIPAL ===== -->
-    <!-- ===== NAVBAR PRINCIPAL ===== -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-ganaderia sticky-top">
         <div class="container-fluid px-4">
             <!-- Brand / Logo -->
@@ -412,9 +411,6 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="/listapotrero/"><i class="bi bi-grid-3x3-gap-fill me-2"></i>Listado de Potreros</a></li>
-                            <li><a class="dropdown-item" href="/listaracion/"><i class="bi bi-cup-straw me-2"></i>Gestión de raciones</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/listaeventosanitario/"><i class="bi bi-arrow-repeat me-2"></i>Rotación de Pastos</a></li>
                             <li><a class="dropdown-item" href="/listaasignacionp/"><i class="bi bi-pin-map me-2"></i>Asignación de potreros</a></li>
                         </ul>
                     </li>
@@ -432,29 +428,38 @@
                         </ul>
                     </li>
 
-                    <!-- ===== MÓDULO REPRODUCCIÓN (TODOS CON ICONOS) ===== -->
+                    <!-- ===== MÓDULO ALIMENTOS ===== -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-basket me-1"></i> Alimentos
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/listadoinsumos/"><i class="bi bi-box-seam me-2"></i>Insumos</a></li>
+                            <li><a class="dropdown-item" href="/listaracion/"><i class="bi bi-cup-straw me-2"></i>Gestión de raciones</a></li>
+                            <li><a class="dropdown-item" href="/listadodietas/"><i class="bi bi-egg-fried me-2"></i>Gestión dietas</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- ===== MÓDULO REPRODUCCIÓN ===== -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-diagram-3 me-1"></i> Reproducción
                         </a>
                         <ul class="dropdown-menu">
-                            <!-- TODOS CON ICONOS - AHORA SÍ -->
-                            <li><a class="dropdown-item" href="/listacelo/"><i class="bi bi-calendar-heart me-2" style="color: #ff6b6b;"></i>Control de celos</a></li>
-                            <li><a class="dropdown-item" href="/listainseminacion/"><i class="bi bi-eyedropper me-2" style="color: #4ecdc4;"></i>Control de inseminación</a></li>
-                            <li><a class="dropdown-item" href="/listaprenez/"><i class="bi bi-gender-female me-2" style="color: #ff69b4;"></i>Control de preñez</a></li>
-                            <li><a class="dropdown-item" href="/listapartos/"><i class="bi bi-person-baby me-2" style="color: #ffd93d;"></i>Control de partos</a></li>
-                            <li><a class="dropdown-item" href="/listaabortos/"><i class="bi bi-exclamation-diamond me-2" style="color: #ff6b6b;"></i>Control de abortos</a></li>
+                            <li><a class="dropdown-item" href="/listacelo/"><i class="bi bi-calendar-heart me-2"></i>Control de celos</a></li>
+                            <li><a class="dropdown-item" href="/listainseminacion/"><i class="bi bi-eyedropper me-2"></i>Control de inseminación</a></li>
+                            <li><a class="dropdown-item" href="/listaprenez/"><i class="bi bi-gender-female me-2"></i>Control de preñez</a></li>
+                            <li><a class="dropdown-item" href="/listapartos/"><i class="bi bi-person-baby me-2"></i>Control de partos</a></li>
+                            <li><a class="dropdown-item" href="/listaabortos/"><i class="bi bi-exclamation-diamond me-2"></i>Control de abortos</a></li>
                         </ul>
                     </li>
 
-                    <!-- ===== MÓDULO PRODUCCIÓN (TODOS CON ICONOS) ===== -->
+                    <!-- ===== MÓDULO PRODUCCIÓN ===== -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-graph-up-arrow me-1"></i> Producción
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/listadoinsumos/"><i class="bi bi-box-seam me-2"></i>Alimentos</a></li>
-                            <li><a class="dropdown-item" href="/listadodietas/"><i class="bi bi-egg-fried me-2"></i>Gestión dietas</a></li>
                             <li><a class="dropdown-item" href="/listaordeno/"><i class="bi bi-droplet me-2"></i>Control de ordeño</a></li>
                             <li><a class="dropdown-item" href="/listacalidadl/"><i class="bi bi-flask me-2"></i>Calidad láctea</a></li>
                             <li><a class="dropdown-item" href="/listasecado/"><i class="bi bi-snow2 me-2"></i>Secado</a></li>
@@ -472,18 +477,6 @@
                             <li><a class="dropdown-item" href="/listaingreso/"><i class="bi bi-graph-up me-2"></i>Ingresos</a></li>
                         </ul>   
                     </li>
-
-                    <!-- ===== MÓDULO ML (Machine Learning) ===== 
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-cpu me-1"></i> ML
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/dashboard-estadistico/"><i class="bi bi-bar-chart-line me-2"></i>Dashboard Estadístico</a></li>
-                            <li><a class="dropdown-item" href="/dashboardml/"><i class="bi bi-graph-up-arrow me-2"></i>Dashboard ML</a></li>
-                        </ul>   
-                    </li>
-                    -->
                     
                 </ul>
                 {% endif %}
@@ -518,16 +511,6 @@
                             <li><hr class="dropdown-divider" style="border-color: rgba(218, 165, 32, 0.5);"></li>
                             
                             <!-- Opciones de usuario -->
-                            <!--  
-                            <li>
-                                <a class="dropdown-item" href="/perfil/" 
-                                style="color: #ffffff; transition: all 0.2s;"
-                                onmouseover="this.style.backgroundColor='#2d5016'; this.style.color='#DAA520';"
-                                onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
-                                    <i class="bi bi-person-gear me-2" style="color: #DAA520;"></i>Mi Perfil
-                                </a>
-                            </li>
-                            -->
                             <li>
                                 <a class="dropdown-item" href="/listadousuarios/" 
                                 style="color: #ffffff; transition: all 0.2s;"
@@ -627,17 +610,6 @@
                     <h5><i class="bi bi-tree-fill me-2"></i>Hacienda Joseph</h5>
                     <p class="small">Sistema de gestión ganadera. Control y seguimiento de su hacienda de manera eficiente y profesional.</p>
                 </div>
-                <!-- ===== FOOTER ===== 
-                <div class="col-md-4 mb-3">
-                    <h5>Enlaces Rápidos</h5>
-                    <ul class="list-unstyled small">
-                        <li><a href=""><i class="bi bi-chevron-right me-1"></i> Ganado</a></li>
-                        <li><a href=""><i class="bi bi-chevron-right me-1"></i> Potreros</a></li>
-                        <li><a href=""><i class="bi bi-chevron-right me-1"></i> Productos veterinarios</a></li>
-
-                    </ul>
-                </div>
-                -->
                 <div class="col-md-4 mb-3">
                     <h5>Contacto</h5>
                     <p class="small mb-1"><i class="bi bi-geo-alt me-2"></i>Pertenece al cantón Pujilí, en la Provincia de cotopaxi</p>
