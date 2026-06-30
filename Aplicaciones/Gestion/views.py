@@ -10277,202 +10277,30 @@ def dashboardml(request):
         'predicciones_ad2_agrupadas': predicciones_ad2_agrupadas,
         'predicciones_rl4_agrupadas': predicciones_rl4_agrupadas,
     })
+
 # ==========================================
-# VISTA: DETALLE ANIMAL + RECOMENDACIONES ML (AJAX/JSON)
+# VISTA: DASHBOARD POR MODELO ESPECÍFICO
 # ==========================================
-def detalle_animal_ml_json(request, id_an):
-    """
-    Devuelve en JSON el detalle completo de un animal y genera
-    recomendaciones basadas en su historial de predicciones ML
-    (AD-1 produccion, AD-2 preñez, RL-4 calidad).
-    Usado por el boton de detalle (ojo) del dashboard ML.
-    """
-    try:
-        animal = Animal.objects.select_related(
-            'fk_ra', 'fk_potrero_an', 'fk_madre_an', 'fk_padre_an'
-        ).get(id_an=id_an)
-    except Animal.DoesNotExist:
-        return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'}, status=404)
 
-    # ──────────────────────────────────────
-    # DATOS BASICOS DEL ANIMAL
-    # ──────────────────────────────────────
-    datos_animal = {
-        'id': animal.id_an,
-        'codigo': animal.codigo_an,
-        'nombre': animal.nombre_an or 'Sin nombre',
-        'raza': animal.fk_ra.nombre_ra if animal.fk_ra else 'No especificada',
-        'sexo': 'Macho' if animal.sexo_an == 'M' else 'Hembra',
-        'categoria': animal.get_categoria_an_display() if hasattr(animal, 'get_categoria_an_display') else animal.categoria_an,
-        'estado': animal.estado_an,
-        'peso_actual': f"{animal.peso_actual_kg_an} kg" if animal.peso_actual_kg_an else 'No registrado',
-        'peso_nacimiento': f"{animal.peso_nacimiento_kg_an} kg" if animal.peso_nacimiento_kg_an else 'No registrado',
-        'condicion_corporal': f"{animal.condicion_corporal_an}/5" if animal.condicion_corporal_an else 'No evaluada',
-        'potrero': animal.fk_potrero_an.nombre_po if animal.fk_potrero_an else 'Sin potrero',
-        'fecha_nacimiento': animal.fecha_nacimiento_an.strftime('%d/%m/%Y') if animal.fecha_nacimiento_an else 'N/A',
-        'fecha_ingreso': animal.fecha_ingreso_an.strftime('%d/%m/%Y') if animal.fecha_ingreso_an else 'N/A',
-        'foto': animal.foto_an or '',
-        'color': animal.color_an or 'No especificado',
-        'madre': animal.fk_madre_an.codigo_an if animal.fk_madre_an else 'No registrada',
-        'padre': animal.fk_padre_an.codigo_an if animal.fk_padre_an else 'No registrado',
-    }
+# ==========================================
+# VISTA: LISTADO DE PREDICCIONES (con filtros)
+# ==========================================
 
-    # ──────────────────────────────────────
-    # HISTORIAL DE PRODUCCION DE LECHE (ultimos 10 ordeños)
-    # ──────────────────────────────────────
-    ordenos = Ordeno.objects.filter(fk_an=animal).order_by('-fecha_or')[:10]
-    historial_litros = [float(o.litros_or) for o in ordenos if o.litros_or]
-    promedio_litros = round(sum(historial_litros) / len(historial_litros), 2) if historial_litros else 0
+# ==========================================
+# VISTA: DETALLE PREDICCIÓN (JSON)
+# ==========================================
 
-    # ──────────────────────────────────────
-    # HISTORIAL DE CALIDAD DE LECHE (ultimas 10 muestras)
-    # ──────────────────────────────────────
-    calidades = CalidadLeche.objects.filter(fk_an=animal).order_by('-fecha_muestreo_cl')[:10]
-    total_calidad = calidades.count()
-    aptos = calidades.filter(resultado_cl='apto').count()
-    pct_aptos = round((aptos / total_calidad) * 100, 1) if total_calidad > 0 else None
-
-    # ──────────────────────────────────────
-    # HISTORIAL DE INSEMINACIONES / PREÑEZ
-    # ──────────────────────────────────────
-    inseminaciones = Inseminacion.objects.filter(fk_an=animal).order_by('-fecha_in')[:5]
-    total_inseminaciones = inseminaciones.count()
-    prenadas = inseminaciones.filter(resultado_in='preñada').count()
-
-    # ──────────────────────────────────────
-    # PREDICCIONES ML GUARDADAS PARA ESTE ANIMAL
-    # ──────────────────────────────────────
-    predicciones_guardadas = PrediccionML.objects.filter(
-        fk_an=animal
-    ).select_related('fk_mm').order_by('-id_pm')[:5]
-
-    historial_predicciones = []
-    for p in predicciones_guardadas:
-        historial_predicciones.append({
-            'modelo': p.fk_mm.codigo_mm if p.fk_mm else 'N/A',
-            'resultado': p.resultado_prediccion_pm,
-            'probabilidad': f"{round(float(p.probabilidad_pm) * 100, 1)}%" if p.probabilidad_pm else 'N/A',
-        })
-
-    # ──────────────────────────────────────
-    # GENERAR RECOMENDACIONES BASADAS EN ML
-    # ──────────────────────────────────────
-    recomendaciones = []
-
-    # Recomendacion sobre produccion de leche
-    if historial_litros:
-        if len(historial_litros) >= 2:
-            tendencia = historial_litros[0] - historial_litros[-1]
-            if tendencia < -1:
-                recomendaciones.append({
-                    'tipo': 'warning',
-                    'icono': 'bi-graph-down-arrow',
-                    'titulo': 'Producción en descenso',
-                    'texto': f'La producción de {animal.codigo_an} bajó de {historial_litros[-1]} L a {historial_litros[0]} L. Revisar alimentación y condición corporal.'
-                })
-            elif tendencia > 1:
-                recomendaciones.append({
-                    'tipo': 'success',
-                    'icono': 'bi-graph-up-arrow',
-                    'titulo': 'Producción en aumento',
-                    'texto': f'{animal.codigo_an} mejoró su producción de {historial_litros[-1]} L a {historial_litros[0]} L. Mantener el manejo actual.'
-                })
-            else:
-                recomendaciones.append({
-                    'tipo': 'info',
-                    'icono': 'bi-dash-circle',
-                    'titulo': 'Producción estable',
-                    'texto': f'Promedio de producción: {promedio_litros} L por ordeño. Sin cambios significativos.'
-                })
-    else:
-        recomendaciones.append({
-            'tipo': 'secondary',
-            'icono': 'bi-info-circle',
-            'titulo': 'Sin historial de ordeños',
-            'texto': f'{animal.codigo_an} no tiene registros de producción de leche aún.'
-        })
-
-    # Recomendacion sobre calidad de leche
-    if pct_aptos is not None:
-        if pct_aptos < 70:
-            recomendaciones.append({
-                'tipo': 'danger',
-                'icono': 'bi-exclamation-triangle',
-                'titulo': 'Calidad de leche baja',
-                'texto': f'Solo {pct_aptos}% de las muestras de {animal.codigo_an} son aptas. Revisar mastitis, higiene de ordeño y alimentación.'
-            })
-        else:
-            recomendaciones.append({
-                'tipo': 'success',
-                'icono': 'bi-check-circle',
-                'titulo': 'Calidad de leche aceptable',
-                'texto': f'{pct_aptos}% de las muestras son aptas. Mantener buenas prácticas de ordeño.'
-            })
-
-    # Recomendacion sobre reproduccion
-    if total_inseminaciones > 0:
-        tasa_preñez = round((prenadas / total_inseminaciones) * 100, 1)
-        if tasa_preñez < 50 and total_inseminaciones >= 2:
-            recomendaciones.append({
-                'tipo': 'warning',
-                'icono': 'bi-heart-pulse',
-                'titulo': 'Baja tasa de concepción',
-                'texto': f'{animal.codigo_an} tiene {tasa_preñez}% de éxito en inseminaciones ({prenadas}/{total_inseminaciones}). Evaluar condición corporal y momento de inseminación.'
-            })
-        elif tasa_preñez >= 50:
-            recomendaciones.append({
-                'tipo': 'success',
-                'icono': 'bi-heart-pulse-fill',
-                'titulo': 'Buena fertilidad',
-                'texto': f'Tasa de concepción de {tasa_preñez}% ({prenadas}/{total_inseminaciones} inseminaciones exitosas).'
-            })
-
-    # Recomendacion sobre condicion corporal
-    if animal.condicion_corporal_an:
-        if animal.condicion_corporal_an <= 2:
-            recomendaciones.append({
-                'tipo': 'danger',
-                'icono': 'bi-exclamation-octagon',
-                'titulo': 'Condición corporal baja',
-                'texto': f'Condición corporal de {animal.condicion_corporal_an}/5 es baja. Aumentar suplementación alimenticia.'
-            })
-        elif animal.condicion_corporal_an >= 4:
-            recomendaciones.append({
-                'tipo': 'warning',
-                'icono': 'bi-exclamation-circle',
-                'titulo': 'Condición corporal alta',
-                'texto': f'Condición corporal de {animal.condicion_corporal_an}/5 está alta. Vigilar riesgo de problemas metabólicos.'
-            })
-
-    if not recomendaciones:
-        recomendaciones.append({
-            'tipo': 'secondary',
-            'icono': 'bi-info-circle',
-            'titulo': 'Sin datos suficientes',
-            'texto': 'No hay suficiente historial para generar recomendaciones de Machine Learning para este animal.'
-        })
-
-    return JsonResponse({
-        'exito': True,
-        'animal': datos_animal,
-        'metricas': {
-            'promedio_litros': promedio_litros,
-            'total_ordenos': len(historial_litros),
-            'pct_calidad_apta': pct_aptos,
-            'total_muestras_calidad': total_calidad,
-            'total_inseminaciones': total_inseminaciones,
-            'inseminaciones_exitosas': prenadas,
-        },
-        'historial_litros': historial_litros,
-        'historial_predicciones': historial_predicciones,
-        'recomendaciones': recomendaciones,
-    })
-
-
+# ==========================================
+# VISTA: FEEDBACK PREDICCIÓN (AJAX)
+# ==========================================
+# ==========================================
+# VISTAS DE MACHINE LEARNING - PREDICCION REAL
+# ==========================================
 
 def prediccion_ad1(request):
     """
     Vista para probar el modelo AD-1: Prediccion de Litros de Leche.
+    Muestra un formulario. Si recibe POST, llama al modelo .pkl y muestra resultado.
     """
     from .ml_engine import predecir, modelo_esta_entrenado
     resultado = None
@@ -10486,7 +10314,7 @@ def prediccion_ad1(request):
             'temperatura_leche': request.POST.get('temperatura_leche', '36'),
         }
         if not modelo_esta_entrenado('AD-1'):
-            error = 'El modelo AD-1 NO esta entrenado.'
+            error = 'El modelo AD-1 NO esta entrenado. Ejecute en consola: python manage.py entrenar_ml AD-1 --ejemplo'
         else:
             resultado = predecir('AD-1', datos)
             if not resultado['exito']:
@@ -10508,9 +10336,9 @@ def prediccion_ad1(request):
         'titulo': 'Prediccion AD-1: Litros de Leche',
         'descripcion': 'Ingrese las condiciones del ordeño para predecir la produccion de leche en litros.',
         'campos': [
-            {'nombre': 'temperatura_ambiental', 'label': 'Temperatura Ambiental (C)', 'tipo': 'number', 'paso': '0.1', 'valor': datos.get('temperatura_ambiental', '25')},
+            {'nombre': 'temperatura_ambiental', 'label': 'Temperatura Ambiental (°C)', 'tipo': 'number', 'paso': '0.1', 'valor': datos.get('temperatura_ambiental', '25')},
             {'nombre': 'cantidad_concentrado_kg', 'label': 'Concentrado (kg)', 'tipo': 'number', 'paso': '0.1', 'valor': datos.get('cantidad_concentrado_kg', '5')},
-            {'nombre': 'temperatura_leche', 'label': 'Temperatura de Leche (C)', 'tipo': 'number', 'paso': '0.1', 'valor': datos.get('temperatura_leche', '36')},
+            {'nombre': 'temperatura_leche', 'label': 'Temperatura de Leche (°C)', 'tipo': 'number', 'paso': '0.1', 'valor': datos.get('temperatura_leche', '36')},
         ],
         'resultado': resultado,
         'error': error,
@@ -10535,7 +10363,7 @@ def prediccion_ad2(request):
             'dia_ciclo': request.POST.get('dia_ciclo', '14'),
         }
         if not modelo_esta_entrenado('AD-2'):
-            error = 'El modelo AD-2 NO esta entrenado.'
+            error = 'El modelo AD-2 NO esta entrenado. Ejecute: python manage.py entrenar_ml AD-2 --ejemplo'
         else:
             resultado = predecir('AD-2', datos)
             if not resultado['exito']:
@@ -10584,7 +10412,7 @@ def prediccion_rl4(request):
             'ccs': request.POST.get('ccs', '200000'),
         }
         if not modelo_esta_entrenado('RL-4'):
-            error = 'El modelo RL-4 NO esta entrenado.'
+            error = 'El modelo RL-4 NO esta entrenado. Ejecute: python manage.py entrenar_ml RL-4'
         else:
             resultado = predecir('RL-4', datos)
             if not resultado['exito']:
@@ -10616,14 +10444,19 @@ def prediccion_rl4(request):
     }
     return render(request, 'ML/prediccionML/nueva_prediccion.html', contexto)
 
+# ==========================================
+# VISTA: DASHBOARD GRÁFICO (ESTADÍSTICAS)
+# ==========================================
 
 def dashboard_grafico(request):
     """
-    Dashboard grafico con estadisticas generales de la hacienda.
+    Dashboard gráfico con estadísticas generales de la hacienda
+    y recomendaciones basadas en Machine Learning.
     """
     from .ml_engine import modelo_esta_entrenado
     from django.db.models.functions import ExtractMonth, ExtractYear
 
+    # === PRODUCCIÓN DE LECHE ===
     produccion_mes = Ordeno.objects.annotate(
         mes=ExtractMonth('fecha_or'),
         anio=ExtractYear('fecha_or')
@@ -10641,6 +10474,7 @@ def dashboard_grafico(request):
         total=Sum('litros_or')
     )
 
+    # === CALIDAD DE LECHE ===
     calidad_mes = CalidadLeche.objects.annotate(
         mes=ExtractMonth('fecha_muestreo_cl'),
         anio=ExtractYear('fecha_muestreo_cl')
@@ -10649,6 +10483,7 @@ def dashboard_grafico(request):
         no_aptos=Count('id_cl', filter=Q(resultado_cl='no_apto'))
     ).order_by('anio', 'mes')[:12]
 
+    # === ANIMALES ===
     total_animales = Animal.objects.count()
     animales_categoria = Animal.objects.values('categoria_an').annotate(
         cantidad=Count('id_an')
@@ -10657,6 +10492,7 @@ def dashboard_grafico(request):
         cantidad=Count('id_an')
     )
 
+    # === FINANZAS ===
     total_costos = Costo.objects.aggregate(total=Sum('monto_co'))['total'] or 0
     total_ingresos = Ingreso.objects.aggregate(total=Sum('monto_total_ig'))['total'] or 0
     balance = float(total_ingresos) - float(total_costos)
@@ -10665,12 +10501,14 @@ def dashboard_grafico(request):
         total=Sum('monto_co')
     ).order_by('-total')[:5]
 
+    # === MACHINE LEARNING ===
     ml_estado = {
         'ad1': modelo_esta_entrenado('AD-1'),
         'ad2': modelo_esta_entrenado('AD-2'),
         'rl4': modelo_esta_entrenado('RL-4'),
     }
 
+    # === RECOMENDACIONES ===
     recomendaciones = []
 
     if produccion_mes:
@@ -10679,15 +10517,17 @@ def dashboard_grafico(request):
             tendencia = ultimos_3[-1]['total_litros'] - ultimos_3[0]['total_litros']
             if tendencia > 0:
                 recomendaciones.append({
-                    'tipo': 'success', 'icono': 'bi-graph-up-arrow',
-                    'titulo': 'Tendencia Positiva en Produccion',
-                    'texto': 'La produccion ha aumentado en los ultimos meses.'
+                    'tipo': 'success',
+                    'icono': 'bi-graph-up-arrow',
+                    'titulo': 'Tendencia Positiva en Producción',
+                    'texto': 'La producción ha aumentado en los últimos meses. Se recomienda mantener el manejo actual de alimentación.'
                 })
             else:
                 recomendaciones.append({
-                    'tipo': 'warning', 'icono': 'bi-graph-down-arrow',
-                    'titulo': 'Tendencia Negativa en Produccion',
-                    'texto': 'La produccion ha disminuido. Revisar alimentacion.'
+                    'tipo': 'warning',
+                    'icono': 'bi-graph-down-arrow',
+                    'titulo': 'Tendencia Negativa en Producción',
+                    'texto': 'La producción ha disminuido. Se recomienda revisar la alimentación y estado de salud del ganado.'
                 })
 
     calidad_total = CalidadLeche.objects.count()
@@ -10695,71 +10535,102 @@ def dashboard_grafico(request):
         aptos_pct = CalidadLeche.objects.filter(resultado_cl='apto').count() / calidad_total * 100
         if aptos_pct < 70:
             recomendaciones.append({
-                'tipo': 'danger', 'icono': 'bi-exclamation-triangle',
+                'tipo': 'danger',
+                'icono': 'bi-exclamation-triangle',
                 'titulo': 'Alerta de Calidad de Leche',
-                'texto': f'Solo el {aptos_pct:.1f}% de las muestras son aptas.'
+                'texto': f'Solo el {aptos_pct:.1f}% de las muestras son aptas. Revisar higiene y manejo del ordeño.'
             })
         else:
             recomendaciones.append({
-                'tipo': 'success', 'icono': 'bi-check-circle',
+                'tipo': 'success',
+                'icono': 'bi-check-circle',
                 'titulo': 'Calidad de Leche Aceptable',
-                'texto': f'El {aptos_pct:.1f}% de las muestras son aptas.'
+                'texto': f'El {aptos_pct:.1f}% de las muestras son aptas. Mantener buenas prácticas de ordeño.'
             })
 
     if balance < 0:
         recomendaciones.append({
-            'tipo': 'danger', 'icono': 'bi-cash-stack',
+            'tipo': 'danger',
+            'icono': 'bi-cash-stack',
             'titulo': 'Balance Negativo',
-            'texto': f'Los costos superan los ingresos en ${abs(balance):.2f}.'
+            'texto': f'Los costos superan los ingresos en ${abs(balance):.2f}. Se recomienda revisar gastos operativos.'
         })
     else:
         recomendaciones.append({
-            'tipo': 'success', 'icono': 'bi-cash-stack',
+            'tipo': 'success',
+            'icono': 'bi-cash-stack',
             'titulo': 'Balance Positivo',
-            'texto': f'La hacienda tiene una utilidad de ${balance:.2f}.'
+            'texto': f'La hacienda tiene una utilidad de ${balance:.2f}. El manejo financiero es adecuado.'
         })
 
+    if ml_estado['ad1'] and ml_estado['rl4']:
+        recomendaciones.append({
+            'tipo': 'info',
+            'icono': 'bi-cpu',
+            'titulo': 'Machine Learning Activo',
+            'texto': 'Los modelos de predicción están entrenados y listos para apoyar la toma de decisiones.'
+        })
+
+    # === PREPARAR DATOS PARA GRÁFICAS ===
     meses_labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+
     prod_labels = []
     prod_values = []
     for p in produccion_mes:
-        prod_labels.append(f"{meses_labels[p['mes']-1]} {p['anio']}")
+        label = f"{meses_labels[p['mes']-1]} {p['anio']}"
+        prod_labels.append(label)
         prod_values.append(float(p['total_litros'] or 0))
 
     cal_labels = []
     cal_aptos = []
     cal_no_aptos = []
     for c in calidad_mes:
-        cal_labels.append(f"{meses_labels[c['mes']-1]} {c['anio']}")
+        label = f"{meses_labels[c['mes']-1]} {c['anio']}"
+        cal_labels.append(label)
         cal_aptos.append(c['aptos'])
         cal_no_aptos.append(c['no_aptos'])
 
     cat_labels = [a['categoria_an'] for a in animales_categoria]
     cat_values = [a['cantidad'] for a in animales_categoria]
+
     cost_labels = [c['categoria_co'] for c in costos_categoria]
     cost_values = [float(c['total'] or 0) for c in costos_categoria]
+
     turno_labels = [t['turno_or'] for t in litros_turno]
     turno_values = [float(t['total'] or 0) for t in litros_turno]
 
     contexto = {
-        'prod_labels': prod_labels, 'prod_values': prod_values,
+        'prod_labels': prod_labels,
+        'prod_values': prod_values,
         'produccion_animal': produccion_animal,
-        'turno_labels': turno_labels, 'turno_values': turno_values,
-        'cal_labels': cal_labels, 'cal_aptos': cal_aptos, 'cal_no_aptos': cal_no_aptos,
+        'turno_labels': turno_labels,
+        'turno_values': turno_values,
+        'cal_labels': cal_labels,
+        'cal_aptos': cal_aptos,
+        'cal_no_aptos': cal_no_aptos,
         'total_animales': total_animales,
-        'cat_labels': cat_labels, 'cat_values': cat_values,
+        'cat_labels': cat_labels,
+        'cat_values': cat_values,
         'animales_estado': animales_estado,
-        'total_costos': float(total_costos), 'total_ingresos': float(total_ingresos),
+        'total_costos': float(total_costos),
+        'total_ingresos': float(total_ingresos),
         'balance': balance,
-        'cost_labels': cost_labels, 'cost_values': cost_values,
-        'ml_estado': ml_estado, 'recomendaciones': recomendaciones,
+        'cost_labels': cost_labels,
+        'cost_values': cost_values,
+        'ml_estado': ml_estado,
+        'recomendaciones': recomendaciones,
     }
+
     return render(request, 'dashboard_grafico.html', contexto)
 
 
+# ==========================================
+# PARA ACTUALIZAR ARCHIVOS ML DESDE RENDER
+# ==========================================
 from .ml_engine import entrenar_modelo
 
 def entrenar_modelos_render(request):
+    # Solo funciona si pasas la clave correcta
     clave = request.GET.get('clave', '')
     if clave != 'mi_clave_secreta_123':
         return JsonResponse({'error': 'No autorizado'}, status=403)
