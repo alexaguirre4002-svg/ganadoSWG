@@ -154,29 +154,28 @@ Dashboard Machine Learning | Hacienda Joseph
                                                 <td class="fw-bold" style="color: #2c5e1a;">{{ p.prediccion }} L</td>
                                                 <td><span class="badge bg-info text-dark">{{ p.confianza }}</span></td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-info"
-                                                            onclick="abrirDetalleAnimalAD1(
+                                                    <button class="btn btn-sm btn-info" type="button"
+                                                            onclick="abrirDetalleAD1(
                                                                 '{{ p.animal_id }}',
-                                                                '{{ p.animal_codigo }}',
-                                                                '{{ p.animal_nombre }}',
-                                                                '{{ p.animal_raza }}',
-                                                                '{{ p.animal_sexo|default:"No especificado" }}',
-                                                                '{{ p.animal_categoria }}',
-                                                                '{{ p.animal_estado }}',
-                                                                '{{ p.animal_peso }}',
-                                                                '{{ p.animal_potrero }}',
-                                                                '{{ p.animal_foto|default:"" }}',
-                                                                '{{ p.animal_fecha_nacimiento|default:"No registrada" }}',
-                                                                '{{ p.animal_fecha_ingreso|default:"No registrada" }}',
-                                                                '{{ p.animal_fecha_salida|default:"" }}',
-                                                                '{{ p.animal_color|default:"No especificado" }}',
-                                                                '{{ p.animal_senas|default:"Ninguna" }}',
-                                                                '{{ p.animal_madre|default:"No registrada" }}',
-                                                                '{{ p.animal_padre|default:"No registrado" }}',
-                                                                '{{ p.animal_peso_nacimiento|default:"No registrado" }}',
-                                                                '{{ p.animal_condicion|default:"No evaluada" }}',
-                                                                '{{ p.prediccion }}',
-                                                                'litros'
+                                                                '{{ p.animal_codigo|escapejs }}',
+                                                                '{{ p.animal_nombre|escapejs }}',
+                                                                '{{ p.animal_raza|escapejs }}',
+                                                                '{{ p.animal_sexo|escapejs }}',
+                                                                '{{ p.animal_categoria|escapejs }}',
+                                                                '{{ p.animal_estado|escapejs }}',
+                                                                '{{ p.animal_peso|escapejs }}',
+                                                                '{{ p.animal_potrero|escapejs }}',
+                                                                '{{ p.animal_foto|default:""|escapejs }}',
+                                                                '{{ p.animal_fecha_nacimiento|escapejs }}',
+                                                                '{{ p.animal_fecha_ingreso|escapejs }}',
+                                                                '{{ p.animal_fecha_salida|default:""|escapejs }}',
+                                                                '{{ p.animal_color|escapejs }}',
+                                                                '{{ p.animal_senas|escapejs }}',
+                                                                '{{ p.animal_madre|escapejs }}',
+                                                                '{{ p.animal_padre|escapejs }}',
+                                                                '{{ p.animal_peso_nacimiento|escapejs }}',
+                                                                '{{ p.animal_condicion|escapejs }}',
+                                                                '{{ p.prediccion }}'
                                                             )"
                                                             title="Ver detalle del animal">
                                                         <i class="bi bi-eye"></i>
@@ -276,27 +275,27 @@ Dashboard Machine Learning | Hacienda Joseph
                                                 </td>
                                                 <td><span class="badge bg-success">{{ p.confianza }}</span></td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-info"
-                                                            onclick="abrirDetalleAnimalAD2(
+                                                    <button class="btn btn-sm btn-info" type="button"
+                                                            onclick="abrirDetalleAD2(
                                                                 '{{ p.animal_id }}',
-                                                                '{{ p.animal_codigo }}',
-                                                                '{{ p.animal_nombre }}',
-                                                                '{{ p.animal_raza }}',
-                                                                '{{ p.animal_sexo|default:"No especificado" }}',
-                                                                '{{ p.animal_categoria }}',
-                                                                '{{ p.animal_estado }}',
-                                                                '{{ p.animal_peso }}',
-                                                                '{{ p.animal_potrero }}',
-                                                                '{{ p.animal_foto|default:"" }}',
-                                                                '{{ p.animal_fecha_nacimiento|default:"No registrada" }}',
-                                                                '{{ p.animal_fecha_ingreso|default:"No registrada" }}',
-                                                                '{{ p.animal_fecha_salida|default:"" }}',
-                                                                '{{ p.animal_color|default:"No especificado" }}',
-                                                                '{{ p.animal_senas|default:"Ninguna" }}',
-                                                                '{{ p.animal_madre|default:"No registrada" }}',
-                                                                '{{ p.animal_padre|default:"No registrado" }}',
-                                                                '{{ p.animal_peso_nacimiento|default:"No registrado" }}',
-                                                                '{{ p.animal_condicion|default:"No evaluada" }}',
+                                                                '{{ p.animal_codigo|escapejs }}',
+                                                                '{{ p.animal_nombre|escapejs }}',
+                                                                '{{ p.animal_raza|escapejs }}',
+                                                                '{{ p.animal_sexo|escapejs }}',
+                                                                '{{ p.animal_categoria|escapejs }}',
+                                                                '{{ p.animal_estado|escapejs }}',
+                                                                '{{ p.animal_peso|escapejs }}',
+                                                                '{{ p.animal_potrero|escapejs }}',
+                                                                '{{ p.animal_foto|default:""|escapejs }}',
+                                                                '{{ p.animal_fecha_nacimiento|escapejs }}',
+                                                                '{{ p.animal_fecha_ingreso|escapejs }}',
+                                                                '{{ p.animal_fecha_salida|default:""|escapejs }}',
+                                                                '{{ p.animal_color|escapejs }}',
+                                                                '{{ p.animal_senas|escapejs }}',
+                                                                '{{ p.animal_madre|escapejs }}',
+                                                                '{{ p.animal_padre|escapejs }}',
+                                                                '{{ p.animal_peso_nacimiento|escapejs }}',
+                                                                '{{ p.animal_condicion|escapejs }}',
                                                                 '{{ p.prediccion }}',
                                                                 '{{ p.confianza }}'
                                                             )"
@@ -400,27 +399,27 @@ Dashboard Machine Learning | Hacienda Joseph
                                                 </td>
                                                 <td><span class="badge bg-success">{{ p.confianza }}</span></td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-info"
-                                                            onclick="abrirDetalleAnimalRL4(
+                                                    <button class="btn btn-sm btn-info" type="button"
+                                                            onclick="abrirDetalleRL4(
                                                                 '{{ p.animal_id }}',
-                                                                '{{ p.animal_codigo }}',
-                                                                '{{ p.animal_nombre }}',
-                                                                '{{ p.animal_raza }}',
-                                                                '{{ p.animal_sexo|default:"No especificado" }}',
-                                                                '{{ p.animal_categoria }}',
-                                                                '{{ p.animal_estado }}',
-                                                                '{{ p.animal_peso }}',
-                                                                '{{ p.animal_potrero }}',
-                                                                '{{ p.animal_foto|default:"" }}',
-                                                                '{{ p.animal_fecha_nacimiento|default:"No registrada" }}',
-                                                                '{{ p.animal_fecha_ingreso|default:"No registrada" }}',
-                                                                '{{ p.animal_fecha_salida|default:"" }}',
-                                                                '{{ p.animal_color|default:"No especificado" }}',
-                                                                '{{ p.animal_senas|default:"Ninguna" }}',
-                                                                '{{ p.animal_madre|default:"No registrada" }}',
-                                                                '{{ p.animal_padre|default:"No registrado" }}',
-                                                                '{{ p.animal_peso_nacimiento|default:"No registrado" }}',
-                                                                '{{ p.animal_condicion|default:"No evaluada" }}',
+                                                                '{{ p.animal_codigo|escapejs }}',
+                                                                '{{ p.animal_nombre|escapejs }}',
+                                                                '{{ p.animal_raza|escapejs }}',
+                                                                '{{ p.animal_sexo|escapejs }}',
+                                                                '{{ p.animal_categoria|escapejs }}',
+                                                                '{{ p.animal_estado|escapejs }}',
+                                                                '{{ p.animal_peso|escapejs }}',
+                                                                '{{ p.animal_potrero|escapejs }}',
+                                                                '{{ p.animal_foto|default:""|escapejs }}',
+                                                                '{{ p.animal_fecha_nacimiento|escapejs }}',
+                                                                '{{ p.animal_fecha_ingreso|escapejs }}',
+                                                                '{{ p.animal_fecha_salida|default:""|escapejs }}',
+                                                                '{{ p.animal_color|escapejs }}',
+                                                                '{{ p.animal_senas|escapejs }}',
+                                                                '{{ p.animal_madre|escapejs }}',
+                                                                '{{ p.animal_padre|escapejs }}',
+                                                                '{{ p.animal_peso_nacimiento|escapejs }}',
+                                                                '{{ p.animal_condicion|escapejs }}',
                                                                 '{{ p.prediccion }}'
                                                             )"
                                                             title="Ver detalle del animal">
@@ -476,8 +475,8 @@ Dashboard Machine Learning | Hacienda Joseph
                     <!-- COLUMNA DE LA FOTO -->
                     <div class="col-md-5" style="background: #f5f0e6; border-right: 2px solid #d4c5a9; min-height: 500px; padding: 0;">
                         <div id="contenedorFotoAnimalML" style="width: 100%; height: 100%; min-height: 500px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                            <img id="fotoAnimalDetalleML" src="" alt="Foto del animal" style="width: 100%; height: 100%; min-height: 500px; object-fit: cover; border-radius: 12px; border: 3px solid #DAA520; box-shadow: 0 4px 15px rgba(0,0,0,0.2); background-color: #f5f0e6; display: none;">
-                            <div id="placeholderFotoML" class="foto-animal-placeholder" style="width: 100%; height: 100%; min-height: 500px; background: linear-gradient(135deg, #eef7e8, #dcefd0); border-radius: 12px; border: 3px dashed #b7d7a8; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #2c5e1a;">
+                            <img id="fotoAnimalDetalleML" src="" alt="Foto del animal" style="width: 100%; height: 100%; min-height: 500px; object-fit: cover; display: none;">
+                            <div id="placeholderFotoML" style="width: 100%; height: 100%; min-height: 500px; background: linear-gradient(135deg, #eef7e8, #dcefd0); border-radius: 12px; border: 3px dashed #b7d7a8; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #2c5e1a;">
                                 <i class="bi bi-image fs-1 mb-2"></i>
                                 <p class="mb-0 fw-bold">Sin fotografía</p>
                                 <p class="small text-muted">No se ha registrado imagen</p>
@@ -619,21 +618,6 @@ Dashboard Machine Learning | Hacienda Joseph
 
 {% block scripts_extra %}
 <style>
-    .foto-animal-placeholder {
-        width: 100%;
-        height: 100%;
-        min-height: 500px;
-        background: linear-gradient(135deg, #eef7e8, #dcefd0);
-        border-radius: 12px;
-        border: 3px dashed #b7d7a8;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: #2c5e1a;
-        padding: 20px;
-        text-align: center;
-    }
     #contenedorFotoAnimalML {
         width: 100%;
         height: 100%;
@@ -668,57 +652,19 @@ Dashboard Machine Learning | Hacienda Joseph
 </style>
 
 <script>
-// ==========================================
-// FUNCIÓN PARA ABRIR MODAL AD-1 (LITROS)
-// ==========================================
-function abrirDetalleAnimalAD1(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto, 
-                               fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre, 
-                               pesoNacimiento, condicion, prediccion, tipo) {
+// ============================================================
+// FUNCIÓN PARA AD-1: LITROS DE LECHE
+// ============================================================
+function abrirDetalleAD1(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto,
+                         fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre,
+                         pesoNacimiento, condicion, prediccion) {
     
-    // Llenar datos del animal
-    document.getElementById('mlDetalleCodigo').textContent = codigo;
-    document.getElementById('mlDetalleNombre').textContent = nombre;
-    document.getElementById('mlDetalleRaza').textContent = raza;
-    document.getElementById('mlDetalleSexo').textContent = sexo;
-    document.getElementById('mlDetalleCategoria').textContent = categoria;
-    document.getElementById('mlDetalleCondicion').textContent = condicion;
-    document.getElementById('mlDetalleColor').textContent = color;
-    document.getElementById('mlDetallePesoNacimiento').textContent = pesoNacimiento + (pesoNacimiento !== 'No registrado' ? ' kg' : '');
-    document.getElementById('mlDetallePesoActual').textContent = peso + (peso !== 'No registrado' ? ' kg' : '');
-    document.getElementById('mlDetalleFechaNacimiento').textContent = fechaNacimiento;
-    document.getElementById('mlDetalleFechaIngreso').textContent = fechaIngreso;
-    document.getElementById('mlDetalleFechaSalida').textContent = fechaSalida || '---';
-    document.getElementById('mlDetalleMadre').textContent = madre;
-    document.getElementById('mlDetallePadre').textContent = padre;
-    document.getElementById('mlDetallePotrero').textContent = potrero;
-    document.getElementById('mlDetalleSenas').textContent = senas;
+    llenarDatosAnimal(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto,
+                      fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre,
+                      pesoNacimiento, condicion);
     
-    // Estado badge
-    var estadoHtml = '';
-    switch(estado) {
-        case 'activo': estadoHtml = '<span class="badge rounded-pill bg-success p-2"><i class="bi bi-check-circle"></i> Activo</span>'; break;
-        case 'vendido': estadoHtml = '<span class="badge rounded-pill p-2" style="background:#1976D2;color:white;"><i class="bi bi-cash-coin"></i> Vendido</span>'; break;
-        case 'muerto': estadoHtml = '<span class="badge rounded-pill bg-dark p-2"><i class="bi bi-heartbreak"></i> Muerto</span>'; break;
-        case 'faenado': estadoHtml = '<span class="badge rounded-pill p-2" style="background:#5D4037;color:white;"><i class="bi bi-scissors"></i> Faenado</span>'; break;
-        case 'retirado': estadoHtml = '<span class="badge rounded-pill p-2" style="background:#757575;color:white;"><i class="bi bi-box-arrow-right"></i> Retirado</span>'; break;
-        default: estadoHtml = '<span class="badge rounded-pill bg-secondary p-2">' + estado + '</span>';
-    }
-    document.getElementById('mlDetalleEstado').innerHTML = estadoHtml;
-    
-    // Motivo salida
-    var filaMotivo = document.getElementById('mlFilaMotivoSalida');
-    if (fechaSalida && fechaSalida !== '---' && fechaSalida !== '') {
-        filaMotivo.style.display = 'block';
-        document.getElementById('mlDetalleMotivo').textContent = 'Salida registrada';
-    } else {
-        filaMotivo.style.display = 'none';
-    }
-    
-    // ==========================================
-    // RECOMENDACIONES PARA AD-1 (LITROS)
-    // ==========================================
-    var recomendacionHtml = '';
     var litros = parseFloat(prediccion);
+    var recomendacionHtml = '';
     
     if (litros >= 25) {
         recomendacionHtml = `
@@ -742,70 +688,23 @@ function abrirDetalleAnimalAD1(id, codigo, nombre, raza, sexo, categoria, estado
     }
     document.getElementById('mlRecomendacionContenido').innerHTML = recomendacionHtml;
     
-    // ==========================================
-    // MANEJO DE LA FOTO
-    // ==========================================
-    manejarFoto(foto);
-    
-    // Botón editar
-    document.getElementById('mlBtnEditarDesdeDetalle').href = '/editaranimal/' + id;
-    
-    // Abrir modal
-    new bootstrap.Modal(document.getElementById('modalDetalleAnimalML')).show();
+    var modal = new bootstrap.Modal(document.getElementById('modalDetalleAnimalML'));
+    modal.show();
 }
 
-// ==========================================
-// FUNCIÓN PARA ABRIR MODAL AD-2 (PREÑEZ)
-// ==========================================
-function abrirDetalleAnimalAD2(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto,
-                               fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre,
-                               pesoNacimiento, condicion, prediccion, confianza) {
+// ============================================================
+// FUNCIÓN PARA AD-2: PREÑEZ
+// ============================================================
+function abrirDetalleAD2(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto,
+                         fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre,
+                         pesoNacimiento, condicion, prediccion, confianza) {
     
-    // Llenar datos del animal (mismo código que AD-1)
-    document.getElementById('mlDetalleCodigo').textContent = codigo;
-    document.getElementById('mlDetalleNombre').textContent = nombre;
-    document.getElementById('mlDetalleRaza').textContent = raza;
-    document.getElementById('mlDetalleSexo').textContent = sexo;
-    document.getElementById('mlDetalleCategoria').textContent = categoria;
-    document.getElementById('mlDetalleCondicion').textContent = condicion;
-    document.getElementById('mlDetalleColor').textContent = color;
-    document.getElementById('mlDetallePesoNacimiento').textContent = pesoNacimiento + (pesoNacimiento !== 'No registrado' ? ' kg' : '');
-    document.getElementById('mlDetallePesoActual').textContent = peso + (peso !== 'No registrado' ? ' kg' : '');
-    document.getElementById('mlDetalleFechaNacimiento').textContent = fechaNacimiento;
-    document.getElementById('mlDetalleFechaIngreso').textContent = fechaIngreso;
-    document.getElementById('mlDetalleFechaSalida').textContent = fechaSalida || '---';
-    document.getElementById('mlDetalleMadre').textContent = madre;
-    document.getElementById('mlDetallePadre').textContent = padre;
-    document.getElementById('mlDetallePotrero').textContent = potrero;
-    document.getElementById('mlDetalleSenas').textContent = senas;
+    llenarDatosAnimal(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto,
+                      fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre,
+                      pesoNacimiento, condicion);
     
-    // Estado badge
-    var estadoHtml = '';
-    switch(estado) {
-        case 'activo': estadoHtml = '<span class="badge rounded-pill bg-success p-2"><i class="bi bi-check-circle"></i> Activo</span>'; break;
-        case 'vendido': estadoHtml = '<span class="badge rounded-pill p-2" style="background:#1976D2;color:white;"><i class="bi bi-cash-coin"></i> Vendido</span>'; break;
-        case 'muerto': estadoHtml = '<span class="badge rounded-pill bg-dark p-2"><i class="bi bi-heartbreak"></i> Muerto</span>'; break;
-        case 'faenado': estadoHtml = '<span class="badge rounded-pill p-2" style="background:#5D4037;color:white;"><i class="bi bi-scissors"></i> Faenado</span>'; break;
-        case 'retirado': estadoHtml = '<span class="badge rounded-pill p-2" style="background:#757575;color:white;"><i class="bi bi-box-arrow-right"></i> Retirado</span>'; break;
-        default: estadoHtml = '<span class="badge rounded-pill bg-secondary p-2">' + estado + '</span>';
-    }
-    document.getElementById('mlDetalleEstado').innerHTML = estadoHtml;
-    
-    // Motivo salida
-    var filaMotivo = document.getElementById('mlFilaMotivoSalida');
-    if (fechaSalida && fechaSalida !== '---' && fechaSalida !== '') {
-        filaMotivo.style.display = 'block';
-        document.getElementById('mlDetalleMotivo').textContent = 'Salida registrada';
-    } else {
-        filaMotivo.style.display = 'none';
-    }
-    
-    // ==========================================
-    // RECOMENDACIONES PARA AD-2 (PREÑEZ)
-    // ==========================================
-    var recomendacionHtml = '';
     var esPrenada = prediccion === 'PREÑADA';
-    var confianzaNum = parseFloat(confianza) || 0;
+    var recomendacionHtml = '';
     
     if (esPrenada) {
         recomendacionHtml = `
@@ -824,24 +723,52 @@ function abrirDetalleAnimalAD2(id, codigo, nombre, raza, sexo, categoria, estado
     }
     document.getElementById('mlRecomendacionContenido').innerHTML = recomendacionHtml;
     
-    // Foto
-    manejarFoto(foto);
-    
-    // Botón editar
-    document.getElementById('mlBtnEditarDesdeDetalle').href = '/editaranimal/' + id;
-    
-    // Abrir modal
-    new bootstrap.Modal(document.getElementById('modalDetalleAnimalML')).show();
+    var modal = new bootstrap.Modal(document.getElementById('modalDetalleAnimalML'));
+    modal.show();
 }
 
-// ==========================================
-// FUNCIÓN PARA ABRIR MODAL RL-4 (CALIDAD)
-// ==========================================
-function abrirDetalleAnimalRL4(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto,
-                               fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre,
-                               pesoNacimiento, condicion, prediccion) {
+// ============================================================
+// FUNCIÓN PARA RL-4: CALIDAD DE LECHE
+// ============================================================
+function abrirDetalleRL4(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto,
+                         fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre,
+                         pesoNacimiento, condicion, prediccion) {
     
-    // Llenar datos del animal
+    llenarDatosAnimal(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto,
+                      fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre,
+                      pesoNacimiento, condicion);
+    
+    var esApto = prediccion === 'APTO';
+    var recomendacionHtml = '';
+    
+    if (esApto) {
+        recomendacionHtml = `
+            <div class="recomendacion-item"><i class="bi bi-check-circle-fill" style="color:#28a745;"></i> <strong style="color:#28a745;">CALIDAD: APTA PARA CONSUMO</strong></div>
+            <div class="recomendacion-item"><i class="bi bi-info-circle"></i> La leche cumple con los estándares de calidad requeridos.</div>
+            <div class="recomendacion-item"><i class="bi bi-check-circle"></i> Mantener buenas prácticas de ordeño e higiene.</div>
+            <div class="recomendacion-item"><i class="bi bi-clipboard"></i> Continuar con monitoreo periódico de calidad.</div>
+        `;
+    } else {
+        recomendacionHtml = `
+            <div class="recomendacion-item"><i class="bi bi-x-circle-fill" style="color:#c0392b;"></i> <strong style="color:#c0392b;">CALIDAD: NO APTA PARA CONSUMO</strong></div>
+            <div class="recomendacion-item"><i class="bi bi-exclamation-triangle" style="color:#c0392b;"></i> Revisar inmediatamente las prácticas de ordeño.</div>
+            <div class="recomendacion-item"><i class="bi bi-clipboard"></i> Evaluar condición sanitaria del animal y del equipo de ordeño.</div>
+            <div class="recomendacion-item"><i class="bi bi-check-circle"></i> Realizar nueva prueba de calidad para confirmar.</div>
+        `;
+    }
+    document.getElementById('mlRecomendacionContenido').innerHTML = recomendacionHtml;
+    
+    var modal = new bootstrap.Modal(document.getElementById('modalDetalleAnimalML'));
+    modal.show();
+}
+
+// ============================================================
+// FUNCIÓN COMÚN PARA LLENAR DATOS DEL ANIMAL
+// ============================================================
+function llenarDatosAnimal(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto,
+                           fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre,
+                           pesoNacimiento, condicion) {
+    
     document.getElementById('mlDetalleCodigo').textContent = codigo;
     document.getElementById('mlDetalleNombre').textContent = nombre;
     document.getElementById('mlDetalleRaza').textContent = raza;
@@ -849,8 +776,8 @@ function abrirDetalleAnimalRL4(id, codigo, nombre, raza, sexo, categoria, estado
     document.getElementById('mlDetalleCategoria').textContent = categoria;
     document.getElementById('mlDetalleCondicion').textContent = condicion;
     document.getElementById('mlDetalleColor').textContent = color;
-    document.getElementById('mlDetallePesoNacimiento').textContent = pesoNacimiento + (pesoNacimiento !== 'No registrado' ? ' kg' : '');
-    document.getElementById('mlDetallePesoActual').textContent = peso + (peso !== 'No registrado' ? ' kg' : '');
+    document.getElementById('mlDetallePesoNacimiento').textContent = pesoNacimiento;
+    document.getElementById('mlDetallePesoActual').textContent = peso;
     document.getElementById('mlDetalleFechaNacimiento').textContent = fechaNacimiento;
     document.getElementById('mlDetalleFechaIngreso').textContent = fechaIngreso;
     document.getElementById('mlDetalleFechaSalida').textContent = fechaSalida || '---';
@@ -880,43 +807,10 @@ function abrirDetalleAnimalRL4(id, codigo, nombre, raza, sexo, categoria, estado
         filaMotivo.style.display = 'none';
     }
     
-    // ==========================================
-    // RECOMENDACIONES PARA RL-4 (CALIDAD)
-    // ==========================================
-    var recomendacionHtml = '';
-    var esApto = prediccion === 'APTO';
-    
-    if (esApto) {
-        recomendacionHtml = `
-            <div class="recomendacion-item"><i class="bi bi-check-circle-fill" style="color:#28a745;"></i> <strong style="color:#28a745;">CALIDAD: APTA PARA CONSUMO</strong></div>
-            <div class="recomendacion-item"><i class="bi bi-info-circle"></i> La leche cumple con los estándares de calidad requeridos.</div>
-            <div class="recomendacion-item"><i class="bi bi-check-circle"></i> Mantener buenas prácticas de ordeño e higiene.</div>
-            <div class="recomendacion-item"><i class="bi bi-clipboard"></i> Continuar con monitoreo periódico de calidad.</div>
-        `;
-    } else {
-        recomendacionHtml = `
-            <div class="recomendacion-item"><i class="bi bi-x-circle-fill" style="color:#c0392b;"></i> <strong style="color:#c0392b;">CALIDAD: NO APTA PARA CONSUMO</strong></div>
-            <div class="recomendacion-item"><i class="bi bi-exclamation-triangle" style="color:#c0392b;"></i> Revisar inmediatamente las prácticas de ordeño.</div>
-            <div class="recomendacion-item"><i class="bi bi-clipboard"></i> Evaluar condición sanitaria del animal y del equipo de ordeño.</div>
-            <div class="recomendacion-item"><i class="bi bi-check-circle"></i> Realizar nueva prueba de calidad para confirmar.</div>
-        `;
-    }
-    document.getElementById('mlRecomendacionContenido').innerHTML = recomendacionHtml;
-    
-    // Foto
-    manejarFoto(foto);
-    
     // Botón editar
     document.getElementById('mlBtnEditarDesdeDetalle').href = '/editaranimal/' + id;
     
-    // Abrir modal
-    new bootstrap.Modal(document.getElementById('modalDetalleAnimalML')).show();
-}
-
-// ==========================================
-// FUNCIÓN AUXILIAR PARA MANEJAR FOTO
-// ==========================================
-function manejarFoto(foto) {
+    // Foto
     var imgFoto = document.getElementById('fotoAnimalDetalleML');
     var placeholder = document.getElementById('placeholderFotoML');
     
