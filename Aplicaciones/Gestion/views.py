@@ -9987,9 +9987,6 @@ def eliminaingreso(request, id_ig):
 # ==========================================
 # VISTA: DASHBOARD PRINCIPAL ML
 # ==========================================
-# ==========================================
-# VISTA: DASHBOARD PRINCIPAL ML
-# ==========================================
 def dashboardml(request):
     """
     Dashboard de Machine Learning con predicciones automaticas agrupadas por año/mes.
@@ -10019,7 +10016,6 @@ def dashboardml(request):
 
     # ──────────────────────────────────────────────────────
     # AD-1: TODOS los ordeños, agrupados por AÑO → MES
-    # Para cada ordeño genera una prediccion y guarda en BD
     # ──────────────────────────────────────────────────────
     predicciones_ad1_agrupadas = {}  # {año: {mes: [predicciones]}}
     if estado_ad1:
@@ -10027,9 +10023,8 @@ def dashboardml(request):
             temperatura_ambiental_or__isnull=False,
             cantidad_concentrado_kg_or__isnull=False,
             temperatura_leche_or__isnull=False
-        ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_or')
+        ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an', 'fk_an__fk_madre_an', 'fk_an__fk_padre_an').order_by('-fecha_or')
 
-        # Obtener o crear el modelo ML en BD para guardar predicciones
         modelo_db_ad1 = ModeloML.objects.filter(codigo_mm='AD-1').first()
 
         for o in ordenos:
@@ -10040,7 +10035,7 @@ def dashboardml(request):
             })
             if r['exito']:
                 anio = o.fecha_or.year
-                mes = o.fecha_or.strftime('%B %Y')  # ej: "January 2025"
+                mes = o.fecha_or.strftime('%B %Y')
                 mes_num = o.fecha_or.month
 
                 if anio not in predicciones_ad1_agrupadas:
@@ -10051,18 +10046,27 @@ def dashboardml(request):
                         'registros': []
                     }
 
-                # Datos completos del animal para el modal de detalle
                 animal = o.fk_an
                 predicciones_ad1_agrupadas[anio][mes]['registros'].append({
                     'animal_id': animal.id_an if animal else None,
                     'animal_codigo': animal.codigo_an if animal else 'Sin nombre',
                     'animal_nombre': animal.nombre_an or 'Sin nombre' if animal else 'Sin nombre',
                     'animal_raza': animal.fk_ra.nombre_ra if animal and animal.fk_ra else 'N/A',
+                    'animal_sexo': 'Macho' if animal and animal.sexo_an == 'M' else 'Hembra' if animal and animal.sexo_an == 'H' else 'No especificado',
                     'animal_categoria': animal.categoria_an if animal else 'N/A',
                     'animal_estado': animal.estado_an if animal else 'N/A',
                     'animal_peso': str(animal.peso_actual_kg_an) + ' kg' if animal and animal.peso_actual_kg_an else 'No registrado',
                     'animal_potrero': animal.fk_potrero_an.nombre_po if animal and animal.fk_potrero_an else 'Sin potrero',
                     'animal_foto': animal.foto_an or '' if animal else '',
+                    'animal_fecha_nacimiento': animal.fecha_nacimiento_an.strftime('%d/%m/%Y') if animal and animal.fecha_nacimiento_an else 'No registrada',
+                    'animal_fecha_ingreso': animal.fecha_ingreso_an.strftime('%d/%m/%Y') if animal and animal.fecha_ingreso_an else 'No registrada',
+                    'animal_fecha_salida': animal.fecha_salida_an.strftime('%d/%m/%Y') if animal and animal.fecha_salida_an else '',
+                    'animal_color': animal.color_an if animal and animal.color_an else 'No especificado',
+                    'animal_senas': animal.senas_particulares_an if animal and animal.senas_particulares_an else 'Ninguna',
+                    'animal_madre': f"{animal.fk_madre_an.codigo_an} - {animal.fk_madre_an.nombre_an or 'Sin nombre'}" if animal and animal.fk_madre_an else 'No registrada',
+                    'animal_padre': f"{animal.fk_padre_an.codigo_an} - {animal.fk_padre_an.nombre_an or 'Sin nombre'}" if animal and animal.fk_padre_an else 'No registrado',
+                    'animal_peso_nacimiento': str(animal.peso_nacimiento_kg_an) + ' kg' if animal and animal.peso_nacimiento_kg_an else 'No registrado',
+                    'animal_condicion': f"{animal.condicion_corporal_an}/5" if animal and animal.condicion_corporal_an else 'No evaluada',
                     'fecha': o.fecha_or.strftime('%d/%m/%Y'),
                     'temperatura_ambiental': o.temperatura_ambiental_or,
                     'cantidad_concentrado_kg': o.cantidad_concentrado_kg_or,
@@ -10071,7 +10075,6 @@ def dashboardml(request):
                     'confianza': f"R²: {round(metrica_ad1 * 100, 1)}%" if metrica_ad1 else 'N/A',
                 })
 
-                # Guardar prediccion en BD (historial)
                 if modelo_db_ad1:
                     try:
                         PrediccionML.objects.get_or_create(
@@ -10091,11 +10094,9 @@ def dashboardml(request):
                     except Exception:
                         pass
 
-        # Ordenar años de más reciente a más antiguo
         predicciones_ad1_agrupadas = dict(
             sorted(predicciones_ad1_agrupadas.items(), reverse=True)
         )
-        # Ordenar meses dentro de cada año
         for anio in predicciones_ad1_agrupadas:
             predicciones_ad1_agrupadas[anio] = dict(
                 sorted(
@@ -10114,7 +10115,7 @@ def dashboardml(request):
             resultado_in='pendiente',
             condicion_corporal_in__isnull=False,
             fecha_in__isnull=False
-        ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_in')
+        ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an', 'fk_an__fk_madre_an', 'fk_an__fk_padre_an').order_by('-fecha_in')
 
         modelo_db_ad2 = ModeloML.objects.filter(codigo_mm='AD-2').first()
 
@@ -10144,11 +10145,21 @@ def dashboardml(request):
                     'animal_codigo': animal.codigo_an if animal else 'Sin nombre',
                     'animal_nombre': animal.nombre_an or 'Sin nombre' if animal else 'Sin nombre',
                     'animal_raza': animal.fk_ra.nombre_ra if animal and animal.fk_ra else 'N/A',
+                    'animal_sexo': 'Macho' if animal and animal.sexo_an == 'M' else 'Hembra' if animal and animal.sexo_an == 'H' else 'No especificado',
                     'animal_categoria': animal.categoria_an if animal else 'N/A',
                     'animal_estado': animal.estado_an if animal else 'N/A',
                     'animal_peso': str(animal.peso_actual_kg_an) + ' kg' if animal and animal.peso_actual_kg_an else 'No registrado',
                     'animal_potrero': animal.fk_potrero_an.nombre_po if animal and animal.fk_potrero_an else 'Sin potrero',
                     'animal_foto': animal.foto_an or '' if animal else '',
+                    'animal_fecha_nacimiento': animal.fecha_nacimiento_an.strftime('%d/%m/%Y') if animal and animal.fecha_nacimiento_an else 'No registrada',
+                    'animal_fecha_ingreso': animal.fecha_ingreso_an.strftime('%d/%m/%Y') if animal and animal.fecha_ingreso_an else 'No registrada',
+                    'animal_fecha_salida': animal.fecha_salida_an.strftime('%d/%m/%Y') if animal and animal.fecha_salida_an else '',
+                    'animal_color': animal.color_an if animal and animal.color_an else 'No especificado',
+                    'animal_senas': animal.senas_particulares_an if animal and animal.senas_particulares_an else 'Ninguna',
+                    'animal_madre': f"{animal.fk_madre_an.codigo_an} - {animal.fk_madre_an.nombre_an or 'Sin nombre'}" if animal and animal.fk_madre_an else 'No registrada',
+                    'animal_padre': f"{animal.fk_padre_an.codigo_an} - {animal.fk_padre_an.nombre_an or 'Sin nombre'}" if animal and animal.fk_padre_an else 'No registrado',
+                    'animal_peso_nacimiento': str(animal.peso_nacimiento_kg_an) + ' kg' if animal and animal.peso_nacimiento_kg_an else 'No registrado',
+                    'animal_condicion': f"{animal.condicion_corporal_an}/5" if animal and animal.condicion_corporal_an else 'No evaluada',
                     'fecha': ins.fecha_in.strftime('%d/%m/%Y'),
                     'dias': dias,
                     'condicion_corporal': ins.condicion_corporal_in,
@@ -10197,7 +10208,7 @@ def dashboardml(request):
             grasa_pct_cl__isnull=False,
             proteina_pct_cl__isnull=False,
             ccs_cl__isnull=False
-        ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_muestreo_cl')
+        ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an', 'fk_an__fk_madre_an', 'fk_an__fk_padre_an').order_by('-fecha_muestreo_cl')
 
         modelo_db_rl4 = ModeloML.objects.filter(codigo_mm='RL-4').first()
 
@@ -10226,11 +10237,21 @@ def dashboardml(request):
                     'animal_codigo': animal.codigo_an if animal else 'Sin nombre',
                     'animal_nombre': animal.nombre_an or 'Sin nombre' if animal else 'Sin nombre',
                     'animal_raza': animal.fk_ra.nombre_ra if animal and animal.fk_ra else 'N/A',
+                    'animal_sexo': 'Macho' if animal and animal.sexo_an == 'M' else 'Hembra' if animal and animal.sexo_an == 'H' else 'No especificado',
                     'animal_categoria': animal.categoria_an if animal else 'N/A',
                     'animal_estado': animal.estado_an if animal else 'N/A',
                     'animal_peso': str(animal.peso_actual_kg_an) + ' kg' if animal and animal.peso_actual_kg_an else 'No registrado',
                     'animal_potrero': animal.fk_potrero_an.nombre_po if animal and animal.fk_potrero_an else 'Sin potrero',
                     'animal_foto': animal.foto_an or '' if animal else '',
+                    'animal_fecha_nacimiento': animal.fecha_nacimiento_an.strftime('%d/%m/%Y') if animal and animal.fecha_nacimiento_an else 'No registrada',
+                    'animal_fecha_ingreso': animal.fecha_ingreso_an.strftime('%d/%m/%Y') if animal and animal.fecha_ingreso_an else 'No registrada',
+                    'animal_fecha_salida': animal.fecha_salida_an.strftime('%d/%m/%Y') if animal and animal.fecha_salida_an else '',
+                    'animal_color': animal.color_an if animal and animal.color_an else 'No especificado',
+                    'animal_senas': animal.senas_particulares_an if animal and animal.senas_particulares_an else 'Ninguna',
+                    'animal_madre': f"{animal.fk_madre_an.codigo_an} - {animal.fk_madre_an.nombre_an or 'Sin nombre'}" if animal and animal.fk_madre_an else 'No registrada',
+                    'animal_padre': f"{animal.fk_padre_an.codigo_an} - {animal.fk_padre_an.nombre_an or 'Sin nombre'}" if animal and animal.fk_padre_an else 'No registrado',
+                    'animal_peso_nacimiento': str(animal.peso_nacimiento_kg_an) + ' kg' if animal and animal.peso_nacimiento_kg_an else 'No registrado',
+                    'animal_condicion': f"{animal.condicion_corporal_an}/5" if animal and animal.condicion_corporal_an else 'No evaluada',
                     'fecha': c.fecha_muestreo_cl.strftime('%d/%m/%Y'),
                     'grasa': c.grasa_pct_cl,
                     'proteina': c.proteina_pct_cl,
@@ -10277,7 +10298,6 @@ def dashboardml(request):
         'predicciones_ad2_agrupadas': predicciones_ad2_agrupadas,
         'predicciones_rl4_agrupadas': predicciones_rl4_agrupadas,
     })
-
 # ==========================================
 # VISTA: DASHBOARD POR MODELO ESPECÍFICO
 # ==========================================
