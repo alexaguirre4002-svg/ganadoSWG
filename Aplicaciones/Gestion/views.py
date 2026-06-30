@@ -9983,10 +9983,6 @@ def eliminaingreso(request, id_ig):
 # ============================================================
 # VISTA: ELIMINAR MODELO ML
 # ============================================================
-
-# ==========================================
-# VISTA: DASHBOARD PRINCIPAL ML
-# ==========================================
 # ==========================================
 # VISTA: DASHBOARD PRINCIPAL ML
 # ==========================================
@@ -9997,7 +9993,6 @@ def dashboardml(request):
     Incluye modal de detalle del animal al hacer clic.
     """
     from .ml_engine import modelo_esta_entrenado, predecir
-    from collections import defaultdict
 
     estado_ad1 = modelo_esta_entrenado('AD-1')
     estado_ad2 = modelo_esta_entrenado('AD-2')
@@ -10019,18 +10014,14 @@ def dashboardml(request):
 
     # ──────────────────────────────────────────────────────
     # AD-1: TODOS los ordeños, agrupados por AÑO → MES
-    # Para cada ordeño genera una prediccion y guarda en BD
     # ──────────────────────────────────────────────────────
-    predicciones_ad1_agrupadas = {}  # {año: {mes: [predicciones]}}
+    predicciones_ad1_agrupadas = {}
     if estado_ad1:
         ordenos = Ordeno.objects.filter(
             temperatura_ambiental_or__isnull=False,
             cantidad_concentrado_kg_or__isnull=False,
             temperatura_leche_or__isnull=False
         ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_or')
-
-        # Obtener o crear el modelo ML en BD para guardar predicciones
-        modelo_db_ad1 = ModeloML.objects.filter(codigo_mm='AD-1').first()
 
         for o in ordenos:
             r = predecir('AD-1', {
@@ -10040,8 +10031,9 @@ def dashboardml(request):
             })
             if r['exito']:
                 anio = o.fecha_or.year
-                mes = o.fecha_or.strftime('%B %Y')  # ej: "January 2025"
+                mes = o.fecha_or.strftime('%B %Y')
                 mes_num = o.fecha_or.month
+                animal = o.fk_an
 
                 if anio not in predicciones_ad1_agrupadas:
                     predicciones_ad1_agrupadas[anio] = {}
@@ -10051,8 +10043,6 @@ def dashboardml(request):
                         'registros': []
                     }
 
-                # Datos completos del animal para el modal de detalle
-                animal = o.fk_an
                 predicciones_ad1_agrupadas[anio][mes]['registros'].append({
                     'animal_id': animal.id_an if animal else None,
                     'animal_codigo': animal.codigo_an if animal else 'Sin nombre',
@@ -10067,46 +10057,19 @@ def dashboardml(request):
                     'temperatura_ambiental': o.temperatura_ambiental_or,
                     'cantidad_concentrado_kg': o.cantidad_concentrado_kg_or,
                     'temperatura_leche': o.temperatura_leche_or,
-                    'prediccion': r['prediccion'],
+                    'prediccion': round(r['prediccion'], 2),
                     'confianza': f"R²: {round(metrica_ad1 * 100, 1)}%" if metrica_ad1 else 'N/A',
                 })
 
-                # Guardar prediccion en BD (historial)
-                if modelo_db_ad1:
-                    try:
-                        PrediccionML.objects.get_or_create(
-                            fk_mm=modelo_db_ad1,
-                            fk_an=animal,
-                            datos_entrada_pm={
-                                'temperatura_ambiental': float(o.temperatura_ambiental_or),
-                                'cantidad_concentrado_kg': float(o.cantidad_concentrado_kg_or),
-                                'temperatura_leche': float(o.temperatura_leche_or),
-                                'fecha_ordeno': str(o.fecha_or)
-                            },
-                            defaults={
-                                'resultado_prediccion_pm': str(r['prediccion']),
-                                'probabilidad_pm': None
-                            }
-                        )
-                    except Exception:
-                        pass
-
-        # Ordenar años de más reciente a más antiguo
-        predicciones_ad1_agrupadas = dict(
-            sorted(predicciones_ad1_agrupadas.items(), reverse=True)
-        )
-        # Ordenar meses dentro de cada año
+        # Ordenar años y meses
+        predicciones_ad1_agrupadas = dict(sorted(predicciones_ad1_agrupadas.items(), reverse=True))
         for anio in predicciones_ad1_agrupadas:
             predicciones_ad1_agrupadas[anio] = dict(
-                sorted(
-                    predicciones_ad1_agrupadas[anio].items(),
-                    key=lambda x: x[1]['mes_num'],
-                    reverse=True
-                )
+                sorted(predicciones_ad1_agrupadas[anio].items(), key=lambda x: x[1]['mes_num'], reverse=True)
             )
 
     # ──────────────────────────────────────────────────────
-    # AD-2: TODAS las inseminaciones pendientes, agrupadas por AÑO → MES
+    # AD-2: TODAS las inseminaciones pendientes
     # ──────────────────────────────────────────────────────
     predicciones_ad2_agrupadas = {}
     if estado_ad2:
@@ -10115,8 +10078,6 @@ def dashboardml(request):
             condicion_corporal_in__isnull=False,
             fecha_in__isnull=False
         ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_in')
-
-        modelo_db_ad2 = ModeloML.objects.filter(codigo_mm='AD-2').first()
 
         for ins in inseminaciones:
             dias = (date.today() - ins.fecha_in).days
@@ -10129,6 +10090,7 @@ def dashboardml(request):
                 anio = ins.fecha_in.year
                 mes = ins.fecha_in.strftime('%B %Y')
                 mes_num = ins.fecha_in.month
+                animal = ins.fk_an
 
                 if anio not in predicciones_ad2_agrupadas:
                     predicciones_ad2_agrupadas[anio] = {}
@@ -10138,7 +10100,6 @@ def dashboardml(request):
                         'registros': []
                     }
 
-                animal = ins.fk_an
                 predicciones_ad2_agrupadas[anio][mes]['registros'].append({
                     'animal_id': animal.id_an if animal else None,
                     'animal_codigo': animal.codigo_an if animal else 'Sin nombre',
@@ -10157,39 +10118,14 @@ def dashboardml(request):
                     'confianza': f"{r.get('probabilidad', 0)*100:.1f}%",
                 })
 
-                if modelo_db_ad2:
-                    try:
-                        PrediccionML.objects.get_or_create(
-                            fk_mm=modelo_db_ad2,
-                            fk_an=animal,
-                            datos_entrada_pm={
-                                'dias_desde_inseminacion': dias,
-                                'condicion_corporal': float(ins.condicion_corporal_in),
-                                'dia_ciclo': ins.dia_ciclo_in or 14,
-                                'fecha_inseminacion': str(ins.fecha_in)
-                            },
-                            defaults={
-                                'resultado_prediccion_pm': r['prediccion'],
-                                'probabilidad_pm': r.get('probabilidad')
-                            }
-                        )
-                    except Exception:
-                        pass
-
-        predicciones_ad2_agrupadas = dict(
-            sorted(predicciones_ad2_agrupadas.items(), reverse=True)
-        )
+        predicciones_ad2_agrupadas = dict(sorted(predicciones_ad2_agrupadas.items(), reverse=True))
         for anio in predicciones_ad2_agrupadas:
             predicciones_ad2_agrupadas[anio] = dict(
-                sorted(
-                    predicciones_ad2_agrupadas[anio].items(),
-                    key=lambda x: x[1]['mes_num'],
-                    reverse=True
-                )
+                sorted(predicciones_ad2_agrupadas[anio].items(), key=lambda x: x[1]['mes_num'], reverse=True)
             )
 
     # ──────────────────────────────────────────────────────
-    # RL-4: TODAS las calidades de leche, agrupadas por AÑO → MES
+    # RL-4: TODAS las calidades de leche
     # ──────────────────────────────────────────────────────
     predicciones_rl4_agrupadas = {}
     if estado_rl4:
@@ -10198,8 +10134,6 @@ def dashboardml(request):
             proteina_pct_cl__isnull=False,
             ccs_cl__isnull=False
         ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_muestreo_cl')
-
-        modelo_db_rl4 = ModeloML.objects.filter(codigo_mm='RL-4').first()
 
         for c in calidades:
             r = predecir('RL-4', {
@@ -10211,6 +10145,7 @@ def dashboardml(request):
                 anio = c.fecha_muestreo_cl.year
                 mes = c.fecha_muestreo_cl.strftime('%B %Y')
                 mes_num = c.fecha_muestreo_cl.month
+                animal = c.fk_an
 
                 if anio not in predicciones_rl4_agrupadas:
                     predicciones_rl4_agrupadas[anio] = {}
@@ -10220,7 +10155,6 @@ def dashboardml(request):
                         'registros': []
                     }
 
-                animal = c.fk_an
                 predicciones_rl4_agrupadas[anio][mes]['registros'].append({
                     'animal_id': animal.id_an if animal else None,
                     'animal_codigo': animal.codigo_an if animal else 'Sin nombre',
@@ -10239,35 +10173,10 @@ def dashboardml(request):
                     'confianza': f"{r.get('probabilidad', 0)*100:.1f}%",
                 })
 
-                if modelo_db_rl4:
-                    try:
-                        PrediccionML.objects.get_or_create(
-                            fk_mm=modelo_db_rl4,
-                            fk_an=animal,
-                            datos_entrada_pm={
-                                'grasa_pct': float(c.grasa_pct_cl),
-                                'proteina_pct': float(c.proteina_pct_cl),
-                                'ccs': float(c.ccs_cl),
-                                'fecha_muestreo': str(c.fecha_muestreo_cl)
-                            },
-                            defaults={
-                                'resultado_prediccion_pm': r['prediccion'],
-                                'probabilidad_pm': r.get('probabilidad')
-                            }
-                        )
-                    except Exception:
-                        pass
-
-        predicciones_rl4_agrupadas = dict(
-            sorted(predicciones_rl4_agrupadas.items(), reverse=True)
-        )
+        predicciones_rl4_agrupadas = dict(sorted(predicciones_rl4_agrupadas.items(), reverse=True))
         for anio in predicciones_rl4_agrupadas:
             predicciones_rl4_agrupadas[anio] = dict(
-                sorted(
-                    predicciones_rl4_agrupadas[anio].items(),
-                    key=lambda x: x[1]['mes_num'],
-                    reverse=True
-                )
+                sorted(predicciones_rl4_agrupadas[anio].items(), key=lambda x: x[1]['mes_num'], reverse=True)
             )
 
     return render(request, 'ML/prediccionML/dashboard/dashboard_ml.html', {
