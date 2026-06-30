@@ -9999,6 +9999,26 @@ def dashboardml(request):
     from .ml_engine import modelo_esta_entrenado, predecir
     from collections import defaultdict
 
+    # ==========================================
+    # FUNCIÓN INTERNA PARA NOMBRES DE MESES EN ESPAÑOL
+    # ==========================================
+    def nombre_mes_espanol(numero_mes):
+        meses = {
+            1: 'Enero',
+            2: 'Febrero',
+            3: 'Marzo',
+            4: 'Abril',
+            5: 'Mayo',
+            6: 'Junio',
+            7: 'Julio',
+            8: 'Agosto',
+            9: 'Septiembre',
+            10: 'Octubre',
+            11: 'Noviembre',
+            12: 'Diciembre'
+        }
+        return meses.get(numero_mes, 'Desconocido')
+
     estado_ad1 = modelo_esta_entrenado('AD-1')
     estado_ad2 = modelo_esta_entrenado('AD-2')
     estado_rl4 = modelo_esta_entrenado('RL-4')
@@ -10039,7 +10059,6 @@ def dashboardml(request):
             if r['exito']:
                 anio = o.fecha_or.year
                 mes_num = o.fecha_or.month
-                # 🔥 NOMBRE DEL MES EN ESPAÑOL
                 mes_nombre = nombre_mes_espanol(mes_num)
                 mes_anio = f"{mes_nombre} {anio}"
 
@@ -10070,7 +10089,6 @@ def dashboardml(request):
                     'confianza': f"R²: {round(metrica_ad1 * 100, 1)}%" if metrica_ad1 else 'N/A',
                 })
 
-                # Guardar prediccion en BD
                 if modelo_db_ad1:
                     try:
                         PrediccionML.objects.get_or_create(
@@ -10090,11 +10108,9 @@ def dashboardml(request):
                     except Exception:
                         pass
 
-        # Ordenar años de más reciente a más antiguo
         predicciones_ad1_agrupadas = dict(
             sorted(predicciones_ad1_agrupadas.items(), reverse=True)
         )
-        # Ordenar meses dentro de cada año (por número de mes, descendente)
         for anio in predicciones_ad1_agrupadas:
             predicciones_ad1_agrupadas[anio] = dict(
                 sorted(
@@ -10127,7 +10143,6 @@ def dashboardml(request):
             if r['exito']:
                 anio = ins.fecha_in.year
                 mes_num = ins.fecha_in.month
-                # 🔥 NOMBRE DEL MES EN ESPAÑOL
                 mes_nombre = nombre_mes_espanol(mes_num)
                 mes_anio = f"{mes_nombre} {anio}"
 
@@ -10211,7 +10226,6 @@ def dashboardml(request):
             if r['exito']:
                 anio = c.fecha_muestreo_cl.year
                 mes_num = c.fecha_muestreo_cl.month
-                # 🔥 NOMBRE DEL MES EN ESPAÑOL
                 mes_nombre = nombre_mes_espanol(mes_num)
                 mes_anio = f"{mes_nombre} {anio}"
 
