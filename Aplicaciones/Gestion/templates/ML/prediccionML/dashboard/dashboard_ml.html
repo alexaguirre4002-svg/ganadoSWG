@@ -20,7 +20,7 @@ Dashboard Machine Learning | Hacienda Joseph
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid var(--color-primario);">
             <i class="bi bi-tree fs-2" style="color: var(--color-primario);"></i>
             <h4 class="fw-bold mt-2 mb-0">AD-1</h4>
-            <small class="text-muted">Arbol de Decision - Litros de Leche</small>
+            <small class="text-muted">Árbol de Decisión - Litros de Leche</small>
             {% if estado_ad1 %}
             <div class="mt-2"><span class="badge bg-success">Entrenado</span></div>
             <small class="text-muted">R²: {{ metrica_ad1 }}</small>
@@ -33,7 +33,7 @@ Dashboard Machine Learning | Hacienda Joseph
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
             <i class="bi bi-tree fs-2 text-success"></i>
             <h4 class="fw-bold mt-2 mb-0">AD-2</h4>
-            <small class="text-muted">Arbol de Decision - Preñez</small>
+            <small class="text-muted">Árbol de Decisión - Preñez</small>
             {% if estado_ad2 %}
             <div class="mt-2"><span class="badge bg-success">Entrenado</span></div>
             <small class="text-muted">Accuracy: {{ metrica_ad2 }}</small>
@@ -46,7 +46,7 @@ Dashboard Machine Learning | Hacienda Joseph
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #17a2b8;">
             <i class="bi bi-graph-up fs-2" style="color: #17a2b8;"></i>
             <h4 class="fw-bold mt-2 mb-0">RL-4</h4>
-            <small class="text-muted">Regresion Logistica - Calidad</small>
+            <small class="text-muted">Regresión Logística - Calidad</small>
             {% if estado_rl4 %}
             <div class="mt-2"><span class="badge bg-success">Entrenado</span></div>
             <small class="text-muted">Accuracy: {{ metrica_rl4 }}</small>
@@ -81,7 +81,7 @@ Dashboard Machine Learning | Hacienda Joseph
         <div class="card-hacienda">
             <div class="card-header-hacienda">
                 <i class="bi bi-droplet-fill me-2"></i>
-                Predicciones: Produccion de Leche (AD-1)
+                Predicciones: Producción de Leche (AD-1)
                 <small class="ms-2 fw-normal opacity-75">— Agrupado por año y mes</small>
                 <span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">
                     R² mide confiabilidad del modelo
@@ -112,7 +112,6 @@ Dashboard Machine Learning | Hacienda Joseph
                         <i class="bi bi-chevron-down float-end mt-1"></i>
                     </button>
 
-                    <!-- ELIMINADA LA CLASE "show" -->
                     <div class="collapse" id="ad1_anio_{{ anio }}">
                         {% for mes, data in meses.items %}
                         <!-- ACORDEÓN POR MES -->
@@ -129,7 +128,6 @@ Dashboard Machine Learning | Hacienda Joseph
                                 <i class="bi bi-chevron-down float-end mt-1"></i>
                             </button>
 
-                            <!-- ELIMINADA LA CLASE "show" -->
                             <div class="collapse" id="ad1_{{ anio }}_{{ forloop.counter }}">
                                 <div class="table-responsive ms-2">
                                     <table class="table table-hover table-bordered table-sm">
@@ -209,7 +207,6 @@ Dashboard Machine Learning | Hacienda Joseph
                         <i class="bi bi-chevron-down float-end mt-1"></i>
                     </button>
 
-                    <!-- ELIMINADA LA CLASE "show" -->
                     <div class="collapse" id="ad2_anio_{{ anio }}">
                         {% for mes, data in meses.items %}
                         <div class="ms-3 mb-2">
@@ -225,7 +222,6 @@ Dashboard Machine Learning | Hacienda Joseph
                                 <i class="bi bi-chevron-down float-end mt-1"></i>
                             </button>
 
-                            <!-- ELIMINADA LA CLASE "show" -->
                             <div class="collapse" id="ad2_{{ anio }}_{{ forloop.counter }}">
                                 <div class="table-responsive ms-2">
                                     <table class="table table-hover table-bordered table-sm">
@@ -311,7 +307,6 @@ Dashboard Machine Learning | Hacienda Joseph
                         <i class="bi bi-chevron-down float-end mt-1"></i>
                     </button>
 
-                    <!-- ELIMINADA LA CLASE "show" -->
                     <div class="collapse" id="rl4_anio_{{ anio }}">
                         {% for mes, data in meses.items %}
                         <div class="ms-3 mb-2">
@@ -329,7 +324,6 @@ Dashboard Machine Learning | Hacienda Joseph
                                 <i class="bi bi-chevron-down float-end mt-1"></i>
                             </button>
 
-                            <!-- ELIMINADA LA CLASE "show" -->
                             <div class="collapse" id="rl4_{{ anio }}_{{ forloop.counter }}">
                                 <div class="table-responsive ms-2">
                                     <table class="table table-hover table-bordered table-sm">
@@ -388,7 +382,7 @@ Dashboard Machine Learning | Hacienda Joseph
 {% if not predicciones_ad1_agrupadas and not predicciones_ad2_agrupadas and not predicciones_rl4_agrupadas %}
 <div class="alert alert-info animate-fade-in">
     <i class="bi bi-info-circle-fill me-2"></i>
-    <strong>No hay predicciones automaticas.</strong> Entrena los modelos primero o ingresa datos al sistema.
+    <strong>No hay predicciones automáticas.</strong> Entrena los modelos primero o ingresa datos al sistema.
     <br><code>python manage.py entrenar_ml AD-1</code><br>
     <code>python manage.py entrenar_ml AD-2 --ejemplo</code><br>
     <code>python manage.py entrenar_ml RL-4</code>
