@@ -112,6 +112,7 @@ Dashboard Machine Learning | Hacienda Joseph
                         <i class="bi bi-chevron-down float-end mt-1"></i>
                     </button>
 
+                    <!-- ELIMINADA LA CLASE "show" -->
                     <div class="collapse" id="ad1_anio_{{ anio }}">
                         {% for mes, data in meses.items %}
                         <!-- ACORDEÓN POR MES -->
@@ -128,6 +129,7 @@ Dashboard Machine Learning | Hacienda Joseph
                                 <i class="bi bi-chevron-down float-end mt-1"></i>
                             </button>
 
+                            <!-- ELIMINADA LA CLASE "show" -->
                             <div class="collapse" id="ad1_{{ anio }}_{{ forloop.counter }}">
                                 <div class="table-responsive ms-2">
                                     <table class="table table-hover table-bordered table-sm">
@@ -154,30 +156,9 @@ Dashboard Machine Learning | Hacienda Joseph
                                                 <td class="fw-bold" style="color: #2c5e1a;">{{ p.prediccion }} L</td>
                                                 <td><span class="badge bg-info text-dark">{{ p.confianza }}</span></td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-info" type="button"
-                                                            onclick="abrirDetalleAD1(
-                                                                '{{ p.animal_id }}',
-                                                                '{{ p.animal_codigo|escapejs }}',
-                                                                '{{ p.animal_nombre|escapejs }}',
-                                                                '{{ p.animal_raza|escapejs }}',
-                                                                '{{ p.animal_sexo|escapejs }}',
-                                                                '{{ p.animal_categoria|escapejs }}',
-                                                                '{{ p.animal_estado|escapejs }}',
-                                                                '{{ p.animal_peso|escapejs }}',
-                                                                '{{ p.animal_potrero|escapejs }}',
-                                                                '{{ p.animal_foto|default:""|escapejs }}',
-                                                                '{{ p.animal_fecha_nacimiento|escapejs }}',
-                                                                '{{ p.animal_fecha_ingreso|escapejs }}',
-                                                                '{{ p.animal_fecha_salida|default:""|escapejs }}',
-                                                                '{{ p.animal_color|escapejs }}',
-                                                                '{{ p.animal_senas|escapejs }}',
-                                                                '{{ p.animal_madre|escapejs }}',
-                                                                '{{ p.animal_padre|escapejs }}',
-                                                                '{{ p.animal_peso_nacimiento|escapejs }}',
-                                                                '{{ p.animal_condicion|escapejs }}',
-                                                                '{{ p.prediccion }}'
-                                                            )"
-                                                            title="Ver detalle del animal">
+                                                    <button class="btn btn-sm btn-info"
+                                                            onclick="abrirDetalleAnimal('{{ p.animal_id }}','{{ p.animal_codigo }}','{{ p.animal_nombre }}','{{ p.animal_raza }}','{{ p.animal_categoria }}','{{ p.animal_estado }}','{{ p.animal_peso }}','{{ p.animal_potrero }}','{{ p.animal_foto }}')"
+                                                            title="Ver animal">
                                                         <i class="bi bi-eye"></i>
                                                     </button>
                                                 </td>
@@ -228,6 +209,7 @@ Dashboard Machine Learning | Hacienda Joseph
                         <i class="bi bi-chevron-down float-end mt-1"></i>
                     </button>
 
+                    <!-- ELIMINADA LA CLASE "show" -->
                     <div class="collapse" id="ad2_anio_{{ anio }}">
                         {% for mes, data in meses.items %}
                         <div class="ms-3 mb-2">
@@ -243,6 +225,7 @@ Dashboard Machine Learning | Hacienda Joseph
                                 <i class="bi bi-chevron-down float-end mt-1"></i>
                             </button>
 
+                            <!-- ELIMINADA LA CLASE "show" -->
                             <div class="collapse" id="ad2_{{ anio }}_{{ forloop.counter }}">
                                 <div class="table-responsive ms-2">
                                     <table class="table table-hover table-bordered table-sm">
@@ -275,31 +258,9 @@ Dashboard Machine Learning | Hacienda Joseph
                                                 </td>
                                                 <td><span class="badge bg-success">{{ p.confianza }}</span></td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-info" type="button"
-                                                            onclick="abrirDetalleAD2(
-                                                                '{{ p.animal_id }}',
-                                                                '{{ p.animal_codigo|escapejs }}',
-                                                                '{{ p.animal_nombre|escapejs }}',
-                                                                '{{ p.animal_raza|escapejs }}',
-                                                                '{{ p.animal_sexo|escapejs }}',
-                                                                '{{ p.animal_categoria|escapejs }}',
-                                                                '{{ p.animal_estado|escapejs }}',
-                                                                '{{ p.animal_peso|escapejs }}',
-                                                                '{{ p.animal_potrero|escapejs }}',
-                                                                '{{ p.animal_foto|default:""|escapejs }}',
-                                                                '{{ p.animal_fecha_nacimiento|escapejs }}',
-                                                                '{{ p.animal_fecha_ingreso|escapejs }}',
-                                                                '{{ p.animal_fecha_salida|default:""|escapejs }}',
-                                                                '{{ p.animal_color|escapejs }}',
-                                                                '{{ p.animal_senas|escapejs }}',
-                                                                '{{ p.animal_madre|escapejs }}',
-                                                                '{{ p.animal_padre|escapejs }}',
-                                                                '{{ p.animal_peso_nacimiento|escapejs }}',
-                                                                '{{ p.animal_condicion|escapejs }}',
-                                                                '{{ p.prediccion }}',
-                                                                '{{ p.confianza }}'
-                                                            )"
-                                                            title="Ver detalle del animal">
+                                                    <button class="btn btn-sm btn-info"
+                                                            onclick="abrirDetalleAnimal('{{ p.animal_id }}','{{ p.animal_codigo }}','{{ p.animal_nombre }}','{{ p.animal_raza }}','{{ p.animal_categoria }}','{{ p.animal_estado }}','{{ p.animal_peso }}','{{ p.animal_potrero }}','{{ p.animal_foto }}')"
+                                                            title="Ver animal">
                                                         <i class="bi bi-eye"></i>
                                                     </button>
                                                 </td>
@@ -350,6 +311,7 @@ Dashboard Machine Learning | Hacienda Joseph
                         <i class="bi bi-chevron-down float-end mt-1"></i>
                     </button>
 
+                    <!-- ELIMINADA LA CLASE "show" -->
                     <div class="collapse" id="rl4_anio_{{ anio }}">
                         {% for mes, data in meses.items %}
                         <div class="ms-3 mb-2">
@@ -367,6 +329,7 @@ Dashboard Machine Learning | Hacienda Joseph
                                 <i class="bi bi-chevron-down float-end mt-1"></i>
                             </button>
 
+                            <!-- ELIMINADA LA CLASE "show" -->
                             <div class="collapse" id="rl4_{{ anio }}_{{ forloop.counter }}">
                                 <div class="table-responsive ms-2">
                                     <table class="table table-hover table-bordered table-sm">
@@ -399,30 +362,9 @@ Dashboard Machine Learning | Hacienda Joseph
                                                 </td>
                                                 <td><span class="badge bg-success">{{ p.confianza }}</span></td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-info" type="button"
-                                                            onclick="abrirDetalleRL4(
-                                                                '{{ p.animal_id }}',
-                                                                '{{ p.animal_codigo|escapejs }}',
-                                                                '{{ p.animal_nombre|escapejs }}',
-                                                                '{{ p.animal_raza|escapejs }}',
-                                                                '{{ p.animal_sexo|escapejs }}',
-                                                                '{{ p.animal_categoria|escapejs }}',
-                                                                '{{ p.animal_estado|escapejs }}',
-                                                                '{{ p.animal_peso|escapejs }}',
-                                                                '{{ p.animal_potrero|escapejs }}',
-                                                                '{{ p.animal_foto|default:""|escapejs }}',
-                                                                '{{ p.animal_fecha_nacimiento|escapejs }}',
-                                                                '{{ p.animal_fecha_ingreso|escapejs }}',
-                                                                '{{ p.animal_fecha_salida|default:""|escapejs }}',
-                                                                '{{ p.animal_color|escapejs }}',
-                                                                '{{ p.animal_senas|escapejs }}',
-                                                                '{{ p.animal_madre|escapejs }}',
-                                                                '{{ p.animal_padre|escapejs }}',
-                                                                '{{ p.animal_peso_nacimiento|escapejs }}',
-                                                                '{{ p.animal_condicion|escapejs }}',
-                                                                '{{ p.prediccion }}'
-                                                            )"
-                                                            title="Ver detalle del animal">
+                                                    <button class="btn btn-sm btn-info"
+                                                            onclick="abrirDetalleAnimal('{{ p.animal_id }}','{{ p.animal_codigo }}','{{ p.animal_nombre }}','{{ p.animal_raza }}','{{ p.animal_categoria }}','{{ p.animal_estado }}','{{ p.animal_peso }}','{{ p.animal_potrero }}','{{ p.animal_foto }}')"
+                                                            title="Ver animal">
                                                         <i class="bi bi-eye"></i>
                                                     </button>
                                                 </td>
@@ -458,152 +400,68 @@ Dashboard Machine Learning | Hacienda Joseph
 
 {% block modales %}
 <!-- ============================================================ -->
-<!-- MODAL DETALLE ANIMAL CON RECOMENDACIONES                     -->
+<!-- MODAL DETALLE ANIMAL                                         -->
 <!-- ============================================================ -->
 <div class="modal fade" id="modalDetalleAnimalML" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden; max-height: 90vh;">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-eye-fill me-2" style="color: #DAA520;"></i>
-                    DETALLE DEL ANIMAL Y RECOMENDACIONES
+                    DETALLE DEL ANIMAL
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0" style="background: #fff8e6; overflow-y: auto;">
+            <div class="modal-body p-0" style="background: #fff8e6;">
                 <div class="row g-0">
-                    <!-- COLUMNA DE LA FOTO -->
-                    <div class="col-md-5" style="background: #f5f0e6; border-right: 2px solid #d4c5a9; min-height: 500px; padding: 0;">
-                        <div id="contenedorFotoAnimalML" style="width: 100%; height: 100%; min-height: 500px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                            <img id="fotoAnimalDetalleML" src="" alt="Foto del animal" style="width: 100%; height: 100%; min-height: 500px; object-fit: cover; display: none;">
-                            <div id="placeholderFotoML" style="width: 100%; height: 100%; min-height: 500px; background: linear-gradient(135deg, #eef7e8, #dcefd0); border-radius: 12px; border: 3px dashed #b7d7a8; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #2c5e1a;">
-                                <i class="bi bi-image fs-1 mb-2"></i>
-                                <p class="mb-0 fw-bold">Sin fotografía</p>
-                                <p class="small text-muted">No se ha registrado imagen</p>
-                            </div>
+                    <!-- FOTO -->
+                    <div class="col-md-4" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
+                        <div class="p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <div id="mlFotoAnimal" style="width:100%; min-height:220px; display:flex; align-items:center; justify-content:center;"></div>
+                            <p class="mt-3 mb-0 fw-bold text-center" style="color:#2c5e1a; font-size:18px;" id="mlCodigo"></p>
+                            <p class="text-muted mb-0 text-center" id="mlNombre"></p>
                         </div>
                     </div>
-                    <!-- COLUMNA DE DATOS -->
-                    <div class="col-md-7">
-                        <div class="p-4" style="max-height: 600px; overflow-y: auto;">
-                            <!-- Cabecera: Código y Estado -->
+                    <!-- DATOS -->
+                    <div class="col-md-8">
+                        <div class="p-4">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold">CÓDIGO</label>
-                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="mlDetalleCodigo"></p>
+                                    <label class="text-muted small fw-bold">RAZA</label>
+                                    <p class="mb-0 fw-bold" style="color:#2c5e1a;" id="mlRaza"></p>
                                 </div>
-                                <div class="col-6 text-end">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">CATEGORÍA</label>
+                                    <p class="mb-0" style="color:#5c450e;" id="mlCategoria"></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
                                     <label class="text-muted small fw-bold">ESTADO</label>
-                                    <div id="mlDetalleEstado"></div>
+                                    <div id="mlEstado"></div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">PESO ACTUAL</label>
+                                    <p class="mb-0 fw-bold" style="color:#2c5e1a;" id="mlPeso"></p>
                                 </div>
                             </div>
-                            <hr style="border-color: #d4c5a9;">
-                            
-                            <!-- Datos básicos -->
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-tag me-1"></i>NOMBRE</label>
-                                    <p class="mb-0" id="mlDetalleNombre" style="color: #5c450e;"></p>
-                                </div>
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-diagram-2 me-1"></i>RAZA</label>
-                                    <p class="mb-0" id="mlDetalleRaza" style="color: #5c450e;"></p>
-                                </div>
+                            <hr style="border-color:#d4c5a9;">
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold"><i class="bi bi-geo-alt me-1"></i>POTRERO</label>
+                                <p class="mb-0" style="color:#5c450e;" id="mlPotrero"></p>
                             </div>
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-gender-ambiguous me-1"></i>SEXO</label>
-                                    <p class="mb-0" id="mlDetalleSexo" style="color: #5c450e;"></p>
-                                </div>
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-layers me-1"></i>CATEGORÍA</label>
-                                    <p class="mb-0" id="mlDetalleCategoria" style="color: #5c450e;"></p>
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-bar-chart-line me-1"></i>COND. CORPORAL</label>
-                                    <p class="mb-0" id="mlDetalleCondicion" style="color: #5c450e;"></p>
-                                </div>
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-palette me-1"></i>COLOR</label>
-                                    <p class="mb-0" id="mlDetalleColor" style="color: #5c450e;"></p>
-                                </div>
-                            </div>
-                            <hr style="border-color: #d4c5a9;">
-                            
-                            <!-- Pesos y fechas -->
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-speedometer me-1"></i>PESO NACIMIENTO</label>
-                                    <p class="mb-0 fw-bold" id="mlDetallePesoNacimiento" style="color: #2c5e1a;"></p>
-                                </div>
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-speedometer2 me-1"></i>PESO ACTUAL</label>
-                                    <p class="mb-0 fw-bold" id="mlDetallePesoActual" style="color: #2c5e1a;"></p>
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-4">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-event me-1"></i>NACIMIENTO</label>
-                                    <p class="mb-0" id="mlDetalleFechaNacimiento" style="color: #5c450e;"></p>
-                                </div>
-                                <div class="col-4">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>INGRESO</label>
-                                    <p class="mb-0" id="mlDetalleFechaIngreso" style="color: #5c450e;"></p>
-                                </div>
-                                <div class="col-4">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-x me-1"></i>SALIDA</label>
-                                    <p class="mb-0" id="mlDetalleFechaSalida" style="color: #5c450e;"></p>
-                                </div>
-                            </div>
-                            <div class="mb-3" id="mlFilaMotivoSalida" style="display: none;">
-                                <label class="text-muted small fw-bold"><i class="bi bi-question-circle me-1"></i>MOTIVO SALIDA</label>
-                                <p class="mb-0" id="mlDetalleMotivo" style="color: #c0392b;"></p>
-                            </div>
-                            <hr style="border-color: #d4c5a9;">
-                            
-                            <!-- Genealogía y potrero -->
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-heart me-1"></i>MADRE</label>
-                                    <p class="mb-0" id="mlDetalleMadre" style="color: #5c450e;"></p>
-                                </div>
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-heart-fill me-1"></i>PADRE</label>
-                                    <p class="mb-0" id="mlDetallePadre" style="color: #5c450e;"></p>
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-geo-alt me-1"></i>POTRERO</label>
-                                    <p class="mb-0" id="mlDetallePotrero" style="color: #5c450e;"></p>
-                                </div>
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-eye me-1"></i>SEÑAS</label>
-                                    <p class="mb-0" id="mlDetalleSenas" style="color: #5c450e; font-style: italic;"></p>
-                                </div>
-                            </div>
-                            
-                            <!-- ========================================== -->
-                            <!-- SECCIÓN DE RECOMENDACIONES                -->
-                            <!-- ========================================== -->
-                            <hr style="border-color: #DAA520; border-width: 2px;">
-                            <div id="mlSeccionRecomendaciones">
-                                <h6 class="fw-bold" style="color: #DAA520;">
-                                    <i class="bi bi-lightbulb-fill me-2"></i>
-                                    RECOMENDACIONES BASADAS EN LA PREDICCIÓN
-                                </h6>
-                                <div id="mlRecomendacionContenido" class="p-3" style="background: #f0f7ea; border-radius: 12px; border-left: 4px solid #DAA520;">
-                                    <!-- El contenido se llena desde JavaScript -->
-                                </div>
+                            <div class="alert alert-info py-2 mb-0" style="border-radius:8px;">
+                                <small><i class="bi bi-cpu me-1"></i>
+                                Para ver el historial completo de este animal, visita su ficha en
+                                <a href="/listaanimal/" style="color:var(--color-primario); font-weight:bold;">Gestión de Animales</a>.
+                                </small>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
-                <a href="#" id="mlBtnEditarDesdeDetalle" class="btn btn-hacienda">
+            <div class="modal-footer" style="background:#f5f0e6; border-top:1px solid #d4c5a9;">
+                <a href="#" id="mlBtnEditar" class="btn btn-hacienda">
                     <i class="bi bi-pencil-square me-1"></i>Editar Animal
                 </a>
                 <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
@@ -617,225 +475,43 @@ Dashboard Machine Learning | Hacienda Joseph
 
 
 {% block scripts_extra %}
-<style>
-    #contenedorFotoAnimalML {
-        width: 100%;
-        height: 100%;
-        min-height: 500px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        background: #f5f0e6;
-    }
-    #contenedorFotoAnimalML img {
-        width: 100%;
-        height: 100%;
-        min-height: 500px;
-        object-fit: cover;
-        border-radius: 12px;
-        border: 3px solid #DAA520;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        background-color: #f5f0e6;
-    }
-    .recomendacion-item {
-        padding: 8px 12px;
-        margin-bottom: 6px;
-        border-radius: 8px;
-        background: white;
-        border-left: 3px solid #DAA520;
-    }
-    .recomendacion-item i {
-        color: #DAA520;
-        margin-right: 8px;
-    }
-</style>
-
 <script>
-// ============================================================
-// FUNCIÓN PARA AD-1: LITROS DE LECHE
-// ============================================================
-function abrirDetalleAD1(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto,
-                         fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre,
-                         pesoNacimiento, condicion, prediccion) {
-    
-    llenarDatosAnimal(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto,
-                      fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre,
-                      pesoNacimiento, condicion);
-    
-    var litros = parseFloat(prediccion);
-    var recomendacionHtml = '';
-    
-    if (litros >= 25) {
-        recomendacionHtml = `
-            <div class="recomendacion-item"><i class="bi bi-star-fill"></i> <strong>Excelente producción!</strong> La vaca está produciendo ${litros} L/día.</div>
-            <div class="recomendacion-item"><i class="bi bi-check-circle"></i> Mantener el manejo actual de alimentación y ordeño.</div>
-            <div class="recomendacion-item"><i class="bi bi-graph-up"></i> Considerar monitorear para posible incremento de producción.</div>
-        `;
-    } else if (litros >= 15) {
-        recomendacionHtml = `
-            <div class="recomendacion-item"><i class="bi bi-check-circle"></i> <strong>Producción aceptable:</strong> ${litros} L/día.</div>
-            <div class="recomendacion-item"><i class="bi bi-arrow-up"></i> Revisar si se puede mejorar la alimentación para aumentar producción.</div>
-            <div class="recomendacion-item"><i class="bi bi-clipboard"></i> Evaluar estado sanitario y condición corporal.</div>
-        `;
-    } else {
-        recomendacionHtml = `
-            <div class="recomendacion-item"><i class="bi bi-exclamation-triangle-fill" style="color:#c0392b;"></i> <strong style="color:#c0392b;">Producción baja:</strong> ${litros} L/día.</div>
-            <div class="recomendacion-item"><i class="bi bi-check-circle"></i> Revisar alimentación, concentrado y estado de salud.</div>
-            <div class="recomendacion-item"><i class="bi bi-clipboard"></i> Consultar al veterinario para descartar problemas de salud.</div>
-            <div class="recomendacion-item"><i class="bi bi-calendar"></i> Programar un pesaje y evaluación clínica.</div>
-        `;
-    }
-    document.getElementById('mlRecomendacionContenido').innerHTML = recomendacionHtml;
-    
-    var modal = new bootstrap.Modal(document.getElementById('modalDetalleAnimalML'));
-    modal.show();
-}
+function abrirDetalleAnimal(id, codigo, nombre, raza, categoria, estado, peso, potrero, foto) {
+    document.getElementById('mlCodigo').textContent = codigo;
+    document.getElementById('mlNombre').textContent = nombre;
+    document.getElementById('mlRaza').textContent = raza;
+    document.getElementById('mlCategoria').textContent = categoria;
+    document.getElementById('mlPeso').textContent = peso;
+    document.getElementById('mlPotrero').textContent = potrero;
+    document.getElementById('mlBtnEditar').href = '/editaranimal/' + id;
 
-// ============================================================
-// FUNCIÓN PARA AD-2: PREÑEZ
-// ============================================================
-function abrirDetalleAD2(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto,
-                         fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre,
-                         pesoNacimiento, condicion, prediccion, confianza) {
-    
-    llenarDatosAnimal(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto,
-                      fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre,
-                      pesoNacimiento, condicion);
-    
-    var esPrenada = prediccion === 'PREÑADA';
-    var recomendacionHtml = '';
-    
-    if (esPrenada) {
-        recomendacionHtml = `
-            <div class="recomendacion-item"><i class="bi bi-check-circle-fill" style="color:#28a745;"></i> <strong style="color:#28a745;">PRONÓSTICO: PREÑADA</strong> (${confianza} de confianza)</div>
-            <div class="recomendacion-item"><i class="bi bi-calendar"></i> Programar palpación de confirmación en 30-45 días.</div>
-            <div class="recomendacion-item"><i class="bi bi-clipboard"></i> Registrar en el sistema como preñez confirmada.</div>
-            <div class="recomendacion-item"><i class="bi bi-info-circle"></i> Mantener registro de fecha probable de parto.</div>
-        `;
-    } else {
-        recomendacionHtml = `
-            <div class="recomendacion-item"><i class="bi bi-x-circle-fill" style="color:#c0392b;"></i> <strong style="color:#c0392b;">PRONÓSTICO: NO PREÑADA</strong> (${confianza} de confianza)</div>
-            <div class="recomendacion-item"><i class="bi bi-calendar"></i> Monitorear ciclo estral para próxima inseminación.</div>
-            <div class="recomendacion-item"><i class="bi bi-clipboard"></i> Evaluar condición corporal y ajustar alimentación.</div>
-            <div class="recomendacion-item"><i class="bi bi-heart"></i> Descartar problemas reproductivos con veterinario.</div>
-        `;
-    }
-    document.getElementById('mlRecomendacionContenido').innerHTML = recomendacionHtml;
-    
-    var modal = new bootstrap.Modal(document.getElementById('modalDetalleAnimalML'));
-    modal.show();
-}
-
-// ============================================================
-// FUNCIÓN PARA RL-4: CALIDAD DE LECHE
-// ============================================================
-function abrirDetalleRL4(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto,
-                         fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre,
-                         pesoNacimiento, condicion, prediccion) {
-    
-    llenarDatosAnimal(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto,
-                      fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre,
-                      pesoNacimiento, condicion);
-    
-    var esApto = prediccion === 'APTO';
-    var recomendacionHtml = '';
-    
-    if (esApto) {
-        recomendacionHtml = `
-            <div class="recomendacion-item"><i class="bi bi-check-circle-fill" style="color:#28a745;"></i> <strong style="color:#28a745;">CALIDAD: APTA PARA CONSUMO</strong></div>
-            <div class="recomendacion-item"><i class="bi bi-info-circle"></i> La leche cumple con los estándares de calidad requeridos.</div>
-            <div class="recomendacion-item"><i class="bi bi-check-circle"></i> Mantener buenas prácticas de ordeño e higiene.</div>
-            <div class="recomendacion-item"><i class="bi bi-clipboard"></i> Continuar con monitoreo periódico de calidad.</div>
-        `;
-    } else {
-        recomendacionHtml = `
-            <div class="recomendacion-item"><i class="bi bi-x-circle-fill" style="color:#c0392b;"></i> <strong style="color:#c0392b;">CALIDAD: NO APTA PARA CONSUMO</strong></div>
-            <div class="recomendacion-item"><i class="bi bi-exclamation-triangle" style="color:#c0392b;"></i> Revisar inmediatamente las prácticas de ordeño.</div>
-            <div class="recomendacion-item"><i class="bi bi-clipboard"></i> Evaluar condición sanitaria del animal y del equipo de ordeño.</div>
-            <div class="recomendacion-item"><i class="bi bi-check-circle"></i> Realizar nueva prueba de calidad para confirmar.</div>
-        `;
-    }
-    document.getElementById('mlRecomendacionContenido').innerHTML = recomendacionHtml;
-    
-    var modal = new bootstrap.Modal(document.getElementById('modalDetalleAnimalML'));
-    modal.show();
-}
-
-// ============================================================
-// FUNCIÓN COMÚN PARA LLENAR DATOS DEL ANIMAL
-// ============================================================
-function llenarDatosAnimal(id, codigo, nombre, raza, sexo, categoria, estado, peso, potrero, foto,
-                           fechaNacimiento, fechaIngreso, fechaSalida, color, senas, madre, padre,
-                           pesoNacimiento, condicion) {
-    
-    document.getElementById('mlDetalleCodigo').textContent = codigo;
-    document.getElementById('mlDetalleNombre').textContent = nombre;
-    document.getElementById('mlDetalleRaza').textContent = raza;
-    document.getElementById('mlDetalleSexo').textContent = sexo;
-    document.getElementById('mlDetalleCategoria').textContent = categoria;
-    document.getElementById('mlDetalleCondicion').textContent = condicion;
-    document.getElementById('mlDetalleColor').textContent = color;
-    document.getElementById('mlDetallePesoNacimiento').textContent = pesoNacimiento;
-    document.getElementById('mlDetallePesoActual').textContent = peso;
-    document.getElementById('mlDetalleFechaNacimiento').textContent = fechaNacimiento;
-    document.getElementById('mlDetalleFechaIngreso').textContent = fechaIngreso;
-    document.getElementById('mlDetalleFechaSalida').textContent = fechaSalida || '---';
-    document.getElementById('mlDetalleMadre').textContent = madre;
-    document.getElementById('mlDetallePadre').textContent = padre;
-    document.getElementById('mlDetallePotrero').textContent = potrero;
-    document.getElementById('mlDetalleSenas').textContent = senas;
-    
     // Estado badge
     var estadoHtml = '';
     switch(estado) {
-        case 'activo': estadoHtml = '<span class="badge rounded-pill bg-success p-2"><i class="bi bi-check-circle"></i> Activo</span>'; break;
-        case 'vendido': estadoHtml = '<span class="badge rounded-pill p-2" style="background:#1976D2;color:white;"><i class="bi bi-cash-coin"></i> Vendido</span>'; break;
-        case 'muerto': estadoHtml = '<span class="badge rounded-pill bg-dark p-2"><i class="bi bi-heartbreak"></i> Muerto</span>'; break;
-        case 'faenado': estadoHtml = '<span class="badge rounded-pill p-2" style="background:#5D4037;color:white;"><i class="bi bi-scissors"></i> Faenado</span>'; break;
-        case 'retirado': estadoHtml = '<span class="badge rounded-pill p-2" style="background:#757575;color:white;"><i class="bi bi-box-arrow-right"></i> Retirado</span>'; break;
-        default: estadoHtml = '<span class="badge rounded-pill bg-secondary p-2">' + estado + '</span>';
+        case 'activo':
+            estadoHtml = '<span class="badge rounded-pill bg-success p-2"><i class="bi bi-check-circle"></i> Activo</span>';
+            break;
+        case 'vendido':
+            estadoHtml = '<span class="badge rounded-pill p-2" style="background:#1976D2;color:white;"><i class="bi bi-cash-coin"></i> Vendido</span>';
+            break;
+        case 'muerto':
+            estadoHtml = '<span class="badge rounded-pill bg-dark p-2"><i class="bi bi-heartbreak"></i> Muerto</span>';
+            break;
+        default:
+            estadoHtml = '<span class="badge rounded-pill bg-secondary p-2">' + estado + '</span>';
     }
-    document.getElementById('mlDetalleEstado').innerHTML = estadoHtml;
-    
-    // Motivo salida
-    var filaMotivo = document.getElementById('mlFilaMotivoSalida');
-    if (fechaSalida && fechaSalida !== '---' && fechaSalida !== '') {
-        filaMotivo.style.display = 'block';
-        document.getElementById('mlDetalleMotivo').textContent = 'Salida registrada';
-    } else {
-        filaMotivo.style.display = 'none';
-    }
-    
-    // Botón editar
-    document.getElementById('mlBtnEditarDesdeDetalle').href = '/editaranimal/' + id;
-    
+    document.getElementById('mlEstado').innerHTML = estadoHtml;
+
     // Foto
-    var imgFoto = document.getElementById('fotoAnimalDetalleML');
-    var placeholder = document.getElementById('placeholderFotoML');
-    
+    var contenedor = document.getElementById('mlFotoAnimal');
     if (foto && foto.trim() !== '' && foto !== 'None' && foto !== 'null') {
         var ruta = foto.startsWith('/') ? foto : '/' + foto;
-        imgFoto.src = ruta;
-        imgFoto.style.display = 'block';
-        placeholder.style.display = 'none';
-        
-        imgFoto.onerror = function() {
-            imgFoto.style.display = 'none';
-            placeholder.style.display = 'flex';
-            placeholder.innerHTML = 
-                '<i class="bi bi-image fs-1 mb-2"></i>' +
-                '<p class="mb-0 fw-bold">Imagen no disponible</p>' +
-                '<p class="small text-muted">No se pudo cargar la imagen</p>';
-        };
+        contenedor.innerHTML = '<img src="' + ruta + '" style="width:100%;height:220px;object-fit:cover;border-radius:12px;border:3px solid #DAA520;" alt="Foto" onerror="this.parentElement.innerHTML=\'<div style=\'text-align:center;padding:40px;color:#2c5e1a;\'><i class=\\\"bi bi-image\\\" style=\\\"font-size:3rem;\\\"></i><p class=\\\"mt-2\\\">Sin fotografía</p></div>\'">';
     } else {
-        imgFoto.style.display = 'none';
-        placeholder.style.display = 'flex';
-        placeholder.innerHTML = 
-            '<i class="bi bi-image fs-1 mb-2"></i>' +
-            '<p class="mb-0 fw-bold">Sin fotografía</p>' +
-            '<p class="small text-muted">No se ha registrado imagen</p>';
+        contenedor.innerHTML = '<div style="text-align:center;padding:40px;color:#2c5e1a;background:#eef7e8;border-radius:12px;border:3px dashed #b7d7a8;width:100%"><i class="bi bi-image" style="font-size:3rem;"></i><p class="mt-2 fw-bold">Sin fotografía</p></div>';
     }
+
+    new bootstrap.Modal(document.getElementById('modalDetalleAnimalML')).show();
 }
 </script>
 {% endblock %}
