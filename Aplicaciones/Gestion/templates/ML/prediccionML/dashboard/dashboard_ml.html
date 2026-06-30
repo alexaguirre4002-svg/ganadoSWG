@@ -141,22 +141,20 @@ Dashboard Machine Learning | Hacienda Joseph
                                                 <td class="fw-bold" style="color: #2c5e1a;">{{ p.prediccion }} L</td>
                                                 <td><span class="badge bg-info text-dark">{{ p.confianza }}</span></td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-info" onclick="abrirDetalleAD1(
-                                                        '{{ p.animal_id|default:'' }}',
-                                                        '{{ p.animal_codigo|default:''|escapejs }}',
-                                                        '{{ p.animal_nombre|default:''|escapejs }}',
-                                                        '{{ p.animal_raza|default:''|escapejs }}',
-                                                        '{{ p.animal_categoria|default:''|escapejs }}',
-                                                        '{{ p.animal_estado|default:''|escapejs }}',
-                                                        '{{ p.animal_peso|default:''|escapejs }}',
-                                                        '{{ p.animal_potrero|default:''|escapejs }}',
-                                                        '{{ p.animal_foto|default:''|escapejs }}',
-                                                        '{{ p.fecha|default:''|escapejs }}',
-                                                        '{{ p.temperatura_ambiental|default:'' }}',
-                                                        '{{ p.cantidad_concentrado_kg|default:'' }}',
-                                                        '{{ p.temperatura_leche|default:'' }}',
-                                                        '{{ p.prediccion|default:'' }}',
-                                                        '{{ p.confianza|default:''|escapejs }}'
+                                                    <button class="btn btn-sm btn-info" onclick="verDetalle(
+                                                        '{{ p.animal_codigo|default:'Sin código' }}',
+                                                        '{{ p.animal_nombre|default:'Sin nombre' }}',
+                                                        '{{ p.animal_raza|default:'N/A' }}',
+                                                        '{{ p.animal_categoria|default:'N/A' }}',
+                                                        '{{ p.animal_estado|default:'N/A' }}',
+                                                        '{{ p.animal_peso|default:'No registrado' }}',
+                                                        '{{ p.animal_potrero|default:'Sin potrero' }}',
+                                                        '{{ p.animal_foto|default:'' }}',
+                                                        'Predicción: {{ p.prediccion }} Litros',
+                                                        'Confianza: {{ p.confianza }}',
+                                                        'Temperatura Ambiental: {{ p.temperatura_ambiental }}°C',
+                                                        'Concentrado: {{ p.cantidad_concentrado_kg }} kg',
+                                                        'Temperatura Leche: {{ p.temperatura_leche }}°C'
                                                     )">
                                                         <i class="bi bi-eye"></i>
                                                     </button>
@@ -253,22 +251,20 @@ Dashboard Machine Learning | Hacienda Joseph
                                                 </td>
                                                 <td><span class="badge bg-success">{{ p.confianza }}</span></td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-info" onclick="abrirDetalleAD2(
-                                                        '{{ p.animal_id|default:'' }}',
-                                                        '{{ p.animal_codigo|default:''|escapejs }}',
-                                                        '{{ p.animal_nombre|default:''|escapejs }}',
-                                                        '{{ p.animal_raza|default:''|escapejs }}',
-                                                        '{{ p.animal_categoria|default:''|escapejs }}',
-                                                        '{{ p.animal_estado|default:''|escapejs }}',
-                                                        '{{ p.animal_peso|default:''|escapejs }}',
-                                                        '{{ p.animal_potrero|default:''|escapejs }}',
-                                                        '{{ p.animal_foto|default:''|escapejs }}',
-                                                        '{{ p.fecha|default:''|escapejs }}',
-                                                        '{{ p.dias|default:'' }}',
-                                                        '{{ p.condicion_corporal|default:'' }}',
-                                                        '{{ p.tipo_inseminacion|default:''|escapejs }}',
-                                                        '{{ p.prediccion|default:''|escapejs }}',
-                                                        '{{ p.confianza|default:''|escapejs }}'
+                                                    <button class="btn btn-sm btn-info" onclick="verDetalle(
+                                                        '{{ p.animal_codigo|default:'Sin código' }}',
+                                                        '{{ p.animal_nombre|default:'Sin nombre' }}',
+                                                        '{{ p.animal_raza|default:'N/A' }}',
+                                                        '{{ p.animal_categoria|default:'N/A' }}',
+                                                        '{{ p.animal_estado|default:'N/A' }}',
+                                                        '{{ p.animal_peso|default:'No registrado' }}',
+                                                        '{{ p.animal_potrero|default:'Sin potrero' }}',
+                                                        '{{ p.animal_foto|default:'' }}',
+                                                        'Predicción: {{ p.prediccion }}',
+                                                        'Confianza: {{ p.confianza }}',
+                                                        'Días desde inseminación: {{ p.dias }} días',
+                                                        'Condición corporal: {{ p.condicion_corporal }}/5',
+                                                        'Tipo: {{ p.tipo_inseminacion }}'
                                                     )">
                                                         <i class="bi bi-eye"></i>
                                                     </button>
@@ -365,22 +361,20 @@ Dashboard Machine Learning | Hacienda Joseph
                                                 </td>
                                                 <td><span class="badge bg-success">{{ p.confianza }}</span></td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-info" onclick="abrirDetalleRL4(
-                                                        '{{ p.animal_id|default:'' }}',
-                                                        '{{ p.animal_codigo|default:''|escapejs }}',
-                                                        '{{ p.animal_nombre|default:''|escapejs }}',
-                                                        '{{ p.animal_raza|default:''|escapejs }}',
-                                                        '{{ p.animal_categoria|default:''|escapejs }}',
-                                                        '{{ p.animal_estado|default:''|escapejs }}',
-                                                        '{{ p.animal_peso|default:''|escapejs }}',
-                                                        '{{ p.animal_potrero|default:''|escapejs }}',
-                                                        '{{ p.animal_foto|default:''|escapejs }}',
-                                                        '{{ p.fecha|default:''|escapejs }}',
-                                                        '{{ p.grasa|default:'' }}',
-                                                        '{{ p.proteina|default:'' }}',
-                                                        '{{ p.ccs|default:'' }}',
-                                                        '{{ p.prediccion|default:''|escapejs }}',
-                                                        '{{ p.confianza|default:''|escapejs }}'
+                                                    <button class="btn btn-sm btn-info" onclick="verDetalle(
+                                                        '{{ p.animal_codigo|default:'Sin código' }}',
+                                                        '{{ p.animal_nombre|default:'Sin nombre' }}',
+                                                        '{{ p.animal_raza|default:'N/A' }}',
+                                                        '{{ p.animal_categoria|default:'N/A' }}',
+                                                        '{{ p.animal_estado|default:'N/A' }}',
+                                                        '{{ p.animal_peso|default:'No registrado' }}',
+                                                        '{{ p.animal_potrero|default:'Sin potrero' }}',
+                                                        '{{ p.animal_foto|default:'' }}',
+                                                        'Predicción: {{ p.prediccion }}',
+                                                        'Confianza: {{ p.confianza }}',
+                                                        'Grasa: {{ p.grasa }}%',
+                                                        'Proteína: {{ p.proteina }}%',
+                                                        'CCS: {{ p.ccs }}'
                                                     )">
                                                         <i class="bi bi-eye"></i>
                                                     </button>
@@ -414,7 +408,7 @@ Dashboard Machine Learning | Hacienda Joseph
 
 {% block modales %}
 <!-- ============================================================ -->
-<!-- MODAL DETALLE ANIMAL CON DATOS ML                           -->
+<!-- MODAL DETALLE ANIMAL CON DATOS ML - VERSIÓN SIMPLE          -->
 <!-- ============================================================ -->
 <div class="modal fade" id="modalDetalleAnimalML" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -422,13 +416,13 @@ Dashboard Machine Learning | Hacienda Joseph
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-eye-fill me-2" style="color: #DAA520;"></i>
-                    DETALLE COMPLETO - ANIMAL + PREDICCIÓN ML
+                    DETALLE ANIMAL + PREDICCIÓN ML
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0" style="background: #fff8e6;">
                 <div class="row g-0">
-                    <!-- COLUMNA IZQUIERDA: FOTO -->
+                    <!-- FOTO -->
                     <div class="col-md-4" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
                         <div class="p-3 h-100 d-flex flex-column align-items-center justify-content-center">
                             <div id="mlFotoAnimal" style="width:100%; min-height:220px; display:flex; align-items:center; justify-content:center;"></div>
@@ -436,10 +430,9 @@ Dashboard Machine Learning | Hacienda Joseph
                             <p class="text-muted mb-0 text-center" id="mlNombre"></p>
                         </div>
                     </div>
-                    <!-- COLUMNA DERECHA: DATOS -->
+                    <!-- DATOS -->
                     <div class="col-md-8">
                         <div class="p-4">
-                            <!-- DATOS DEL ANIMAL -->
                             <div class="row mb-2">
                                 <div class="col-6">
                                     <label class="text-muted small fw-bold">RAZA</label>
@@ -489,9 +482,6 @@ Dashboard Machine Learning | Hacienda Joseph
                 </div>
             </div>
             <div class="modal-footer" style="background:#f5f0e6; border-top:1px solid #d4c5a9;">
-                <a href="#" id="mlBtnEditar" class="btn btn-hacienda">
-                    <i class="bi bi-pencil-square me-1"></i>Editar Animal
-                </a>
                 <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
                     <i class="bi bi-x-lg me-1"></i>Cerrar
                 </button>
@@ -505,142 +495,18 @@ Dashboard Machine Learning | Hacienda Joseph
 {% block scripts_extra %}
 <script>
 // ================================================================
-// AD-1: PRODUCCIÓN DE LECHE
+// FUNCIÓN ÚNICA Y SIMPLE PARA VER DETALLE
 // ================================================================
-function abrirDetalleAD1(id, codigo, nombre, raza, categoria, estado, peso, potrero, foto, fecha, tempAmb, concentrado, tempLeche, prediccion, confianza) {
-    console.log('AD-1: Abriendo detalle para', codigo);
-    
-    var datosML = {
-        modelo: 'AD-1',
-        tipo: 'Regresión - Producción de Leche',
-        fecha: fecha || 'N/A',
-        temperatura_ambiental: tempAmb || 'N/A',
-        cantidad_concentrado_kg: concentrado || 'N/A',
-        temperatura_leche: tempLeche || 'N/A',
-        prediccion: prediccion + ' Litros',
-        confianza: confianza || 'N/A',
-        recomendaciones: [
-            { tipo: 'success', icono: 'bi-droplet', titulo: '🥛 Producción Estimada', texto: 'La vaca produciría aproximadamente ' + (prediccion || '?') + ' litros de leche bajo estas condiciones.' },
-            { tipo: 'info', icono: 'bi-thermometer-half', titulo: '🌡️ Temperatura Ambiental', texto: 'Temperatura de ' + (tempAmb || '?') + '°C. Si supera los 28°C, considere medidas para reducir estrés calórico.' },
-            { tipo: 'info', icono: 'bi-cup-hot', titulo: '🥛 Temperatura de Leche', texto: 'Temperatura de leche ' + (tempLeche || '?') + '°C. Rango normal: 36-38°C.' }
-        ]
-    };
-    abrirDetalleAnimal(id, codigo, nombre, raza, categoria, estado, peso, potrero, foto, datosML);
-}
-
-// ================================================================
-// AD-2: PREÑEZ
-// ================================================================
-function abrirDetalleAD2(id, codigo, nombre, raza, categoria, estado, peso, potrero, foto, fecha, dias, condCorporal, tipoInseminacion, prediccion, confianza) {
-    console.log('AD-2: Abriendo detalle para', codigo);
-    
-    var esPrenada = String(prediccion).toUpperCase() === 'PREÑADA';
-    var datosML = {
-        modelo: 'AD-2',
-        tipo: 'Clasificación - Estado de Preñez',
-        fecha: fecha || 'N/A',
-        dias: dias || 'N/A',
-        condicion_corporal: condCorporal || 'N/A',
-        tipo_inseminacion: tipoInseminacion || 'N/A',
-        prediccion: prediccion || 'N/A',
-        confianza: confianza || 'N/A',
-        recomendaciones: [
-            { 
-                tipo: esPrenada ? 'success' : 'warning', 
-                icono: 'bi-heart-pulse', 
-                titulo: '🤰 Estado de Preñez', 
-                texto: esPrenada ? 
-                    '✅ La vaca está PREÑADA según el modelo. Se recomienda continuar con monitoreo mensual.' : 
-                    '⚠️ La vaca NO ESTÁ PREÑADA según el modelo. Se recomienda repetir inseminación en el próximo ciclo.' 
-            },
-            { 
-                tipo: 'info', 
-                icono: 'bi-calendar', 
-                titulo: '📆 Seguimiento', 
-                texto: 'Han pasado ' + (dias || '?') + ' días desde la inseminación. ' + 
-                       (esPrenada ? 'La confirmación por ultrasonido se recomienda a los 60-90 días.' : 'El próximo ciclo estral debería aparecer en 18-24 días.') 
-            },
-            { 
-                tipo: 'info', 
-                icono: 'bi-activity', 
-                titulo: '⚖️ Condición Corporal', 
-                texto: 'Condición corporal: ' + (condCorporal || '?') + '/5. ' + 
-                       (parseFloat(condCorporal) >= 3 ? '✅ Adecuada para gestación.' : '⚠️ Se recomienda mejorar alimentación para alcanzar 3.0-3.5.') 
-            }
-        ]
-    };
-    abrirDetalleAnimal(id, codigo, nombre, raza, categoria, estado, peso, potrero, foto, datosML);
-}
-
-// ================================================================
-// RL-4: CALIDAD DE LECHE
-// ================================================================
-function abrirDetalleRL4(id, codigo, nombre, raza, categoria, estado, peso, potrero, foto, fecha, grasa, proteina, ccs, prediccion, confianza) {
-    console.log('RL-4: Abriendo detalle para', codigo);
-    
-    var esApto = String(prediccion).toUpperCase() === 'APTO';
-    var ccsNum = parseFloat(ccs) || 0;
-    
-    var datosML = {
-        modelo: 'RL-4',
-        tipo: 'Clasificación - Calidad de Leche',
-        fecha: fecha || 'N/A',
-        grasa: grasa || 'N/A',
-        proteina: proteina || 'N/A',
-        ccs: ccs || 'N/A',
-        prediccion: prediccion || 'N/A',
-        confianza: confianza || 'N/A',
-        recomendaciones: [
-            { 
-                tipo: esApto ? 'success' : 'danger', 
-                icono: 'bi-check-circle', 
-                titulo: '✅ Calidad de Leche', 
-                texto: esApto ? 
-                    '✅ La leche es APTA para consumo. Cumple con los estándares de calidad.' : 
-                    '❌ La leche NO ES APTA. Se recomienda revisar prácticas de ordeño y sanidad.' 
-            },
-            { 
-                tipo: parseFloat(grasa) >= 3.0 ? 'success' : 'warning', 
-                icono: 'bi-droplet', 
-                titulo: '🧈 Grasa', 
-                texto: 'Grasa: ' + (grasa || '?') + '%. ' + 
-                       (parseFloat(grasa) >= 3.0 ? '✅ Nivel adecuado.' : '⚠️ Por debajo del estándar (mínimo 3.0%). Revisar alimentación.') 
-            },
-            { 
-                tipo: parseFloat(proteina) >= 2.8 ? 'success' : 'warning', 
-                icono: 'bi-flask', 
-                titulo: '🥩 Proteína', 
-                texto: 'Proteína: ' + (proteina || '?') + '%. ' + 
-                       (parseFloat(proteina) >= 2.8 ? '✅ Nivel adecuado.' : '⚠️ Por debajo del estándar (mínimo 2.8%). Revisar alimentación.') 
-            },
-            { 
-                tipo: ccsNum <= 200000 ? 'success' : 'warning', 
-                icono: 'bi-biohazard', 
-                titulo: '🔬 CCS', 
-                texto: 'CCS: ' + (ccs || '?') + '. ' + 
-                       (ccsNum <= 200000 ? '✅ Dentro del rango normal (<200,000).' : '⚠️ ALTA: Posible mastitis. Revisar salud de la ubre.') 
-            }
-        ]
-    };
-    abrirDetalleAnimal(id, codigo, nombre, raza, categoria, estado, peso, potrero, foto, datosML);
-}
-
-// ================================================================
-// FUNCIÓN PRINCIPAL: ABRIR MODAL
-// ================================================================
-function abrirDetalleAnimal(id, codigo, nombre, raza, categoria, estado, peso, potrero, foto, datosML) {
-    console.log('Abriendo modal para:', codigo);
-    
-    // DATOS DEL ANIMAL
+function verDetalle(codigo, nombre, raza, categoria, estado, peso, potrero, foto, pred1, pred2, pred3, pred4, pred5) {
+    // Mostrar datos del animal
     document.getElementById('mlCodigo').textContent = codigo || 'Sin código';
     document.getElementById('mlNombre').textContent = nombre || 'Sin nombre';
     document.getElementById('mlRaza').textContent = raza || 'N/A';
     document.getElementById('mlCategoria').textContent = categoria || 'N/A';
     document.getElementById('mlPeso').textContent = peso || 'No registrado';
     document.getElementById('mlPotrero').textContent = potrero || 'Sin potrero';
-    document.getElementById('mlBtnEditar').href = '/editaranimal/' + (id || '0');
-
-    // ESTADO
+    
+    // Estado
     var estadoHtml = '';
     switch(String(estado).toLowerCase()) {
         case 'activo':
@@ -652,15 +518,12 @@ function abrirDetalleAnimal(id, codigo, nombre, raza, categoria, estado, peso, p
         case 'muerto':
             estadoHtml = '<span class="badge rounded-pill bg-dark p-2"><i class="bi bi-heartbreak"></i> Muerto</span>';
             break;
-        case 'retirado':
-            estadoHtml = '<span class="badge rounded-pill bg-secondary p-2"><i class="bi bi-box-arrow-right"></i> Retirado</span>';
-            break;
         default:
             estadoHtml = '<span class="badge rounded-pill bg-secondary p-2">' + (estado || 'Desconocido') + '</span>';
     }
     document.getElementById('mlEstado').innerHTML = estadoHtml;
-
-    // FOTO
+    
+    // Foto
     var contenedor = document.getElementById('mlFotoAnimal');
     if (foto && foto.trim() !== '' && foto !== 'None' && foto !== 'null') {
         var ruta = foto.startsWith('/') ? foto : '/' + foto;
@@ -668,120 +531,42 @@ function abrirDetalleAnimal(id, codigo, nombre, raza, categoria, estado, peso, p
     } else {
         contenedor.innerHTML = '<div style="text-align:center;padding:40px;color:#2c5e1a;background:#eef7e8;border-radius:12px;border:3px dashed #b7d7a8;width:100%"><i class="bi bi-image" style="font-size:3rem;"></i><p class="mt-2 fw-bold">Sin fotografía</p></div>';
     }
-
-    // DATOS ML
-    var contenedorML = document.getElementById('mlDatosML');
-    var contenedorRecom = document.getElementById('mlRecomendaciones');
-
-    if (datosML) {
-        var htmlML = '<div class="table-responsive">';
-        htmlML += '<table class="table table-bordered table-sm" style="background:white; border-radius:8px; overflow:hidden;">';
-        htmlML += '<thead style="background:#2c5e1a; color:white;"><tr><th colspan="2">' + datosML.modelo + ' - ' + datosML.tipo + '</th></tr></thead>';
-        htmlML += '<tbody>';
-
-        if (datosML.fecha) {
-            htmlML += '<tr><td><strong>📅 Fecha</strong></td><td>' + datosML.fecha + '</td></tr>';
+    
+    // DATOS ML - Mostrar todos los datos que llegaron
+    var htmlML = '<div class="table-responsive">';
+    htmlML += '<table class="table table-bordered table-sm" style="background:white; border-radius:8px; overflow:hidden;">';
+    htmlML += '<thead style="background:#2c5e1a; color:white;"><tr><th colspan="2">DATOS DE LA PREDICCIÓN</th></tr></thead>';
+    htmlML += '<tbody>';
+    
+    // Agregar cada dato que llegó (solo si no está vacío)
+    var datos = [pred1, pred2, pred3, pred4, pred5];
+    datos.forEach(function(dato) {
+        if (dato && dato !== 'None' && dato !== 'null' && dato !== '') {
+            htmlML += '<tr><td><strong>' + dato.split(':')[0] + '</strong></td><td>' + dato.split(':').slice(1).join(':') + '</td></tr>';
         }
-        if (datosML.temperatura_ambiental !== undefined && datosML.temperatura_ambiental !== 'N/A') {
-            htmlML += '<tr><td><strong>🌡️ Temp. Ambiental</strong></td><td>' + datosML.temperatura_ambiental + ' °C</td></tr>';
-        }
-        if (datosML.cantidad_concentrado_kg !== undefined && datosML.cantidad_concentrado_kg !== 'N/A') {
-            htmlML += '<tr><td><strong>🌾 Concentrado</strong></td><td>' + datosML.cantidad_concentrado_kg + ' kg</td></tr>';
-        }
-        if (datosML.temperatura_leche !== undefined && datosML.temperatura_leche !== 'N/A') {
-            htmlML += '<tr><td><strong>🥛 Temp. Leche</strong></td><td>' + datosML.temperatura_leche + ' °C</td></tr>';
-        }
-        if (datosML.dias !== undefined && datosML.dias !== 'N/A') {
-            htmlML += '<tr><td><strong>📆 Días desde Inseminación</strong></td><td>' + datosML.dias + ' días</td></tr>';
-        }
-        if (datosML.condicion_corporal !== undefined && datosML.condicion_corporal !== 'N/A') {
-            htmlML += '<tr><td><strong>⚖️ Condición Corporal</strong></td><td>' + datosML.condicion_corporal + ' / 5</td></tr>';
-        }
-        if (datosML.tipo_inseminacion !== undefined && datosML.tipo_inseminacion !== 'N/A') {
-            htmlML += '<tr><td><strong>🧬 Tipo Inseminación</strong></td><td><span class="badge bg-secondary">' + datosML.tipo_inseminacion + '</span></td></tr>';
-        }
-        if (datosML.grasa !== undefined && datosML.grasa !== 'N/A') {
-            htmlML += '<tr><td><strong>🧈 Grasa</strong></td><td>' + datosML.grasa + ' %</td></tr>';
-        }
-        if (datosML.proteina !== undefined && datosML.proteina !== 'N/A') {
-            htmlML += '<tr><td><strong>🥩 Proteína</strong></td><td>' + datosML.proteina + ' %</td></tr>';
-        }
-        if (datosML.ccs !== undefined && datosML.ccs !== 'N/A') {
-            htmlML += '<tr><td><strong>🔬 CCS</strong></td><td>' + datosML.ccs + '</td></tr>';
-        }
-
-        // RESULTADO
-        var predClass = 'bg-info';
-        var predIcon = 'bi-graph-up';
-        var predText = datosML.prediccion || 'N/A';
-        var predUpper = String(predText).toUpperCase();
-
-        if (predUpper.includes('PREÑADA')) {
-            predClass = 'bg-success';
-            predIcon = 'bi-check-circle-fill';
-        } else if (predUpper.includes('NO PREÑADA')) {
-            predClass = 'bg-danger';
-            predIcon = 'bi-x-circle-fill';
-        } else if (predUpper.includes('APTO')) {
-            predClass = 'bg-success';
-            predIcon = 'bi-check-circle-fill';
-        } else if (predUpper.includes('NO APTO')) {
-            predClass = 'bg-danger';
-            predIcon = 'bi-x-circle-fill';
-        } else if (String(predText).includes('Litros')) {
-            predClass = 'bg-primary';
-            predIcon = 'bi-droplet';
-        }
-
-        htmlML += '<tr style="background:#f8f9fa;"><td colspan="2" class="text-center">';
-        htmlML += '<div class="alert ' + predClass + ' text-white py-2 px-3 mb-0" style="border-radius:8px;">';
-        htmlML += '<i class="bi ' + predIcon + ' me-2"></i>';
-        htmlML += '<strong>RESULTADO: ' + predText + '</strong>';
-        if (datosML.confianza && datosML.confianza !== 'N/A') {
-            htmlML += ' <span class="badge bg-light text-dark ms-2">🎯 Confianza: ' + datosML.confianza + '</span>';
-        }
-        htmlML += '</div>';
-        htmlML += '</td></tr>';
-
-        htmlML += '</tbody></table></div>';
-        contenedorML.innerHTML = htmlML;
-
-        // RECOMENDACIONES
-        if (datosML.recomendaciones && datosML.recomendaciones.length > 0) {
-            var htmlRec = '<div class="mt-2"><label class="fw-bold" style="color:#2c5e1a;"><i class="bi bi-lightbulb-fill me-1" style="color:#DAA520;"></i>💡 RECOMENDACIONES</label>';
-            htmlRec += '<div class="mt-2">';
-            datosML.recomendaciones.forEach(function(rec) {
-                var bgColor = rec.tipo === 'success' ? '#d4edda' : 
-                              rec.tipo === 'warning' ? '#fff3cd' : 
-                              rec.tipo === 'danger' ? '#f8d7da' : '#d1ecf1';
-                var borderColor = rec.tipo === 'success' ? '#28a745' : 
-                                  rec.tipo === 'warning' ? '#ffc107' : 
-                                  rec.tipo === 'danger' ? '#dc3545' : '#17a2b8';
-                htmlRec += '<div style="background:' + bgColor + '; border-left:4px solid ' + borderColor + '; border-radius:4px; padding:8px 12px; margin-bottom:6px;">';
-                if (rec.icono) htmlRec += '<i class="bi ' + rec.icono + ' me-2"></i>';
-                htmlRec += '<strong>' + rec.titulo + ':</strong> ' + rec.texto;
-                htmlRec += '</div>';
-            });
-            htmlRec += '</div></div>';
-            contenedorRecom.innerHTML = htmlRec;
-        } else {
-            contenedorRecom.innerHTML = '';
-        }
-
-    } else {
-        contenedorML.innerHTML = '<div class="alert alert-warning py-2">⚠️ No hay datos de Machine Learning disponibles.</div>';
-        contenedorRecom.innerHTML = '';
-    }
-
+    });
+    
+    htmlML += '</tbody></table></div>';
+    document.getElementById('mlDatosML').innerHTML = htmlML;
+    
+    // RECOMENDACIONES (genéricas)
+    var htmlRec = '<div class="mt-2"><label class="fw-bold" style="color:#2c5e1a;"><i class="bi bi-lightbulb-fill me-1" style="color:#DAA520;"></i>💡 RECOMENDACIONES</label>';
+    htmlRec += '<div class="mt-2">';
+    htmlRec += '<div style="background:#d4edda; border-left:4px solid #28a745; border-radius:4px; padding:8px 12px; margin-bottom:6px;">';
+    htmlRec += '<i class="bi bi-check-circle me-2"></i>';
+    htmlRec += '<strong>Basado en la predicción:</strong> Se recomienda monitorear constantemente al animal y registrar todos los datos para mejorar la precisión del modelo.';
+    htmlRec += '</div>';
+    htmlRec += '<div style="background:#d1ecf1; border-left:4px solid #17a2b8; border-radius:4px; padding:8px 12px; margin-bottom:6px;">';
+    htmlRec += '<i class="bi bi-cpu me-2"></i>';
+    htmlRec += '<strong>Machine Learning:</strong> El modelo ha generado esta predicción basada en los datos históricos. La confianza del modelo es del ' + (document.querySelector('.badge.bg-info')?.textContent || 'N/A') + '.';
+    htmlRec += '</div>';
+    htmlRec += '</div></div>';
+    document.getElementById('mlRecomendaciones').innerHTML = htmlRec;
+    
     // ABRIR MODAL
-    try {
-        var modal = new bootstrap.Modal(document.getElementById('modalDetalleAnimalML'));
-        modal.show();
-        console.log('Modal abierto correctamente');
-    } catch(e) {
-        console.error('Error al abrir modal:', e);
-        alert('Error al abrir el modal. Revisa la consola para más detalles.');
-    }
+    var modalElement = document.getElementById('modalDetalleAnimalML');
+    var modal = new bootstrap.Modal(modalElement);
+    modal.show();
 }
 </script>
 {% endblock %}
