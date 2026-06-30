@@ -14,16 +14,15 @@ Dashboard Machine Learning | Hacienda Joseph
 
 {% block contenido %}
 
-<!-- TARJETAS: ESTADO DE MODELOS -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-4">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid var(--color-primario);">
             <i class="bi bi-tree fs-2" style="color: var(--color-primario);"></i>
             <h4 class="fw-bold mt-2 mb-0">AD-1</h4>
-            <small class="text-muted">Árbol de Decisión - Litros de Leche</small>
+            <small class="text-muted">Arbol de Decision - Litros de Leche</small>
             {% if estado_ad1 %}
             <div class="mt-2"><span class="badge bg-success">Entrenado</span></div>
-            <small class="text-muted">R²: {{ metrica_ad1 }}</small>
+            <small class="text-muted">R2: {{ metrica_ad1 }}</small>
             {% else %}
             <div class="mt-2"><span class="badge bg-danger">No entrenado</span></div>
             {% endif %}
@@ -33,7 +32,7 @@ Dashboard Machine Learning | Hacienda Joseph
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
             <i class="bi bi-tree fs-2 text-success"></i>
             <h4 class="fw-bold mt-2 mb-0">AD-2</h4>
-            <small class="text-muted">Árbol de Decisión - Preñez</small>
+            <small class="text-muted">Arbol de Decision - Preñez</small>
             {% if estado_ad2 %}
             <div class="mt-2"><span class="badge bg-success">Entrenado</span></div>
             <small class="text-muted">Accuracy: {{ metrica_ad2 }}</small>
@@ -46,7 +45,7 @@ Dashboard Machine Learning | Hacienda Joseph
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #17a2b8;">
             <i class="bi bi-graph-up fs-2" style="color: #17a2b8;"></i>
             <h4 class="fw-bold mt-2 mb-0">RL-4</h4>
-            <small class="text-muted">Regresión Logística - Calidad</small>
+            <small class="text-muted">Regresion Logistica - Calidad</small>
             {% if estado_rl4 %}
             <div class="mt-2"><span class="badge bg-success">Entrenado</span></div>
             <small class="text-muted">Accuracy: {{ metrica_rl4 }}</small>
@@ -57,7 +56,6 @@ Dashboard Machine Learning | Hacienda Joseph
     </div>
 </div>
 
-<!-- BOTONES DE ACCION -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-12">
         <a href="{% url 'prediccion_ad1' %}" class="btn btn-hacienda me-2">
@@ -72,63 +70,49 @@ Dashboard Machine Learning | Hacienda Joseph
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- AD-1: PREDICCIONES DE PRODUCCIÓN DE LECHE (por año/mes)     -->
-<!-- ============================================================ -->
 {% if predicciones_ad1_agrupadas %}
 <div class="row mb-4 animate-fade-in">
     <div class="col-12">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
                 <i class="bi bi-droplet-fill me-2"></i>
-                Predicciones: Producción de Leche (AD-1)
-                <small class="ms-2 fw-normal opacity-75">— Agrupado por año y mes</small>
-                <span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">
-                    R² mide confiabilidad del modelo
-                </span>
+                Predicciones: Produccion de Leche (AD-1)
+                <small class="ms-2 fw-normal opacity-75">Agrupado por año y mes</small>
             </div>
             <div class="p-3">
                 <small class="text-muted d-block mb-3">
                     <i class="bi bi-info-circle me-1"></i>
-                    R² = {{ metrica_ad1|default:"N/A" }} significa que el modelo explica el
-                    {% if metrica_ad1 %}{{ metrica_ad1|floatformat:0 }}%{% else %}N/A{% endif %}
-                    de la variación en producción. Haz clic en <i class="bi bi-eye"></i> para ver el detalle del animal.
+                    R2 = {{ metrica_ad1|default:"N/A" }}. Haz clic en el icono de ojo para ver el detalle del animal y recomendaciones.
                 </small>
 
                 {% for anio, meses in predicciones_ad1_agrupadas.items %}
-                <!-- ACORDEÓN POR AÑO -->
                 <div class="mb-3">
                     <button class="btn w-100 text-start fw-bold py-2 px-3 mb-2"
                             style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); color: white; border-radius: 10px; border: none;"
                             type="button"
                             data-bs-toggle="collapse"
-                            data-bs-target="#ad1_anio_{{ anio }}"
-                            aria-expanded="false">
+                            data-bs-target="#ad1_anio_{{ anio }}">
                         <i class="bi bi-calendar3 me-2" style="color:#DAA520;"></i>
                         Año {{ anio }}
-                        <span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">
-                            {{ meses|length }} mes{% if meses|length != 1 %}es{% endif %}
-                        </span>
+                        <span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">{{ meses|length }} mes(es)</span>
                         <i class="bi bi-chevron-down float-end mt-1"></i>
                     </button>
 
-                    <div class="collapse" id="ad1_anio_{{ anio }}">
+                    <div class="collapse {% if forloop.first %}show{% endif %}" id="ad1_anio_{{ anio }}">
                         {% for mes, data in meses.items %}
-                        <!-- ACORDEÓN POR MES -->
                         <div class="ms-3 mb-2">
                             <button class="btn w-100 text-start fw-bold py-2 px-3 mb-1"
                                     style="background: #e8f5e9; color: #2c5e1a; border-radius: 8px; border: 1px solid #b7d7a8;"
                                     type="button"
                                     data-bs-toggle="collapse"
-                                    data-bs-target="#ad1_{{ anio }}_{{ forloop.counter }}"
-                                    aria-expanded="false">
+                                    data-bs-target="#ad1_{{ anio }}_{{ forloop.counter }}">
                                 <i class="bi bi-calendar-month me-2"></i>
                                 {{ mes }}
-                                <span class="badge bg-success ms-2">{{ data.registros|length }} prediccion{% if data.registros|length != 1 %}es{% endif %}</span>
+                                <span class="badge bg-success ms-2">{{ data.registros|length }} prediccion(es)</span>
                                 <i class="bi bi-chevron-down float-end mt-1"></i>
                             </button>
 
-                            <div class="collapse" id="ad1_{{ anio }}_{{ forloop.counter }}">
+                            <div class="collapse {% if forloop.parentloop.first and forloop.first %}show{% endif %}" id="ad1_{{ anio }}_{{ forloop.counter }}">
                                 <div class="table-responsive ms-2">
                                     <table class="table table-hover table-bordered table-sm">
                                         <thead class="table-light">
@@ -138,7 +122,7 @@ Dashboard Machine Learning | Hacienda Joseph
                                                 <th>Temp. Amb.</th>
                                                 <th>Concentrado</th>
                                                 <th>Temp. Leche</th>
-                                                <th>Predicción (L)</th>
+                                                <th>Prediccion (L)</th>
                                                 <th>Confianza</th>
                                                 <th>Detalle</th>
                                             </tr>
@@ -148,15 +132,15 @@ Dashboard Machine Learning | Hacienda Joseph
                                             <tr>
                                                 <td><small>{{ p.fecha }}</small></td>
                                                 <td class="fw-bold" style="color: var(--color-primario);">{{ p.animal_codigo }}</td>
-                                                <td>{{ p.temperatura_ambiental }}°C</td>
+                                                <td>{{ p.temperatura_ambiental }}C</td>
                                                 <td>{{ p.cantidad_concentrado_kg }} kg</td>
-                                                <td>{{ p.temperatura_leche }}°C</td>
+                                                <td>{{ p.temperatura_leche }}C</td>
                                                 <td class="fw-bold" style="color: #2c5e1a;">{{ p.prediccion }} L</td>
                                                 <td><span class="badge bg-info text-dark">{{ p.confianza }}</span></td>
                                                 <td>
                                                     <button class="btn btn-sm btn-info"
-                                                            onclick="abrirDetalleAnimal('{{ p.animal_id }}','{{ p.animal_codigo }}','{{ p.animal_nombre }}','{{ p.animal_raza }}','{{ p.animal_categoria }}','{{ p.animal_estado }}','{{ p.animal_peso }}','{{ p.animal_potrero }}','{{ p.animal_foto }}')"
-                                                            title="Ver animal">
+                                                            onclick="abrirDetalleAnimal('{{ p.animal_id }}')"
+                                                            title="Ver detalle y recomendaciones ML">
                                                         <i class="bi bi-eye"></i>
                                                     </button>
                                                 </td>
@@ -177,9 +161,6 @@ Dashboard Machine Learning | Hacienda Joseph
 </div>
 {% endif %}
 
-<!-- ============================================================ -->
-<!-- AD-2: PREDICCIONES DE PREÑEZ (por año/mes)                  -->
-<!-- ============================================================ -->
 {% if predicciones_ad2_agrupadas %}
 <div class="row mb-4 animate-fade-in">
     <div class="col-12">
@@ -187,52 +168,47 @@ Dashboard Machine Learning | Hacienda Joseph
             <div class="card-header-hacienda">
                 <i class="bi bi-heart-pulse-fill me-2"></i>
                 Predicciones: Estado de Preñez (AD-2)
-                <small class="ms-2 fw-normal opacity-75">— Inseminaciones pendientes, agrupadas por año y mes</small>
+                <small class="ms-2 fw-normal opacity-75">Agrupado por año y mes</small>
             </div>
             <div class="p-3">
-
                 {% for anio, meses in predicciones_ad2_agrupadas.items %}
                 <div class="mb-3">
                     <button class="btn w-100 text-start fw-bold py-2 px-3 mb-2"
                             style="background: linear-gradient(135deg, #155724, #1e7e34); color: white; border-radius: 10px; border: none;"
                             type="button"
                             data-bs-toggle="collapse"
-                            data-bs-target="#ad2_anio_{{ anio }}"
-                            aria-expanded="false">
+                            data-bs-target="#ad2_anio_{{ anio }}">
                         <i class="bi bi-calendar3 me-2" style="color:#DAA520;"></i>
                         Año {{ anio }}
-                        <span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">
-                            {{ meses|length }} mes{% if meses|length != 1 %}es{% endif %}
-                        </span>
+                        <span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">{{ meses|length }} mes(es)</span>
                         <i class="bi bi-chevron-down float-end mt-1"></i>
                     </button>
 
-                    <div class="collapse" id="ad2_anio_{{ anio }}">
+                    <div class="collapse {% if forloop.first %}show{% endif %}" id="ad2_anio_{{ anio }}">
                         {% for mes, data in meses.items %}
                         <div class="ms-3 mb-2">
                             <button class="btn w-100 text-start fw-bold py-2 px-3 mb-1"
                                     style="background: #d4edda; color: #155724; border-radius: 8px; border: 1px solid #c3e6cb;"
                                     type="button"
                                     data-bs-toggle="collapse"
-                                    data-bs-target="#ad2_{{ anio }}_{{ forloop.counter }}"
-                                    aria-expanded="false">
+                                    data-bs-target="#ad2_{{ anio }}_{{ forloop.counter }}">
                                 <i class="bi bi-calendar-month me-2"></i>
                                 {{ mes }}
-                                <span class="badge bg-success ms-2">{{ data.registros|length }} prediccion{% if data.registros|length != 1 %}es{% endif %}</span>
+                                <span class="badge bg-success ms-2">{{ data.registros|length }} prediccion(es)</span>
                                 <i class="bi bi-chevron-down float-end mt-1"></i>
                             </button>
 
-                            <div class="collapse" id="ad2_{{ anio }}_{{ forloop.counter }}">
+                            <div class="collapse {% if forloop.parentloop.first and forloop.first %}show{% endif %}" id="ad2_{{ anio }}_{{ forloop.counter }}">
                                 <div class="table-responsive ms-2">
                                     <table class="table table-hover table-bordered table-sm">
                                         <thead class="table-light">
                                             <tr>
-                                                <th>Fecha Inseminación</th>
+                                                <th>Fecha Inseminacion</th>
                                                 <th>Animal</th>
-                                                <th>Días Transcurridos</th>
+                                                <th>Dias Transcurridos</th>
                                                 <th>Cond. Corporal</th>
                                                 <th>Tipo</th>
-                                                <th>Predicción</th>
+                                                <th>Prediccion</th>
                                                 <th>Confianza</th>
                                                 <th>Detalle</th>
                                             </tr>
@@ -242,7 +218,7 @@ Dashboard Machine Learning | Hacienda Joseph
                                             <tr>
                                                 <td><small>{{ p.fecha }}</small></td>
                                                 <td class="fw-bold" style="color: var(--color-primario);">{{ p.animal_codigo }}</td>
-                                                <td>{{ p.dias }} días</td>
+                                                <td>{{ p.dias }} dias</td>
                                                 <td>{{ p.condicion_corporal }}/5</td>
                                                 <td><span class="badge bg-secondary">{{ p.tipo_inseminacion }}</span></td>
                                                 <td class="fw-bold">
@@ -255,8 +231,8 @@ Dashboard Machine Learning | Hacienda Joseph
                                                 <td><span class="badge bg-success">{{ p.confianza }}</span></td>
                                                 <td>
                                                     <button class="btn btn-sm btn-info"
-                                                            onclick="abrirDetalleAnimal('{{ p.animal_id }}','{{ p.animal_codigo }}','{{ p.animal_nombre }}','{{ p.animal_raza }}','{{ p.animal_categoria }}','{{ p.animal_estado }}','{{ p.animal_peso }}','{{ p.animal_potrero }}','{{ p.animal_foto }}')"
-                                                            title="Ver animal">
+                                                            onclick="abrirDetalleAnimal('{{ p.animal_id }}')"
+                                                            title="Ver detalle y recomendaciones ML">
                                                         <i class="bi bi-eye"></i>
                                                     </button>
                                                 </td>
@@ -277,9 +253,6 @@ Dashboard Machine Learning | Hacienda Joseph
 </div>
 {% endif %}
 
-<!-- ============================================================ -->
-<!-- RL-4: PREDICCIONES DE CALIDAD DE LECHE (por año/mes)        -->
-<!-- ============================================================ -->
 {% if predicciones_rl4_agrupadas %}
 <div class="row mb-4 animate-fade-in">
     <div class="col-12">
@@ -287,44 +260,37 @@ Dashboard Machine Learning | Hacienda Joseph
             <div class="card-header-hacienda">
                 <i class="bi bi-check-circle-fill me-2"></i>
                 Predicciones: Calidad de Leche (RL-4)
-                <small class="ms-2 fw-normal opacity-75">— Agrupado por año y mes</small>
+                <small class="ms-2 fw-normal opacity-75">Agrupado por año y mes</small>
             </div>
             <div class="p-3">
-
                 {% for anio, meses in predicciones_rl4_agrupadas.items %}
                 <div class="mb-3">
                     <button class="btn w-100 text-start fw-bold py-2 px-3 mb-2"
                             style="background: linear-gradient(135deg, #0c5460, #117a8b); color: white; border-radius: 10px; border: none;"
                             type="button"
                             data-bs-toggle="collapse"
-                            data-bs-target="#rl4_anio_{{ anio }}"
-                            aria-expanded="false">
+                            data-bs-target="#rl4_anio_{{ anio }}">
                         <i class="bi bi-calendar3 me-2" style="color:#DAA520;"></i>
                         Año {{ anio }}
-                        <span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">
-                            {{ meses|length }} mes{% if meses|length != 1 %}es{% endif %}
-                        </span>
+                        <span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">{{ meses|length }} mes(es)</span>
                         <i class="bi bi-chevron-down float-end mt-1"></i>
                     </button>
 
-                    <div class="collapse" id="rl4_anio_{{ anio }}">
+                    <div class="collapse {% if forloop.first %}show{% endif %}" id="rl4_anio_{{ anio }}">
                         {% for mes, data in meses.items %}
                         <div class="ms-3 mb-2">
                             <button class="btn w-100 text-start fw-bold py-2 px-3 mb-1"
                                     style="background: #d1ecf1; color: #0c5460; border-radius: 8px; border: 1px solid #bee5eb;"
                                     type="button"
                                     data-bs-toggle="collapse"
-                                    data-bs-target="#rl4_{{ anio }}_{{ forloop.counter }}"
-                                    aria-expanded="false">
+                                    data-bs-target="#rl4_{{ anio }}_{{ forloop.counter }}">
                                 <i class="bi bi-calendar-month me-2"></i>
                                 {{ mes }}
-                                <span class="badge" style="background:#17a2b8; color:white;" class="ms-2">
-                                    {{ data.registros|length }} prediccion{% if data.registros|length != 1 %}es{% endif %}
-                                </span>
+                                <span class="badge" style="background:#17a2b8; color:white;">{{ data.registros|length }} prediccion(es)</span>
                                 <i class="bi bi-chevron-down float-end mt-1"></i>
                             </button>
 
-                            <div class="collapse" id="rl4_{{ anio }}_{{ forloop.counter }}">
+                            <div class="collapse {% if forloop.parentloop.first and forloop.first %}show{% endif %}" id="rl4_{{ anio }}_{{ forloop.counter }}">
                                 <div class="table-responsive ms-2">
                                     <table class="table table-hover table-bordered table-sm">
                                         <thead class="table-light">
@@ -332,9 +298,9 @@ Dashboard Machine Learning | Hacienda Joseph
                                                 <th>Fecha Muestra</th>
                                                 <th>Animal</th>
                                                 <th>Grasa (%)</th>
-                                                <th>Proteína (%)</th>
+                                                <th>Proteina (%)</th>
                                                 <th>CCS</th>
-                                                <th>Predicción</th>
+                                                <th>Prediccion</th>
                                                 <th>Confianza</th>
                                                 <th>Detalle</th>
                                             </tr>
@@ -357,8 +323,8 @@ Dashboard Machine Learning | Hacienda Joseph
                                                 <td><span class="badge bg-success">{{ p.confianza }}</span></td>
                                                 <td>
                                                     <button class="btn btn-sm btn-info"
-                                                            onclick="abrirDetalleAnimal('{{ p.animal_id }}','{{ p.animal_codigo }}','{{ p.animal_nombre }}','{{ p.animal_raza }}','{{ p.animal_categoria }}','{{ p.animal_estado }}','{{ p.animal_peso }}','{{ p.animal_potrero }}','{{ p.animal_foto }}')"
-                                                            title="Ver animal">
+                                                            onclick="abrirDetalleAnimal('{{ p.animal_id }}')"
+                                                            title="Ver detalle y recomendaciones ML">
                                                         <i class="bi bi-eye"></i>
                                                     </button>
                                                 </td>
@@ -382,10 +348,7 @@ Dashboard Machine Learning | Hacienda Joseph
 {% if not predicciones_ad1_agrupadas and not predicciones_ad2_agrupadas and not predicciones_rl4_agrupadas %}
 <div class="alert alert-info animate-fade-in">
     <i class="bi bi-info-circle-fill me-2"></i>
-    <strong>No hay predicciones automáticas.</strong> Entrena los modelos primero o ingresa datos al sistema.
-    <br><code>python manage.py entrenar_ml AD-1</code><br>
-    <code>python manage.py entrenar_ml AD-2 --ejemplo</code><br>
-    <code>python manage.py entrenar_ml RL-4</code>
+    <strong>No hay predicciones automaticas.</strong> Entrena los modelos primero o ingresa datos al sistema.
 </div>
 {% endif %}
 
@@ -393,67 +356,87 @@ Dashboard Machine Learning | Hacienda Joseph
 
 
 {% block modales %}
-<!-- ============================================================ -->
-<!-- MODAL DETALLE ANIMAL                                         -->
-<!-- ============================================================ -->
 <div class="modal fade" id="modalDetalleAnimalML" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-eye-fill me-2" style="color: #DAA520;"></i>
-                    DETALLE DEL ANIMAL
+                    DETALLE Y RECOMENDACIONES ML
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0" style="background: #fff8e6;">
-                <div class="row g-0">
-                    <!-- FOTO -->
-                    <div class="col-md-4" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
-                        <div class="p-3 h-100 d-flex flex-column align-items-center justify-content-center">
-                            <div id="mlFotoAnimal" style="width:100%; min-height:220px; display:flex; align-items:center; justify-content:center;"></div>
-                            <p class="mt-3 mb-0 fw-bold text-center" style="color:#2c5e1a; font-size:18px;" id="mlCodigo"></p>
-                            <p class="text-muted mb-0 text-center" id="mlNombre"></p>
+
+            <div class="modal-body p-0" style="background: #fff8e6; max-height: 75vh; overflow-y: auto;">
+
+                <div id="mlLoader" class="text-center p-5">
+                    <div class="spinner-border" style="color: #2c5e1a;" role="status"></div>
+                    <p class="mt-3 text-muted">Cargando datos del animal...</p>
+                </div>
+
+                <div id="mlContenido" style="display:none;">
+                    <div class="row g-0">
+                        <div class="col-md-4" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
+                            <div class="p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                <div id="mlFotoAnimal" style="width:100%; min-height:200px; display:flex; align-items:center; justify-content:center;"></div>
+                                <p class="mt-3 mb-0 fw-bold text-center" style="color:#2c5e1a; font-size:18px;" id="mlCodigo"></p>
+                                <p class="text-muted mb-0 text-center" id="mlNombre"></p>
+                                <div class="mt-2" id="mlEstado"></div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-8">
+                            <div class="p-3">
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        <label class="text-muted small fw-bold">RAZA</label>
+                                        <p class="mb-0 fw-bold" style="color:#2c5e1a;" id="mlRaza"></p>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="text-muted small fw-bold">CATEGORIA</label>
+                                        <p class="mb-0" style="color:#5c450e;" id="mlCategoria"></p>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        <label class="text-muted small fw-bold">PESO ACTUAL</label>
+                                        <p class="mb-0 fw-bold" style="color:#2c5e1a;" id="mlPeso"></p>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="text-muted small fw-bold">COND. CORPORAL</label>
+                                        <p class="mb-0" style="color:#5c450e;" id="mlCondicion"></p>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-geo-alt me-1"></i>POTRERO</label>
+                                    <p class="mb-0" style="color:#5c450e;" id="mlPotrero"></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <!-- DATOS -->
-                    <div class="col-md-8">
-                        <div class="p-4">
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold">RAZA</label>
-                                    <p class="mb-0 fw-bold" style="color:#2c5e1a;" id="mlRaza"></p>
-                                </div>
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold">CATEGORÍA</label>
-                                    <p class="mb-0" style="color:#5c450e;" id="mlCategoria"></p>
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold">ESTADO</label>
-                                    <div id="mlEstado"></div>
-                                </div>
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold">PESO ACTUAL</label>
-                                    <p class="mb-0 fw-bold" style="color:#2c5e1a;" id="mlPeso"></p>
-                                </div>
-                            </div>
-                            <hr style="border-color:#d4c5a9;">
-                            <div class="mb-3">
-                                <label class="text-muted small fw-bold"><i class="bi bi-geo-alt me-1"></i>POTRERO</label>
-                                <p class="mb-0" style="color:#5c450e;" id="mlPotrero"></p>
-                            </div>
-                            <div class="alert alert-info py-2 mb-0" style="border-radius:8px;">
-                                <small><i class="bi bi-cpu me-1"></i>
-                                Para ver el historial completo de este animal, visita su ficha en
-                                <a href="/listaanimal/" style="color:var(--color-primario); font-weight:bold;">Gestión de Animales</a>.
-                                </small>
-                            </div>
-                        </div>
+
+                    <hr class="m-0" style="border-color:#d4c5a9;">
+
+                    <div class="p-3">
+                        <h6 class="fw-bold mb-3" style="color:#2c5e1a;">
+                            <i class="bi bi-bar-chart-line me-2"></i>Resumen de Datos Historicos
+                        </h6>
+                        <div class="row text-center g-2" id="mlMetricas"></div>
+                    </div>
+
+                    <hr class="m-0" style="border-color:#d4c5a9;">
+
+                    <div class="p-3">
+                        <h6 class="fw-bold mb-3" style="color:#2c5e1a;">
+                            <i class="bi bi-cpu me-2"></i>Recomendaciones de Machine Learning
+                        </h6>
+                        <div id="mlRecomendaciones"></div>
                     </div>
                 </div>
+
+                <div id="mlError" class="alert alert-danger m-3" style="display:none;"></div>
             </div>
+
             <div class="modal-footer" style="background:#f5f0e6; border-top:1px solid #d4c5a9;">
                 <a href="#" id="mlBtnEditar" class="btn btn-hacienda">
                     <i class="bi bi-pencil-square me-1"></i>Editar Animal
@@ -470,42 +453,100 @@ Dashboard Machine Learning | Hacienda Joseph
 
 {% block scripts_extra %}
 <script>
-function abrirDetalleAnimal(id, codigo, nombre, raza, categoria, estado, peso, potrero, foto) {
-    document.getElementById('mlCodigo').textContent = codigo;
-    document.getElementById('mlNombre').textContent = nombre;
-    document.getElementById('mlRaza').textContent = raza;
-    document.getElementById('mlCategoria').textContent = categoria;
-    document.getElementById('mlPeso').textContent = peso;
-    document.getElementById('mlPotrero').textContent = potrero;
-    document.getElementById('mlBtnEditar').href = '/editaranimal/' + id;
+function abrirDetalleAnimal(idAnimal) {
+    var modalEl = document.getElementById('modalDetalleAnimalML');
+    var modal = new bootstrap.Modal(modalEl);
+    modal.show();
 
-    // Estado badge
-    var estadoHtml = '';
-    switch(estado) {
-        case 'activo':
-            estadoHtml = '<span class="badge rounded-pill bg-success p-2"><i class="bi bi-check-circle"></i> Activo</span>';
-            break;
-        case 'vendido':
-            estadoHtml = '<span class="badge rounded-pill p-2" style="background:#1976D2;color:white;"><i class="bi bi-cash-coin"></i> Vendido</span>';
-            break;
-        case 'muerto':
-            estadoHtml = '<span class="badge rounded-pill bg-dark p-2"><i class="bi bi-heartbreak"></i> Muerto</span>';
-            break;
-        default:
-            estadoHtml = '<span class="badge rounded-pill bg-secondary p-2">' + estado + '</span>';
-    }
-    document.getElementById('mlEstado').innerHTML = estadoHtml;
+    document.getElementById('mlLoader').style.display = 'block';
+    document.getElementById('mlContenido').style.display = 'none';
+    document.getElementById('mlError').style.display = 'none';
 
-    // Foto
-    var contenedor = document.getElementById('mlFotoAnimal');
-    if (foto && foto.trim() !== '' && foto !== 'None' && foto !== 'null') {
-        var ruta = foto.startsWith('/') ? foto : '/' + foto;
-        contenedor.innerHTML = '<img src="' + ruta + '" style="width:100%;height:220px;object-fit:cover;border-radius:12px;border:3px solid #DAA520;" alt="Foto" onerror="this.parentElement.innerHTML=\'<div style=\'text-align:center;padding:40px;color:#2c5e1a;\'><i class=\\\"bi bi-image\\\" style=\\\"font-size:3rem;\\\"></i><p class=\\\"mt-2\\\">Sin fotografía</p></div>\'">';
-    } else {
-        contenedor.innerHTML = '<div style="text-align:center;padding:40px;color:#2c5e1a;background:#eef7e8;border-radius:12px;border:3px dashed #b7d7a8;width:100%"><i class="bi bi-image" style="font-size:3rem;"></i><p class="mt-2 fw-bold">Sin fotografía</p></div>';
-    }
+    fetch('/api/detalle-animal-ml/' + idAnimal + '/')
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Error en el servidor: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            document.getElementById('mlLoader').style.display = 'none';
 
-    new bootstrap.Modal(document.getElementById('modalDetalleAnimalML')).show();
+            if (!data.exito) {
+                document.getElementById('mlError').textContent = data.mensaje || 'Error al cargar datos';
+                document.getElementById('mlError').style.display = 'block';
+                return;
+            }
+
+            var a = data.animal;
+            var m = data.metricas;
+
+            document.getElementById('mlCodigo').textContent = a.codigo;
+            document.getElementById('mlNombre').textContent = a.nombre;
+            document.getElementById('mlRaza').textContent = a.raza;
+            document.getElementById('mlCategoria').textContent = a.categoria;
+            document.getElementById('mlPeso').textContent = a.peso_actual;
+            document.getElementById('mlCondicion').textContent = a.condicion_corporal;
+            document.getElementById('mlPotrero').textContent = a.potrero;
+            document.getElementById('mlBtnEditar').href = '/editaranimal/' + a.id;
+
+            var estadoHtml = '';
+            if (a.estado === 'activo') {
+                estadoHtml = '<span class="badge rounded-pill bg-success p-2"><i class="bi bi-check-circle"></i> Activo</span>';
+            } else if (a.estado === 'vendido') {
+                estadoHtml = '<span class="badge rounded-pill p-2" style="background:#1976D2;color:white;"><i class="bi bi-cash-coin"></i> Vendido</span>';
+            } else if (a.estado === 'muerto') {
+                estadoHtml = '<span class="badge rounded-pill bg-dark p-2"><i class="bi bi-heartbreak"></i> Muerto</span>';
+            } else {
+                estadoHtml = '<span class="badge rounded-pill bg-secondary p-2">' + a.estado + '</span>';
+            }
+            document.getElementById('mlEstado').innerHTML = estadoHtml;
+
+            var contenedorFoto = document.getElementById('mlFotoAnimal');
+            if (a.foto && a.foto.trim() !== '') {
+                var ruta = a.foto.charAt(0) === '/' ? a.foto : '/' + a.foto;
+                var img = document.createElement('img');
+                img.src = ruta;
+                img.style.cssText = 'width:100%;height:200px;object-fit:cover;border-radius:12px;border:3px solid #DAA520;';
+                img.alt = 'Foto de ' + a.codigo;
+                img.onerror = function() {
+                    contenedorFoto.innerHTML = '<div style="text-align:center;padding:30px;color:#2c5e1a;background:#eef7e8;border-radius:12px;border:3px dashed #b7d7a8;width:100%;"><i class="bi bi-image" style="font-size:2.5rem;"></i><p class="mt-2 mb-0 fw-bold">Sin fotografia</p></div>';
+                };
+                contenedorFoto.innerHTML = '';
+                contenedorFoto.appendChild(img);
+            } else {
+                contenedorFoto.innerHTML = '<div style="text-align:center;padding:30px;color:#2c5e1a;background:#eef7e8;border-radius:12px;border:3px dashed #b7d7a8;width:100%;"><i class="bi bi-image" style="font-size:2.5rem;"></i><p class="mt-2 mb-0 fw-bold">Sin fotografia</p></div>';
+            }
+
+            var metricasHtml = '';
+            metricasHtml += '<div class="col-4"><div class="p-2" style="background:#e8f5e9;border-radius:8px;"><h5 class="fw-bold mb-0" style="color:#2c5e1a;">' + m.promedio_litros + ' L</h5><small class="text-muted">Promedio ordeño</small></div></div>';
+            metricasHtml += '<div class="col-4"><div class="p-2" style="background:#d1ecf1;border-radius:8px;"><h5 class="fw-bold mb-0" style="color:#0c5460;">' + (m.pct_calidad_apta !== null ? m.pct_calidad_apta + '%' : 'N/A') + '</h5><small class="text-muted">Calidad apta</small></div></div>';
+            metricasHtml += '<div class="col-4"><div class="p-2" style="background:#d4edda;border-radius:8px;"><h5 class="fw-bold mb-0" style="color:#155724;">' + m.inseminaciones_exitosas + '/' + m.total_inseminaciones + '</h5><small class="text-muted">Inseminaciones exitosas</small></div></div>';
+            document.getElementById('mlMetricas').innerHTML = metricasHtml;
+
+            var recoHtml = '';
+            var colores = {
+                'success': {bg: '#d4edda', border: '#28a745', text: '#155724'},
+                'warning': {bg: '#fff3cd', border: '#ffc107', text: '#856404'},
+                'danger':  {bg: '#f8d7da', border: '#dc3545', text: '#721c24'},
+                'info':    {bg: '#d1ecf1', border: '#17a2b8', text: '#0c5460'},
+                'secondary': {bg: '#e2e3e5', border: '#6c757d', text: '#383d41'}
+            };
+            data.recomendaciones.forEach(function(r) {
+                var c = colores[r.tipo] || colores['secondary'];
+                recoHtml += '<div class="alert mb-2" style="background:' + c.bg + ';border-left:4px solid ' + c.border + ';color:' + c.text + ';border-radius:8px;">';
+                recoHtml += '<i class="bi ' + r.icono + ' me-2"></i><strong>' + r.titulo + '</strong><br>';
+                recoHtml += '<small>' + r.texto + '</small></div>';
+            });
+            document.getElementById('mlRecomendaciones').innerHTML = recoHtml;
+
+            document.getElementById('mlContenido').style.display = 'block';
+        })
+        .catch(function(error) {
+            document.getElementById('mlLoader').style.display = 'none';
+            document.getElementById('mlError').textContent = 'Error al cargar el detalle: ' + error.message;
+            document.getElementById('mlError').style.display = 'block';
+        });
 }
 </script>
 {% endblock %}
