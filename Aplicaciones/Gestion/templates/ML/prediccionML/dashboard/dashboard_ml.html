@@ -103,17 +103,17 @@ Dashboard Machine Learning | Hacienda Joseph
                             type="button"
                             data-bs-toggle="collapse"
                             data-bs-target="#ad1_anio_{{ anio }}"
-                            aria-expanded="true">
+                            aria-expanded="false">
                         <i class="bi bi-calendar3 me-2" style="color:#DAA520;"></i>
                         Año {{ anio }}
                         <span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">
-                            {% for mes, data in meses.items %}{% for r in data.registros %}{% empty %}{% endfor %}{% endfor %}
                             {{ meses|length }} mes{% if meses|length != 1 %}es{% endif %}
                         </span>
                         <i class="bi bi-chevron-down float-end mt-1"></i>
                     </button>
 
-                    <div class="collapse show" id="ad1_anio_{{ anio }}">
+                    <!-- ELIMINADA LA CLASE "show" -->
+                    <div class="collapse" id="ad1_anio_{{ anio }}">
                         {% for mes, data in meses.items %}
                         <!-- ACORDEÓN POR MES -->
                         <div class="ms-3 mb-2">
@@ -121,14 +121,16 @@ Dashboard Machine Learning | Hacienda Joseph
                                     style="background: #e8f5e9; color: #2c5e1a; border-radius: 8px; border: 1px solid #b7d7a8;"
                                     type="button"
                                     data-bs-toggle="collapse"
-                                    data-bs-target="#ad1_{{ anio }}_{{ forloop.counter }}">
+                                    data-bs-target="#ad1_{{ anio }}_{{ forloop.counter }}"
+                                    aria-expanded="false">
                                 <i class="bi bi-calendar-month me-2"></i>
                                 {{ mes }}
                                 <span class="badge bg-success ms-2">{{ data.registros|length }} prediccion{% if data.registros|length != 1 %}es{% endif %}</span>
                                 <i class="bi bi-chevron-down float-end mt-1"></i>
                             </button>
 
-                            <div class="collapse show" id="ad1_{{ anio }}_{{ forloop.counter }}">
+                            <!-- ELIMINADA LA CLASE "show" -->
+                            <div class="collapse" id="ad1_{{ anio }}_{{ forloop.counter }}">
                                 <div class="table-responsive ms-2">
                                     <table class="table table-hover table-bordered table-sm">
                                         <thead class="table-light">
@@ -198,7 +200,7 @@ Dashboard Machine Learning | Hacienda Joseph
                             type="button"
                             data-bs-toggle="collapse"
                             data-bs-target="#ad2_anio_{{ anio }}"
-                            aria-expanded="true">
+                            aria-expanded="false">
                         <i class="bi bi-calendar3 me-2" style="color:#DAA520;"></i>
                         Año {{ anio }}
                         <span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">
@@ -207,21 +209,24 @@ Dashboard Machine Learning | Hacienda Joseph
                         <i class="bi bi-chevron-down float-end mt-1"></i>
                     </button>
 
-                    <div class="collapse show" id="ad2_anio_{{ anio }}">
+                    <!-- ELIMINADA LA CLASE "show" -->
+                    <div class="collapse" id="ad2_anio_{{ anio }}">
                         {% for mes, data in meses.items %}
                         <div class="ms-3 mb-2">
                             <button class="btn w-100 text-start fw-bold py-2 px-3 mb-1"
                                     style="background: #d4edda; color: #155724; border-radius: 8px; border: 1px solid #c3e6cb;"
                                     type="button"
                                     data-bs-toggle="collapse"
-                                    data-bs-target="#ad2_{{ anio }}_{{ forloop.counter }}">
+                                    data-bs-target="#ad2_{{ anio }}_{{ forloop.counter }}"
+                                    aria-expanded="false">
                                 <i class="bi bi-calendar-month me-2"></i>
                                 {{ mes }}
                                 <span class="badge bg-success ms-2">{{ data.registros|length }} prediccion{% if data.registros|length != 1 %}es{% endif %}</span>
                                 <i class="bi bi-chevron-down float-end mt-1"></i>
                             </button>
 
-                            <div class="collapse show" id="ad2_{{ anio }}_{{ forloop.counter }}">
+                            <!-- ELIMINADA LA CLASE "show" -->
+                            <div class="collapse" id="ad2_{{ anio }}_{{ forloop.counter }}">
                                 <div class="table-responsive ms-2">
                                     <table class="table table-hover table-bordered table-sm">
                                         <thead class="table-light">
@@ -297,7 +302,7 @@ Dashboard Machine Learning | Hacienda Joseph
                             type="button"
                             data-bs-toggle="collapse"
                             data-bs-target="#rl4_anio_{{ anio }}"
-                            aria-expanded="true">
+                            aria-expanded="false">
                         <i class="bi bi-calendar3 me-2" style="color:#DAA520;"></i>
                         Año {{ anio }}
                         <span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">
@@ -306,14 +311,16 @@ Dashboard Machine Learning | Hacienda Joseph
                         <i class="bi bi-chevron-down float-end mt-1"></i>
                     </button>
 
-                    <div class="collapse show" id="rl4_anio_{{ anio }}">
+                    <!-- ELIMINADA LA CLASE "show" -->
+                    <div class="collapse" id="rl4_anio_{{ anio }}">
                         {% for mes, data in meses.items %}
                         <div class="ms-3 mb-2">
                             <button class="btn w-100 text-start fw-bold py-2 px-3 mb-1"
                                     style="background: #d1ecf1; color: #0c5460; border-radius: 8px; border: 1px solid #bee5eb;"
                                     type="button"
                                     data-bs-toggle="collapse"
-                                    data-bs-target="#rl4_{{ anio }}_{{ forloop.counter }}">
+                                    data-bs-target="#rl4_{{ anio }}_{{ forloop.counter }}"
+                                    aria-expanded="false">
                                 <i class="bi bi-calendar-month me-2"></i>
                                 {{ mes }}
                                 <span class="badge" style="background:#17a2b8; color:white;" class="ms-2">
@@ -322,7 +329,8 @@ Dashboard Machine Learning | Hacienda Joseph
                                 <i class="bi bi-chevron-down float-end mt-1"></i>
                             </button>
 
-                            <div class="collapse show" id="rl4_{{ anio }}_{{ forloop.counter }}">
+                            <!-- ELIMINADA LA CLASE "show" -->
+                            <div class="collapse" id="rl4_{{ anio }}_{{ forloop.counter }}">
                                 <div class="table-responsive ms-2">
                                     <table class="table table-hover table-bordered table-sm">
                                         <thead class="table-light">
