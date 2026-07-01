@@ -9988,7 +9988,7 @@ def eliminaingreso(request, id_ig):
 # VISTA: DASHBOARD PRINCIPAL ML
 # ==========================================
 # ==========================================
-# VISTA: DASHBOARD PRINCIPAL ML
+# VISTA: DASHBOARD PRINCIPAL ML (CON MESES EN ESPAÑOL)
 # ==========================================
 def dashboardml(request):
     """
@@ -9998,6 +9998,26 @@ def dashboardml(request):
     """
     from .ml_engine import modelo_esta_entrenado, predecir
     from collections import defaultdict
+
+    # ==========================================
+    # FUNCIÓN INTERNA PARA NOMBRES DE MESES EN ESPAÑOL
+    # ==========================================
+    def nombre_mes_espanol(numero_mes):
+        meses = {
+            1: 'Enero',
+            2: 'Febrero',
+            3: 'Marzo',
+            4: 'Abril',
+            5: 'Mayo',
+            6: 'Junio',
+            7: 'Julio',
+            8: 'Agosto',
+            9: 'Septiembre',
+            10: 'Octubre',
+            11: 'Noviembre',
+            12: 'Diciembre'
+        }
+        return meses.get(numero_mes, 'Desconocido')
 
     estado_ad1 = modelo_esta_entrenado('AD-1')
     estado_ad2 = modelo_esta_entrenado('AD-2')
@@ -10019,7 +10039,6 @@ def dashboardml(request):
 
     # ──────────────────────────────────────────────────────
     # AD-1: TODOS los ordeños, agrupados por AÑO → MES
-    # Para cada ordeño genera una prediccion y guarda en BD
     # ──────────────────────────────────────────────────────
     predicciones_ad1_agrupadas = {}  # {año: {mes: [predicciones]}}
     if estado_ad1:
@@ -10029,7 +10048,6 @@ def dashboardml(request):
             temperatura_leche_or__isnull=False
         ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_or')
 
-        # Obtener o crear el modelo ML en BD para guardar predicciones
         modelo_db_ad1 = ModeloML.objects.filter(codigo_mm='AD-1').first()
 
         for o in ordenos:
@@ -10040,20 +10058,20 @@ def dashboardml(request):
             })
             if r['exito']:
                 anio = o.fecha_or.year
-                mes = o.fecha_or.strftime('%B %Y')  # ej: "January 2025"
                 mes_num = o.fecha_or.month
+                mes_nombre = nombre_mes_espanol(mes_num)
+                mes_anio = f"{mes_nombre} {anio}"
 
                 if anio not in predicciones_ad1_agrupadas:
                     predicciones_ad1_agrupadas[anio] = {}
-                if mes not in predicciones_ad1_agrupadas[anio]:
-                    predicciones_ad1_agrupadas[anio][mes] = {
+                if mes_anio not in predicciones_ad1_agrupadas[anio]:
+                    predicciones_ad1_agrupadas[anio][mes_anio] = {
                         'mes_num': mes_num,
                         'registros': []
                     }
 
-                # Datos completos del animal para el modal de detalle
                 animal = o.fk_an
-                predicciones_ad1_agrupadas[anio][mes]['registros'].append({
+                predicciones_ad1_agrupadas[anio][mes_anio]['registros'].append({
                     'animal_id': animal.id_an if animal else None,
                     'animal_codigo': animal.codigo_an if animal else 'Sin nombre',
                     'animal_nombre': animal.nombre_an or 'Sin nombre' if animal else 'Sin nombre',
@@ -10071,7 +10089,6 @@ def dashboardml(request):
                     'confianza': f"R²: {round(metrica_ad1 * 100, 1)}%" if metrica_ad1 else 'N/A',
                 })
 
-                # Guardar prediccion en BD (historial)
                 if modelo_db_ad1:
                     try:
                         PrediccionML.objects.get_or_create(
@@ -10091,11 +10108,9 @@ def dashboardml(request):
                     except Exception:
                         pass
 
-        # Ordenar años de más reciente a más antiguo
         predicciones_ad1_agrupadas = dict(
             sorted(predicciones_ad1_agrupadas.items(), reverse=True)
         )
-        # Ordenar meses dentro de cada año
         for anio in predicciones_ad1_agrupadas:
             predicciones_ad1_agrupadas[anio] = dict(
                 sorted(
@@ -10127,19 +10142,20 @@ def dashboardml(request):
             })
             if r['exito']:
                 anio = ins.fecha_in.year
-                mes = ins.fecha_in.strftime('%B %Y')
                 mes_num = ins.fecha_in.month
+                mes_nombre = nombre_mes_espanol(mes_num)
+                mes_anio = f"{mes_nombre} {anio}"
 
                 if anio not in predicciones_ad2_agrupadas:
                     predicciones_ad2_agrupadas[anio] = {}
-                if mes not in predicciones_ad2_agrupadas[anio]:
-                    predicciones_ad2_agrupadas[anio][mes] = {
+                if mes_anio not in predicciones_ad2_agrupadas[anio]:
+                    predicciones_ad2_agrupadas[anio][mes_anio] = {
                         'mes_num': mes_num,
                         'registros': []
                     }
 
                 animal = ins.fk_an
-                predicciones_ad2_agrupadas[anio][mes]['registros'].append({
+                predicciones_ad2_agrupadas[anio][mes_anio]['registros'].append({
                     'animal_id': animal.id_an if animal else None,
                     'animal_codigo': animal.codigo_an if animal else 'Sin nombre',
                     'animal_nombre': animal.nombre_an or 'Sin nombre' if animal else 'Sin nombre',
@@ -10209,19 +10225,20 @@ def dashboardml(request):
             })
             if r['exito']:
                 anio = c.fecha_muestreo_cl.year
-                mes = c.fecha_muestreo_cl.strftime('%B %Y')
                 mes_num = c.fecha_muestreo_cl.month
+                mes_nombre = nombre_mes_espanol(mes_num)
+                mes_anio = f"{mes_nombre} {anio}"
 
                 if anio not in predicciones_rl4_agrupadas:
                     predicciones_rl4_agrupadas[anio] = {}
-                if mes not in predicciones_rl4_agrupadas[anio]:
-                    predicciones_rl4_agrupadas[anio][mes] = {
+                if mes_anio not in predicciones_rl4_agrupadas[anio]:
+                    predicciones_rl4_agrupadas[anio][mes_anio] = {
                         'mes_num': mes_num,
                         'registros': []
                     }
 
                 animal = c.fk_an
-                predicciones_rl4_agrupadas[anio][mes]['registros'].append({
+                predicciones_rl4_agrupadas[anio][mes_anio]['registros'].append({
                     'animal_id': animal.id_an if animal else None,
                     'animal_codigo': animal.codigo_an if animal else 'Sin nombre',
                     'animal_nombre': animal.nombre_an or 'Sin nombre' if animal else 'Sin nombre',
