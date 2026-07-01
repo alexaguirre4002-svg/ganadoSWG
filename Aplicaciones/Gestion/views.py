@@ -10293,182 +10293,307 @@ def detalle_animal_ml_json(request, id_an):
         ).get(id_an=id_an)
     except Animal.DoesNotExist:
         return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'exito': False, 'mensaje': f'Error al buscar animal: {str(e)}'}, status=500)
 
-    # ──────────────────────────────────────
-    # DATOS BASICOS DEL ANIMAL
-    # ──────────────────────────────────────
-    datos_animal = {
-        'id': animal.id_an,
-        'codigo': animal.codigo_an,
-        'nombre': animal.nombre_an or 'Sin nombre',
-        'raza': animal.fk_ra.nombre_ra if animal.fk_ra else 'No especificada',
-        'sexo': 'Macho' if animal.sexo_an == 'M' else 'Hembra',
-        'categoria': animal.get_categoria_an_display() if hasattr(animal, 'get_categoria_an_display') else animal.categoria_an,
-        'estado': animal.estado_an,
-        'peso_actual': f"{animal.peso_actual_kg_an} kg" if animal.peso_actual_kg_an else 'No registrado',
-        'peso_nacimiento': f"{animal.peso_nacimiento_kg_an} kg" if animal.peso_nacimiento_kg_an else 'No registrado',
-        'condicion_corporal': f"{animal.condicion_corporal_an}/5" if animal.condicion_corporal_an else 'No evaluada',
-        'potrero': animal.fk_potrero_an.nombre_po if animal.fk_potrero_an else 'Sin potrero',
-        'fecha_nacimiento': animal.fecha_nacimiento_an.strftime('%d/%m/%Y') if animal.fecha_nacimiento_an else 'N/A',
-        'fecha_ingreso': animal.fecha_ingreso_an.strftime('%d/%m/%Y') if animal.fecha_ingreso_an else 'N/A',
-        'foto': animal.foto_an or '',
-        'color': animal.color_an or 'No especificado',
-        'madre': animal.fk_madre_an.codigo_an if animal.fk_madre_an else 'No registrada',
-        'padre': animal.fk_padre_an.codigo_an if animal.fk_padre_an else 'No registrado',
-    }
+    try:
+        # ──────────────────────────────────────
+        # DATOS BASICOS DEL ANIMAL
+        # ──────────────────────────────────────
+        # OBTENER NOMBRE DE RAZA DE FORMA SEGURA
+        nombre_raza = 'No especificada'
+        if animal.fk_ra:
+            nombre_raza = animal.fk_ra.nombre_ra if animal.fk_ra.nombre_ra else 'No especificada'
+        
+        # OBTENER NOMBRE DE POTRERO DE FORMA SEGURA
+        nombre_potrero = 'Sin potrero'
+        if animal.fk_potrero_an:
+            nombre_potrero = animal.fk_potrero_an.nombre_po if animal.fk_potrero_an.nombre_po else 'Sin potrero'
+        
+        # OBTENER NOMBRE DE MADRE DE FORMA SEGURA
+        nombre_madre = 'No registrada'
+        if animal.fk_madre_an:
+            nombre_madre = animal.fk_madre_an.codigo_an if animal.fk_madre_an.codigo_an else 'No registrada'
+        
+        # OBTENER NOMBRE DE PADRE DE FORMA SEGURA
+        nombre_padre = 'No registrado'
+        if animal.fk_padre_an:
+            nombre_padre = animal.fk_padre_an.codigo_an if animal.fk_padre_an.codigo_an else 'No registrado'
+        
+        # PESOS DE FORMA SEGURA
+        peso_actual = 'No registrado'
+        if animal.peso_actual_kg_an is not None:
+            try:
+                peso_actual = f"{float(animal.peso_actual_kg_an)} kg"
+            except:
+                peso_actual = str(animal.peso_actual_kg_an) + ' kg'
+        
+        peso_nacimiento = 'No registrado'
+        if animal.peso_nacimiento_kg_an is not None:
+            try:
+                peso_nacimiento = f"{float(animal.peso_nacimiento_kg_an)} kg"
+            except:
+                peso_nacimiento = str(animal.peso_nacimiento_kg_an) + ' kg'
+        
+        # CONDICION CORPORAL DE FORMA SEGURA
+        condicion_corporal = 'No evaluada'
+        if animal.condicion_corporal_an is not None:
+            condicion_corporal = f"{animal.condicion_corporal_an}/5"
+        
+        # CATEGORIA DE FORMA SEGURA
+        categoria = animal.categoria_an if animal.categoria_an else 'No especificada'
+        
+        # ESTADO DE FORMA SEGURA
+        estado = animal.estado_an if animal.estado_an else 'desconocido'
+        
+        # COLOR DE FORMA SEGURA
+        color = animal.color_an if animal.color_an else 'No especificado'
+        
+        # FECHAS DE FORMA SEGURA
+        fecha_nacimiento = 'N/A'
+        if animal.fecha_nacimiento_an:
+            try:
+                fecha_nacimiento = animal.fecha_nacimiento_an.strftime('%d/%m/%Y')
+            except:
+                fecha_nacimiento = str(animal.fecha_nacimiento_an)
+        
+        fecha_ingreso = 'N/A'
+        if animal.fecha_ingreso_an:
+            try:
+                fecha_ingreso = animal.fecha_ingreso_an.strftime('%d/%m/%Y')
+            except:
+                fecha_ingreso = str(animal.fecha_ingreso_an)
+        
+        # FOTO DE FORMA SEGURA
+        foto = animal.foto_an if animal.foto_an else ''
+        
+        datos_animal = {
+            'id': animal.id_an,
+            'codigo': animal.codigo_an if animal.codigo_an else 'Sin código',
+            'nombre': animal.nombre_an if animal.nombre_an else 'Sin nombre',
+            'raza': nombre_raza,
+            'sexo': 'Macho' if animal.sexo_an == 'M' else 'Hembra' if animal.sexo_an == 'H' else 'No especificado',
+            'categoria': categoria,
+            'estado': estado,
+            'peso_actual': peso_actual,
+            'peso_nacimiento': peso_nacimiento,
+            'condicion_corporal': condicion_corporal,
+            'potrero': nombre_potrero,
+            'fecha_nacimiento': fecha_nacimiento,
+            'fecha_ingreso': fecha_ingreso,
+            'foto': foto,
+            'color': color,
+            'madre': nombre_madre,
+            'padre': nombre_padre,
+        }
 
-    # ──────────────────────────────────────
-    # HISTORIAL DE PRODUCCION DE LECHE (ultimos 10 ordeños)
-    # ──────────────────────────────────────
-    ordenos = Ordeno.objects.filter(fk_an=animal).order_by('-fecha_or')[:10]
-    historial_litros = [float(o.litros_or) for o in ordenos if o.litros_or]
-    promedio_litros = round(sum(historial_litros) / len(historial_litros), 2) if historial_litros else 0
+        # ──────────────────────────────────────
+        # HISTORIAL DE PRODUCCION DE LECHE (ultimos 10 ordeños)
+        # ──────────────────────────────────────
+        ordenos = Ordeno.objects.filter(fk_an=animal).order_by('-fecha_or')[:10]
+        historial_litros = []
+        for o in ordenos:
+            if o.litros_or is not None:
+                try:
+                    historial_litros.append(float(o.litros_or))
+                except:
+                    pass
+        
+        promedio_litros = 0
+        if historial_litros:
+            promedio_litros = round(sum(historial_litros) / len(historial_litros), 2)
 
-    # ──────────────────────────────────────
-    # HISTORIAL DE CALIDAD DE LECHE (ultimas 10 muestras)
-    # ──────────────────────────────────────
-    calidades = CalidadLeche.objects.filter(fk_an=animal).order_by('-fecha_muestreo_cl')[:10]
-    total_calidad = calidades.count()
-    aptos = calidades.filter(resultado_cl='apto').count()
-    pct_aptos = round((aptos / total_calidad) * 100, 1) if total_calidad > 0 else None
+        # ──────────────────────────────────────
+        # HISTORIAL DE CALIDAD DE LECHE (ultimas 10 muestras)
+        # ──────────────────────────────────────
+        calidades = CalidadLeche.objects.filter(fk_an=animal).order_by('-fecha_muestreo_cl')[:10]
+        total_calidad = calidades.count()
+        aptos = calidades.filter(resultado_cl='apto').count()
+        pct_aptos = None
+        if total_calidad > 0:
+            pct_aptos = round((aptos / total_calidad) * 100, 1)
 
-    # ──────────────────────────────────────
-    # HISTORIAL DE INSEMINACIONES / PREÑEZ
-    # ──────────────────────────────────────
-    inseminaciones = Inseminacion.objects.filter(fk_an=animal).order_by('-fecha_in')[:5]
-    total_inseminaciones = inseminaciones.count()
-    prenadas = inseminaciones.filter(resultado_in='preñada').count()
+        # ──────────────────────────────────────
+        # HISTORIAL DE INSEMINACIONES
+        # ──────────────────────────────────────
+        inseminaciones = Inseminacion.objects.filter(fk_an=animal).order_by('-fecha_in')[:5]
+        total_inseminaciones = inseminaciones.count()
+        prenadas = inseminaciones.filter(resultado_in='preñada').count()
 
-    # ──────────────────────────────────────
-    # PREDICCIONES ML GUARDADAS PARA ESTE ANIMAL
-    # ──────────────────────────────────────
-    predicciones_guardadas = PrediccionML.objects.filter(
-        fk_an=animal
-    ).select_related('fk_mm').order_by('-id_pm')[:5]
+        # ──────────────────────────────────────
+        # PREDICCIONES ML GUARDADAS PARA ESTE ANIMAL
+        # ──────────────────────────────────────
+        try:
+            predicciones_guardadas = PrediccionML.objects.filter(
+                fk_an=animal
+            ).select_related('fk_mm').order_by('-id_pm')[:5]
+        except:
+            predicciones_guardadas = []
 
-    historial_predicciones = []
-    for p in predicciones_guardadas:
-        historial_predicciones.append({
-            'modelo': p.fk_mm.codigo_mm if p.fk_mm else 'N/A',
-            'resultado': p.resultado_prediccion_pm,
-            'probabilidad': f"{round(float(p.probabilidad_pm) * 100, 1)}%" if p.probabilidad_pm else 'N/A',
-        })
+        historial_predicciones = []
+        for p in predicciones_guardadas:
+            codigo_modelo = 'N/A'
+            if p.fk_mm:
+                codigo_modelo = p.fk_mm.codigo_mm if p.fk_mm.codigo_mm else 'N/A'
+            
+            probabilidad = 'N/A'
+            if p.probabilidad_pm is not None:
+                try:
+                    probabilidad = f"{round(float(p.probabilidad_pm) * 100, 1)}%"
+                except:
+                    probabilidad = str(p.probabilidad_pm)
+            
+            historial_predicciones.append({
+                'modelo': codigo_modelo,
+                'resultado': p.resultado_prediccion_pm if p.resultado_prediccion_pm else 'N/A',
+                'probabilidad': probabilidad,
+            })
 
-    # ──────────────────────────────────────
-    # GENERAR RECOMENDACIONES BASADAS EN ML
-    # ──────────────────────────────────────
-    recomendaciones = []
+        # ──────────────────────────────────────
+        # GENERAR RECOMENDACIONES BASADAS EN ML
+        # ──────────────────────────────────────
+        recomendaciones = []
 
-    # Recomendacion sobre produccion de leche
-    if historial_litros:
-        if len(historial_litros) >= 2:
-            tendencia = historial_litros[0] - historial_litros[-1]
-            if tendencia < -1:
-                recomendaciones.append({
-                    'tipo': 'warning',
-                    'icono': 'bi-graph-down-arrow',
-                    'titulo': 'Producción en descenso',
-                    'texto': f'La producción de {animal.codigo_an} bajó de {historial_litros[-1]} L a {historial_litros[0]} L. Revisar alimentación y condición corporal.'
-                })
-            elif tendencia > 1:
-                recomendaciones.append({
-                    'tipo': 'success',
-                    'icono': 'bi-graph-up-arrow',
-                    'titulo': 'Producción en aumento',
-                    'texto': f'{animal.codigo_an} mejoró su producción de {historial_litros[-1]} L a {historial_litros[0]} L. Mantener el manejo actual.'
-                })
+        # Recomendacion sobre produccion de leche
+        if historial_litros:
+            if len(historial_litros) >= 2:
+                tendencia = historial_litros[0] - historial_litros[-1]
+                if tendencia < -1:
+                    recomendaciones.append({
+                        'tipo': 'warning',
+                        'icono': 'bi-graph-down-arrow',
+                        'titulo': 'Producción en descenso',
+                        'texto': f'La producción de {datos_animal["codigo"]} bajó de {historial_litros[-1]} L a {historial_litros[0]} L. Revisar alimentación y condición corporal.'
+                    })
+                elif tendencia > 1:
+                    recomendaciones.append({
+                        'tipo': 'success',
+                        'icono': 'bi-graph-up-arrow',
+                        'titulo': 'Producción en aumento',
+                        'texto': f'{datos_animal["codigo"]} mejoró su producción de {historial_litros[-1]} L a {historial_litros[0]} L. Mantener el manejo actual.'
+                    })
+                else:
+                    recomendaciones.append({
+                        'tipo': 'info',
+                        'icono': 'bi-dash-circle',
+                        'titulo': 'Producción estable',
+                        'texto': f'Promedio de producción: {promedio_litros} L por ordeño. Sin cambios significativos.'
+                    })
             else:
                 recomendaciones.append({
-                    'tipo': 'info',
-                    'icono': 'bi-dash-circle',
-                    'titulo': 'Producción estable',
-                    'texto': f'Promedio de producción: {promedio_litros} L por ordeño. Sin cambios significativos.'
+                    'tipo': 'secondary',
+                    'icono': 'bi-info-circle',
+                    'titulo': 'Pocos registros de ordeños',
+                    'texto': f'{datos_animal["codigo"]} tiene solo {len(historial_litros)} registro(s) de producción de leche.'
                 })
-    else:
-        recomendaciones.append({
-            'tipo': 'secondary',
-            'icono': 'bi-info-circle',
-            'titulo': 'Sin historial de ordeños',
-            'texto': f'{animal.codigo_an} no tiene registros de producción de leche aún.'
-        })
-
-    # Recomendacion sobre calidad de leche
-    if pct_aptos is not None:
-        if pct_aptos < 70:
-            recomendaciones.append({
-                'tipo': 'danger',
-                'icono': 'bi-exclamation-triangle',
-                'titulo': 'Calidad de leche baja',
-                'texto': f'Solo {pct_aptos}% de las muestras de {animal.codigo_an} son aptas. Revisar mastitis, higiene de ordeño y alimentación.'
-            })
         else:
             recomendaciones.append({
-                'tipo': 'success',
-                'icono': 'bi-check-circle',
-                'titulo': 'Calidad de leche aceptable',
-                'texto': f'{pct_aptos}% de las muestras son aptas. Mantener buenas prácticas de ordeño.'
+                'tipo': 'secondary',
+                'icono': 'bi-info-circle',
+                'titulo': 'Sin historial de ordeños',
+                'texto': f'{datos_animal["codigo"]} no tiene registros de producción de leche aún.'
             })
 
-    # Recomendacion sobre reproduccion
-    if total_inseminaciones > 0:
-        tasa_preñez = round((prenadas / total_inseminaciones) * 100, 1)
-        if tasa_preñez < 50 and total_inseminaciones >= 2:
+        # Recomendacion sobre calidad de leche
+        if pct_aptos is not None:
+            if pct_aptos < 70 and total_calidad > 2:
+                recomendaciones.append({
+                    'tipo': 'danger',
+                    'icono': 'bi-exclamation-triangle',
+                    'titulo': 'Calidad de leche baja',
+                    'texto': f'Solo {pct_aptos}% de las muestras de {datos_animal["codigo"]} son aptas ({aptos}/{total_calidad}). Revisar mastitis, higiene de ordeño y alimentación.'
+                })
+            elif pct_aptos >= 70:
+                recomendaciones.append({
+                    'tipo': 'success',
+                    'icono': 'bi-check-circle',
+                    'titulo': 'Calidad de leche aceptable',
+                    'texto': f'{pct_aptos}% de las muestras son aptas ({aptos}/{total_calidad}). Mantener buenas prácticas de ordeño.'
+                })
+        else:
+            if total_calidad > 0:
+                recomendaciones.append({
+                    'tipo': 'secondary',
+                    'icono': 'bi-info-circle',
+                    'titulo': 'Datos de calidad incompletos',
+                    'texto': f'{datos_animal["codigo"]} tiene {total_calidad} muestra(s) pero faltan datos para evaluar calidad.'
+                })
+
+        # Recomendacion sobre reproduccion
+        if total_inseminaciones > 0:
+            tasa_preñez = round((prenadas / total_inseminaciones) * 100, 1)
+            if tasa_preñez < 50 and total_inseminaciones >= 3:
+                recomendaciones.append({
+                    'tipo': 'warning',
+                    'icono': 'bi-heart-pulse',
+                    'titulo': 'Baja tasa de concepción',
+                    'texto': f'{datos_animal["codigo"]} tiene {tasa_preñez}% de éxito en inseminaciones ({prenadas}/{total_inseminaciones}). Evaluar condición corporal y momento de inseminación.'
+                })
+            elif tasa_preñez >= 50:
+                recomendaciones.append({
+                    'tipo': 'success',
+                    'icono': 'bi-heart-pulse-fill',
+                    'titulo': 'Buena fertilidad',
+                    'texto': f'Tasa de concepción de {tasa_preñez}% ({prenadas}/{total_inseminaciones} inseminaciones exitosas).'
+                })
+        else:
             recomendaciones.append({
-                'tipo': 'warning',
-                'icono': 'bi-heart-pulse',
-                'titulo': 'Baja tasa de concepción',
-                'texto': f'{animal.codigo_an} tiene {tasa_preñez}% de éxito en inseminaciones ({prenadas}/{total_inseminaciones}). Evaluar condición corporal y momento de inseminación.'
-            })
-        elif tasa_preñez >= 50:
-            recomendaciones.append({
-                'tipo': 'success',
-                'icono': 'bi-heart-pulse-fill',
-                'titulo': 'Buena fertilidad',
-                'texto': f'Tasa de concepción de {tasa_preñez}% ({prenadas}/{total_inseminaciones} inseminaciones exitosas).'
+                'tipo': 'secondary',
+                'icono': 'bi-info-circle',
+                'titulo': 'Sin historial reproductivo',
+                'texto': f'{datos_animal["codigo"]} no tiene registros de inseminaciones.'
             })
 
-    # Recomendacion sobre condicion corporal
-    if animal.condicion_corporal_an:
-        if animal.condicion_corporal_an <= 2:
+        # Recomendacion sobre condicion corporal
+        if animal.condicion_corporal_an is not None:
+            if animal.condicion_corporal_an <= 2:
+                recomendaciones.append({
+                    'tipo': 'danger',
+                    'icono': 'bi-exclamation-octagon',
+                    'titulo': 'Condición corporal baja',
+                    'texto': f'Condición corporal de {animal.condicion_corporal_an}/5 es baja para {datos_animal["codigo"]}. Aumentar suplementación alimenticia.'
+                })
+            elif animal.condicion_corporal_an >= 4.5:
+                recomendaciones.append({
+                    'tipo': 'warning',
+                    'icono': 'bi-exclamation-circle',
+                    'titulo': 'Condición corporal alta',
+                    'texto': f'Condición corporal de {animal.condicion_corporal_an}/5 está alta en {datos_animal["codigo"]}. Vigilar riesgo de problemas metabólicos y sobrepeso.'
+                })
+
+        # Si no hay recomendaciones, agregar una por defecto
+        if not recomendaciones:
             recomendaciones.append({
-                'tipo': 'danger',
-                'icono': 'bi-exclamation-octagon',
-                'titulo': 'Condición corporal baja',
-                'texto': f'Condición corporal de {animal.condicion_corporal_an}/5 es baja. Aumentar suplementación alimenticia.'
-            })
-        elif animal.condicion_corporal_an >= 4:
-            recomendaciones.append({
-                'tipo': 'warning',
-                'icono': 'bi-exclamation-circle',
-                'titulo': 'Condición corporal alta',
-                'texto': f'Condición corporal de {animal.condicion_corporal_an}/5 está alta. Vigilar riesgo de problemas metabólicos.'
+                'tipo': 'secondary',
+                'icono': 'bi-info-circle',
+                'titulo': 'Sin datos suficientes',
+                'texto': 'No hay suficiente historial para generar recomendaciones de Machine Learning para este animal.'
             })
 
-    if not recomendaciones:
-        recomendaciones.append({
-            'tipo': 'secondary',
-            'icono': 'bi-info-circle',
-            'titulo': 'Sin datos suficientes',
-            'texto': 'No hay suficiente historial para generar recomendaciones de Machine Learning para este animal.'
+        return JsonResponse({
+            'exito': True,
+            'animal': datos_animal,
+            'metricas': {
+                'promedio_litros': promedio_litros,
+                'total_ordenos': len(historial_litros),
+                'pct_calidad_apta': pct_aptos,
+                'total_muestras_calidad': total_calidad,
+                'total_inseminaciones': total_inseminaciones,
+                'inseminaciones_exitosas': prenadas,
+            },
+            'historial_litros': historial_litros,
+            'historial_predicciones': historial_predicciones,
+            'recomendaciones': recomendaciones,
         })
-
-    return JsonResponse({
-        'exito': True,
-        'animal': datos_animal,
-        'metricas': {
-            'promedio_litros': promedio_litros,
-            'total_ordenos': len(historial_litros),
-            'pct_calidad_apta': pct_aptos,
-            'total_muestras_calidad': total_calidad,
-            'total_inseminaciones': total_inseminaciones,
-            'inseminaciones_exitosas': prenadas,
-        },
-        'historial_litros': historial_litros,
-        'historial_predicciones': historial_predicciones,
-        'recomendaciones': recomendaciones,
-    })
-
-
+        
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        return JsonResponse({
+            'exito': False, 
+            'mensaje': f'Error interno del servidor: {str(e)}',
+            'traceback': tb
+        }, status=500)
 
 def prediccion_ad1(request):
     """
