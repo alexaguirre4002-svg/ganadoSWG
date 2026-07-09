@@ -31,8 +31,8 @@
     <!-- SECCION 1: ENCABEZADO DE BIENVENIDA        -->
     <!-- Titulo principal y subtitulo del sistema   -->
     <!-- ========================================== -->
-    <div class="row mb-4 animate-fade-in">
-        <div class="col-12 text-center">
+    <div class="row mb-4 animate-fade-in justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8 text-center">
             <h2 class="display-5 fw-bold" style="color: var(--color-primario);">
                 <i class="bi bi-tree-fill me-2"></i>¡BIENVENIDOS!
             </h2>
@@ -51,8 +51,8 @@
     <!-- Muestra fotos representativas de la hacienda-->
     <!-- Reemplaza las URLs por imagenes reales      -->
     <!-- ========================================== -->
-    <div class="row mb-5 animate-fade-in">
-        <div class="col-12">
+    <div class="row mb-5 animate-fade-in justify-content-center">
+        <div class="col-12 col-lg-10">
             <div id="carruselHacienda" class="carousel slide carousel-fade shadow-lg rounded-4 overflow-hidden" data-bs-ride="carousel">
                 
                 <!-- Indicadores de slide (puntos debajo) -->
@@ -125,8 +125,8 @@
     <!-- ========================================== -->
     <div class="row justify-content-center mb-5 animate-fade-in">
         <div class="col-md-10 col-lg-8">
-            <div class="card-hacienda p-4">
-                <h4 class="text-center mb-4" style="color: var(--color-primario);">
+            <div class="card-hacienda p-4 text-center">
+                <h4 class="mb-4" style="color: var(--color-primario);">
                     <i class="bi bi-lightning-charge me-2"></i>Accesos rápidos
                 </h4>
                 <div class="row g-3 text-center justify-content-center">
@@ -153,18 +153,24 @@
             </div>
         </div>
     </div>
-    <!-- BOTONES DE ACCION -->
+
+    <!-- ========================================== -->
+    <!-- SECCION 3.5: BOTONES DE ACCION             -->
+    <!-- Botones para predicciones especificas      -->
+    <!-- ========================================== -->
     <div class="row justify-content-center mb-5 animate-fade-in">
-        <div class="col-12">
-            <a href="{% url 'prediccion_ad1' %}" class="btn btn-hacienda me-2">
-                <i class="bi bi-magic me-2"></i>Predecir litros de leche
-            </a>
-            <a href="{% url 'prediccion_ad2' %}" class="btn btn-hacienda me-2">
-                <i class="bi bi-magic me-2"></i>Predecir preñez de ganado
-            </a>
-            <a href="{% url 'prediccion_rl4' %}" class="btn btn-hacienda">
-                <i class="bi bi-magic me-2"></i>Predecir calidad de leche  
-            </a>
+        <div class="col-12 col-md-10 col-lg-8 text-center">
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <a href="{% url 'prediccion_ad1' %}" class="btn btn-hacienda">
+                    <i class="bi bi-magic me-2"></i>Predecir litros de leche
+                </a>
+                <a href="{% url 'prediccion_ad2' %}" class="btn btn-hacienda">
+                    <i class="bi bi-magic me-2"></i>Predecir preñez de ganado
+                </a>
+                <a href="{% url 'prediccion_rl4' %}" class="btn btn-hacienda">
+                    <i class="bi bi-magic me-2"></i>Predecir calidad de leche  
+                </a>
+            </div>
         </div>
     </div>
     
@@ -173,7 +179,7 @@
     <!-- Datos basicos y descripcion del sistema    -->
     <!-- ========================================== -->
     <div class="row justify-content-center animate-fade-in">
-        <div class="col-md-8 text-center">
+        <div class="col-md-10 col-lg-8 text-center">
             <div class="card-hacienda p-4">
                 <i class="bi bi-info-circle fs-1 mb-3" style="color: var(--color-primario);"></i>
                 <h4 style="color: var(--color-primario);">Sobre el sistema</h4>
