@@ -88,6 +88,7 @@ if DATABASE_URL:
         'default': dj_database_url.config(default=DATABASE_URL)
     }
 else:
+    #me permite la concexion de mi bdd local es decir del pc
     # Configuración para tu PC local (desarrollo)
     DATABASES = {
     'default': {
