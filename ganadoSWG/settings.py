@@ -93,7 +93,7 @@ else:
     DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'SG_GANADOP1',           # Nombre de la base de datos (la crearás en pgAdmin)
+        'NAME': 'bdd_RENDERlocal',           # Nombre de la base de datos (la crearás en pgAdmin)
         'USER': 'postgres',          # Usuario por defecto de PostgreSQL
         'PASSWORD': 'root', # La contraseña que pusiste al instalar PostgreSQL
         'HOST': 'localhost',
