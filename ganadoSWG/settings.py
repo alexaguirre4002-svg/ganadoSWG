@@ -90,15 +90,15 @@ if DATABASE_URL:
 else:
     # Configuración para tu PC local (desarrollo)
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'ganado',
-            'USER': 'postgres',
-            'PASSWORD': '123456',
-            'HOST': 'localhost',
-            'PORT': '5432',
-        }
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'SG_GANADOP1',           # Nombre de la base de datos (la crearás en pgAdmin)
+        'USER': 'postgres',          # Usuario por defecto de PostgreSQL
+        'PASSWORD': 'root', # La contraseña que pusiste al instalar PostgreSQL
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -157,13 +157,7 @@ EMAIL_HOST_PASSWORD = 'piry mxhv iqip kazv'
 
 DEFAULT_FROM_EMAIL = 'Hacienda El Roble <alpaaguirre1999@gmail.com>'
 
-# ==========================================
-# ARCHIVOS MEDIA (Fotos subidas)
-# ==========================================
 
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ==============================================
 # ARCHIVOS MEDIA (Fotos subidas)
