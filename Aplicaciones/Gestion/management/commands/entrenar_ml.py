@@ -1,7 +1,5 @@
-# Gestion/management/commands/entrenar_ml.py
-
 from django.core.management.base import BaseCommand
-from Aplicaciones.Gestion.ml_engine import entrenar_modelo
+from Aplicaciones.Gestion.ml_engine import entrenar_modelo  # ← RUTA COMPLETA
 
 class Command(BaseCommand):
     help = 'Entrena modelos de Machine Learning SOLO CON DATOS REALES'
@@ -41,7 +39,14 @@ class Command(BaseCommand):
                     f'✅ {codigo} entrenado exitosamente!'
                 ))
                 self.stdout.write(f'   📊 Registros usados: {resultado["registros"]}')
-                self.stdout.write(f'   📈 R²: {resultado.get("r2", resultado.get("accuracy", 0))}')
+                
+                if 'r2' in resultado:
+                    self.stdout.write(f'   📈 R²: {resultado["r2"]}')
+                if 'accuracy' in resultado:
+                    self.stdout.write(f'   📈 Accuracy: {resultado["accuracy"]}')
+                if 'mejor_modelo' in resultado:
+                    self.stdout.write(f'   🤖 Mejor modelo: {resultado["mejor_modelo"]}')
+                    
                 self.stdout.write(f'   📁 Guardado en: {resultado["ruta_modelo"]}')
                 self.stdout.write(f'   📂 Fuente: {resultado["fuente"]}')
             else:
