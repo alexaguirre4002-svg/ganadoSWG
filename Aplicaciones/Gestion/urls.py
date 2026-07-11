@@ -206,6 +206,8 @@ urlpatterns = [
     path('prediccion/rl4/', views.prediccion_rl4, name='prediccion_rl4'),
     #ACTUALIZAR ENTRENAMIENTO DE ARCHIVOS ML
     path('entrenar-ahora/', views.entrenar_modelos_render, name='entrenar_render'),
+    #CRON-JOB.ORG
+    path('reentrenar-modelos/', views.reentrenar_modelos_api, name='reentrenar_modelos_api'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
