@@ -21,10 +21,6 @@ from django.db.models import F, Count, Q, Sum, Avg, Max, Min
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
-#CRON-JOB.ORG
-from django.core.management import call_command
-from django.views.decorators.csrf import csrf_exempt
-
 
 def inicio(request):
     return render(request,'inicio.html')
@@ -10610,15 +10606,22 @@ def entrenar_modelos_render(request):
 # ==========================================
 # CRON-JOB.ORG
 # ==========================================
-@csrf_exempt  # Permite que servicios externos llamen esta URL
+# ============================================================
+# URL PÚBLICA PARA REENTRENAMIENTO (NO requiere login)
+# ============================================================
+from django.core.management import call_command
+from django.views.decorators.csrf import csrf_exempt
+from datetime import datetime
+
+@csrf_exempt
 def reentrenar_modelos_api(request):
     """
-    Vista para reentrenar modelos desde servicios externos (cron-job.org)
+    URL pública para reentrenar modelos desde cron-job.org
+    SOLO funciona con la clave secreta correcta
     """
-    # CLAVE DE SEGURIDAD (cámbiala por una que solo tú sepas)
-    CLAVE_SECRETA = "MI_CLAVE_SECRETA_2024"
+    CLAVE_SECRETA = "MI_CLAVE_SECRETA_2024"  # ← Cámbiala por lo que quieras
     
-    # Verificar que la petición tenga la clave correcta
+    # Verificar la clave
     clave = request.GET.get('clave', '')
     if clave != CLAVE_SECRETA:
         return JsonResponse({
