@@ -192,7 +192,7 @@ def obtener_datos_reales_ad1():
             # Eficiencia alimenticia (litros por kg de consumo)
             eficiencia = 0
             if cantidad_consumida > 0 and o.litros_or > 0:
-                eficiencia = float(o.litros_or / cantidad_consumida)
+                eficiencia = float(float(o.litros_or) / float(cantidad_consumida))
             
             # ==========================================
             # 5. ESTADO SANITARIO
@@ -1138,7 +1138,7 @@ def predecir(codigo_mm, datos_entrada):
                 if cantidad_consumida > 0:
                     # Usar el promedio_7dias como estimación de producción actual
                     produccion_estimada = prom_7dias if prom_7dias > 0 else 20
-                    eficiencia = produccion_estimada / cantidad_consumida if cantidad_consumida > 0 else 0
+                    eficiencia = float(float(produccion_estimada) / float(cantidad_consumida)) if cantidad_consumida > 0 else 0
                 
                 # Estado sanitario
                 tiene_evt = EventoSanitario.objects.filter(
@@ -1226,9 +1226,9 @@ def predecir(codigo_mm, datos_entrada):
                     cantidad_ofrecida,
                     eficiencia,
                     # ratio_consumo_produccion
-                    cantidad_consumida / (prom_7dias if prom_7dias > 0 else 1),
+                    float(float(cantidad_consumida) / float(prom_7dias if prom_7dias > 0 else 1)),
                     # pct_consumo
-                    (cantidad_consumida / cantidad_ofrecida * 100) if cantidad_ofrecida > 0 else 0,
+                    (float(float(cantidad_consumida) / float(cantidad_ofrecida)) * 100) if cantidad_ofrecida > 0 else 0,
                     1 if tiene_evt else 0,
                     num_evt_san_30,
                     mes,
