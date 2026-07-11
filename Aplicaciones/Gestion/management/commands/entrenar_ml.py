@@ -1,45 +1,48 @@
-from django.core.management.base import BaseCommand
-from Aplicaciones.Gestion.ml_engine import entrenar_modelo
+# Gestion/management/commands/entrenar_ml.py
 
+from django.core.management.base import BaseCommand
+from Gestion.ml_engine import entrenar_modelo
 
 class Command(BaseCommand):
-    help = 'Entrena modelos de Machine Learning. Codigos: AD-1, AD-2, RL-4'
+    help = 'Entrena modelos de Machine Learning SOLO CON DATOS REALES'
 
     def add_arguments(self, parser):
-        parser.add_argument('codigo', type=str, help='Codigo del modelo: AD-1, AD-2, RL-4')
         parser.add_argument(
-            '--ejemplo',
-            action='store_true',
-            help='Usar datos de ejemplo si no hay datos reales',
+            'codigo', 
+            nargs='?', 
+            type=str, 
+            help='Código del modelo (AD-1, AD-2, RL-4)'
         )
         parser.add_argument(
-            '--no-db',
-            action='store_true',
-            help='No guardar en la tabla ModeloML de la base de datos',
+            '--todos', 
+            action='store_true', 
+            help='Entrenar todos los modelos'
         )
 
     def handle(self, *args, **options):
-        codigo = options['codigo'].upper()
-        usar_ejemplo = options['ejemplo']
-        guardar_db = not options['no_db']
-
-        self.stdout.write(self.style.NOTICE(f'Entrenando modelo {codigo}...'))
-        if usar_ejemplo:
-            self.stdout.write(self.style.WARNING('USANDO DATOS DE EJEMPLO (modo demo)'))
-
-        resultado = entrenar_modelo(codigo_mm=codigo, usar_datos_ejemplo=usar_ejemplo, guardar_db=guardar_db)
-
-        if resultado['exito']:
-            self.stdout.write(self.style.SUCCESS(f'Modelo {codigo} entrenado exitosamente!'))
-            self.stdout.write(f'  Ruta: {resultado["ruta_modelo"]}')
-            self.stdout.write(f'  Registros usados: {resultado["registros"]}')
-            self.stdout.write(f'  Entrenamiento: {resultado["entrenamiento"]} | Prueba: {resultado["prueba"]}')
-            if 'r2' in resultado:
-                self.stdout.write(f'  R2: {resultado["r2"]}')
-            if 'accuracy' in resultado:
-                self.stdout.write(f'  Accuracy: {resultado["accuracy"]}')
-            if 'guardado_db' in resultado:
-                self.stdout.write(f'  Guardado en DB: {resultado["guardado_db"]}')
+        if options['todos']:
+            modelos = ['AD-1', 'AD-2', 'RL-4']
+        elif options['codigo']:
+            modelos = [options['codigo']]
         else:
-            self.stdout.write(self.style.ERROR(f'Error: {resultado["mensaje"]}'))
-            self.stdout.write(self.style.NOTICE('Sugerencia: agrega --ejemplo para usar datos sinteticos'))
+            self.stdout.write(self.style.ERROR('❌ Especifique --todos o un código de modelo'))
+            self.stdout.write('')
+            self.stdout.write('Ejemplos:')
+            self.stdout.write('  python manage.py entrenar_ml AD-1')
+            self.stdout.write('  python manage.py entrenar_ml --todos')
+            return
+
+        for codigo in modelos:
+            self.stdout.write(f'🔍 Entrenando modelo {codigo} con datos reales...')
+            resultado = entrenar_modelo(codigo)
+            
+            if resultado['exito']:
+                self.stdout.write(self.style.SUCCESS(
+                    f'✅ {codigo} entrenado exitosamente!'
+                ))
+                self.stdout.write(f'   📊 Registros usados: {resultado["registros"]}')
+                self.stdout.write(f'   📈 R²: {resultado.get("r2", resultado.get("accuracy", 0))}')
+                self.stdout.write(f'   📁 Guardado en: {resultado["ruta_modelo"]}')
+                self.stdout.write(f'   📂 Fuente: {resultado["fuente"]}')
+            else:
+                self.stdout.write(self.style.ERROR(f'❌ {resultado["mensaje"]}'))
