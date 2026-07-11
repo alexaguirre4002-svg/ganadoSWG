@@ -79,7 +79,7 @@ def obtener_datos_reales_ad1():
                 fk_an=animal,
                 fecha_or__gte=fecha_inicio,
                 fecha_or__lt=o.fecha_or
-            ).aggregate(Avg('litros_or'))['prom'] or 0
+            ).aggregate(prom=Avg('litros_or'))['prom'] or 0
             
             # 4. Ración del día
             racion = Racion.objects.filter(
@@ -182,7 +182,7 @@ def obtener_datos_reales_ad2():
                 fk_an=animal,
                 fecha_or__gte=fecha_inicio,
                 fecha_or__lt=ins.fecha_in
-            ).aggregate(Avg('litros_or'))['prom'] or 0
+            ).aggregate(prom=Avg('litros_or'))['prom'] or 0
             
             # 5. Celo más cercano
             celo = Celo.objects.filter(
@@ -685,7 +685,7 @@ def predecir(codigo_mm, datos_entrada):
                     fk_an=animal,
                     fecha_or__gte=fecha_inicio,
                     fecha_or__lt=fecha
-                ).aggregate(Avg('litros_or'))['prom'] or 0
+                ).aggregate(prom=Avg('litros_or'))['prom'] or 0
                 
                 # Ración del día
                 racion = Racion.objects.filter(
@@ -769,7 +769,7 @@ def predecir(codigo_mm, datos_entrada):
                 prom_prod = Ordeno.objects.filter(
                     fk_an=animal,
                     fecha_or__gte=fecha - timedelta(days=7)
-                ).aggregate(Avg('litros_or'))['prom'] or 0
+                ).aggregate(prom=Avg('litros_or'))['prom'] or 0
                 
                 # Celo más reciente
                 celo = Celo.objects.filter(

@@ -1,7 +1,7 @@
 # Gestion/management/commands/entrenar_ml.py
 
 from django.core.management.base import BaseCommand
-from Gestion.ml_engine import entrenar_modelo
+from Aplicaciones.Gestion.ml_engine import entrenar_modelo
 
 class Command(BaseCommand):
     help = 'Entrena modelos de Machine Learning SOLO CON DATOS REALES'
