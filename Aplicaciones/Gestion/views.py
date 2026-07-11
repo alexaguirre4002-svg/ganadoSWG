@@ -417,34 +417,7 @@ def guardarpotrero(request):
         estados_validos = ['disponible', 'ocupado', 'en_descanso', 'inactivo']
         if estado_po not in estados_validos:
             messages.error(request, "Estado no válido")
-            return redirect('/nuevopotrero/')
-        
-        # Coordenadas GPS (opcionales)
-        latitud_po = None
-        longitud_po = None
-        
-        latitud_str = request.POST.get('txt_latitud_po', '').strip()
-        if latitud_str:
-            try:
-                latitud_po = float(latitud_str)
-                if latitud_po < -90 or latitud_po > 90:
-                    messages.error(request, "La latitud debe estar entre -90 y 90")
-                    return redirect('/nuevopotrero/')
-            except ValueError:
-                messages.error(request, "La latitud debe ser un número válido")
-                return redirect('/nuevopotrero/')
-        
-        longitud_str = request.POST.get('txt_longitud_po', '').strip()
-        if longitud_str:
-            try:
-                longitud_po = float(longitud_str)
-                if longitud_po < -180 or longitud_po > 180:
-                    messages.error(request, "La longitud debe estar entre -180 y 180")
-                    return redirect('/nuevopotrero/')
-            except ValueError:
-                messages.error(request, "La longitud debe ser un número válido")
-                return redirect('/nuevopotrero/')
-        
+            return redirect('/nuevopotrero/')       
         # Observaciones (opcional)
         observaciones_po = request.POST.get('txt_observaciones_po', '').strip()
         
@@ -464,8 +437,6 @@ def guardarpotrero(request):
             hectareas_po=hectareas_po,
             capacidad_maxima_po=capacidad_maxima_po,
             estado_po=estado_po,
-            latitud_po=latitud_po,
-            longitud_po=longitud_po,
             observaciones_po=observaciones_po if observaciones_po else None
         )
         
@@ -615,31 +586,6 @@ def procesareditarpotrero(request):
             return redirect(f'/editarpotrero/{id_po}')
         
         # Coordenadas GPS
-        latitud_po = None
-        longitud_po = None
-        
-        latitud_str = request.POST.get('txt_latitud_po', '').strip()
-        if latitud_str:
-            try:
-                latitud_po = float(latitud_str)
-                if latitud_po < -90 or latitud_po > 90:
-                    messages.error(request, "La latitud debe estar entre -90 y 90")
-                    return redirect(f'/editarpotrero/{id_po}')
-            except ValueError:
-                messages.error(request, "La latitud debe ser un número válido")
-                return redirect(f'/editarpotrero/{id_po}')
-        
-        longitud_str = request.POST.get('txt_longitud_po', '').strip()
-        if longitud_str:
-            try:
-                longitud_po = float(longitud_str)
-                if longitud_po < -180 or longitud_po > 180:
-                    messages.error(request, "La longitud debe estar entre -180 y 180")
-                    return redirect(f'/editarpotrero/{id_po}')
-            except ValueError:
-                messages.error(request, "La longitud debe ser un número válido")
-                return redirect(f'/editarpotrero/{id_po}')
-        
         observaciones_po = request.POST.get('txt_observaciones_po', '').strip()
         
         # ==========================================
@@ -657,8 +603,6 @@ def procesareditarpotrero(request):
         potrero.hectareas_po = hectareas_po
         potrero.capacidad_maxima_po = capacidad_maxima_po
         potrero.estado_po = estado_po
-        potrero.latitud_po = latitud_po
-        potrero.longitud_po = longitud_po
         potrero.observaciones_po = observaciones_po if observaciones_po else None
         
         potrero.save()

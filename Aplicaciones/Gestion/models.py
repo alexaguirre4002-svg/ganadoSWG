@@ -11,7 +11,6 @@ class Raza(models.Model):
     nombre_ra = models.CharField(max_length=100, unique=True)
     descripcion_ra = models.TextField(blank=True)
     origen_ra = models.CharField(max_length=100, blank=True)
-    #tipo_produccion_ra = models.CharField(max_length=20)
     activo_ra = models.BooleanField(default=True)
     created_at_ra = models.DateTimeField(auto_now_add=True)
     updated_at_ra = models.DateTimeField(auto_now=True)
