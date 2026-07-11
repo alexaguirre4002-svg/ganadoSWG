@@ -23,7 +23,7 @@ Dashboard Machine Learning | Hacienda Joseph
             <small class="text-muted">Árbol de Decisión - Litros de Leche</small>
             {% if estado_ad1 %}
             <div class="mt-2"><span class="badge bg-success">Entrenado</span></div>
-            <small class="text-muted">R²: {{ metrica_ad1 }}</small>
+            <small class="text-muted">R²: {{ metrica_ad1|default:"N/A" }}</small>
             {% else %}
             <div class="mt-2"><span class="badge bg-danger">No entrenado</span></div>
             {% endif %}
@@ -36,7 +36,7 @@ Dashboard Machine Learning | Hacienda Joseph
             <small class="text-muted">Árbol de Decisión - Preñez</small>
             {% if estado_ad2 %}
             <div class="mt-2"><span class="badge bg-success">Entrenado</span></div>
-            <small class="text-muted">Accuracy: {{ metrica_ad2 }}</small>
+            <small class="text-muted">Accuracy: {{ metrica_ad2|default:"N/A" }}</small>
             {% else %}
             <div class="mt-2"><span class="badge bg-danger">No entrenado</span></div>
             {% endif %}
@@ -49,7 +49,7 @@ Dashboard Machine Learning | Hacienda Joseph
             <small class="text-muted">Regresión Logística - Calidad</small>
             {% if estado_rl4 %}
             <div class="mt-2"><span class="badge bg-success">Entrenado</span></div>
-            <small class="text-muted">Accuracy: {{ metrica_rl4 }}</small>
+            <small class="text-muted">Accuracy: {{ metrica_rl4|default:"N/A" }}</small>
             {% else %}
             <div class="mt-2"><span class="badge bg-danger">No entrenado</span></div>
             {% endif %}
@@ -384,7 +384,7 @@ Dashboard Machine Learning | Hacienda Joseph
     <i class="bi bi-info-circle-fill me-2"></i>
     <strong>No hay predicciones automáticas.</strong> Entrena los modelos primero o ingresa datos al sistema.
     <br><code>python manage.py entrenar_ml AD-1</code><br>
-    <code>python manage.py entrenar_ml AD-2 --ejemplo</code><br>
+    <code>python manage.py entrenar_ml AD-2</code><br>
     <code>python manage.py entrenar_ml RL-4</code>
 </div>
 {% endif %}
