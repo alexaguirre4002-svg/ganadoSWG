@@ -233,15 +233,14 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
                                 <td>
                                     <!-- VER HISTORIAL -->
                                     <button type="button" class="btn btn-sm btn-hacienda-secondary" 
-                                            onclick="abrirHistorialML('{{ item.animal.id_an }}', '{{ item.animal.codigo_an }}')"
+                                            data-id="{{ item.animal.id_an }}"
+                                            data-codigo="{{ item.animal.codigo_an }}"
                                             title="Ver historial de predicciones">
                                         <i class="bi bi-clock-history"></i>
                                     </button>
                                     
                                     <!-- VER DETALLE (OJITO) -->
                                     <button type="button" class="btn btn-sm btn-success" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#modalDetalleAnimalML"
                                             data-id="{{ item.animal.id_an }}"
                                             data-codigo="{{ item.animal.codigo_an }}"
                                             data-nombre="{{ item.animal.nombre_an|default:'Sin nombre' }}"
@@ -619,6 +618,103 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
             "lengthMenu": [5,10,25,50,100],
             "responsive": true,
             "pagingType": "simple_numbers"
+        });
+
+        // DELEGACIÓN DE EVENTOS PARA BOTONES EN DATATABLE
+        $('#tablaLecheML tbody').on('click', 'button', function(e) {
+            e.preventDefault();
+            
+            // Botón de OJITO (Ver detalle)
+            if ($(this).hasClass('btn-success')) {
+                var button = this;
+                var id = $(button).data('id');
+                var codigo = $(button).data('codigo');
+                var nombre = $(button).data('nombre');
+                var raza = $(button).data('raza');
+                var categoria = $(button).data('categoria');
+                var estado = $(button).data('estado');
+                var pesoActual = $(button).data('peso-actual');
+                var fechaNacimiento = $(button).data('fecha-nacimiento');
+                var fechaIngreso = $(button).data('fecha-ingreso');
+                var fechaSalida = $(button).data('fecha-salida');
+                var motivo = $(button).data('motivo');
+                var condicion = $(button).data('condicion');
+                var potrero = $(button).data('potrero');
+                var foto = $(button).data('foto');
+                var totalPreds = $(button).data('total-predicciones') || '0';
+                
+                document.getElementById('detalleCodigoML').textContent = codigo;
+                document.getElementById('detalleRazaML').textContent = raza;
+                document.getElementById('detalleCategoriaML').textContent = categoria;
+                document.getElementById('detalleCondicionML').textContent = condicion;
+                document.getElementById('detallePesoML').textContent = pesoActual + (pesoActual !== 'No registrado' ? ' kg' : '');
+                document.getElementById('detalleFechaNacimientoML').textContent = fechaNacimiento;
+                document.getElementById('detalleFechaIngresoML').textContent = fechaIngreso;
+                document.getElementById('detalleFechaSalidaML').textContent = fechaSalida;
+                document.getElementById('detalleMotivoML').textContent = motivo;
+                document.getElementById('detallePotreroML').textContent = potrero;
+                document.getElementById('totalPrediccionesML').textContent = totalPreds;
+                
+                var filaMotivo = document.getElementById('filaMotivoSalidaML');
+                if (fechaSalida !== '---') {
+                    filaMotivo.style.display = 'block';
+                } else {
+                    filaMotivo.style.display = 'none';
+                }
+                
+                var estadoHtml = '';
+                switch(estado) {
+                    case 'activo':
+                        estadoHtml = '<span class="badge rounded-pill bg-success p-2"><i class="bi bi-check-circle"></i> Activo</span>';
+                        break;
+                    case 'vendido':
+                        estadoHtml = '<span class="badge rounded-pill p-2" style="background:#1976D2; color:white;"><i class="bi bi-cash-coin"></i> Vendido</span>';
+                        break;
+                    case 'muerto':
+                        estadoHtml = '<span class="badge rounded-pill bg-dark p-2"><i class="bi bi-heartbreak"></i> Muerto</span>';
+                        break;
+                    default:
+                        estadoHtml = '<span class="badge rounded-pill bg-secondary p-2">' + estado + '</span>';
+                }
+                document.getElementById('detalleEstadoML').innerHTML = estadoHtml;
+                
+                // MANEJO DE LA FOTO
+                var imgFoto = document.getElementById('fotoAnimalDetalleML');
+                var placeholder = document.getElementById('placeholderFotoML');
+                
+                if (foto && foto.trim() !== '') {
+                    imgFoto.src = foto;
+                    imgFoto.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    
+                    imgFoto.onerror = function() {
+                        imgFoto.style.display = 'none';
+                        placeholder.style.display = 'flex';
+                        placeholder.innerHTML = 
+                            '<i class="bi bi-image fs-1 mb-2"></i>' +
+                            '<p class="mb-0 fw-bold">Imagen no disponible</p>' +
+                            '<p class="small text-muted">No se pudo cargar la imagen</p>';
+                    };
+                } else {
+                    imgFoto.style.display = 'none';
+                    placeholder.style.display = 'flex';
+                    placeholder.innerHTML = 
+                        '<i class="bi bi-image fs-1 mb-2"></i>' +
+                        '<p class="mb-0 fw-bold">Sin fotografía</p>' +
+                        '<p class="small text-muted">No se ha registrado imagen</p>';
+                }
+                
+                document.getElementById('btnEditarDesdeDetalleML').href = '/editaranimal/' + id;
+                
+                // Abrir modal
+                new bootstrap.Modal(document.getElementById('modalDetalleAnimalML')).show();
+            }
+            // Botón de HISTORIAL (Reloj)
+            else if ($(this).hasClass('btn-hacienda-secondary') && $(this).find('.bi-clock-history').length) {
+                var animalId = $(this).data('id') || $(this).closest('tr').find('.btn-success').data('id');
+                var animalCodigo = $(this).data('codigo') || $(this).closest('tr').find('.btn-success').data('codigo');
+                abrirHistorialML(animalId, animalCodigo);
+            }
         });
     });
 
