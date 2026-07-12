@@ -120,7 +120,7 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
                     <table id="tablaLecheML" class="table table-hacienda align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>#</th>
+                                <th>ID</th>
                                 <th>CÓDIGO</th>
                                 <th>NOMBRE</th>
                                 <th>RAZA</th>
@@ -135,9 +135,8 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
                         <tbody>
                             {% for item in predicciones_por_animal %}
                             <tr>
-                                <td>{{ forloop.counter }}</td>
-                                
-                                <!-- CÓDIGO -->
+                                <!-- ID -->
+                                <td class="fw-bold text-muted">#{{ item.animal.id_an }}</td>
                                 <td class="fw-bold" style="color: var(--color-primario); font-size:16px;">
                                     {{ item.animal.codigo_an }}
                                 </td>
@@ -233,13 +232,13 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
                                 <!-- ACCIONES -->
                                 <td>
                                     <!-- VER HISTORIAL -->
-                                    <button type="button" class="btn btn-sm btn-info" 
+                                    <button type="button" class="btn btn-sm btn-hacienda-secondary" 
                                             onclick="abrirHistorialML('{{ item.animal.id_an }}', '{{ item.animal.codigo_an }}')"
                                             title="Ver historial de predicciones">
                                         <i class="bi bi-clock-history"></i>
                                     </button>
                                     
-                                    <!-- VER DETALLE (MODAL CON FOTO) -->
+                                    <!-- VER DETALLE (OJITO) -->
                                     <button type="button" class="btn btn-sm btn-success" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#modalDetalleAnimalML"
@@ -257,9 +256,17 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
                                             data-condicion="{% if item.animal.condicion_corporal_an %}{{ item.animal.condicion_corporal_an }}/5{% else %}No evaluada{% endif %}"
                                             data-potrero="{% if item.animal.fk_potrero_an %}{{ item.animal.fk_potrero_an.nombre_po }}{% else %}Sin potrero{% endif %}"
                                             data-foto="{% if item.animal.foto_an %}{{ item.animal.foto_an }}{% endif %}"
-                                            title="Ver detalle del animal">
+                                            data-total-predicciones="{{ item.total_predicciones }}"
+                                            title="Ver detalle">
                                         <i class="bi bi-eye"></i>
                                     </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="10" class="text-center py-5">
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <p class="mt-3 text-muted">No hay animales con predicciones</p>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -309,7 +316,10 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
                     <p class="mt-3 text-muted">Cargando historial de predicciones...</p>
                 </div>
             </div>
-            <div class="modal-footer" style="background:#f5f0e6; border-top:1px solid #d4c5a9;">
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <a href="#" id="btnEditarDesdeDetalleML" class="btn btn-hacienda">
+                    <i class="bi bi-pencil-square me-1"></i>Editar Animal
+                </a>
                 <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
                     <i class="bi bi-x-lg me-1"></i>Cerrar
                 </button>
@@ -398,6 +408,16 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
                                 <p class="mb-0" id="detalleMotivoML" style="color: #c0392b;"></p>
                             </div>
                             <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-map me-1"></i>POTRERO</label>
+                                    <p class="mb-0" id="detallePotreroML" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-graph-up me-1"></i>PREDICCIONES</label>
+                                    <p class="mb-0 fw-bold" id="totalPrediccionesML" style="color: #2c5e1a;"></p>
+                                </div>
+                            </div>
                             <div class="mb-3">
                                 <label class="text-muted small fw-bold"><i class="bi bi-geo-alt me-1"></i>POTRERO</label>
                                 <p class="mb-0" id="detallePotreroML" style="color: #5c450e;"></p>
