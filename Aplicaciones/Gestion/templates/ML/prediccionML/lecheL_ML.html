@@ -722,39 +722,82 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
     // FUNCIÓN: ABRIR HISTORIAL ML DEL ANIMAL
     // ==========================================
     function abrirHistorialML(animalId, animalCodigo) {
-        document.getElementById('mlHistorialTitulo').textContent = animalCodigo + ' - AD-1';
-        document.getElementById('mlHistorialBody').innerHTML = `
-            <div class="text-center py-5">
-                <div class="spinner-border text-success" role="status">
-                    <span class="visually-hidden">Cargando...</span>
-                </div>
-                <p class="mt-3 text-muted">Cargando historial de predicciones...</p>
-            </div>
-        `;
-
-        fetch(`/api/ml/historial_ad1/${animalId}/`)
-            .then(response => response.json())
-            .then(data => {
-                renderHistorialML(data, animalCodigo);
-            })
-            .catch(error => {
-                document.getElementById('mlHistorialBody').innerHTML = `
-                    <div class="alert alert-danger m-3">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        Error al cargar el historial: ${error.message}
+        console.log('🔍 abrirHistorialML llamada con:', animalId, animalCodigo);
+        
+        // Esperar a que el DOM esté listo
+        setTimeout(function() {
+            var titleEl = document.getElementById('mlHistorialTitulo');
+            var bodyEl = document.getElementById('mlHistorialBody');
+            
+            console.log('✅ titleEl:', titleEl);
+            console.log('✅ bodyEl:', bodyEl);
+            
+            if (!titleEl) {
+                console.error('❌ mlHistorialTitulo NOT FOUND!');
+                return;
+            }
+            if (!bodyEl) {
+                console.error('❌ mlHistorialBody NOT FOUND!');
+                return;
+            }
+            
+            titleEl.textContent = animalCodigo + ' - AD-1';
+            bodyEl.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Cargando...</span>
                     </div>
-                `;
-            });
+                    <p class="mt-3 text-muted">Cargando historial de predicciones...</p>
+                </div>
+            `;
 
-        new bootstrap.Modal(document.getElementById('modalHistorialML')).show();
+            console.log('Intentando cargar historial para animal:', animalId);
+
+            fetch(`/api/ml/historial_ad1/${animalId}/`)
+                .then(response => {
+                    console.log('Respuesta del servidor:', response.status, response.statusText);
+                    if (!response.ok) {
+                        throw new Error(`HTTP Error: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Datos recibidos:', data);
+                    renderHistorialML(data, animalCodigo);
+                })
+                .catch(error => {
+                    console.error('Error en fetch:', error);
+                    document.getElementById('mlHistorialBody').innerHTML = `
+                        <div class="alert alert-danger m-3">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <strong>Error al cargar el historial:</strong><br>
+                            ${error.message}<br>
+                            <small>Animal ID: ${animalId}</small>
+                        </div>
+                    `;
+                });
+
+            var modalEl = document.getElementById('modalHistorialML');
+            if (!modalEl) {
+                console.error('❌ modalHistorialML NOT FOUND');
+                return;
+            }
+            new bootstrap.Modal(modalEl).show();
+        }, 100);
     }
 
     // ==========================================
     // FUNCIÓN: RENDERIZAR HISTORIAL ML
     // ==========================================
     function renderHistorialML(data, animalCodigo) {
+        var bodyEl = document.getElementById('mlHistorialBody');
+        if (!bodyEl) {
+            console.error('❌ mlHistorialBody NOT FOUND in renderHistorialML');
+            return;
+        }
+        
         if (!data.exito) {
-            document.getElementById('mlHistorialBody').innerHTML = `
+            bodyEl.innerHTML = `
                 <div class="alert alert-warning m-3">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
                     ${data.mensaje || 'No se encontraron predicciones para este animal.'}
@@ -773,7 +816,7 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
                     No hay predicciones registradas para el animal <strong>${animalCodigo}</strong>.
                 </div>
             `;
-            document.getElementById('mlHistorialBody').innerHTML = html;
+            bodyEl.innerHTML = html;
             return;
         }
 
@@ -870,109 +913,14 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
             `;
         }
 
-        document.getElementById('mlHistorialBody').innerHTML = html;
+        bodyEl.innerHTML = html;
     }
 
     // ==========================================
     // MODAL DETALLE ANIMAL - CON FOTO GRANDE
-    // ==========================================
-    var modalDetalleAnimalML = document.getElementById('modalDetalleAnimalML');
-    modalDetalleAnimalML.addEventListener('show.bs.modal', function (event) {
-        var button = event.relatedTarget;
-        
-        var id = button.getAttribute('data-id');
-        var codigo = button.getAttribute('data-codigo');
-        var nombre = button.getAttribute('data-nombre');
-        var raza = button.getAttribute('data-raza');
-        var categoria = button.getAttribute('data-categoria');
-        var estado = button.getAttribute('data-estado');
-        var pesoActual = button.getAttribute('data-peso-actual');
-        var fechaNacimiento = button.getAttribute('data-fecha-nacimiento');
-        var fechaIngreso = button.getAttribute('data-fecha-ingreso');
-        var fechaSalida = button.getAttribute('data-fecha-salida');
-        var motivo = button.getAttribute('data-motivo');
-        var condicion = button.getAttribute('data-condicion');
-        var potrero = button.getAttribute('data-potrero');
-        var foto = button.getAttribute('data-foto');
-        var totalPreds = button.getAttribute('data-total-predicciones') || '0';
-        
-        document.getElementById('detalleCodigoML').textContent = codigo;
-        document.getElementById('detalleRazaML').textContent = raza;
-        document.getElementById('detalleCategoriaML').textContent = categoria;
-        document.getElementById('detalleCondicionML').textContent = condicion;
-        document.getElementById('detallePesoML').textContent = pesoActual + (pesoActual !== 'No registrado' ? ' kg' : '');
-        document.getElementById('detalleFechaNacimientoML').textContent = fechaNacimiento;
-        document.getElementById('detalleFechaIngresoML').textContent = fechaIngreso;
-        document.getElementById('detalleFechaSalidaML').textContent = fechaSalida;
-        document.getElementById('detalleMotivoML').textContent = motivo;
-        document.getElementById('detallePotreroML').textContent = potrero;
-        document.getElementById('totalPrediccionesML').textContent = totalPreds;
-        
-        var filaMotivo = document.getElementById('filaMotivoSalidaML');
-        if (fechaSalida !== '---') {
-            filaMotivo.style.display = 'block';
-        } else {
-            filaMotivo.style.display = 'none';
-        }
-        
-        var estadoHtml = '';
-        switch(estado) {
-            case 'activo':
-                estadoHtml = '<span class="badge rounded-pill bg-success p-2"><i class="bi bi-check-circle"></i> Activo</span>';
-                break;
-            case 'vendido':
-                estadoHtml = '<span class="badge rounded-pill p-2" style="background:#1976D2; color:white;"><i class="bi bi-cash-coin"></i> Vendido</span>';
-                break;
-            case 'muerto':
-                estadoHtml = '<span class="badge rounded-pill bg-dark p-2"><i class="bi bi-heartbreak"></i> Muerto</span>';
-                break;
-            default:
-                estadoHtml = '<span class="badge rounded-pill bg-secondary p-2">' + estado + '</span>';
-        }
-        document.getElementById('detalleEstadoML').innerHTML = estadoHtml;
-        
-        // MANEJO DE LA FOTO
-        var imgFoto = document.getElementById('fotoAnimalDetalleML');
-        var placeholder = document.getElementById('placeholderFotoML');
-        
-        if (foto && foto.trim() !== '') {
-            imgFoto.src = foto;
-            imgFoto.style.display = 'block';
-            placeholder.style.display = 'none';
-            
-            imgFoto.onerror = function() {
-                imgFoto.style.display = 'none';
-                placeholder.style.display = 'flex';
-                placeholder.innerHTML = 
-                    '<i class="bi bi-image fs-1 mb-2"></i>' +
-                    '<p class="mb-0 fw-bold">Imagen no disponible</p>' +
-                    '<p class="small text-muted">No se pudo cargar la imagen</p>';
-            };
-        } else {
-            imgFoto.style.display = 'none';
-            placeholder.style.display = 'flex';
-            placeholder.innerHTML = 
-                '<i class="bi bi-image fs-1 mb-2"></i>' +
-                '<p class="mb-0 fw-bold">Sin fotografía</p>' +
-                '<p class="small text-muted">No se ha registrado imagen</p>';
-        }
-        
-        document.getElementById('btnEditarDesdeDetalleML').href = '/editaranimal/' + id;
-    });
-
-    // Pasar total predicciones al modal
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('[data-bs-target="#modalDetalleAnimalML"]').forEach(function(btn) {
-            var row = btn.closest('tr');
-            if (row) {
-                var predCell = row.querySelector('td:nth-child(8)');
-                if (predCell) {
-                    var total = predCell.textContent.trim();
-                    btn.setAttribute('data-total-predicciones', total);
-                }
-            }
-        });
-    });
+    // ========================================== 
+    // Nota: El manejo del modal se hace en el event delegation arriba
+    // No necesitamos este listener porque los datos se procesan al hacer click en el botón
 </script>
 
 {% endblock %}

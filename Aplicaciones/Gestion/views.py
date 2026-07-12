@@ -10663,19 +10663,26 @@ def leche_ml(request):
 
 #API AD-1: HISTORIAL DE PREDICCIONES POR ANIMAL
 def api_historial_ad1_animal(request, animal_id):
+    print(f"✅ ENDPOINT LLAMADO - Animal ID: {animal_id}")
     try:
         animal = Animal.objects.get(id_an=animal_id)
+        print(f"✅ Animal encontrado: {animal.codigo_an}")
     except Animal.DoesNotExist:
+        print(f"❌ Animal NO encontrado: {animal_id}")
         return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'}, status=404)
     
     try:
         modelo = ModeloML.objects.get(codigo_mm='AD-1')
+        print(f"✅ Modelo AD-1 encontrado")
     except ModeloML.DoesNotExist:
+        print(f"❌ Modelo AD-1 NO encontrado")
         return JsonResponse({'exito': False, 'mensaje': 'Modelo AD-1 no encontrado'})
     
     predicciones = PrediccionML.objects.filter(fk_mm=modelo, fk_an=animal).order_by('-fecha_prediccion_pm')
+    print(f"📊 Predicciones encontradas: {predicciones.count()}")
     
     if not predicciones.exists():
+        print(f"⚠️ Sin predicciones para animal {animal_id}")
         return JsonResponse({'exito': True, 'mensaje': 'No hay predicciones', 'predicciones': {}})
     
     meses_espanol = {1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',
@@ -10703,4 +10710,5 @@ def api_historial_ad1_animal(request, animal_id):
             'confianza': f"R²: {modelo.valor_metrica_mm * 100:.1f}%" if modelo.valor_metrica_mm else 'N/A',
         })
     
+    print(f"✅ Retornando {len(agrupado)} años de predicciones")
     return JsonResponse({'exito': True, 'predicciones': agrupado})
