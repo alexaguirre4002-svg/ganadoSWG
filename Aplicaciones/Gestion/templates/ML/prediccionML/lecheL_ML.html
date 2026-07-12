@@ -290,6 +290,142 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
 </div>
 {% endif %}
 
+<!-- ========================================== -->
+<!-- MODAL HISTORIAL ML - PREDICCIONES POR MES  -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalHistorialML" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-clock-history me-2" style="color: #DAA520;"></i>
+                    HISTORIAL ML - <span id="mlHistorialTitulo">AD-1</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background: #fff8e6; max-height: 70vh; overflow-y: auto;" id="mlHistorialBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Cargando historial de predicciones...</p>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL DETALLE ANIMAL - CON FOTO GRANDE     -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalDetalleAnimalML" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden; max-height: 90vh;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-eye-fill me-2" style="color: #DAA520;"></i>
+                    DETALLE DEL ANIMAL
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="background: #fff8e6; overflow-y: auto;">
+                <div class="row g-0">
+                    <!-- COLUMNA DE LA FOTO -->
+                    <div class="col-md-6" style="background: #f5f0e6; border-right: 2px solid #d4c5a9; min-height: 500px; padding: 0;">
+                        <div id="contenedorFotoAnimalML" style="width: 100%; height: 100%; min-height: 500px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                            <img id="fotoAnimalDetalleML" src="" alt="Foto del animal" style="width: 100%; height: 100%; min-height: 500px; object-fit: cover; border-radius: 12px; border: 3px solid #DAA520; box-shadow: 0 4px 15px rgba(0,0,0,0.2); background-color: #f5f0e6; display: none;">
+                            <div id="placeholderFotoML" class="foto-animal-placeholder" style="width: 100%; height: 100%; min-height: 500px; background: linear-gradient(135deg, #eef7e8, #dcefd0); border-radius: 12px; border: 3px dashed #b7d7a8; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #2c5e1a;">
+                                <i class="bi bi-image fs-1 mb-2"></i>
+                                <p class="mb-0 fw-bold">Sin fotografía</p>
+                                <p class="small text-muted">No se ha registrado imagen</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- COLUMNA DE DATOS -->
+                    <div class="col-md-6">
+                        <div class="p-4" style="max-height: 600px; overflow-y: auto;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">CÓDIGO</label>
+                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleCodigoML"></p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <label class="text-muted small fw-bold">ESTADO</label>
+                                    <div id="detalleEstadoML"></div>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-diagram-2 me-1"></i>RAZA</label>
+                                    <p class="mb-0" id="detalleRazaML" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-layers me-1"></i>CATEGORÍA</label>
+                                    <p class="mb-0" id="detalleCategoriaML" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-speedometer2 me-1"></i>PESO ACTUAL</label>
+                                    <p class="mb-0 fw-bold" id="detallePesoML" style="color: #2c5e1a;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-bar-chart-line me-1"></i>COND. CORPORAL</label>
+                                    <p class="mb-0" id="detalleCondicionML" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-4">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-event me-1"></i>NACIMIENTO</label>
+                                    <p class="mb-0" id="detalleFechaNacimientoML" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-4">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>INGRESO</label>
+                                    <p class="mb-0" id="detalleFechaIngresoML" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-4">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-x me-1"></i>SALIDA</label>
+                                    <p class="mb-0" id="detalleFechaSalidaML" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="mb-3" id="filaMotivoSalidaML" style="display: none;">
+                                <label class="text-muted small fw-bold"><i class="bi bi-question-circle me-1"></i>MOTIVO SALIDA</label>
+                                <p class="mb-0" id="detalleMotivoML" style="color: #c0392b;"></p>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-map me-1"></i>POTRERO</label>
+                                    <p class="mb-0" id="detallePotreroML" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-graph-up me-1"></i>PREDICCIONES</label>
+                                    <p class="mb-0 fw-bold" id="totalPrediccionesML" style="color: #2c5e1a;"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <a href="#" id="btnEditarDesdeDetalleML" class="btn btn-hacienda">
+                    <i class="bi bi-pencil-square me-1"></i>Editar Animal
+                </a>
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 
