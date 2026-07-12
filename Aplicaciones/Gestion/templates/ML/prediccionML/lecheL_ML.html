@@ -1,0 +1,507 @@
+{% extends "plantilla.html" %}
+{% load static %}
+
+{% block titulo %}
+Leche ML - Predicciones AD-1 | Hacienda Joseph
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a>
+</li>
+<li class="breadcrumb-item">
+    <a href="{% url 'dashboardml' %}" class="text-decoration-none" style="color: var(--color-primario);">Dashboard ML</a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">Leche ML - AD-1</li>
+{% endblock %}
+
+{% block contenido %}
+
+<!-- ENCABEZADO -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-8">
+        <h2 class="fw-bold" style="color: var(--color-primario);">
+            <i class="bi bi-droplet-fill me-2"></i>Leche ML - AD-1
+        </h2>
+        <p class="text-muted mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            Predicciones de producción de leche por animal
+            <span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">
+                R²: {{ metrica_ad1|default:"N/A" }}
+            </span>
+        </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="{% url 'prediccion_ad1' %}" class="btn btn-hacienda">
+            <i class="bi bi-magic me-2"></i>Nueva Predicción
+        </a>
+        <a href="{% url 'dashboardml' %}" class="btn btn-hacienda-secondary ms-2">
+            <i class="bi bi-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+</div>
+
+<!-- TARJETA ESTADO DEL MODELO -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda p-3" style="border-left: 4px solid var(--color-primario);">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="fw-bold mb-1" style="color: var(--color-primario);">
+                        <i class="bi bi-tree me-2"></i>Modelo AD-1 - Árbol de Decisión
+                    </h5>
+                    <p class="text-muted small mb-0">
+                        Predicción de litros de leche basado en condiciones del ordeño
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    {% if estado_ad1 %}
+                    <span class="badge bg-success p-2 me-2"><i class="bi bi-check-circle"></i> Entrenado</span>
+                    <span class="badge bg-info p-2">R²: {{ metrica_ad1|default:"N/A" }}</span>
+                    {% else %}
+                    <span class="badge bg-danger p-2"><i class="bi bi-x-circle"></i> No entrenado</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- LISTADO DE ANIMALES CON PREDICCIONES -->
+{% if predicciones_por_animal %}
+<div class="row animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-list-ul me-2"></i>
+                Animales con Predicciones de Leche
+                <span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">
+                    {{ predicciones_por_animal|length }} animales
+                </span>
+            </div>
+            <div class="p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered mb-0" id="tablaLecheML">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 60px;">#</th>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Raza</th>
+                                <th>Categoría</th>
+                                <th>Estado</th>
+                                <th>Peso</th>
+                                <th>Potrero</th>
+                                <th style="width: 120px;">Predicciones</th>
+                                <th style="width: 130px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in predicciones_por_animal %}
+                            <tr>
+                                <td class="text-center">{{ forloop.counter }}</td>
+                                <td class="fw-bold" style="color: var(--color-primario);">{{ item.animal.codigo_an }}</td>
+                                <td>{{ item.animal.nombre_an|default:"Sin nombre" }}</td>
+                                <td>{{ item.animal.fk_ra.nombre_ra|default:"N/A" }}</td>
+                                <td>{{ item.animal.get_categoria_an_display|default:item.animal.categoria_an }}</td>
+                                <td>
+                                    {% if item.animal.estado_an == 'activo' %}
+                                    <span class="badge bg-success">Activo</span>
+                                    {% elif item.animal.estado_an == 'vendido' %}
+                                    <span class="badge" style="background:#1976D2;color:white;">Vendido</span>
+                                    {% elif item.animal.estado_an == 'muerto' %}
+                                    <span class="badge bg-dark">Muerto</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ item.animal.estado_an }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.animal.peso_actual_kg_an|default:"N/A" }} kg</td>
+                                <td>{{ item.animal.fk_potrero_an.nombre_po|default:"Sin potrero" }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary">{{ item.total_predicciones }}</span>
+                                    <small class="text-muted d-block">{{ item.ultima_fecha|date:"d/m/Y"|default:"N/A" }}</small>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-info me-1"
+                                            onclick="abrirHistorialML('{{ item.animal.id_an }}', '{{ item.animal.codigo_an }}')"
+                                            title="Ver historial ML">
+                                        <i class="bi bi-clock-history"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-success"
+                                            onclick="abrirDetalleAnimalML('{{ item.animal.id_an }}','{{ item.animal.codigo_an }}','{{ item.animal.nombre_an|default:"Sin nombre" }}','{{ item.animal.fk_ra.nombre_ra|default:"N/A" }}','{{ item.animal.get_categoria_an_display|default:item.animal.categoria_an }}','{{ item.animal.estado_an }}','{{ item.animal.peso_actual_kg_an|default:"N/A" }} kg','{{ item.animal.fk_potrero_an.nombre_po|default:"Sin potrero" }}','{{ item.animal.foto_an|default:"" }}')"
+                                            title="Ver animal">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info animate-fade-in">
+    <i class="bi bi-info-circle-fill me-2"></i>
+    <strong>No hay predicciones para AD-1.</strong>
+    Entrena el modelo primero o ingresa datos de ordeños al sistema.
+    <br><code>python manage.py entrenar_ml AD-1</code>
+</div>
+{% endif %}
+
+{% endblock %}
+
+
+{% block modales %}
+<!-- ============================================================ -->
+<!-- MODAL HISTORIAL ML - PREDICCIONES POR MES                    -->
+<!-- ============================================================ -->
+<div class="modal fade" id="modalHistorialML" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-clock-history me-2" style="color: #DAA520;"></i>
+                    HISTORIAL ML - <span id="mlHistorialTitulo">AD-1</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background: #fff8e6; max-height: 70vh; overflow-y: auto;" id="mlHistorialBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Cargando historial de predicciones...</p>
+                </div>
+            </div>
+            <div class="modal-footer" style="background:#f5f0e6; border-top:1px solid #d4c5a9;">
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL DETALLE ANIMAL                                         -->
+<!-- ============================================================ -->
+<div class="modal fade" id="modalDetalleAnimalML" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-eye-fill me-2" style="color: #DAA520;"></i>
+                    DETALLE DEL ANIMAL
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="background: #fff8e6;">
+                <div class="row g-0">
+                    <!-- FOTO -->
+                    <div class="col-md-4" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
+                        <div class="p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <div id="mlDetalleFoto" style="width:100%; min-height:220px; display:flex; align-items:center; justify-content:center;"></div>
+                            <p class="mt-3 mb-0 fw-bold text-center" style="color:#2c5e1a; font-size:18px;" id="mlDetalleCodigo"></p>
+                            <p class="text-muted mb-0 text-center" id="mlDetalleNombre"></p>
+                        </div>
+                    </div>
+                    <!-- DATOS -->
+                    <div class="col-md-8">
+                        <div class="p-4">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">RAZA</label>
+                                    <p class="mb-0 fw-bold" style="color:#2c5e1a;" id="mlDetalleRaza"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">CATEGORÍA</label>
+                                    <p class="mb-0" style="color:#5c450e;" id="mlDetalleCategoria"></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">ESTADO</label>
+                                    <div id="mlDetalleEstado"></div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">PESO ACTUAL</label>
+                                    <p class="mb-0 fw-bold" style="color:#2c5e1a;" id="mlDetallePeso"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color:#d4c5a9;">
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold"><i class="bi bi-geo-alt me-1"></i>POTRERO</label>
+                                <p class="mb-0" style="color:#5c450e;" id="mlDetallePotrero"></p>
+                            </div>
+                            <div class="alert alert-info py-2 mb-0" style="border-radius:8px;">
+                                <small><i class="bi bi-cpu me-1"></i>
+                                Para ver el historial completo de este animal, visita su ficha en
+                                <a href="/listaanimal/" style="color:var(--color-primario); font-weight:bold;">Gestión de Animales</a>.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background:#f5f0e6; border-top:1px solid #d4c5a9;">
+                <a href="#" id="mlDetalleBtnEditar" class="btn btn-hacienda">
+                    <i class="bi bi-pencil-square me-1"></i>Editar Animal
+                </a>
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts_extra %}
+<script>
+// ============================================================
+// FUNCIÓN: ABRIR HISTORIAL ML DEL ANIMAL
+// ============================================================
+function abrirHistorialML(animalId, animalCodigo) {
+    document.getElementById('mlHistorialTitulo').textContent = animalCodigo + ' - AD-1';
+    document.getElementById('mlHistorialBody').innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Cargando historial de predicciones...</p>
+        </div>
+    `;
+
+    // Obtener datos del servidor
+    fetch(`/api/ml/historial_ad1/${animalId}/`)
+        .then(response => response.json())
+        .then(data => {
+            renderHistorialML(data, animalCodigo);
+        })
+        .catch(error => {
+            document.getElementById('mlHistorialBody').innerHTML = `
+                <div class="alert alert-danger m-3">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Error al cargar el historial: ${error.message}
+                </div>
+            `;
+        });
+
+    new bootstrap.Modal(document.getElementById('modalHistorialML')).show();
+}
+
+// ============================================================
+// FUNCIÓN: RENDERIZAR HISTORIAL ML
+// ============================================================
+function renderHistorialML(data, animalCodigo) {
+    if (!data.exito) {
+        document.getElementById('mlHistorialBody').innerHTML = `
+            <div class="alert alert-warning m-3">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                ${data.mensaje || 'No se encontraron predicciones para este animal.'}
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    const predicciones = data.predicciones || {};
+
+    if (Object.keys(predicciones).length === 0) {
+        html = `
+            <div class="alert alert-info m-3">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                No hay predicciones registradas para el animal <strong>${animalCodigo}</strong>.
+            </div>
+        `;
+        document.getElementById('mlHistorialBody').innerHTML = html;
+        return;
+    }
+
+    // Ordenar años descendente
+    const anios = Object.keys(predicciones).sort((a, b) => b - a);
+
+    for (const anio of anios) {
+        const meses = predicciones[anio];
+        const mesesKeys = Object.keys(meses).sort((a, b) => {
+            // Extraer número de mes del nombre "Mes Año"
+            const getMesNum = (key) => {
+                const parts = key.split(' ');
+                return parseInt(parts[0]) || 0;
+            };
+            return getMesNum(b) - getMesNum(a);
+        });
+
+        html += `
+            <div class="mb-3">
+                <button class="btn w-100 text-start fw-bold py-2 px-3 mb-2"
+                        style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); color: white; border-radius: 10px; border: none;"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#hist_${anio}"
+                        aria-expanded="false">
+                    <i class="bi bi-calendar3 me-2" style="color:#DAA520;"></i>
+                    Año ${anio}
+                    <span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">
+                        ${mesesKeys.length} mes${mesesKeys.length !== 1 ? 'es' : ''}
+                    </span>
+                    <i class="bi bi-chevron-down float-end mt-1"></i>
+                </button>
+
+                <div class="collapse" id="hist_${anio}">
+        `;
+
+        for (const mes of mesesKeys) {
+            const registros = meses[mes] || [];
+            const totalPreds = registros.length;
+
+            html += `
+                <div class="ms-3 mb-2">
+                    <button class="btn w-100 text-start fw-bold py-2 px-3 mb-1"
+                            style="background: #e8f5e9; color: #2c5e1a; border-radius: 8px; border: 1px solid #b7d7a8;"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#hist_${anio}_${mes.replace(/\s/g, '_')}"
+                            aria-expanded="false">
+                        <i class="bi bi-calendar-month me-2"></i>
+                        ${mes}
+                        <span class="badge bg-success ms-2">${totalPreds} prediccion${totalPreds !== 1 ? 'es' : ''}</span>
+                        <i class="bi bi-chevron-down float-end mt-1"></i>
+                    </button>
+
+                    <div class="collapse" id="hist_${anio}_${mes.replace(/\s/g, '_')}">
+                        <div class="table-responsive ms-2">
+                            <table class="table table-hover table-bordered table-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Temp. Amb.</th>
+                                        <th>Concentrado</th>
+                                        <th>Temp. Leche</th>
+                                        <th>Predicción (L)</th>
+                                        <th>Confianza</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+            `;
+
+            for (const p of registros) {
+                html += `
+                    <tr>
+                        <td><small>${p.fecha || 'N/A'}</small></td>
+                        <td>${p.temperatura_ambiental || 'N/A'}°C</td>
+                        <td>${p.cantidad_concentrado_kg || 'N/A'} kg</td>
+                        <td>${p.temperatura_leche || 'N/A'}°C</td>
+                        <td class="fw-bold" style="color: #2c5e1a;">${p.prediccion || 'N/A'} L</td>
+                        <td><span class="badge bg-info text-dark">${p.confianza || 'N/A'}</span></td>
+                    </tr>
+                `;
+            }
+
+            html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        html += `
+                </div>
+            </div>
+        `;
+    }
+
+    document.getElementById('mlHistorialBody').innerHTML = html;
+}
+
+// ============================================================
+// FUNCIÓN: ABRIR DETALLE ANIMAL
+// ============================================================
+function abrirDetalleAnimalML(id, codigo, nombre, raza, categoria, estado, peso, potrero, foto) {
+    document.getElementById('mlDetalleCodigo').textContent = codigo;
+    document.getElementById('mlDetalleNombre').textContent = nombre;
+    document.getElementById('mlDetalleRaza').textContent = raza;
+    document.getElementById('mlDetalleCategoria').textContent = categoria;
+    document.getElementById('mlDetallePeso').textContent = peso;
+    document.getElementById('mlDetallePotrero').textContent = potrero;
+    document.getElementById('mlDetalleBtnEditar').href = '/editaranimal/' + id;
+
+    // Estado badge
+    var estadoHtml = '';
+    switch(estado) {
+        case 'activo':
+            estadoHtml = '<span class="badge rounded-pill bg-success p-2"><i class="bi bi-check-circle"></i> Activo</span>';
+            break;
+        case 'vendido':
+            estadoHtml = '<span class="badge rounded-pill p-2" style="background:#1976D2;color:white;"><i class="bi bi-cash-coin"></i> Vendido</span>';
+            break;
+        case 'muerto':
+            estadoHtml = '<span class="badge rounded-pill bg-dark p-2"><i class="bi bi-heartbreak"></i> Muerto</span>';
+            break;
+        default:
+            estadoHtml = '<span class="badge rounded-pill bg-secondary p-2">' + estado + '</span>';
+    }
+    document.getElementById('mlDetalleEstado').innerHTML = estadoHtml;
+
+    // Foto
+    var contenedor = document.getElementById('mlDetalleFoto');
+    if (foto && foto.trim() !== '' && foto !== 'None' && foto !== 'null') {
+        var ruta = foto.startsWith('/') ? foto : '/' + foto;
+        contenedor.innerHTML = '<img src="' + ruta + '" style="width:100%;height:220px;object-fit:cover;border-radius:12px;border:3px solid #DAA520;" alt="Foto" onerror="this.parentElement.innerHTML=\'<div style=\'text-align:center;padding:40px;color:#2c5e1a;\'><i class=\\\"bi bi-image\\\" style=\\\"font-size:3rem;\\\"></i><p class=\\\"mt-2\\\">Sin fotografía</p></div>\'">';
+    } else {
+        contenedor.innerHTML = '<div style="text-align:center;padding:40px;color:#2c5e1a;background:#eef7e8;border-radius:12px;border:3px dashed #b7d7a8;width:100%"><i class="bi bi-image" style="font-size:3rem;"></i><p class="mt-2 fw-bold">Sin fotografía</p></div>';
+    }
+
+    new bootstrap.Modal(document.getElementById('modalDetalleAnimalML')).show();
+}
+
+// ============================================================
+// INICIALIZAR TABLA CON FILTRO Y ORDENAMIENTO
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    const tabla = document.getElementById('tablaLecheML');
+    if (tabla) {
+        // Buscador simple
+        const searchInput = document.createElement('div');
+        searchInput.className = 'p-3';
+        searchInput.innerHTML = `
+            <div class="row">
+                <div class="col-md-4">
+                    <input type="text" id="searchLecheML" class="form-control form-control-sm" placeholder="🔍 Buscar animal...">
+                </div>
+                <div class="col-md-8 text-end">
+                    <span class="text-muted small">Total: ${tabla.querySelectorAll('tbody tr').length} animales</span>
+                </div>
+            </div>
+        `;
+        tabla.parentNode.insertBefore(searchInput, tabla);
+
+        document.getElementById('searchLecheML').addEventListener('keyup', function() {
+            const filter = this.value.toLowerCase();
+            const rows = tabla.querySelectorAll('tbody tr');
+            let visible = 0;
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(filter)) {
+                    row.style.display = '';
+                    visible++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            // Actualizar contador
+            const counter = tabla.parentNode.querySelector('.text-muted small');
+            if (counter) {
+                counter.textContent = `${visible} animales`;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
