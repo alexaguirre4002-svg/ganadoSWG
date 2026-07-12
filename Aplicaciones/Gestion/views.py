@@ -10606,32 +10606,31 @@ def entrenar_modelos_render(request):
 # ==========================================
 # MODELO ML 1 LITROS DE LECHE (AD-1) PARA MI HTML
 # ==========================================
+# ==========================================
+# VISTA: LECHE ML - AD-1
+# ==========================================
 def leche_ml(request):
-    """
-    Vista que muestra exclusivamente los animales con predicciones AD-1.
-    Reutiliza la lógica de dashboardml pero filtrando solo AD-1.
-    """
     from .ml_engine import modelo_esta_entrenado
-
+    
     estado_ad1 = modelo_esta_entrenado('AD-1')
     metrica_ad1 = None
-
+    
     try:
         modelo = ModeloML.objects.get(codigo_mm='AD-1')
         if modelo.valor_metrica_mm:
             metrica_ad1 = round(float(modelo.valor_metrica_mm) * 100, 1)
     except ModeloML.DoesNotExist:
         pass
-
+    
     predicciones_por_animal = []
-
+    
     if estado_ad1:
         try:
             modelo_db = ModeloML.objects.get(codigo_mm='AD-1')
             predicciones = PrediccionML.objects.filter(
                 fk_mm=modelo_db
             ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_prediccion_pm')
-
+            
             animales_dict = {}
             for pred in predicciones:
                 animal = pred.fk_an
@@ -10645,76 +10644,55 @@ def leche_ml(request):
                     animales_dict[animal.id_an]['total_predicciones'] += 1
                     if animales_dict[animal.id_an]['ultima_fecha'] is None or pred.fecha_prediccion_pm > animales_dict[animal.id_an]['ultima_fecha']:
                         animales_dict[animal.id_an]['ultima_fecha'] = pred.fecha_prediccion_pm
-
+            
             predicciones_por_animal = list(animales_dict.values())
             predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
-
+            
         except ModeloML.DoesNotExist:
             pass
-
+    
     contexto = {
         'estado_ad1': estado_ad1,
         'metrica_ad1': metrica_ad1,
         'predicciones_por_animal': predicciones_por_animal,
     }
-
+    
     return render(request, 'ML/prediccionML/lecheL_ML.html', contexto)
 
-# ==========================================
-# API: HISTORIAL ML AD-1 POR ANIMAL
-# ==========================================
+
+
+#API AD-1: HISTORIAL DE PREDICCIONES POR ANIMAL
 def api_historial_ad1_animal(request, animal_id):
-    """
-    API que devuelve el historial de predicciones AD-1 para un animal específico.
-    Agrupado por año y mes.
-    """
     try:
         animal = Animal.objects.get(id_an=animal_id)
     except Animal.DoesNotExist:
-        return JsonResponse({
-            'exito': False,
-            'mensaje': 'Animal no encontrado'
-        }, status=404)
-
+        return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'}, status=404)
+    
     try:
         modelo = ModeloML.objects.get(codigo_mm='AD-1')
     except ModeloML.DoesNotExist:
-        return JsonResponse({
-            'exito': False,
-            'mensaje': 'Modelo AD-1 no encontrado'
-        })
-
-    predicciones = PrediccionML.objects.filter(
-        fk_mm=modelo,
-        fk_an=animal
-    ).order_by('-fecha_prediccion_pm')
-
+        return JsonResponse({'exito': False, 'mensaje': 'Modelo AD-1 no encontrado'})
+    
+    predicciones = PrediccionML.objects.filter(fk_mm=modelo, fk_an=animal).order_by('-fecha_prediccion_pm')
+    
     if not predicciones.exists():
-        return JsonResponse({
-            'exito': True,
-            'mensaje': 'No hay predicciones para este animal',
-            'predicciones': {}
-        })
-
+        return JsonResponse({'exito': True, 'mensaje': 'No hay predicciones', 'predicciones': {}})
+    
+    meses_espanol = {1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',
+                     7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'}
+    
     agrupado = {}
-    meses_espanol = {
-        1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
-        5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
-        9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
-    }
-
     for pred in predicciones:
         anio = pred.fecha_prediccion_pm.year
         mes_num = pred.fecha_prediccion_pm.month
         mes_nombre = meses_espanol.get(mes_num, 'Desconocido')
         clave_mes = f"{mes_nombre} {anio}"
-
+        
         if anio not in agrupado:
             agrupado[anio] = {}
-
         if clave_mes not in agrupado[anio]:
             agrupado[anio][clave_mes] = []
-
+        
         datos = pred.datos_entrada_pm or {}
         agrupado[anio][clave_mes].append({
             'fecha': pred.fecha_prediccion_pm.strftime('%d/%m/%Y %H:%M'),
@@ -10724,13 +10702,5 @@ def api_historial_ad1_animal(request, animal_id):
             'prediccion': pred.resultado_prediccion_pm or 'N/A',
             'confianza': f"R²: {modelo.valor_metrica_mm * 100:.1f}%" if modelo.valor_metrica_mm else 'N/A',
         })
-
-    return JsonResponse({
-        'exito': True,
-        'animal': {
-            'id': animal.id_an,
-            'codigo': animal.codigo_an,
-            'nombre': animal.nombre_an or 'Sin nombre'
-        },
-        'predicciones': agrupado
-    })
+    
+    return JsonResponse({'exito': True, 'predicciones': agrupado})
