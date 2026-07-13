@@ -1,0 +1,130 @@
+{% extends "plantilla.html" %}
+{% load static %}
+
+{% block titulo %}
+Calidad de Leche ML - Predicciones RL-4 | Hacienda Joseph
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
+<li class="breadcrumb-item"><a href="{% url 'dashboardml' %}" class="text-decoration-none" style="color: var(--color-primario);">Dashboard ML</a></li>
+<li class="breadcrumb-item active" aria-current="page">Calidad Leche ML - RL-4</li>
+{% endblock %}
+
+{% block contenido %}
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-3">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid var(--color-primario);">
+            <i class="bi bi-flask fs-2" style="color: var(--color-primario);"></i>
+            <h4 class="fw-bold mt-2 mb-0">RL-4</h4>
+            <small class="text-muted">Predicción de Calidad</small>
+            {% if estado_rl4 %}<div class="mt-2"><span class="badge bg-success">Entrenado</span></div>
+            <small class="text-muted">R²: {{ metrica_rl4|default:"N/A" }}</small>{% else %}<div class="mt-2"><span class="badge bg-danger">No entrenado</span></div>{% endif %}
+        </div>
+    </div>
+    <div class="col-md-3"><div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;"><i class="bi bi-cow fs-2 text-success"></i><h4 class="fw-bold mt-2 mb-0">{{ predicciones_por_animal|length }}</h4><small class="text-muted">Animales con predicciones</small></div></div>
+    <div class="col-md-3"><div class="card-hacienda text-center p-3" style="border-left: 4px solid #1565C0;"><i class="bi bi-clipboard-data fs-2" style="color: #1565C0;"></i><h4 class="fw-bold mt-2 mb-0">{% with total_pred=0 %}{% for item in predicciones_por_animal %}{% with total_pred=total_pred|add:item.total_predicciones %}{% endwith %}{% endfor %}{{ total_pred }}{% endwith %}</h4><small class="text-muted">Total predicciones</small></div></div>
+    <div class="col-md-3"><div class="card-hacienda text-center p-3" style="border-left: 4px solid #DAA520;"><i class="bi bi-calendar3 fs-2" style="color: #DAA520;"></i><h4 class="fw-bold mt-2 mb-0">{% with ultima_fecha=predicciones_por_animal.0.ultima_fecha|date:"d/m/Y" %}{{ ultima_fecha|default:"N/A" }}{% endwith %}</h4><small class="text-muted">Última predicción</small></div></div>
+</div>
+
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-8"><h2 class="fw-bold" style="color: var(--color-primario);"><i class="bi bi-flask me-2"></i>Calidad Leche ML - RL-4</h2><p class="text-muted mb-0"><i class="bi bi-info-circle me-1"></i>Predicciones de calidad de leche por animal</p></div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0"><a href="{% url 'prediccion_rl4' %}" class="btn btn-hacienda"><i class="bi bi-magic me-2"></i>Nueva Predicción</a><a href="{% url 'dashboardml' %}" class="btn btn-hacienda-secondary ms-2"><i class="bi bi-arrow-left me-2"></i>Volver</a></div>
+</div>
+
+{% if predicciones_por_animal %}
+<div class="row animate-fade-in"><div class="col-12"><div class="card-hacienda"><div class="card-header-hacienda"><i class="bi bi-list-ul me-2"></i>Animales con Predicciones RL-4<span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">{{ predicciones_por_animal|length }} animales</span></div><div class="p-4"><div class="table-responsive"><table id="tablaCalidadLecheML" class="table table-hacienda align-middle mb-0"><thead><tr><th>ID</th><th>CÓDIGO</th><th>NOMBRE</th><th>RAZA</th><th>CATEGORÍA</th><th>ESTADO</th><th>PESO</th><th>PREDICCIONES</th><th>ÚLTIMA</th><th>ACCIONES</th></tr></thead><tbody>
+{% for item in predicciones_por_animal %}
+<tr>
+    <td class="fw-bold text-muted">#{{ item.animal.id_an }}</td>
+    <td class="fw-bold" style="color: var(--color-primario); font-size:16px;">{{ item.animal.codigo_an }}</td>
+    <td>{% if item.animal.nombre_an %}{{ item.animal.nombre_an }}{% else %}<span class="text-muted fst-italic">Sin nombre</span>{% endif %}</td>
+    <td>{% if item.animal.fk_ra %}<span class="badge rounded-pill p-2" style="background: #e8f5e9; color: #2c5e1a; border: 1px solid #2c5e1a;"><i class="bi bi-diagram-2 me-1"></i>{{ item.animal.fk_ra.nombre_ra }}</span>{% else %}<span class="text-muted fst-italic">N/A</span>{% endif %}</td>
+    <td>{% if item.animal.categoria_an == 'ternero' %}<span class="badge rounded-pill p-2" style="background:#FFF3E0; color:#E65100; border: 1px solid #E65100;"><i class="bi bi-emoji-smile me-1"></i>Ternero</span>{% elif item.animal.categoria_an == 'novilla' %}<span class="badge rounded-pill p-2" style="background:#F3E5F5; color:#7B1FA2; border: 1px solid #7B1FA2;"><i class="bi bi-emoji-neutral me-1"></i>Novilla</span>{% elif item.animal.categoria_an == 'vaca_leche' %}<span class="badge rounded-pill p-2" style="background:#E3F2FD; color:#1565C0; border: 1px solid #1565C0;"><i class="bi bi-droplet me-1"></i>Vaca Leche</span>{% elif item.animal.categoria_an == 'vaca_seca' %}<span class="badge rounded-pill p-2" style="background:#FFF8E1; color:#F57F17; border: 1px solid #F57F17;"><i class="bi bi-pause-circle me-1"></i>Vaca Seca</span>{% elif item.animal.categoria_an == 'toro' %}<span class="badge rounded-pill p-2" style="background:#FFEBEE; color:#C62828; border: 1px solid #C62828;"><i class="bi bi-lightning me-1"></i>Toro</span>{% else %}<span class="badge rounded-pill bg-secondary p-2">{{ item.animal.categoria_an }}</span>{% endif %}</td>
+    <td>{% if item.animal.estado_an == 'activo' %}<span class="badge rounded-pill bg-success p-2"><i class="bi bi-check-circle"></i> Activo</span>{% elif item.animal.estado_an == 'vendido' %}<span class="badge rounded-pill p-2" style="background:#1976D2; color:white;"><i class="bi bi-cash-coin"></i> Vendido</span>{% elif item.animal.estado_an == 'muerto' %}<span class="badge rounded-pill bg-dark p-2"><i class="bi bi-heartbreak"></i> Muerto</span>{% else %}<span class="badge rounded-pill bg-secondary p-2">{{ item.animal.estado_an }}</span>{% endif %}</td>
+    <td class="fw-bold">{% if item.animal.peso_actual_kg_an %}{{ item.animal.peso_actual_kg_an }} kg{% else %}<span class="text-muted fst-italic">N/A</span>{% endif %}</td>
+    <td class="text-center"><span class="badge bg-primary p-2" style="font-size:14px;">{{ item.total_predicciones }}</span></td>
+    <td><small>{{ item.ultima_fecha|date:"d/m/Y"|default:"N/A" }}</small></td>
+    <td>
+        <button type="button" class="btn btn-sm btn-hacienda-secondary" data-id="{{ item.animal.id_an }}" data-codigo="{{ item.animal.codigo_an }}" title="Ver historial"><i class="bi bi-clock-history"></i></button>
+        <button type="button" class="btn btn-sm btn-success" data-id="{{ item.animal.id_an }}" data-codigo="{{ item.animal.codigo_an }}" data-nombre="{{ item.animal.nombre_an|default:'Sin nombre' }}" data-raza="{% if item.animal.fk_ra %}{{ item.animal.fk_ra.nombre_ra }}{% else %}No especificada{% endif %}" data-categoria="{{ item.animal.categoria_an }}" data-estado="{{ item.animal.estado_an }}" data-peso-actual="{% if item.animal.peso_actual_kg_an %}{{ item.animal.peso_actual_kg_an }}{% else %}No registrado{% endif %}" data-fecha-nacimiento="{{ item.animal.fecha_nacimiento_an|date:'d/m/Y' }}" data-fecha-ingreso="{{ item.animal.fecha_ingreso_an|date:'d/m/Y' }}" data-fecha-salida="{% if item.animal.fecha_salida_an %}{{ item.animal.fecha_salida_an|date:'d/m/Y' }}{% else %}---{% endif %}" data-motivo="{% if item.animal.motivo_salida_an %}{{ item.animal.motivo_salida_an }}{% else %}---{% endif %}" data-condicion="{% if item.animal.condicion_corporal_an %}{{ item.animal.condicion_corporal_an }}/5{% else %}No evaluada{% endif %}" data-potrero="{% if item.animal.fk_potrero_an %}{{ item.animal.fk_potrero_an.nombre_po }}{% else %}Sin potrero{% endif %}" data-foto="{% if item.animal.foto_an %}{{ item.animal.foto_an }}{% endif %}" data-total-predicciones="{{ item.total_predicciones }}" title="Ver detalle"><i class="bi bi-eye"></i></button>
+    </td>
+</tr>
+{% empty %}
+<tr><td colspan="10" class="text-center py-5"><i class="bi bi-inbox fs-1 text-muted"></i><p class="mt-3 text-muted">No hay animales con predicciones</p></td></tr>
+{% endfor %}
+</tbody></table></div></div><div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);"><small class="text-muted"><i class="bi bi-bar-chart-line me-1"></i>Total de animales con predicciones: <strong>{{ predicciones_por_animal|length }}</strong></small></div></div></div></div>
+{% else %}
+<div class="alert alert-info animate-fade-in"><i class="bi bi-info-circle-fill me-2"></i><strong>No hay predicciones para RL-4.</strong> Entrena el modelo primero o ingresa datos de calidad de leche al sistema.<br><code>python manage.py entrenar_ml RL-4</code></div>
+{% endif %}
+
+<div class="modal fade" id="modalHistorialML" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;"><div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;"><h5 class="modal-title" style="color: white; font-weight: 700;"><i class="bi bi-clock-history me-2" style="color: #DAA520;"></i>HISTORIAL ML - <span id="mlHistorialTitulo">RL-4</span></h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body" style="background: #fff8e6; max-height: 70vh; overflow-y: auto;" id="mlHistorialBody"><div class="text-center py-5"><div class="spinner-border text-success" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3 text-muted">Cargando historial de predicciones...</p></div></div><div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;"><button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cerrar</button></div></div></div></div>
+
+<div class="modal fade" id="modalDetalleAnimalML" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden; max-height: 90vh;"><div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;"><h5 class="modal-title" style="color: white; font-weight: 700;"><i class="bi bi-eye-fill me-2" style="color: #DAA520;"></i>DETALLE DEL ANIMAL</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-0" style="background: #fff8e6; overflow-y: auto;"><div class="row g-0"><div class="col-md-6" style="background: #f5f0e6; border-right: 2px solid #d4c5a9; min-height: 500px; padding: 0;"><div id="contenedorFotoAnimalML" style="width: 100%; height: 100%; min-height: 500px; display: flex; align-items: center; justify-content: center; overflow: hidden;"><img id="fotoAnimalDetalleML" src="" alt="Foto del animal" style="width: 100%; height: 100%; min-height: 500px; object-fit: cover; border-radius: 12px; border: 3px solid #DAA520; box-shadow: 0 4px 15px rgba(0,0,0,0.2); background-color: #f5f0e6; display: none;"><div id="placeholderFotoML" class="foto-animal-placeholder" style="width: 100%; height: 100%; min-height: 500px; background: linear-gradient(135deg, #eef7e8, #dcefd0); border-radius: 12px; border: 3px dashed #b7d7a8; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #2c5e1a;"><i class="bi bi-image fs-1 mb-2"></i><p class="mb-0 fw-bold">Sin fotografía</p><p class="small text-muted">No se ha registrado imagen</p></div></div></div><div class="col-md-6"><div class="p-4" style="max-height: 600px; overflow-y: auto;"><div class="row mb-3"><div class="col-6"><label class="text-muted small fw-bold">CÓDIGO</label><p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleCodigoML"></p></div><div class="col-6 text-end"><label class="text-muted small fw-bold">ESTADO</label><div id="detalleEstadoML"></div></div></div><hr style="border-color: #d4c5a9;"><div class="row mb-3"><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-diagram-2 me-1"></i>RAZA</label><p class="mb-0" id="detalleRazaML" style="color: #5c450e;"></p></div><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-layers me-1"></i>CATEGORÍA</label><p class="mb-0" id="detalleCategoriaML" style="color: #5c450e;"></p></div></div><div class="row mb-3"><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-speedometer2 me-1"></i>PESO ACTUAL</label><p class="mb-0 fw-bold" id="detallePesoML" style="color: #2c5e1a;"></p></div><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-bar-chart-line me-1"></i>COND. CORPORAL</label><p class="mb-0" id="detalleCondicionML" style="color: #5c450e;"></p></div></div><hr style="border-color: #d4c5a9;"><div class="row mb-3"><div class="col-4"><label class="text-muted small fw-bold"><i class="bi bi-calendar-event me-1"></i>NACIMIENTO</label><p class="mb-0" id="detalleFechaNacimientoML" style="color: #5c450e;"></p></div><div class="col-4"><label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>INGRESO</label><p class="mb-0" id="detalleFechaIngresoML" style="color: #5c450e;"></p></div><div class="col-4"><label class="text-muted small fw-bold"><i class="bi bi-calendar-x me-1"></i>SALIDA</label><p class="mb-0" id="detalleFechaSalidaML" style="color: #5c450e;"></p></div></div><div class="mb-3" id="filaMotivoSalidaML" style="display: none;"><label class="text-muted small fw-bold"><i class="bi bi-question-circle me-1"></i>MOTIVO SALIDA</label><p class="mb-0" id="detalleMotivoML" style="color: #c0392b;"></p></div><hr style="border-color: #d4c5a9;"><div class="row mb-3"><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-map me-1"></i>POTRERO</label><p class="mb-0" id="detallePotreroML" style="color: #5c450e;"></p></div><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-graph-up me-1"></i>PREDICCIONES</label><p class="mb-0 fw-bold" id="totalPrediccionesML" style="color: #2c5e1a;"></p></div></div></div></div></div></div><div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;"><a href="#" id="btnEditarDesdeDetalleML" class="btn btn-hacienda"><i class="bi bi-pencil-square me-1"></i>Editar Animal</a><button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cerrar</button></div></div></div></div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<style>
+    .dataTables_filter { margin-bottom: 20px !important; background: linear-gradient(135deg, #eef7e8, #dcefd0); padding: 15px 20px; border-radius: 18px; border: 2px solid #b7d7a8; box-shadow: 0px 4px 12px rgba(44,94,26,0.15); display: flex !important; align-items: center !important; justify-content: end !important; gap: 10px; }
+    .dataTables_filter::before { content: "🐄"; font-size: 28px; }
+    .dataTables_filter label { font-weight: bold; color: var(--color-primario); font-size: 17px; }
+    .dataTables_filter input { border-radius: 50px !important; border: 3px solid var(--color-primario) !important; padding: 10px 18px !important; background-color: #ffffff !important; color: var(--color-navbar) !important; font-weight: 600 !important; width: 280px !important; transition: 0.3s !important; box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08); margin-left: 10px !important; }
+    .dataTables_filter input:focus { outline: none !important; border-color: #8dc26f !important; box-shadow: 0px 0px 12px rgba(44,94,26,0.4); background-color: #f8fff5 !important; }
+    .dataTables_length select { border-radius: 10px !important; border: 2px solid var(--color-primario) !important; padding: 5px 10px !important; }
+    .dataTables_paginate { width: 100% !important; display: flex !important; justify-content: center !important; margin-top: 25px !important; }
+    .paginate_button { width: 36px !important; height: 36px !important; border-radius: 4px !important; border: none !important; background: #dfeedd !important; color: var(--color-primario) !important; font-weight: bold !important; font-size: 14px !important; display: inline-flex !important; justify-content: center !important; align-items: center !important; transition: 0.3s !important; margin: 0 3px !important; vertical-align: middle !important; float: none !important; }
+    .paginate_button.current { background: var(--color-primario) !important; color: white !important; border: 2px solid #8dc26f !important; box-shadow: 0px 0px 8px rgba(44,94,26,0.4); }
+    .paginate_button:hover { background: #3d7a24 !important; color: white !important; }
+</style>
+<script>
+$(document).ready(function () {
+    $('#tablaCalidadLecheML').DataTable({"language": {"lengthMenu": "Mostrar _MENU_ registros", "zeroRecords": "No se encontraron resultados", "info": "Mostrando _START_ a _END_ de _TOTAL_ registros", "infoEmpty": "No existen registros", "infoFiltered": "(filtrado de _MAX_ registros)", "search": "Buscar:", "paginate": {"first": "", "last": "", "next": "›", "previous": "‹"}}, "pageLength": 10, "lengthMenu": [5,10,25,50,100], "responsive": true, "pagingType": "simple_numbers"});
+    $('#tablaCalidadLecheML tbody').on('click', 'button', function(e) {
+        e.preventDefault();
+        if ($(this).hasClass('btn-success')) {
+            var button = this; var id = $(button).data('id'); var codigo = $(button).data('codigo'); var nombre = $(button).data('nombre'); var raza = $(button).data('raza'); var categoria = $(button).data('categoria'); var estado = $(button).data('estado'); var pesoActual = $(button).data('peso-actual'); var fechaNacimiento = $(button).data('fecha-nacimiento'); var fechaIngreso = $(button).data('fecha-ingreso'); var fechaSalida = $(button).data('fecha-salida'); var motivo = $(button).data('motivo'); var condicion = $(button).data('condicion'); var potrero = $(button).data('potrero'); var foto = $(button).data('foto'); var totalPreds = $(button).data('total-predicciones') || '0';
+            document.getElementById('detalleCodigoML').textContent = codigo; document.getElementById('detalleRazaML').textContent = raza; document.getElementById('detalleCategoriaML').textContent = categoria; document.getElementById('detalleCondicionML').textContent = condicion; document.getElementById('detallePesoML').textContent = pesoActual + (pesoActual !== 'No registrado' ? ' kg' : ''); document.getElementById('detalleFechaNacimientoML').textContent = fechaNacimiento; document.getElementById('detalleFechaIngresoML').textContent = fechaIngreso; document.getElementById('detalleFechaSalidaML').textContent = fechaSalida; document.getElementById('detalleMotivoML').textContent = motivo; document.getElementById('detallePotreroML').textContent = potrero; document.getElementById('totalPrediccionesML').textContent = totalPreds;
+            var filaMotivo = document.getElementById('filaMotivoSalidaML'); filaMotivo.style.display = fechaSalida !== '---' ? 'block' : 'none';
+            var estadoHtml = ''; switch(estado) { case 'activo': estadoHtml = '<span class="badge rounded-pill bg-success p-2"><i class="bi bi-check-circle"></i> Activo</span>'; break; case 'vendido': estadoHtml = '<span class="badge rounded-pill p-2" style="background:#1976D2; color:white;"><i class="bi bi-cash-coin"></i> Vendido</span>'; break; case 'muerto': estadoHtml = '<span class="badge rounded-pill bg-dark p-2"><i class="bi bi-heartbreak"></i> Muerto</span>'; break; default: estadoHtml = '<span class="badge rounded-pill bg-secondary p-2">' + estado + '</span>'; }
+            document.getElementById('detalleEstadoML').innerHTML = estadoHtml;
+            var imgFoto = document.getElementById('fotoAnimalDetalleML'); var placeholder = document.getElementById('placeholderFotoML');
+            if (foto && foto.trim() !== '') { imgFoto.src = foto; imgFoto.style.display = 'block'; placeholder.style.display = 'none'; imgFoto.onerror = function() { imgFoto.style.display = 'none'; placeholder.style.display = 'flex'; placeholder.innerHTML = '<i class="bi bi-image fs-1 mb-2"></i><p class="mb-0 fw-bold">Imagen no disponible</p><p class="small text-muted">No se pudo cargar la imagen</p>'; }; } else { imgFoto.style.display = 'none'; placeholder.style.display = 'flex'; placeholder.innerHTML = '<i class="bi bi-image fs-1 mb-2"></i><p class="mb-0 fw-bold">Sin fotografía</p><p class="small text-muted">No se ha registrado imagen</p>'; }
+            document.getElementById('btnEditarDesdeDetalleML').href = '/editaranimal/' + id; new bootstrap.Modal(document.getElementById('modalDetalleAnimalML')).show();
+        } else if ($(this).hasClass('btn-hacienda-secondary') && $(this).find('.bi-clock-history').length) {
+            var animalId = $(this).data('id'); var animalCodigo = $(this).data('codigo'); abrirHistorialML(animalId, animalCodigo);
+        }
+    });
+});
+function abrirHistorialML(animalId, animalCodigo) {
+    setTimeout(function() {
+        var titleEl = document.getElementById('mlHistorialTitulo'); var bodyEl = document.getElementById('mlHistorialBody');
+        if (!titleEl || !bodyEl) { console.error('Elementos del modal no encontrados'); return; }
+        titleEl.textContent = animalCodigo + ' - RL-4'; bodyEl.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-success" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3 text-muted">Cargando historial de predicciones...</p></div>';
+        fetch(`/api/ml/historial_rl4/${animalId}/`).then(response => { if (!response.ok) throw new Error(`HTTP Error: ${response.status}`); return response.json(); }).then(data => { renderHistorialML(data, animalCodigo); }).catch(error => { bodyEl.innerHTML = '<div class="alert alert-danger m-3"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Error:</strong><br>' + error.message + '</div>'; });
+        var modalEl = document.getElementById('modalHistorialML'); if (modalEl) new bootstrap.Modal(modalEl).show();
+    }, 100);
+}
+function renderHistorialML(data, animalCodigo) {
+    var bodyEl = document.getElementById('mlHistorialBody'); if (!bodyEl) return;
+    if (!data.exito) { bodyEl.innerHTML = '<div class="alert alert-warning m-3"><i class="bi bi-exclamation-triangle-fill me-2"></i>' + (data.mensaje || 'No se encontraron predicciones.') + '</div>'; return; }
+    let html = ''; const predicciones = data.predicciones || {};
+    if (Object.keys(predicciones).length === 0) { bodyEl.innerHTML = '<div class="alert alert-info m-3"><i class="bi bi-info-circle-fill me-2"></i>No hay predicciones registradas para el animal <strong>' + animalCodigo + '</strong>.</div>'; return; }
+    const anios = Object.keys(predicciones).sort((a, b) => b - a);
+    for (const anio of anios) {
+        const meses = predicciones[anio]; const mesesKeys = Object.keys(meses).sort((a, b) => { const getMesNum = (key) => { const parts = key.split(' '); return parseInt(parts[0]) || 0; }; return getMesNum(b) - getMesNum(a); });
+        html += '<div class="mb-3"><button class="btn w-100 text-start fw-bold py-2 px-3 mb-2" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); color: white; border-radius: 10px; border: none;" type="button" data-bs-toggle="collapse" data-bs-target="#hist_' + anio + '" aria-expanded="false"><i class="bi bi-calendar3 me-2" style="color:#DAA520;"></i>Año ' + anio + '<span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">' + mesesKeys.length + ' mes' + (mesesKeys.length !== 1 ? 'es' : '') + '</span><i class="bi bi-chevron-down float-end mt-1"></i></button><div class="collapse" id="hist_' + anio + '">';
+        for (const mes of mesesKeys) {
+            const registros = meses[mes] || []; const totalPreds = registros.length;
+            html += '<div class="ms-3 mb-2"><button class="btn w-100 text-start fw-bold py-2 px-3 mb-1" style="background: #e8f5e9; color: #2c5e1a; border-radius: 8px; border: 1px solid #b7d7a8;" type="button" data-bs-toggle="collapse" data-bs-target="#hist_' + anio + '_' + mes.replace(/\s/g, '_') + '" aria-expanded="false"><i class="bi bi-calendar-month me-2"></i>' + mes + '<span class="badge bg-success ms-2">' + totalPreds + ' prediccion' + (totalPreds !== 1 ? 'es' : '') + '</span><i class="bi bi-chevron-down float-end mt-1"></i></button><div class="collapse" id="hist_' + anio + '_' + mes.replace(/\s/g, '_') + '"><div class="table-responsive ms-2"><table class="table table-hover table-bordered table-sm"><thead class="table-light"><tr><th>Fecha</th><th>Temp. Amb.</th><th>Concentrado</th><th>Temp. Leche</th><th>Predicción</th><th>Confianza</th></tr></thead><tbody>';
+            for (const p of registros) { html += '<tr><td><small>' + (p.fecha || 'N/A') + '</small></td><td>' + (p.temperatura_ambiental || 'N/A') + '°C</td><td>' + (p.cantidad_concentrado_kg || 'N/A') + ' kg</td><td>' + (p.temperatura_leche || 'N/A') + '°C</td><td class="fw-bold" style="color: #2c5e1a;">' + (p.prediccion || 'N/A') + '</td><td><span class="badge bg-info text-dark">' + (p.confianza || 'N/A') + '</span></td></tr>'; }
+            html += '</tbody></table></div></div></div>';
+        }
+        html += '</div></div>';
+    }
+    bodyEl.innerHTML = html;
+}
+</script>
+{% endblock %}

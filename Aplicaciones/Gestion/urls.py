@@ -208,7 +208,12 @@ urlpatterns = [
     path('entrenar-ahora/', views.entrenar_modelos_render, name='entrenar_render'),
     #PARA EL HTML
     path('lecheml/', views.leche_ml, name='leche_ml'),
+    path('prenecesml/', views.preneces_ml, name='preneces_ml'),
+    path('calidadlml/', views.calidad_leche_ml, name='calidad_leche_ml'),
+    #API HISTORIAL ML
     path('api/ml/historial_ad1/<int:animal_id>/', views.api_historial_ad1_animal, name='api_historial_ad1_animal'),
+    path('api/ml/historial_ad2/<int:animal_id>/', views.api_historial_ad2_animal, name='api_historial_ad2_animal'),
+    path('api/ml/historial_rl4/<int:animal_id>/', views.api_historial_rl4_animal, name='api_historial_rl4_animal'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
