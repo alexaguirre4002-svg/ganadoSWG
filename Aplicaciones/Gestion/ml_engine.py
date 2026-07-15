@@ -453,7 +453,7 @@ def entrenar_rl4():
 
 
 # ============================================================
-# FUNCIÓN PREDECIR - ¡LA QUE FALTABA!
+# FUNCIÓN PREDECIR - PARA PREDICCIONES EN TIEMPO REAL
 # ============================================================
 
 def predecir(codigo_mm, datos_entrada):
@@ -467,7 +467,17 @@ def predecir(codigo_mm, datos_entrada):
     Retorna:
     - diccionario con 'exito', 'prediccion', 'probabilidad', etc.
     """
-    from Aplicaciones.Gestion.models import Animal, Racion, EventoSanitario, Parto, Ordeno, Secado, Celo, Aborto, CalidadLeche
+    import os
+    import joblib
+    import numpy as np
+    from django.conf import settings
+    from datetime import date, timedelta
+    from django.db.models import Q, Avg
+    
+    def obtener_ruta_modelo(codigo):
+        base = os.path.join(settings.BASE_DIR, 'media', 'ml')
+        os.makedirs(base, exist_ok=True)
+        return os.path.join(base, f'{codigo}.pkl')
     
     ruta = obtener_ruta_modelo(codigo_mm)
     
@@ -480,52 +490,26 @@ def predecir(codigo_mm, datos_entrada):
     try:
         modelo_data = joblib.load(ruta)
         
+        # ============================================================
+        # AD-1: Predicción de Litros de Leche
+        # ============================================================
         if codigo_mm == 'AD-1':
-            return predecir_ad1(modelo_data, datos_entrada)
-        elif codigo_mm == 'AD-2':
-            return predecir_ad2(modelo_data, datos_entrada)
-        elif codigo_mm == 'RL-4':
-            return predecir_rl4(modelo_data, datos_entrada)
-        else:
-            return {
-                'exito': False,
-                'mensaje': f'❌ Predicción para {codigo_mm} no implementada'
-            }
+            if 'animal_id' not in datos_entrada:
+                return {'exito': False, 'mensaje': '❌ Se requiere animal_id para AD-1'}
             
-    except Exception as e:
-        return {
-            'exito': False,
-            'mensaje': f'❌ Error cargando modelo: {str(e)}'
-        }
-
-
-# ============================================================
-# PREDECIR AD-1
-# ============================================================
-
-def predecir_ad1(modelo_data, datos_entrada):
-    """Predicción para AD-1 - Litros de Leche"""
-    try:
-        if 'animal_id' in datos_entrada:
-            from Aplicaciones.Gestion.models import Animal, Ordeno, Racion, Parto, Secado, EventoSanitario
-            from datetime import date, timedelta
-            from django.db.models import Q, Avg, Sum, Max
+            from Aplicaciones.Gestion.models import Animal, Ordeno, Racion, Parto
             
             animal = Animal.objects.get(id_an=datos_entrada['animal_id'])
-            fecha = datos_entrada.get('fecha', date.today())
             
             modelo = modelo_data['modelo']
             scaler = modelo_data.get('scaler')
-            features = modelo_data.get('features', [])
             
-            # Calcular edad
-            edad = (date.today() - animal.fecha_nacimiento_an).days if animal.fecha_nacimiento_an else 0
-            edad_anios = round(edad / 365, 1)
+            # Calcular datos del animal
+            edad = 0
+            if animal.fecha_nacimiento_an:
+                edad = (date.today() - animal.fecha_nacimiento_an).days
             
-            # Raza
             raza = animal.fk_ra.nombre_ra if animal.fk_ra else 'desconocida'
-            
-            # Partos
             num_partos = Parto.objects.filter(fk_madre_pa=animal).count()
             
             # Promedio 7 días
@@ -539,14 +523,12 @@ def predecir_ad1(modelo_data, datos_entrada):
             racion = Racion.objects.filter(
                 fk_an=animal,
                 fecha_inicio_ra__lte=date.today()
-            ).filter(
-                Q(fecha_fin_ra__gte=date.today()) | Q(fecha_fin_ra__isnull=True)
-            ).first()
+            ).filter(Q(fecha_fin_ra__gte=date.today()) | Q(fecha_fin_ra__isnull=True)).first()
             
             cantidad_consumida = float(racion.cantidad_consumida_kg_ra or 0) if racion else 0
             cantidad_ofrecida = float(racion.cantidad_ofrecida_kg_ra or 0) if racion else 0
             
-            # Variables de tiempo
+            # Temporada
             mes = date.today().month
             if mes in [12, 1, 2]:
                 temporada = 'invierno'
@@ -556,11 +538,6 @@ def predecir_ad1(modelo_data, datos_entrada):
                 temporada = 'verano'
             else:
                 temporada = 'otoño'
-            
-            # Datos del ordeño
-            temp_ambiental = float(datos_entrada.get('temp_ambiental', 0))
-            temp_leche = float(datos_entrada.get('temp_leche', 0))
-            concentrado_kg = float(datos_entrada.get('concentrado_kg', 0))
             
             # Codificar
             if 'raza_encoder' in modelo_data:
@@ -579,10 +556,15 @@ def predecir_ad1(modelo_data, datos_entrada):
             else:
                 temporada_cod = hash(temporada) % 100
             
+            # Datos del ordeño
+            temp_ambiental = float(datos_entrada.get('temp_ambiental', 0))
+            temp_leche = float(datos_entrada.get('temp_leche', 0))
+            concentrado_kg = float(datos_entrada.get('concentrado_kg', 0))
+            
             # Construir array
             X = np.array([[
                 edad,
-                edad_anios,
+                round(edad / 365, 1),
                 raza_cod,
                 float(animal.peso_actual_kg_an or 0),
                 float(animal.condicion_corporal_an or 0),
@@ -609,50 +591,30 @@ def predecir_ad1(modelo_data, datos_entrada):
                 'unidad': 'litros',
                 'interpretacion': f'Producción estimada: {round(float(pred), 2)} litros de leche'
             }
-        else:
-            return {
-                'exito': False,
-                'mensaje': '❌ Para AD-1 se requiere animal_id'
-            }
-    except Exception as e:
-        return {'exito': False, 'mensaje': f'❌ Error en predicción AD-1: {str(e)}'}
-
-
-# ============================================================
-# PREDECIR AD-2
-# ============================================================
-
-def predecir_ad2(modelo_data, datos_entrada):
-    """Predicción para AD-2 - Estado de Preñez"""
-    try:
-        if 'animal_id' in datos_entrada:
-            from Aplicaciones.Gestion.models import Animal, Ordeno, Parto, Aborto, Celo
-            from datetime import date, timedelta
+        
+        # ============================================================
+        # AD-2: Predicción de Preñez
+        # ============================================================
+        elif codigo_mm == 'AD-2':
+            if 'animal_id' not in datos_entrada:
+                return {'exito': False, 'mensaje': '❌ Se requiere animal_id para AD-2'}
+            
+            from Aplicaciones.Gestion.models import Animal, Parto, Aborto
             
             animal = Animal.objects.get(id_an=datos_entrada['animal_id'])
-            fecha = datos_entrada.get('fecha_inseminacion', date.today())
+            modelo = modelo_data
             
-            modelo = modelo_data if not isinstance(modelo_data, dict) else modelo_data.get('modelo')
+            edad = 0
+            if animal.fecha_nacimiento_an:
+                edad = (date.today() - animal.fecha_nacimiento_an).days
             
-            edad = (fecha - animal.fecha_nacimiento_an).days if animal.fecha_nacimiento_an else 0
             num_partos = Parto.objects.filter(fk_madre_pa=animal).count()
             abortos = Aborto.objects.filter(fk_an=animal).count()
             
-            prom_prod = Ordeno.objects.filter(
-                fk_an=animal,
-                fecha_or__gte=fecha - timedelta(days=7)
-            ).aggregate(prom=Avg('litros_or'))['prom'] or 0
-            
-            celo = Celo.objects.filter(
-                fk_an=animal,
-                fecha_observacion_ce__lte=fecha
-            ).order_by('-fecha_observacion_ce').first()
-            
             raza = animal.fk_ra.nombre_ra if animal.fk_ra else 'desconocida'
             
-            # Codificar categorías
             raza_cod = hash(raza) % 100
-            intensidad_cod = hash(datos_entrada.get('intensidad_celo', celo.intensidad_ce if celo else 'media')) % 100
+            intensidad_cod = hash(datos_entrada.get('intensidad_celo', 'media')) % 100
             tipo_cod = hash(datos_entrada.get('tipo_inseminacion', 'artificial')) % 100
             toro_cod = hash(datos_entrada.get('toro', 'desconocido')) % 100
             
@@ -661,9 +623,9 @@ def predecir_ad2(modelo_data, datos_entrada):
                 num_partos,
                 raza_cod,
                 float(datos_entrada.get('condicion_corporal', animal.condicion_corporal_an or 0)),
-                float(prom_prod),
+                float(datos_entrada.get('produccion_leche', 0)),
                 intensidad_cod,
-                float(datos_entrada.get('duracion_celo_horas', celo.duracion_aproximada_horas_ce if celo else 12)),
+                float(datos_entrada.get('duracion_celo_horas', 12)),
                 tipo_cod,
                 toro_cod,
                 abortos,
@@ -683,43 +645,42 @@ def predecir_ad2(modelo_data, datos_entrada):
                 'unidad': 'clase',
                 'interpretacion': f'{resultado} (confianza: {round(float(max(prob)) * 100, 1)}%)'
             }
+        
+        # ============================================================
+        # RL-4: Predicción de Calidad de Leche
+        # ============================================================
+        elif codigo_mm == 'RL-4':
+            modelo = modelo_data
+            
+            X = np.array([[
+                float(datos_entrada.get('grasa_pct', 0)),
+                float(datos_entrada.get('proteina_pct', 0)),
+                float(datos_entrada.get('ccs', 0)),
+                float(datos_entrada.get('ufc', 0))
+            ]])
+            
+            pred = modelo.predict(X)[0]
+            prob = modelo.predict_proba(X)[0] if hasattr(modelo, 'predict_proba') else [0.5, 0.5]
+            
+            resultado = 'APTO' if pred == 1 else 'NO APTO'
+            
+            return {
+                'exito': True,
+                'codigo': 'RL-4',
+                'prediccion': resultado,
+                'probabilidad': round(float(max(prob)), 4),
+                'unidad': 'clase',
+                'interpretacion': f'Calidad: {resultado} (confianza: {round(float(max(prob)) * 100, 1)}%)'
+            }
+        
         else:
             return {
                 'exito': False,
-                'mensaje': '❌ Para AD-2 se requiere animal_id'
+                'mensaje': f'❌ Predicción para {codigo_mm} no implementada'
             }
+            
     except Exception as e:
-        return {'exito': False, 'mensaje': f'❌ Error en predicción AD-2: {str(e)}'}
-
-
-# ============================================================
-# PREDECIR RL-4
-# ============================================================
-
-def predecir_rl4(modelo_data, datos_entrada):
-    """Predicción para RL-4 - Calidad de Leche"""
-    try:
-        modelo = modelo_data if not isinstance(modelo_data, dict) else modelo_data.get('modelo')
-        
-        X = np.array([[
-            float(datos_entrada.get('grasa_pct', 0)),
-            float(datos_entrada.get('proteina_pct', 0)),
-            float(datos_entrada.get('ccs', 0)),
-            float(datos_entrada.get('ufc', 0))
-        ]])
-        
-        pred = modelo.predict(X)[0]
-        prob = modelo.predict_proba(X)[0] if hasattr(modelo, 'predict_proba') else [0.5, 0.5]
-        
-        resultado = 'APTO' if pred == 1 else 'NO APTO'
-        
         return {
-            'exito': True,
-            'codigo': 'RL-4',
-            'prediccion': resultado,
-            'probabilidad': round(float(max(prob)), 4),
-            'unidad': 'clase',
-            'interpretacion': f'Calidad: {resultado} (confianza: {round(float(max(prob)) * 100, 1)}%)'
+            'exito': False,
+            'mensaje': f'❌ Error en predicción: {str(e)}'
         }
-    except Exception as e:
-        return {'exito': False, 'mensaje': f'❌ Error en predicción RL-4: {str(e)}'}
