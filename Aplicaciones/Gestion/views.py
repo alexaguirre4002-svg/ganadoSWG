@@ -10714,7 +10714,12 @@ def preneces_ml(request):
 
 
 def calidad_leche_ml(request):
+    """
+    Vista para el módulo de calidad de leche con Machine Learning (RL-4).
+    Muestra predicciones agrupadas por animal y estadísticas generales.
+    """
     from .ml_engine import modelo_esta_entrenado
+    from .models import ModeloML, PrediccionML
     
     estado_rl4 = modelo_esta_entrenado('RL-4')
     metrica_rl4 = None
@@ -10727,13 +10732,19 @@ def calidad_leche_ml(request):
         pass
     
     predicciones_por_animal = []
+    total_predicciones_generales = 0  # <-- NUEVA VARIABLE
+    ultima_fecha_general = None       # <-- NUEVA VARIABLE
     
     if estado_rl4:
         try:
             modelo_db = ModeloML.objects.get(codigo_mm='RL-4')
             predicciones = PrediccionML.objects.filter(
                 fk_mm=modelo_db
-            ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_prediccion_pm')
+            ).select_related(
+                'fk_an', 
+                'fk_an__fk_ra', 
+                'fk_an__fk_potrero_an'
+            ).order_by('-fecha_prediccion_pm')
             
             animales_dict = {}
             for pred in predicciones:
@@ -10752,6 +10763,12 @@ def calidad_leche_ml(request):
             predicciones_por_animal = list(animales_dict.values())
             predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
             
+            # <-- CALCULAR TOTAL GENERAL Y ÚLTIMA FECHA
+            total_predicciones_generales = sum(item.total_predicciones for item in predicciones_por_animal)
+            if predicciones_por_animal:
+                # Buscar la fecha más reciente entre todos los animales
+                ultima_fecha_general = max(item.ultima_fecha for item in predicciones_por_animal if item.ultima_fecha)
+            
         except ModeloML.DoesNotExist:
             pass
     
@@ -10759,6 +10776,8 @@ def calidad_leche_ml(request):
         'estado_rl4': estado_rl4,
         'metrica_rl4': metrica_rl4,
         'predicciones_por_animal': predicciones_por_animal,
+        'total_predicciones_generales': total_predicciones_generales,
+        'ultima_fecha_general': ultima_fecha_general,
     }
     
     return render(request, 'ML/prediccionML/calidadL_ML.html', contexto)
