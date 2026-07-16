@@ -10745,54 +10745,91 @@ def preneces_ml(request):
 
 
 
+# ==========================================
+# VISTA: CALIDAD LECHE ML - RL-4 (PREDICCIÓN EN VIVO)
+# ==========================================
 def calidad_leche_ml(request):
-    from .ml_engine import modelo_esta_entrenado
-    
+    from .ml_engine import predecir, modelo_esta_entrenado
+    from django.db.models import Avg, Sum, Count
+
     estado_rl4 = modelo_esta_entrenado('RL-4')
     metrica_rl4 = None
-    
+
     try:
         modelo = ModeloML.objects.get(codigo_mm='RL-4')
         if modelo.valor_metrica_mm:
             metrica_rl4 = round(float(modelo.valor_metrica_mm) * 100, 1)
     except ModeloML.DoesNotExist:
         pass
-    
+
     predicciones_por_animal = []
-    
+
     if estado_rl4:
-        try:
-            modelo_db = ModeloML.objects.get(codigo_mm='RL-4')
-            predicciones = PrediccionML.objects.filter(
-                fk_mm=modelo_db
-            ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_prediccion_pm')
-            
-            animales_dict = {}
-            for pred in predicciones:
-                animal = pred.fk_an
-                if animal:
-                    if animal.id_an not in animales_dict:
-                        animales_dict[animal.id_an] = {
-                            'animal': animal,
-                            'total_predicciones': 0,
-                            'ultima_fecha': None
-                        }
-                    animales_dict[animal.id_an]['total_predicciones'] += 1
-                    if animales_dict[animal.id_an]['ultima_fecha'] is None or pred.fecha_prediccion_pm > animales_dict[animal.id_an]['ultima_fecha']:
-                        animales_dict[animal.id_an]['ultima_fecha'] = pred.fecha_prediccion_pm
-            
-            predicciones_por_animal = list(animales_dict.values())
-            predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
-            
-        except ModeloML.DoesNotExist:
-            pass
-    
+        # OBTENER TODOS LOS REGISTROS DE CALIDAD DE LECHE CON DATOS COMPLETOS
+        calidades = CalidadLeche.objects.filter(
+            grasa_pct_cl__isnull=False,
+            proteina_pct_cl__isnull=False,
+            ccs_cl__isnull=False,
+            resultado_cl__isnull=False
+        ).exclude(
+            resultado_cl='pendiente'
+        ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_muestreo_cl')
+
+        print(f"[ML] Registros de calidad encontrados: {calidades.count()}")
+
+        animales_dict = {}
+
+        for c in calidades:
+            animal = c.fk_an
+            if not animal:
+                continue
+
+            # DATOS DE ENTRADA PARA LA PREDICCIÓN
+            datos_entrada = {
+                'grasa_pct': float(c.grasa_pct_cl or 0),
+                'proteina_pct': float(c.proteina_pct_cl or 0),
+                'ccs': float(c.ccs_cl or 0),
+            }
+
+            # PREDECIR CON EL MODELO .pkl
+            resultado = predecir('RL-4', datos_entrada)
+
+            if resultado.get('exito'):
+                if animal.id_an not in animales_dict:
+                    animales_dict[animal.id_an] = {
+                        'animal': animal,
+                        'total_predicciones': 0,
+                        'ultima_fecha': None,
+                        'predicciones': []
+                    }
+
+                animales_dict[animal.id_an]['predicciones'].append({
+                    'fecha': c.fecha_muestreo_cl,
+                    'grasa_pct': float(c.grasa_pct_cl or 0),
+                    'proteina_pct': float(c.proteina_pct_cl or 0),
+                    'ccs': float(c.ccs_cl or 0),
+                    'resultado_real': c.resultado_cl,
+                    'prediccion': resultado['prediccion'],
+                    'probabilidad': resultado.get('probabilidad', 0)
+                })
+
+                animales_dict[animal.id_an]['total_predicciones'] += 1
+
+                if animales_dict[animal.id_an]['ultima_fecha'] is None or c.fecha_muestreo_cl > animales_dict[animal.id_an]['ultima_fecha']:
+                    animales_dict[animal.id_an]['ultima_fecha'] = c.fecha_muestreo_cl
+
+        predicciones_por_animal = list(animales_dict.values())
+        predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
+
+        print(f"[ML] Animales con predicciones RL-4: {len(predicciones_por_animal)}")
+        print(f"[ML] Total predicciones RL-4: {sum(a['total_predicciones'] for a in predicciones_por_animal)}")
+
     contexto = {
         'estado_rl4': estado_rl4,
         'metrica_rl4': metrica_rl4,
         'predicciones_por_animal': predicciones_por_animal,
     }
-    
+
     return render(request, 'ML/prediccionML/calidadL_ML.html', contexto)
 
 
@@ -10920,54 +10957,75 @@ def api_historial_ad2_animal(request, animal_id):
     return JsonResponse({'exito': True, 'predicciones': agrupado})
 
 
-#API RL-4: HISTORIAL DE PREDICCIONES POR ANIMAL
+#API RL-4: HISTORIAL DE PREDICCIONES POR ANIMAL (EN VIVO)
 def api_historial_rl4_animal(request, animal_id):
+    from .ml_engine import predecir, modelo_esta_entrenado
+
     print(f"✅ ENDPOINT LLAMADO - Animal ID: {animal_id} (RL-4)")
+
     try:
         animal = Animal.objects.get(id_an=animal_id)
-        print(f"✅ Animal encontrado: {animal.codigo_an}")
     except Animal.DoesNotExist:
-        print(f"❌ Animal NO encontrado: {animal_id}")
         return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'}, status=404)
-    
+
+    if not modelo_esta_entrenado('RL-4'):
+        return JsonResponse({'exito': False, 'mensaje': 'Modelo RL-4 no está entrenado'})
+
     try:
         modelo = ModeloML.objects.get(codigo_mm='RL-4')
-        print(f"✅ Modelo RL-4 encontrado")
     except ModeloML.DoesNotExist:
-        print(f"❌ Modelo RL-4 NO encontrado")
         return JsonResponse({'exito': False, 'mensaje': 'Modelo RL-4 no encontrado'})
-    
-    predicciones = PrediccionML.objects.filter(fk_mm=modelo, fk_an=animal).order_by('-fecha_prediccion_pm')
-    print(f"📊 Predicciones encontradas: {predicciones.count()}")
-    
-    if not predicciones.exists():
-        print(f"⚠️ Sin predicciones para animal {animal_id}")
-        return JsonResponse({'exito': True, 'mensaje': 'No hay predicciones', 'predicciones': {}})
-    
+
+    # OBTENER REGISTROS DE CALIDAD DEL ANIMAL
+    calidades = CalidadLeche.objects.filter(
+        fk_an=animal,
+        grasa_pct_cl__isnull=False,
+        proteina_pct_cl__isnull=False,
+        ccs_cl__isnull=False,
+        resultado_cl__isnull=False
+    ).exclude(
+        resultado_cl='pendiente'
+    ).order_by('-fecha_muestreo_cl')
+
+    print(f"📊 Registros de calidad encontrados: {calidades.count()}")
+
+    if not calidades.exists():
+        return JsonResponse({'exito': True, 'mensaje': 'No hay registros de calidad para este animal', 'predicciones': {}})
+
     meses_espanol = {1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',
                      7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'}
-    
+
     agrupado = {}
-    for pred in predicciones:
-        anio = pred.fecha_prediccion_pm.year
-        mes_num = pred.fecha_prediccion_pm.month
+
+    for c in calidades:
+        anio = c.fecha_muestreo_cl.year
+        mes_num = c.fecha_muestreo_cl.month
         mes_nombre = meses_espanol.get(mes_num, 'Desconocido')
         clave_mes = f"{mes_nombre} {anio}"
-        
+
         if anio not in agrupado:
             agrupado[anio] = {}
         if clave_mes not in agrupado[anio]:
             agrupado[anio][clave_mes] = []
-        
-        datos = pred.datos_entrada_pm or {}
-        agrupado[anio][clave_mes].append({
-            'fecha': pred.fecha_prediccion_pm.strftime('%d/%m/%Y %H:%M'),
-            'temperatura_ambiental': datos.get('temperatura_ambiental', 'N/A'),
-            'cantidad_concentrado_kg': datos.get('cantidad_concentrado_kg', 'N/A'),
-            'temperatura_leche': datos.get('temperatura_leche', 'N/A'),
-            'prediccion': pred.resultado_prediccion_pm or 'N/A',
-            'confianza': f"R²: {modelo.valor_metrica_mm * 100:.1f}%" if modelo.valor_metrica_mm else 'N/A',
-        })
-    
-    print(f"✅ Retornando {len(agrupado)} años de predicciones")
+
+        datos_entrada = {
+            'grasa_pct': float(c.grasa_pct_cl or 0),
+            'proteina_pct': float(c.proteina_pct_cl or 0),
+            'ccs': float(c.ccs_cl or 0),
+        }
+
+        resultado = predecir('RL-4', datos_entrada)
+
+        if resultado.get('exito'):
+            agrupado[anio][clave_mes].append({
+                'fecha': c.fecha_muestreo_cl.strftime('%d/%m/%Y'),
+                'grasa_pct': float(c.grasa_pct_cl or 0),
+                'proteina_pct': float(c.proteina_pct_cl or 0),
+                'ccs': float(c.ccs_cl or 0),
+                'resultado_real': c.resultado_cl,
+                'prediccion': resultado['prediccion'],
+                'probabilidad': round(resultado.get('probabilidad', 0) * 100, 1),
+                'confianza': f"Acc: {modelo.valor_metrica_mm * 100:.1f}%" if modelo.valor_metrica_mm else 'N/A',
+            })
+
     return JsonResponse({'exito': True, 'predicciones': agrupado})
