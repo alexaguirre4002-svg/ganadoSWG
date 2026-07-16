@@ -1,5 +1,5 @@
 # ============================================================
-# ml_engine.py - VERSIÓN MODIFICADA (SIN DATOS DE EJEMPLO)
+# ml_engine.py - VERSIÓN COMPLETA CON FUNCIÓN PREDECIR
 # ============================================================
 
 import os
@@ -657,3 +657,149 @@ def obtener_ruta_modelo(codigo_mm):
 def modelo_esta_entrenado(codigo_mm):
     """Verifica si un modelo está entrenado (archivo .pkl existe)"""
     return os.path.exists(obtener_ruta_modelo(codigo_mm))
+
+
+# ============================================================
+# FUNCIÓN PARA PREDECIR CON UN MODELO ENTRENADO (NUEVA)
+# ============================================================
+
+def predecir(codigo_mm, datos_entrada):
+    """
+    Realiza una predicción con un modelo entrenado.
+    
+    Args:
+        codigo_mm (str): Código del modelo (AD-1, AD-2, RL-4)
+        datos_entrada (dict): Datos de entrada para la predicción
+    
+    Returns:
+        dict: Resultado con 'exito', 'prediccion', 'probabilidad' (si aplica)
+    """
+    ruta_modelo = obtener_ruta_modelo(codigo_mm)
+    
+    if not os.path.exists(ruta_modelo):
+        return {
+            'exito': False,
+            'mensaje': f'El modelo {codigo_mm} no está entrenado. Archivo no encontrado: {ruta_modelo}'
+        }
+    
+    try:
+        # Cargar el modelo y sus dependencias
+        modelo_data = joblib.load(ruta_modelo)
+        modelo = modelo_data['modelo']
+        
+        # ============================================================
+        # AD-1: Predicción de Litros de Leche
+        # ============================================================
+        if codigo_mm == 'AD-1':
+            # Extraer datos de entrada
+            temp_ambiental = float(datos_entrada.get('temperatura_ambiental', 0))
+            concentrado_kg = float(datos_entrada.get('cantidad_concentrado_kg', 0))
+            temp_leche = float(datos_entrada.get('temperatura_leche', 0))
+            
+            # Características del modelo AD-1 (14 características)
+            caracteristicas = [
+                0,  # edad_dias (no disponible)
+                0,  # edad_anios (no disponible)
+                0,  # raza_cod (no disponible)
+                0,  # peso_kg (no disponible)
+                0,  # condicion_corporal (no disponible)
+                0,  # num_partos (no disponible)
+                0,  # promedio_7dias (no disponible)
+                0,  # cantidad_consumida (no disponible)
+                0,  # cantidad_ofrecida (no disponible)
+                6,  # mes (default Junio)
+                0,  # temporada_cod (default)
+                temp_ambiental,
+                temp_leche,
+                concentrado_kg
+            ]
+            
+            # Escalar los datos
+            scaler = modelo_data.get('scaler')
+            if scaler:
+                X = np.array([caracteristicas])
+                X_scaled = scaler.transform(X)
+                prediccion = modelo.predict(X_scaled)[0]
+            else:
+                prediccion = modelo.predict([caracteristicas])[0]
+            
+            return {
+                'exito': True,
+                'prediccion': round(float(prediccion), 2),
+                'mensaje': 'Predicción exitosa'
+            }
+        
+        # ============================================================
+        # AD-2: Clasificación de Preñez
+        # ============================================================
+        elif codigo_mm == 'AD-2':
+            # Extraer datos de entrada
+            dias = float(datos_entrada.get('dias_desde_inseminacion', 60))
+            condicion = float(datos_entrada.get('condicion_corporal', 3))
+            dia_ciclo = float(datos_entrada.get('dia_ciclo', 14))
+            
+            # Características del modelo AD-2 (11 características)
+            caracteristicas = [
+                dias,
+                0,  # num_partos
+                0,  # raza_cod
+                condicion,
+                0,  # produccion_leche
+                0,  # intensidad_cod
+                0,  # duracion_celo_horas
+                0,  # tipo_cod
+                0,  # toro_cod
+                0,  # historial_abortos
+                dia_ciclo
+            ]
+            
+            X = np.array([caracteristicas])
+            prediccion = modelo.predict(X)[0]
+            probabilidad = modelo.predict_proba(X)[0]
+            
+            # Obtener la probabilidad de la clase predicha
+            prob = float(max(probabilidad)) if len(probabilidad) > 0 else 0
+            
+            return {
+                'exito': True,
+                'prediccion': 'Preñada' if prediccion == 1 else 'No Preñada',
+                'probabilidad': prob,
+                'mensaje': 'Predicción exitosa'
+            }
+        
+        # ============================================================
+        # RL-4: Clasificación de Calidad de Leche
+        # ============================================================
+        elif codigo_mm == 'RL-4':
+            # Extraer datos de entrada
+            grasa = float(datos_entrada.get('grasa_pct', 3.5))
+            proteina = float(datos_entrada.get('proteina_pct', 3.2))
+            ccs = float(datos_entrada.get('ccs', 200000))
+            
+            # Características del modelo RL-4
+            caracteristicas = [grasa, proteina, ccs, 0]  # ufc no disponible
+            
+            X = np.array([caracteristicas])
+            prediccion = modelo.predict(X)[0]
+            probabilidad = modelo.predict_proba(X)[0]
+            
+            prob = float(max(probabilidad)) if len(probabilidad) > 0 else 0
+            
+            return {
+                'exito': True,
+                'prediccion': 'Apto' if prediccion == 1 else 'No Apto',
+                'probabilidad': prob,
+                'mensaje': 'Predicción exitosa'
+            }
+        
+        else:
+            return {
+                'exito': False,
+                'mensaje': f'Código {codigo_mm} no implementado para predicción'
+            }
+            
+    except Exception as e:
+        return {
+            'exito': False,
+            'mensaje': f'Error al predecir: {str(e)}'
+        }
