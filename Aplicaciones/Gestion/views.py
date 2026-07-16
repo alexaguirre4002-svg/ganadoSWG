@@ -10607,56 +10607,88 @@ def entrenar_modelos_render(request):
 # MODELO ML 1 LITROS DE LECHE (AD-1) PARA MI HTML
 # ==========================================
 # ==========================================
-# VISTA: LECHE ML - AD-1
+# VISTA: LECHE ML - AD-1 (PREDICCIÓN EN VIVO)
 # ==========================================
 def leche_ml(request):
-    from .ml_engine import modelo_esta_entrenado
-    
+    from .ml_engine import predecir, modelo_esta_entrenado
+    from django.db.models import Avg, Sum, Count
+    from datetime import timedelta
+
     estado_ad1 = modelo_esta_entrenado('AD-1')
     metrica_ad1 = None
-    
+
     try:
         modelo = ModeloML.objects.get(codigo_mm='AD-1')
         if modelo.valor_metrica_mm:
             metrica_ad1 = round(float(modelo.valor_metrica_mm) * 100, 1)
     except ModeloML.DoesNotExist:
         pass
-    
+
     predicciones_por_animal = []
-    
+
     if estado_ad1:
-        try:
-            modelo_db = ModeloML.objects.get(codigo_mm='AD-1')
-            predicciones = PrediccionML.objects.filter(
-                fk_mm=modelo_db
-            ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_prediccion_pm')
-            
-            animales_dict = {}
-            for pred in predicciones:
-                animal = pred.fk_an
-                if animal:
-                    if animal.id_an not in animales_dict:
-                        animales_dict[animal.id_an] = {
-                            'animal': animal,
-                            'total_predicciones': 0,
-                            'ultima_fecha': None
-                        }
-                    animales_dict[animal.id_an]['total_predicciones'] += 1
-                    if animales_dict[animal.id_an]['ultima_fecha'] is None or pred.fecha_prediccion_pm > animales_dict[animal.id_an]['ultima_fecha']:
-                        animales_dict[animal.id_an]['ultima_fecha'] = pred.fecha_prediccion_pm
-            
-            predicciones_por_animal = list(animales_dict.values())
-            predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
-            
-        except ModeloML.DoesNotExist:
-            pass
-    
+        # OBTENER TODOS LOS ORDEÑOS CON DATOS COMPLETOS (INCLUYE 2026)
+        ordenos = Ordeno.objects.filter(
+            temperatura_ambiental_or__isnull=False,
+            cantidad_concentrado_kg_or__isnull=False,
+            temperatura_leche_or__isnull=False,
+            litros_or__isnull=False
+        ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_or')
+
+        print(f"[ML] Ordeños encontrados: {ordenos.count()}")
+
+        animales_dict = {}
+
+        for o in ordenos:
+            animal = o.fk_an
+            if not animal:
+                continue
+
+            # DATOS DE ENTRADA PARA LA PREDICCIÓN
+            datos_entrada = {
+                'temperatura_ambiental': float(o.temperatura_ambiental_or),
+                'cantidad_concentrado_kg': float(o.cantidad_concentrado_kg_or),
+                'temperatura_leche': float(o.temperatura_leche_or)
+            }
+
+            # PREDECIR CON EL MODELO .pkl
+            resultado = predecir('AD-1', datos_entrada)
+
+            if resultado.get('exito'):
+                if animal.id_an not in animales_dict:
+                    animales_dict[animal.id_an] = {
+                        'animal': animal,
+                        'total_predicciones': 0,
+                        'ultima_fecha': None,
+                        'predicciones': []
+                    }
+
+                animales_dict[animal.id_an]['predicciones'].append({
+                    'fecha': o.fecha_or,
+                    'temperatura_ambiental': o.temperatura_ambiental_or,
+                    'cantidad_concentrado_kg': o.cantidad_concentrado_kg_or,
+                    'temperatura_leche': o.temperatura_leche_or,
+                    'litros_reales': float(o.litros_or),
+                    'prediccion': round(resultado['prediccion'], 2)
+                })
+
+                animales_dict[animal.id_an]['total_predicciones'] += 1
+
+                if animales_dict[animal.id_an]['ultima_fecha'] is None or o.fecha_or > animales_dict[animal.id_an]['ultima_fecha']:
+                    animales_dict[animal.id_an]['ultima_fecha'] = o.fecha_or
+
+        predicciones_por_animal = list(animales_dict.values())
+        predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
+
+        print(f"[ML] Animales con predicciones: {len(predicciones_por_animal)}")
+        print(f"[ML] Total predicciones: {sum(a['total_predicciones'] for a in predicciones_por_animal)}")
+
     contexto = {
         'estado_ad1': estado_ad1,
         'metrica_ad1': metrica_ad1,
         'predicciones_por_animal': predicciones_por_animal,
     }
-    
+
     return render(request, 'ML/prediccionML/lecheL_ML.html', contexto)
 
 
@@ -10765,56 +10797,73 @@ def calidad_leche_ml(request):
 
 
 
-#API AD-1: HISTORIAL DE PREDICCIONES POR ANIMAL
+#API AD-1: HISTORIAL DE PREDICCIONES POR ANIMAL (EN VIVO)
 def api_historial_ad1_animal(request, animal_id):
+    from .ml_engine import predecir, modelo_esta_entrenado
+
     print(f"✅ ENDPOINT LLAMADO - Animal ID: {animal_id}")
+
     try:
         animal = Animal.objects.get(id_an=animal_id)
-        print(f"✅ Animal encontrado: {animal.codigo_an}")
     except Animal.DoesNotExist:
-        print(f"❌ Animal NO encontrado: {animal_id}")
         return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'}, status=404)
-    
+
+    if not modelo_esta_entrenado('AD-1'):
+        return JsonResponse({'exito': False, 'mensaje': 'Modelo AD-1 no está entrenado'})
+
     try:
         modelo = ModeloML.objects.get(codigo_mm='AD-1')
-        print(f"✅ Modelo AD-1 encontrado")
     except ModeloML.DoesNotExist:
-        print(f"❌ Modelo AD-1 NO encontrado")
         return JsonResponse({'exito': False, 'mensaje': 'Modelo AD-1 no encontrado'})
-    
-    predicciones = PrediccionML.objects.filter(fk_mm=modelo, fk_an=animal).order_by('-fecha_prediccion_pm')
-    print(f"📊 Predicciones encontradas: {predicciones.count()}")
-    
-    if not predicciones.exists():
-        print(f"⚠️ Sin predicciones para animal {animal_id}")
-        return JsonResponse({'exito': True, 'mensaje': 'No hay predicciones', 'predicciones': {}})
-    
+
+    # OBTENER ORDEÑOS DEL ANIMAL
+    ordenos = Ordeno.objects.filter(
+        fk_an=animal,
+        temperatura_ambiental_or__isnull=False,
+        cantidad_concentrado_kg_or__isnull=False,
+        temperatura_leche_or__isnull=False
+    ).order_by('-fecha_or')
+
+    print(f"📊 Ordeños encontrados: {ordenos.count()}")
+
+    if not ordenos.exists():
+        return JsonResponse({'exito': True, 'mensaje': 'No hay ordeños', 'predicciones': {}})
+
     meses_espanol = {1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',
                      7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'}
-    
+
     agrupado = {}
-    for pred in predicciones:
-        anio = pred.fecha_prediccion_pm.year
-        mes_num = pred.fecha_prediccion_pm.month
+
+    for o in ordenos:
+        anio = o.fecha_or.year
+        mes_num = o.fecha_or.month
         mes_nombre = meses_espanol.get(mes_num, 'Desconocido')
         clave_mes = f"{mes_nombre} {anio}"
-        
+
         if anio not in agrupado:
             agrupado[anio] = {}
         if clave_mes not in agrupado[anio]:
             agrupado[anio][clave_mes] = []
-        
-        datos = pred.datos_entrada_pm or {}
-        agrupado[anio][clave_mes].append({
-            'fecha': pred.fecha_prediccion_pm.strftime('%d/%m/%Y %H:%M'),
-            'temperatura_ambiental': datos.get('temperatura_ambiental', 'N/A'),
-            'cantidad_concentrado_kg': datos.get('cantidad_concentrado_kg', 'N/A'),
-            'temperatura_leche': datos.get('temperatura_leche', 'N/A'),
-            'prediccion': pred.resultado_prediccion_pm or 'N/A',
-            'confianza': f"R²: {modelo.valor_metrica_mm * 100:.1f}%" if modelo.valor_metrica_mm else 'N/A',
-        })
-    
-    print(f"✅ Retornando {len(agrupado)} años de predicciones")
+
+        datos_entrada = {
+            'temperatura_ambiental': float(o.temperatura_ambiental_or),
+            'cantidad_concentrado_kg': float(o.cantidad_concentrado_kg_or),
+            'temperatura_leche': float(o.temperatura_leche_or)
+        }
+
+        resultado = predecir('AD-1', datos_entrada)
+
+        if resultado.get('exito'):
+            agrupado[anio][clave_mes].append({
+                'fecha': o.fecha_or.strftime('%d/%m/%Y'),
+                'temperatura_ambiental': float(o.temperatura_ambiental_or),
+                'cantidad_concentrado_kg': float(o.cantidad_concentrado_kg_or),
+                'temperatura_leche': float(o.temperatura_leche_or),
+                'litros_reales': float(o.litros_or),
+                'prediccion': round(resultado['prediccion'], 2),
+                'confianza': f"R²: {modelo.valor_metrica_mm * 100:.1f}%" if modelo.valor_metrica_mm else 'N/A',
+            })
+
     return JsonResponse({'exito': True, 'predicciones': agrupado})
 
 
