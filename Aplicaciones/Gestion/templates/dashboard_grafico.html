@@ -2,14 +2,14 @@
 {% load static %}
 
 {% block titulo %}
-Dashboard estadístico | Hacienda Joseph
+Dashboard Estadístico | Hacienda Joseph
 {% endblock %}
 
 {% block breadcrumb %}
 <li class="breadcrumb-item">
     <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a>
 </li>
-<li class="breadcrumb-item active" aria-current="page">Dashboard estadístico</li>
+<li class="breadcrumb-item active" aria-current="page">Dashboard Estadístico</li>
 {% endblock %}
 
 {% block contenido %}
@@ -18,7 +18,7 @@ Dashboard estadístico | Hacienda Joseph
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8">
         <h2 class="fw-bold" style="color: var(--color-primario);">
-            <i class="bi bi-bar-chart-line me-2"></i>Dashboard estadístico
+            <i class="bi bi-bar-chart-line me-2"></i>Dashboard Estadístico
         </h2>
         <p class="text-muted mb-0">
             <i class="bi bi-info-circle me-1"></i>Análisis integral de la hacienda con Machine Learning
@@ -173,7 +173,9 @@ Dashboard estadístico | Hacienda Joseph
                                                                 <i class="bi bi-pie-chart me-2"></i>Producción por Turno
                                                             </div>
                                                             <div class="p-3">
-                                                                <canvas id="graficaTurno_{{ anio }}_{{ mes_num }}" height="180"></canvas>
+                                                                <div style="position: relative; height: 220px;">
+                                                                    <canvas id="graficaTurno_{{ anio }}_{{ mes_num }}"></canvas>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -183,7 +185,9 @@ Dashboard estadístico | Hacienda Joseph
                                                                 <i class="bi bi-cash-coin me-2"></i>Costos por Categoría
                                                             </div>
                                                             <div class="p-3">
-                                                                <canvas id="graficaCostos_{{ anio }}_{{ mes_num }}" height="180"></canvas>
+                                                                <div style="position: relative; height: 220px;">
+                                                                    <canvas id="graficaCostos_{{ anio }}_{{ mes_num }}"></canvas>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -579,7 +583,7 @@ new Chart(ctxCostos, {
                     borderWidth: 2
                 }]
             },
-            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
         });
     }
     var elCostos = document.getElementById('graficaCostos_{{ anio }}_{{ mes_num }}');
@@ -594,7 +598,7 @@ new Chart(ctxCostos, {
                     borderWidth: 2
                 }]
             },
-            options: { responsive: true, plugins: { legend: { position: 'right' } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
         });
     }
 })();
