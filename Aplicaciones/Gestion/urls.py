@@ -199,7 +199,7 @@ urlpatterns = [
     # Dashboard con predicciones automaticas
     path('dashboardml/', views.dashboardml, name='dashboardml'),
     # Dashboard gráfico con estadísticas
-    path('dashboard_grafico/', views.dashboard_grafico, name='dashboard_grafico'),
+    path('dashboard-estadistico/', views.dashboard_grafico, name='dashboard_grafico'),
     # Predicciones manuales con modelos .pkl entrenados
     path('prediccion/ad1/', views.prediccion_ad1, name='prediccion_ad1'),
     path('prediccion/ad2/', views.prediccion_ad2, name='prediccion_ad2'),
