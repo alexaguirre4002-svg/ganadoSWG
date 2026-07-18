@@ -10411,13 +10411,15 @@ def prediccion_rl4(request):
 
 def dashboard_grafico(request):
     """
-    Dashboard gráfico con estadísticas generales de la hacienda
-    y recomendaciones basadas en Machine Learning.
+    Dashboard gráfico con estadísticas generales de la hacienda,
+    recomendaciones basadas en Machine Learning, e historial detallado
+    por AÑO → MES con su propio mini-dashboard por tabla.
     """
     from .ml_engine import modelo_esta_entrenado
     from django.db.models.functions import ExtractMonth, ExtractYear
+    from collections import defaultdict
 
-    # === PRODUCCIÓN DE LECHE ===
+    # === PRODUCCIÓN DE LECHE (GLOBAL - SIN CAMBIOS) ===
     produccion_mes = Ordeno.objects.annotate(
         mes=ExtractMonth('fecha_or'),
         anio=ExtractYear('fecha_or')
@@ -10435,7 +10437,7 @@ def dashboard_grafico(request):
         total=Sum('litros_or')
     )
 
-    # === CALIDAD DE LECHE ===
+    # === CALIDAD DE LECHE (GLOBAL - SIN CAMBIOS) ===
     calidad_mes = CalidadLeche.objects.annotate(
         mes=ExtractMonth('fecha_muestreo_cl'),
         anio=ExtractYear('fecha_muestreo_cl')
@@ -10444,7 +10446,7 @@ def dashboard_grafico(request):
         no_aptos=Count('id_cl', filter=Q(resultado_cl='no_apto'))
     ).order_by('anio', 'mes')[:12]
 
-    # === ANIMALES ===
+    # === ANIMALES (GLOBAL - SIN CAMBIOS) ===
     total_animales = Animal.objects.count()
     animales_categoria = Animal.objects.values('categoria_an').annotate(
         cantidad=Count('id_an')
@@ -10453,7 +10455,7 @@ def dashboard_grafico(request):
         cantidad=Count('id_an')
     )
 
-    # === FINANZAS ===
+    # === FINANZAS (GLOBAL - SIN CAMBIOS) ===
     total_costos = Costo.objects.aggregate(total=Sum('monto_co'))['total'] or 0
     total_ingresos = Ingreso.objects.aggregate(total=Sum('monto_total_ig'))['total'] or 0
     balance = float(total_ingresos) - float(total_costos)
@@ -10462,14 +10464,14 @@ def dashboard_grafico(request):
         total=Sum('monto_co')
     ).order_by('-total')[:5]
 
-    # === MACHINE LEARNING ===
+    # === MACHINE LEARNING (GLOBAL - SIN CAMBIOS) ===
     ml_estado = {
         'ad1': modelo_esta_entrenado('AD-1'),
         'ad2': modelo_esta_entrenado('AD-2'),
         'rl4': modelo_esta_entrenado('RL-4'),
     }
 
-    # === RECOMENDACIONES ===
+    # === RECOMENDACIONES GLOBALES (SIN CAMBIOS) ===
     recomendaciones = []
 
     if produccion_mes:
@@ -10532,7 +10534,7 @@ def dashboard_grafico(request):
             'texto': 'Los modelos de predicción están entrenados y listos para apoyar la toma de decisiones.'
         })
 
-    # === PREPARAR DATOS PARA GRÁFICAS ===
+    # === PREPARAR DATOS PARA GRÁFICAS GLOBALES (SIN CAMBIOS) ===
     meses_labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
     prod_labels = []
@@ -10560,6 +10562,206 @@ def dashboard_grafico(request):
     turno_labels = [t['turno_or'] for t in litros_turno]
     turno_values = [float(t['total'] or 0) for t in litros_turno]
 
+    # ==========================================================
+    # NUEVO: HISTORIAL DETALLADO POR AÑO → MES
+    # Un mini-dashboard completo (producción, calidad, finanzas,
+    # reproducción, sanidad, animales) para cada período con datos.
+    # ==========================================================
+    meses_es = {
+        1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio',
+        7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+    }
+
+    # Recolectar todos los períodos (año, mes) que tienen actividad en alguna tabla
+    periodos = set()
+    fuentes_fecha = [
+        (Ordeno, 'fecha_or'),
+        (CalidadLeche, 'fecha_muestreo_cl'),
+        (Costo, 'fecha_co'),
+        (Ingreso, 'fecha_ig'),
+        (Parto, 'fecha_pa'),
+        (Inseminacion, 'fecha_in'),
+        (Prenez, 'fecha_confirmacion_pr'),
+        (Aborto, 'fecha_ab'),
+        (EventoSanitario, 'fecha_programada_es'),
+        (RegistroClinico, 'fecha_rc'),
+        (Animal, 'fecha_ingreso_an'),
+    ]
+    for modelo, campo in fuentes_fecha:
+        fechas = modelo.objects.exclude(**{f'{campo}__isnull': True}).values_list(campo, flat=True)
+        for f in fechas:
+            if f:
+                periodos.add((f.year, f.month))
+
+    promedio_historico_litros = float(Ordeno.objects.aggregate(p=Avg('litros_or'))['p'] or 0)
+
+    dashboard_periodos = defaultdict(dict)
+
+    for anio, mes in periodos:
+        inicio = date(anio, mes, 1)
+        fin = date(anio + 1, 1, 1) if mes == 12 else date(anio, mes + 1, 1)
+
+        # --- PRODUCCIÓN (Ordeno) ---
+        ordenos_p = Ordeno.objects.filter(fecha_or__gte=inicio, fecha_or__lt=fin)
+        total_litros = float(ordenos_p.aggregate(t=Sum('litros_or'))['t'] or 0)
+        promedio_litros = float(ordenos_p.aggregate(p=Avg('litros_or'))['p'] or 0)
+        num_ordenos = ordenos_p.count()
+        top_animal = ordenos_p.values('fk_an__codigo_an').annotate(
+            total=Sum('litros_or')
+        ).order_by('-total').first()
+        litros_turno_p = list(ordenos_p.values('turno_or').annotate(total=Sum('litros_or')))
+
+        # --- CALIDAD (CalidadLeche) ---
+        calidad_p = CalidadLeche.objects.filter(fecha_muestreo_cl__gte=inicio, fecha_muestreo_cl__lt=fin)
+        total_calidad = calidad_p.count()
+        aptos = calidad_p.filter(resultado_cl='apto').count()
+        no_aptos = calidad_p.filter(resultado_cl='no_apto').count()
+        pct_aptos = round(aptos / total_calidad * 100, 1) if total_calidad else None
+
+        # --- FINANZAS (Costo, Ingreso) ---
+        costos_p = Costo.objects.filter(fecha_co__gte=inicio, fecha_co__lt=fin)
+        ingresos_p = Ingreso.objects.filter(fecha_ig__gte=inicio, fecha_ig__lt=fin)
+        total_costos_p = float(costos_p.aggregate(t=Sum('monto_co'))['t'] or 0)
+        total_ingresos_p = float(ingresos_p.aggregate(t=Sum('monto_total_ig'))['t'] or 0)
+        balance_p = total_ingresos_p - total_costos_p
+        costos_categoria_p = list(costos_p.values('categoria_co').annotate(total=Sum('monto_co')).order_by('-total')[:5])
+
+        # --- ANIMALES / REPRODUCCIÓN (Animal, Parto, Aborto, Inseminacion, Prenez) ---
+        nuevos_animales = Animal.objects.filter(fecha_ingreso_an__gte=inicio, fecha_ingreso_an__lt=fin).count()
+        num_partos = Parto.objects.filter(fecha_pa__gte=inicio, fecha_pa__lt=fin).count()
+        num_abortos = Aborto.objects.filter(fecha_ab__gte=inicio, fecha_ab__lt=fin).count()
+
+        inseminaciones_p = Inseminacion.objects.filter(fecha_in__gte=inicio, fecha_in__lt=fin)
+        num_inseminaciones = inseminaciones_p.count()
+        prenezes_confirmadas = Prenez.objects.filter(
+            fecha_confirmacion_pr__gte=inicio, fecha_confirmacion_pr__lt=fin
+        ).count()
+
+        tasa_prenez = None
+        con_resultado = inseminaciones_p.exclude(resultado_in='pendiente').count()
+        prenadas = inseminaciones_p.filter(resultado_in='preñada').count()
+        if con_resultado:
+            tasa_prenez = round(prenadas / con_resultado * 100, 1)
+
+        # --- SANIDAD (EventoSanitario, RegistroClinico) ---
+        eventos_p = EventoSanitario.objects.filter(fecha_programada_es__gte=inicio, fecha_programada_es__lt=fin)
+        num_eventos = eventos_p.count()
+        eventos_pendientes = eventos_p.filter(estado_es='pendiente').count()
+        registros_clinicos_p = RegistroClinico.objects.filter(fecha_rc__gte=inicio, fecha_rc__lt=fin).count()
+        costo_sanitario = float(eventos_p.aggregate(t=Sum('costo_es'))['t'] or 0) + float(
+            RegistroClinico.objects.filter(
+                fecha_rc__gte=inicio, fecha_rc__lt=fin
+            ).aggregate(t=Sum('costo_tratamiento_rc'))['t'] or 0
+        )
+
+        # --- RECOMENDACIONES ESPECÍFICAS DEL PERÍODO ---
+        recs = []
+
+        if pct_aptos is not None:
+            if pct_aptos < 70:
+                recs.append({
+                    'tipo': 'danger', 'icono': 'bi-exclamation-triangle',
+                    'titulo': 'Calidad de leche crítica',
+                    'texto': f'Solo el {pct_aptos}% de las muestras fueron aptas este mes. Revisar higiene de ordeño, posible mastitis subclínica y cadena de frío.'
+                })
+            elif pct_aptos < 90:
+                recs.append({
+                    'tipo': 'warning', 'icono': 'bi-droplet-half',
+                    'titulo': 'Calidad de leche por mejorar',
+                    'texto': f'{pct_aptos}% de aptitud. Reforzar protocolos de limpieza de ubres y equipos de ordeño.'
+                })
+            else:
+                recs.append({
+                    'tipo': 'success', 'icono': 'bi-check-circle',
+                    'titulo': 'Excelente calidad de leche',
+                    'texto': f'{pct_aptos}% de las muestras aptas. Mantener el manejo actual.'
+                })
+
+        if balance_p < 0:
+            recs.append({
+                'tipo': 'danger', 'icono': 'bi-cash-stack',
+                'titulo': 'Balance mensual negativo',
+                'texto': f'Los costos superaron los ingresos en ${abs(balance_p):.2f}. Revisar gastos en alimentación y sanidad.'
+            })
+
+        if tasa_prenez is not None and tasa_prenez < 50:
+            recs.append({
+                'tipo': 'warning', 'icono': 'bi-heart-pulse',
+                'titulo': 'Baja tasa de preñez',
+                'texto': f'Solo el {tasa_prenez}% de las inseminaciones resultaron en preñez. Evaluar condición corporal, momento de inseminación y calidad del toro/semen.'
+            })
+
+        if num_abortos > 0:
+            recs.append({
+                'tipo': 'danger', 'icono': 'bi-exclamation-octagon',
+                'titulo': 'Abortos detectados',
+                'texto': f'Se registraron {num_abortos} aborto(s) este mes. Investigar causas nutricionales, infecciosas o de manejo.'
+            })
+
+        if eventos_pendientes > 0:
+            recs.append({
+                'tipo': 'warning', 'icono': 'bi-clipboard2-pulse',
+                'titulo': 'Eventos sanitarios pendientes',
+                'texto': f'Hay {eventos_pendientes} evento(s) sanitario(s) programados sin ejecutar. Priorizar su cumplimiento para evitar brotes.'
+            })
+
+        if promedio_litros and promedio_historico_litros:
+            diff_pct = (promedio_litros - promedio_historico_litros) / promedio_historico_litros * 100
+            if diff_pct <= -10:
+                recs.append({
+                    'tipo': 'warning', 'icono': 'bi-graph-down-arrow',
+                    'titulo': 'Producción por debajo del promedio',
+                    'texto': f'El promedio de litros/ordeño está {abs(diff_pct):.1f}% por debajo del histórico. Revisar dieta y confort animal.'
+                })
+            elif diff_pct >= 10:
+                recs.append({
+                    'tipo': 'success', 'icono': 'bi-graph-up-arrow',
+                    'titulo': 'Producción sobre el promedio',
+                    'texto': f'El promedio de litros/ordeño supera en {diff_pct:.1f}% al histórico. Buen desempeño del hato.'
+                })
+
+        if not recs:
+            recs.append({
+                'tipo': 'info', 'icono': 'bi-info-circle',
+                'titulo': 'Sin alertas relevantes',
+                'texto': 'No se detectaron indicadores críticos para este período.'
+            })
+
+        dashboard_periodos[anio][mes] = {
+            'mes_nombre': meses_es[mes],
+            'total_litros': total_litros,
+            'promedio_litros': promedio_litros,
+            'num_ordenos': num_ordenos,
+            'top_animal': top_animal,
+            'turno_labels': [t['turno_or'] for t in litros_turno_p],
+            'turno_values': [float(t['total'] or 0) for t in litros_turno_p],
+            'total_calidad': total_calidad,
+            'aptos': aptos,
+            'no_aptos': no_aptos,
+            'pct_aptos': pct_aptos,
+            'total_costos': total_costos_p,
+            'total_ingresos': total_ingresos_p,
+            'balance': balance_p,
+            'costos_labels': [c['categoria_co'] for c in costos_categoria_p],
+            'costos_values': [float(c['total'] or 0) for c in costos_categoria_p],
+            'nuevos_animales': nuevos_animales,
+            'num_partos': num_partos,
+            'abortos': num_abortos,
+            'num_inseminaciones': num_inseminaciones,
+            'prenezes_confirmadas': prenezes_confirmadas,
+            'tasa_prenez': tasa_prenez,
+            'num_eventos_sanitarios': num_eventos,
+            'eventos_pendientes': eventos_pendientes,
+            'registros_clinicos': registros_clinicos_p,
+            'costo_sanitario': costo_sanitario,
+            'recomendaciones': recs,
+        }
+
+    # Ordenar: años más recientes primero, y dentro de cada año, meses más recientes primero
+    dashboard_periodos = dict(sorted(dashboard_periodos.items(), reverse=True))
+    for anio in dashboard_periodos:
+        dashboard_periodos[anio] = dict(sorted(dashboard_periodos[anio].items(), reverse=True))
+
     contexto = {
         'prod_labels': prod_labels,
         'prod_values': prod_values,
@@ -10580,6 +10782,7 @@ def dashboard_grafico(request):
         'cost_values': cost_values,
         'ml_estado': ml_estado,
         'recomendaciones': recomendaciones,
+        'dashboard_periodos': dashboard_periodos,
     }
 
     return render(request, 'dashboard_grafico.html', contexto)
@@ -10597,9 +10800,9 @@ def entrenar_modelos_render(request):
         return JsonResponse({'error': 'No autorizado'}, status=403)
 
     resultados = {}
-    resultados['AD-1'] = entrenar_modelo('AD-1', usar_datos_ejemplo=True)
-    resultados['AD-2'] = entrenar_modelo('AD-2', usar_datos_ejemplo=True)
-    resultados['RL-4'] = entrenar_modelo('RL-4', usar_datos_ejemplo=True)
+    resultados['AD-1'] = entrenar_modelo('AD-1')
+    resultados['AD-2'] = entrenar_modelo('AD-2')
+    resultados['RL-4'] = entrenar_modelo('RL-4')
 
     return JsonResponse(resultados, safe=False)
 

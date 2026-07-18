@@ -2,14 +2,14 @@
 {% load static %}
 
 {% block titulo %}
-Dashboard Estadístico | Hacienda Joseph
+Dashboard estadístico | Hacienda Joseph
 {% endblock %}
 
 {% block breadcrumb %}
 <li class="breadcrumb-item">
     <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a>
 </li>
-<li class="breadcrumb-item active" aria-current="page">Dashboard Estadístico</li>
+<li class="breadcrumb-item active" aria-current="page">Dashboard estadístico</li>
 {% endblock %}
 
 {% block contenido %}
@@ -18,7 +18,7 @@ Dashboard Estadístico | Hacienda Joseph
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8">
         <h2 class="fw-bold" style="color: var(--color-primario);">
-            <i class="bi bi-bar-chart-line me-2"></i>Dashboard Estadístico
+            <i class="bi bi-bar-chart-line me-2"></i>Dashboard estadístico
         </h2>
         <p class="text-muted mb-0">
             <i class="bi bi-info-circle me-1"></i>Análisis integral de la hacienda con Machine Learning
@@ -62,6 +62,193 @@ Dashboard Estadístico | Hacienda Joseph
         </div>
     </div>
 </div>
+
+<!-- ==========================================================
+     NUEVA SECCIÓN: HISTORIAL DETALLADO POR AÑO → MES
+     ========================================================== -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-calendar3 me-2"></i>Historial Detallado por Año y Mes
+            </div>
+            <div class="p-3">
+                {% if dashboard_periodos %}
+                <div class="accordion" id="accordionAnios">
+                    {% for anio, meses in dashboard_periodos.items %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingAnio{{ anio }}">
+                            <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#collapseAnio{{ anio }}"
+                                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
+                                <i class="bi bi-calendar-event me-2"></i><strong>Año {{ anio }}</strong>
+                            </button>
+                        </h2>
+                        <div id="collapseAnio{{ anio }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+                             data-bs-parent="#accordionAnios">
+                            <div class="accordion-body">
+                                <div class="accordion" id="accordionMeses{{ anio }}">
+                                    {% for mes_num, datos in meses.items %}
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="headingMes{{ anio }}_{{ mes_num }}">
+                                            <button class="accordion-button collapsed" type="button"
+                                                    data-bs-toggle="collapse" data-bs-target="#collapseMes{{ anio }}_{{ mes_num }}"
+                                                    aria-expanded="false">
+                                                <i class="bi bi-calendar3-week me-2"></i>{{ datos.mes_nombre }} {{ anio }}
+                                            </button>
+                                        </h2>
+                                        <div id="collapseMes{{ anio }}_{{ mes_num }}" class="accordion-collapse collapse"
+                                             data-bs-parent="#accordionMeses{{ anio }}">
+                                            <div class="accordion-body">
+
+                                                <!-- KPIs DEL MES: FILA 1 -->
+                                                <div class="row mb-3">
+                                                    <div class="col-md-3 col-6 mb-2">
+                                                        <div class="card-hacienda text-center p-2">
+                                                            <i class="bi bi-droplet" style="color: var(--color-primario);"></i>
+                                                            <h6 class="fw-bold mb-0">{{ datos.total_litros|floatformat:1 }} L</h6>
+                                                            <small class="text-muted">Producción total</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3 col-6 mb-2">
+                                                        <div class="card-hacienda text-center p-2">
+                                                            <i class="bi bi-check-circle text-success"></i>
+                                                            <h6 class="fw-bold mb-0">{% if datos.pct_aptos != None %}{{ datos.pct_aptos }}%{% else %}N/A{% endif %}</h6>
+                                                            <small class="text-muted">Leche apta</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3 col-6 mb-2">
+                                                        <div class="card-hacienda text-center p-2" style="border-left: 4px solid {% if datos.balance >= 0 %}#28a745{% else %}#dc3545{% endif %};">
+                                                            <i class="bi bi-wallet2 {% if datos.balance >= 0 %}text-success{% else %}text-danger{% endif %}"></i>
+                                                            <h6 class="fw-bold mb-0">${{ datos.balance|floatformat:2 }}</h6>
+                                                            <small class="text-muted">Balance del mes</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3 col-6 mb-2">
+                                                        <div class="card-hacienda text-center p-2">
+                                                            <i class="bi bi-heart-pulse" style="color: #fd7e14;"></i>
+                                                            <h6 class="fw-bold mb-0">{% if datos.tasa_prenez != None %}{{ datos.tasa_prenez }}%{% else %}N/A{% endif %}</h6>
+                                                            <small class="text-muted">Tasa de preñez</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- KPIs DEL MES: FILA 2 -->
+                                                <div class="row mb-3">
+                                                    <div class="col-md-3 col-6 mb-2">
+                                                        <div class="card-hacienda text-center p-2">
+                                                            <i class="bi bi-cow"></i>
+                                                            <h6 class="fw-bold mb-0">{{ datos.num_partos }}</h6>
+                                                            <small class="text-muted">Partos</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3 col-6 mb-2">
+                                                        <div class="card-hacienda text-center p-2">
+                                                            <i class="bi bi-exclamation-octagon text-danger"></i>
+                                                            <h6 class="fw-bold mb-0">{{ datos.abortos }}</h6>
+                                                            <small class="text-muted">Abortos</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3 col-6 mb-2">
+                                                        <div class="card-hacienda text-center p-2">
+                                                            <i class="bi bi-clipboard2-pulse"></i>
+                                                            <h6 class="fw-bold mb-0">{{ datos.num_eventos_sanitarios }}</h6>
+                                                            <small class="text-muted">Eventos sanitarios</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3 col-6 mb-2">
+                                                        <div class="card-hacienda text-center p-2">
+                                                            <i class="bi bi-plus-circle"></i>
+                                                            <h6 class="fw-bold mb-0">{{ datos.nuevos_animales }}</h6>
+                                                            <small class="text-muted">Ingresos de animales</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- GRÁFICAS DEL MES -->
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <div class="card-hacienda">
+                                                            <div class="card-header-hacienda">
+                                                                <i class="bi bi-pie-chart me-2"></i>Producción por Turno
+                                                            </div>
+                                                            <div class="p-3">
+                                                                <canvas id="graficaTurno_{{ anio }}_{{ mes_num }}" height="180"></canvas>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="card-hacienda">
+                                                            <div class="card-header-hacienda">
+                                                                <i class="bi bi-cash-coin me-2"></i>Costos por Categoría
+                                                            </div>
+                                                            <div class="p-3">
+                                                                <canvas id="graficaCostos_{{ anio }}_{{ mes_num }}" height="180"></canvas>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {% if datos.top_animal %}
+                                                <p class="mb-3">
+                                                    <i class="bi bi-trophy me-1" style="color: var(--color-primario);"></i>
+                                                    <strong>Mejor productor del mes:</strong>
+                                                    {{ datos.top_animal.fk_an__codigo_an }} con {{ datos.top_animal.total|floatformat:2 }} L
+                                                </p>
+                                                {% endif %}
+
+                                                <!-- DATOS ADICIONALES: REPRODUCCIÓN Y SANIDAD -->
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <small class="text-muted d-block">
+                                                            <i class="bi bi-clipboard-data me-1"></i>
+                                                            {{ datos.num_inseminaciones }} inseminación(es) · {{ datos.prenezes_confirmadas }} preñez(es) confirmada(s)
+                                                        </small>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <small class="text-muted d-block">
+                                                            <i class="bi bi-hospital me-1"></i>
+                                                            {{ datos.registros_clinicos }} registro(s) clínico(s) · Costo sanitario: ${{ datos.costo_sanitario|floatformat:2 }}
+                                                        </small>
+                                                    </div>
+                                                </div>
+
+                                                <!-- RECOMENDACIONES DEL MES -->
+                                                <h6 class="fw-bold mb-2"><i class="bi bi-lightbulb me-1"></i>Recomendaciones del período</h6>
+                                                <div class="row">
+                                                    {% for rec in datos.recomendaciones %}
+                                                    <div class="col-md-6 mb-2">
+                                                        <div class="alert alert-{{ rec.tipo }} d-flex align-items-start mb-0 py-2">
+                                                            <i class="bi {{ rec.icono }} me-2"></i>
+                                                            <div>
+                                                                <strong class="small">{{ rec.titulo }}</strong>
+                                                                <p class="mb-0 small">{{ rec.texto }}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">
+                    <i class="bi bi-info-circle me-1"></i>Aún no hay datos suficientes para mostrar el historial mensual.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ========================================================== -->
 
 <!-- GRÁFICAS: PRODUCCIÓN -->
 <div class="row mb-4 animate-fade-in">
@@ -372,6 +559,54 @@ new Chart(ctxCostos, {
             }
         }
     }
+});
+
+// ==========================================================
+// NUEVO: GRÁFICAS POR CADA PERÍODO (AÑO / MES) DEL ACORDEÓN
+// ==========================================================
+{% for anio, meses in dashboard_periodos.items %}
+{% for mes_num, datos in meses.items %}
+(function(){
+    var elTurno = document.getElementById('graficaTurno_{{ anio }}_{{ mes_num }}');
+    if (elTurno) {
+        new Chart(elTurno.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: {{ datos.turno_labels|safe|default:"[]" }},
+                datasets: [{
+                    data: {{ datos.turno_values|safe|default:"[]" }},
+                    backgroundColor: ['#4a7c22', '#fd7e14', '#17a2b8'],
+                    borderWidth: 2
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+    var elCostos = document.getElementById('graficaCostos_{{ anio }}_{{ mes_num }}');
+    if (elCostos) {
+        new Chart(elCostos.getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: {{ datos.costos_labels|safe|default:"[]" }},
+                datasets: [{
+                    data: {{ datos.costos_values|safe|default:"[]" }},
+                    backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#17a2b8', '#6f42c1'],
+                    borderWidth: 2
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'right' } } }
+        });
+    }
+})();
+{% endfor %}
+{% endfor %}
+
+// Las gráficas dentro de acordeones colapsados nacen con tamaño 0.
+// Al desplegar cada panel, forzamos un resize para que Chart.js las redibuje bien.
+document.querySelectorAll('.accordion-collapse').forEach(function(el){
+    el.addEventListener('shown.bs.collapse', function(){
+        window.dispatchEvent(new Event('resize'));
+    });
 });
 </script>
 {% endblock %}
