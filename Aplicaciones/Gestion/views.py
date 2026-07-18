@@ -10406,7 +10406,7 @@ def prediccion_rl4(request):
     return render(request, 'ML/prediccionML/nueva_prediccion.html', contexto)
 
 # ==========================================
-# VISTA: DASHBOARD GRÁFICO (ESTADÍSTICAS)
+# VISTA: DASHBOARD GRÁFICO (ESTADÍSTICAS) - OPTIMIZADA
 # ==========================================
 
 def dashboard_grafico(request):
@@ -10414,6 +10414,9 @@ def dashboard_grafico(request):
     Dashboard gráfico con estadísticas generales de la hacienda,
     recomendaciones basadas en Machine Learning, e historial detallado
     por AÑO → MES con su propio mini-dashboard por tabla.
+
+    OPTIMIZADO: usa consultas agrupadas (GROUP BY año/mes) en vez de
+    una consulta por cada periodo, para evitar timeouts en Render.
     """
     from .ml_engine import modelo_esta_entrenado
     from django.db.models.functions import ExtractMonth, ExtractYear
@@ -10425,7 +10428,7 @@ def dashboard_grafico(request):
         anio=ExtractYear('fecha_or')
     ).values('mes', 'anio').annotate(
         total_litros=Sum('litros_or'),
-        cantidad=Count('id_or')
+        cantidad=Count('pk')
     ).order_by('anio', 'mes')[:12]
 
     produccion_animal = Ordeno.objects.values('fk_an__codigo_an').annotate(
@@ -10442,17 +10445,17 @@ def dashboard_grafico(request):
         mes=ExtractMonth('fecha_muestreo_cl'),
         anio=ExtractYear('fecha_muestreo_cl')
     ).values('mes', 'anio').annotate(
-        aptos=Count('id_cl', filter=Q(resultado_cl='apto')),
-        no_aptos=Count('id_cl', filter=Q(resultado_cl='no_apto'))
+        aptos=Count('pk', filter=Q(resultado_cl='apto')),
+        no_aptos=Count('pk', filter=Q(resultado_cl='no_apto'))
     ).order_by('anio', 'mes')[:12]
 
     # === ANIMALES (GLOBAL - SIN CAMBIOS) ===
     total_animales = Animal.objects.count()
     animales_categoria = Animal.objects.values('categoria_an').annotate(
-        cantidad=Count('id_an')
+        cantidad=Count('pk')
     )
     animales_estado = Animal.objects.values('estado_an').annotate(
-        cantidad=Count('id_an')
+        cantidad=Count('pk')
     )
 
     # === FINANZAS (GLOBAL - SIN CAMBIOS) ===
@@ -10563,96 +10566,189 @@ def dashboard_grafico(request):
     turno_values = [float(t['total'] or 0) for t in litros_turno]
 
     # ==========================================================
-    # NUEVO: HISTORIAL DETALLADO POR AÑO → MES
-    # Un mini-dashboard completo (producción, calidad, finanzas,
-    # reproducción, sanidad, animales) para cada período con datos.
+    # NUEVO (OPTIMIZADO): HISTORIAL DETALLADO POR AÑO → MES
+    # Todo agrupado con GROUP BY en la base de datos: ~12 consultas
+    # EN TOTAL (no por período), sin importar cuántos meses tengas.
     # ==========================================================
     meses_es = {
         1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio',
         7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
     }
 
-    # Recolectar todos los períodos (año, mes) que tienen actividad en alguna tabla
-    periodos = set()
-    fuentes_fecha = [
-        (Ordeno, 'fecha_or'),
-        (CalidadLeche, 'fecha_muestreo_cl'),
-        (Costo, 'fecha_co'),
-        (Ingreso, 'fecha_ig'),
-        (Parto, 'fecha_pa'),
-        (Inseminacion, 'fecha_in'),
-        (Prenez, 'fecha_confirmacion_pr'),
-        (Aborto, 'fecha_ab'),
-        (EventoSanitario, 'fecha_programada_es'),
-        (RegistroClinico, 'fecha_rc'),
-        (Animal, 'fecha_ingreso_an'),
-    ]
-    for modelo, campo in fuentes_fecha:
-        fechas = modelo.objects.exclude(**{f'{campo}__isnull': True}).values_list(campo, flat=True)
-        for f in fechas:
-            if f:
-                periodos.add((f.year, f.month))
-
     promedio_historico_litros = float(Ordeno.objects.aggregate(p=Avg('litros_or'))['p'] or 0)
+
+    # --- 1. PRODUCCIÓN por período ---
+    ordeno_periodo = Ordeno.objects.annotate(
+        anio=ExtractYear('fecha_or'), mes=ExtractMonth('fecha_or')
+    ).values('anio', 'mes').annotate(
+        total_litros=Sum('litros_or'),
+        promedio_litros=Avg('litros_or'),
+        num_ordenos=Count('pk')
+    )
+    prod_por_periodo = {(r['anio'], r['mes']): r for r in ordeno_periodo}
+
+    # --- 2. TOP ANIMAL por período ---
+    top_animal_raw = Ordeno.objects.annotate(
+        anio=ExtractYear('fecha_or'), mes=ExtractMonth('fecha_or')
+    ).values('anio', 'mes', 'fk_an__codigo_an').annotate(
+        total=Sum('litros_or')
+    )
+    top_animal_por_periodo = {}
+    for r in top_animal_raw:
+        key = (r['anio'], r['mes'])
+        if key not in top_animal_por_periodo or r['total'] > top_animal_por_periodo[key]['total']:
+            top_animal_por_periodo[key] = r
+
+    # --- 3. TURNO por período ---
+    turno_raw = Ordeno.objects.annotate(
+        anio=ExtractYear('fecha_or'), mes=ExtractMonth('fecha_or')
+    ).values('anio', 'mes', 'turno_or').annotate(total=Sum('litros_or'))
+    turno_por_periodo = defaultdict(list)
+    for r in turno_raw:
+        turno_por_periodo[(r['anio'], r['mes'])].append(r)
+
+    # --- 4. CALIDAD por período ---
+    calidad_raw = CalidadLeche.objects.annotate(
+        anio=ExtractYear('fecha_muestreo_cl'), mes=ExtractMonth('fecha_muestreo_cl')
+    ).values('anio', 'mes').annotate(
+        total=Count('pk'),
+        aptos=Count('pk', filter=Q(resultado_cl='apto')),
+        no_aptos=Count('pk', filter=Q(resultado_cl='no_apto'))
+    )
+    calidad_por_periodo = {(r['anio'], r['mes']): r for r in calidad_raw}
+
+    # --- 5. COSTOS totales por período ---
+    costos_raw = Costo.objects.annotate(
+        anio=ExtractYear('fecha_co'), mes=ExtractMonth('fecha_co')
+    ).values('anio', 'mes').annotate(total=Sum('monto_co'))
+    costos_por_periodo = {(r['anio'], r['mes']): r['total'] for r in costos_raw}
+
+    # --- 6. COSTOS por categoría y período ---
+    costos_cat_raw = Costo.objects.annotate(
+        anio=ExtractYear('fecha_co'), mes=ExtractMonth('fecha_co')
+    ).values('anio', 'mes', 'categoria_co').annotate(total=Sum('monto_co'))
+    costos_cat_por_periodo = defaultdict(list)
+    for r in costos_cat_raw:
+        costos_cat_por_periodo[(r['anio'], r['mes'])].append(r)
+
+    # --- 7. INGRESOS por período ---
+    ingresos_raw = Ingreso.objects.annotate(
+        anio=ExtractYear('fecha_ig'), mes=ExtractMonth('fecha_ig')
+    ).values('anio', 'mes').annotate(total=Sum('monto_total_ig'))
+    ingresos_por_periodo = {(r['anio'], r['mes']): r['total'] for r in ingresos_raw}
+
+    # --- 8. NUEVOS ANIMALES por período ---
+    animal_raw = Animal.objects.exclude(fecha_ingreso_an__isnull=True).annotate(
+        anio=ExtractYear('fecha_ingreso_an'), mes=ExtractMonth('fecha_ingreso_an')
+    ).values('anio', 'mes').annotate(total=Count('pk'))
+    nuevos_animales_por_periodo = {(r['anio'], r['mes']): r['total'] for r in animal_raw}
+
+    # --- 9. PARTOS por período ---
+    parto_raw = Parto.objects.annotate(
+        anio=ExtractYear('fecha_pa'), mes=ExtractMonth('fecha_pa')
+    ).values('anio', 'mes').annotate(total=Count('pk'))
+    partos_por_periodo = {(r['anio'], r['mes']): r['total'] for r in parto_raw}
+
+    # --- 10. ABORTOS por período ---
+    aborto_raw = Aborto.objects.annotate(
+        anio=ExtractYear('fecha_ab'), mes=ExtractMonth('fecha_ab')
+    ).values('anio', 'mes').annotate(total=Count('pk'))
+    abortos_por_periodo = {(r['anio'], r['mes']): r['total'] for r in aborto_raw}
+
+    # --- 11. INSEMINACIONES / TASA DE PREÑEZ por período ---
+    inseminacion_raw = Inseminacion.objects.annotate(
+        anio=ExtractYear('fecha_in'), mes=ExtractMonth('fecha_in')
+    ).values('anio', 'mes').annotate(
+        total=Count('pk'),
+        con_resultado=Count('pk', filter=~Q(resultado_in='pendiente')),
+        prenadas=Count('pk', filter=Q(resultado_in='preñada'))
+    )
+    inseminacion_por_periodo = {(r['anio'], r['mes']): r for r in inseminacion_raw}
+
+    # --- 12. PREÑECES CONFIRMADAS por período ---
+    prenez_raw = Prenez.objects.exclude(fecha_confirmacion_pr__isnull=True).annotate(
+        anio=ExtractYear('fecha_confirmacion_pr'), mes=ExtractMonth('fecha_confirmacion_pr')
+    ).values('anio', 'mes').annotate(total=Count('pk'))
+    prenez_por_periodo = {(r['anio'], r['mes']): r['total'] for r in prenez_raw}
+
+    # --- 13. EVENTOS SANITARIOS por período ---
+    evento_raw = EventoSanitario.objects.annotate(
+        anio=ExtractYear('fecha_programada_es'), mes=ExtractMonth('fecha_programada_es')
+    ).values('anio', 'mes').annotate(
+        total=Count('pk'),
+        pendientes=Count('pk', filter=Q(estado_es='pendiente')),
+        costo=Sum('costo_es')
+    )
+    eventos_por_periodo = {(r['anio'], r['mes']): r for r in evento_raw}
+
+    # --- 14. REGISTROS CLÍNICOS por período ---
+    registro_raw = RegistroClinico.objects.annotate(
+        anio=ExtractYear('fecha_rc'), mes=ExtractMonth('fecha_rc')
+    ).values('anio', 'mes').annotate(
+        total=Count('pk'),
+        costo=Sum('costo_tratamiento_rc')
+    )
+    registros_por_periodo = {(r['anio'], r['mes']): r for r in registro_raw}
+
+    # === UNIR TODOS LOS PERÍODOS ENCONTRADOS EN CUALQUIER TABLA ===
+    todos_los_periodos = set()
+    for d in [prod_por_periodo, calidad_por_periodo, costos_por_periodo, ingresos_por_periodo,
+              nuevos_animales_por_periodo, partos_por_periodo, abortos_por_periodo,
+              inseminacion_por_periodo, prenez_por_periodo, eventos_por_periodo, registros_por_periodo]:
+        todos_los_periodos.update(d.keys())
 
     dashboard_periodos = defaultdict(dict)
 
-    for anio, mes in periodos:
-        inicio = date(anio, mes, 1)
-        fin = date(anio + 1, 1, 1) if mes == 12 else date(anio, mes + 1, 1)
+    for anio, mes in todos_los_periodos:
+        if anio is None or mes is None:
+            continue
+        key = (anio, mes)
 
-        # --- PRODUCCIÓN (Ordeno) ---
-        ordenos_p = Ordeno.objects.filter(fecha_or__gte=inicio, fecha_or__lt=fin)
-        total_litros = float(ordenos_p.aggregate(t=Sum('litros_or'))['t'] or 0)
-        promedio_litros = float(ordenos_p.aggregate(p=Avg('litros_or'))['p'] or 0)
-        num_ordenos = ordenos_p.count()
-        top_animal = ordenos_p.values('fk_an__codigo_an').annotate(
-            total=Sum('litros_or')
-        ).order_by('-total').first()
-        litros_turno_p = list(ordenos_p.values('turno_or').annotate(total=Sum('litros_or')))
+        # Producción
+        prod = prod_por_periodo.get(key, {})
+        total_litros = float(prod.get('total_litros') or 0)
+        promedio_litros = float(prod.get('promedio_litros') or 0)
+        num_ordenos = prod.get('num_ordenos', 0)
+        top_animal = top_animal_por_periodo.get(key)
+        litros_turno_p = turno_por_periodo.get(key, [])
 
-        # --- CALIDAD (CalidadLeche) ---
-        calidad_p = CalidadLeche.objects.filter(fecha_muestreo_cl__gte=inicio, fecha_muestreo_cl__lt=fin)
-        total_calidad = calidad_p.count()
-        aptos = calidad_p.filter(resultado_cl='apto').count()
-        no_aptos = calidad_p.filter(resultado_cl='no_apto').count()
+        # Calidad
+        calidad = calidad_por_periodo.get(key, {})
+        total_calidad = calidad.get('total', 0)
+        aptos = calidad.get('aptos', 0)
+        no_aptos = calidad.get('no_aptos', 0)
         pct_aptos = round(aptos / total_calidad * 100, 1) if total_calidad else None
 
-        # --- FINANZAS (Costo, Ingreso) ---
-        costos_p = Costo.objects.filter(fecha_co__gte=inicio, fecha_co__lt=fin)
-        ingresos_p = Ingreso.objects.filter(fecha_ig__gte=inicio, fecha_ig__lt=fin)
-        total_costos_p = float(costos_p.aggregate(t=Sum('monto_co'))['t'] or 0)
-        total_ingresos_p = float(ingresos_p.aggregate(t=Sum('monto_total_ig'))['t'] or 0)
+        # Finanzas
+        total_costos_p = float(costos_por_periodo.get(key) or 0)
+        total_ingresos_p = float(ingresos_por_periodo.get(key) or 0)
         balance_p = total_ingresos_p - total_costos_p
-        costos_categoria_p = list(costos_p.values('categoria_co').annotate(total=Sum('monto_co')).order_by('-total')[:5])
+        costos_categoria_p = sorted(
+            costos_cat_por_periodo.get(key, []), key=lambda x: x['total'] or 0, reverse=True
+        )[:5]
 
-        # --- ANIMALES / REPRODUCCIÓN (Animal, Parto, Aborto, Inseminacion, Prenez) ---
-        nuevos_animales = Animal.objects.filter(fecha_ingreso_an__gte=inicio, fecha_ingreso_an__lt=fin).count()
-        num_partos = Parto.objects.filter(fecha_pa__gte=inicio, fecha_pa__lt=fin).count()
-        num_abortos = Aborto.objects.filter(fecha_ab__gte=inicio, fecha_ab__lt=fin).count()
+        # Animales / reproducción
+        nuevos_animales = nuevos_animales_por_periodo.get(key, 0)
+        num_partos = partos_por_periodo.get(key, 0)
+        num_abortos = abortos_por_periodo.get(key, 0)
 
-        inseminaciones_p = Inseminacion.objects.filter(fecha_in__gte=inicio, fecha_in__lt=fin)
-        num_inseminaciones = inseminaciones_p.count()
-        prenezes_confirmadas = Prenez.objects.filter(
-            fecha_confirmacion_pr__gte=inicio, fecha_confirmacion_pr__lt=fin
-        ).count()
+        insem = inseminacion_por_periodo.get(key, {})
+        num_inseminaciones = insem.get('total', 0)
+        con_resultado = insem.get('con_resultado', 0)
+        prenadas = insem.get('prenadas', 0)
+        tasa_prenez = round(prenadas / con_resultado * 100, 1) if con_resultado else None
+        prenezes_confirmadas = prenez_por_periodo.get(key, 0)
 
-        tasa_prenez = None
-        con_resultado = inseminaciones_p.exclude(resultado_in='pendiente').count()
-        prenadas = inseminaciones_p.filter(resultado_in='preñada').count()
-        if con_resultado:
-            tasa_prenez = round(prenadas / con_resultado * 100, 1)
+        # Sanidad
+        evento = eventos_por_periodo.get(key, {})
+        num_eventos = evento.get('total', 0)
+        eventos_pendientes = evento.get('pendientes', 0)
+        costo_eventos = float(evento.get('costo') or 0)
 
-        # --- SANIDAD (EventoSanitario, RegistroClinico) ---
-        eventos_p = EventoSanitario.objects.filter(fecha_programada_es__gte=inicio, fecha_programada_es__lt=fin)
-        num_eventos = eventos_p.count()
-        eventos_pendientes = eventos_p.filter(estado_es='pendiente').count()
-        registros_clinicos_p = RegistroClinico.objects.filter(fecha_rc__gte=inicio, fecha_rc__lt=fin).count()
-        costo_sanitario = float(eventos_p.aggregate(t=Sum('costo_es'))['t'] or 0) + float(
-            RegistroClinico.objects.filter(
-                fecha_rc__gte=inicio, fecha_rc__lt=fin
-            ).aggregate(t=Sum('costo_tratamiento_rc'))['t'] or 0
-        )
+        registro = registros_por_periodo.get(key, {})
+        registros_clinicos_p = registro.get('total', 0)
+        costo_registros = float(registro.get('costo') or 0)
+        costo_sanitario = costo_eventos + costo_registros
 
         # --- RECOMENDACIONES ESPECÍFICAS DEL PERÍODO ---
         recs = []
