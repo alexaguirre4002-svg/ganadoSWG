@@ -10406,10 +10406,6 @@ def prediccion_rl4(request):
     return render(request, 'ML/prediccionML/nueva_prediccion.html', contexto)
 
 # ==========================================
-# VISTA: DASHBOARD GRÁFICO (ESTADÍSTICAS)
-# ==========================================
-
-# ==========================================
 # VISTA: DASHBOARD GRÁFICO (ESTADÍSTICAS) - GRÁFICAS POR PERÍODO
 # ==========================================
 
@@ -10913,6 +10909,13 @@ def dashboard_grafico(request):
             'peso_cat_values': [round(float(p['promedio'] or 0), 1) for p in peso_cat_p],
             'recomendaciones': recs,
         }
+
+    # Filtrar: solo mostrar desde el año que realmente empezó a operar la hacienda.
+    # Esto evita que datos mal cargados (fechas erróneas anteriores) contaminen el historial.
+    ANIO_MINIMO_HISTORIAL = 2021
+    dashboard_periodos = {
+        a: m for a, m in dashboard_periodos.items() if a >= ANIO_MINIMO_HISTORIAL
+    }
 
     # Ordenar: años más recientes primero, y dentro de cada año, meses más recientes primero
     dashboard_periodos = dict(sorted(dashboard_periodos.items(), reverse=True))

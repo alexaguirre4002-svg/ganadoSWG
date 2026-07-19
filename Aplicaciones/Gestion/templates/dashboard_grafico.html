@@ -342,9 +342,14 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-pie-chart me-2"></i>Producción por Turno
                                                             </div>
                                                             <div class="p-3">
+                                                                {% if datos.turno_values %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaTurno_{{ anio }}_{{ mes_num }}"></canvas>
                                                                 </div>
+                                                                <small class="text-muted d-block text-center mt-2">{{ datos.num_ordenos }} ordeño(s) registrados · {{ datos.total_litros|floatformat:1 }} L en total</small>
+                                                                {% else %}
+                                                                <p class="text-muted text-center mb-0 py-4"><i class="bi bi-inbox me-1"></i>Sin ordeños registrados este mes</p>
+                                                                {% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -354,9 +359,14 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-award me-2"></i>Producción por Raza
                                                             </div>
                                                             <div class="p-3">
+                                                                {% if datos.raza_values %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaRaza_{{ anio }}_{{ mes_num }}"></canvas>
                                                                 </div>
+                                                                <small class="text-muted d-block text-center mt-2">Promedio: {{ datos.promedio_litros|floatformat:2 }} L por ordeño</small>
+                                                                {% else %}
+                                                                <p class="text-muted text-center mb-0 py-4"><i class="bi bi-inbox me-1"></i>Sin datos de raza este mes</p>
+                                                                {% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -379,17 +389,29 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-pie-chart-fill me-2"></i>Estado de Inseminaciones
                                                             </div>
                                                             <div class="p-3">
+                                                                {% if datos.insem_pie_values %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaInsem_{{ anio }}_{{ mes_num }}"></canvas>
                                                                 </div>
+                                                                {% else %}
+                                                                <p class="text-muted text-center mb-0 py-4"><i class="bi bi-inbox me-1"></i>Sin inseminaciones este mes</p>
+                                                                {% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <small class="text-muted d-block mt-2">
-                                                            <i class="bi bi-clipboard-data me-1"></i>
-                                                            {{ datos.num_inseminaciones }} inseminación(es) registradas · {{ datos.prenezes_confirmadas }} preñez(es) confirmada(s) este mes
-                                                        </small>
+                                                    <div class="col-md-6 d-flex align-items-center">
+                                                        <div class="w-100">
+                                                            <div class="card-hacienda p-3 text-center mb-2">
+                                                                <i class="bi bi-clipboard-data fs-3" style="color: var(--color-primario);"></i>
+                                                                <h5 class="fw-bold mt-1 mb-0">{{ datos.num_inseminaciones }}</h5>
+                                                                <small class="text-muted">Inseminación(es) registradas</small>
+                                                            </div>
+                                                            <div class="card-hacienda p-3 text-center">
+                                                                <i class="bi bi-check-circle-fill fs-3 text-success"></i>
+                                                                <h5 class="fw-bold mt-1 mb-0">{{ datos.prenezes_confirmadas }}</h5>
+                                                                <small class="text-muted">Preñez(es) confirmada(s) este mes</small>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -402,17 +424,29 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-bar-chart me-2"></i>Eventos Sanitarios por Tipo
                                                             </div>
                                                             <div class="p-3">
+                                                                {% if datos.eventos_tipo_values %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaEventos_{{ anio }}_{{ mes_num }}"></canvas>
                                                                 </div>
+                                                                {% else %}
+                                                                <p class="text-muted text-center mb-0 py-4"><i class="bi bi-inbox me-1"></i>Sin eventos sanitarios este mes</p>
+                                                                {% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <small class="text-muted d-block mt-2">
-                                                            <i class="bi bi-hospital me-1"></i>
-                                                            {{ datos.registros_clinicos }} registro(s) clínico(s) este mes · Costo sanitario total: ${{ datos.costo_sanitario|floatformat:2 }}
-                                                        </small>
+                                                    <div class="col-md-6 d-flex align-items-center">
+                                                        <div class="w-100">
+                                                            <div class="card-hacienda p-3 text-center mb-2">
+                                                                <i class="bi bi-hospital fs-3" style="color: var(--color-primario);"></i>
+                                                                <h5 class="fw-bold mt-1 mb-0">{{ datos.registros_clinicos }}</h5>
+                                                                <small class="text-muted">Registro(s) clínico(s) este mes</small>
+                                                            </div>
+                                                            <div class="card-hacienda p-3 text-center">
+                                                                <i class="bi bi-cash-coin fs-3 text-danger"></i>
+                                                                <h5 class="fw-bold mt-1 mb-0">${{ datos.costo_sanitario|floatformat:2 }}</h5>
+                                                                <small class="text-muted">Costo sanitario total del mes</small>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -425,9 +459,13 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-bar-chart-steps me-2"></i>Peso Promedio por Categoría
                                                             </div>
                                                             <div class="p-3">
+                                                                {% if datos.peso_cat_values %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaPeso_{{ anio }}_{{ mes_num }}"></canvas>
                                                                 </div>
+                                                                {% else %}
+                                                                <p class="text-muted text-center mb-0 py-4"><i class="bi bi-inbox me-1"></i>Sin pesajes registrados este mes</p>
+                                                                {% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -437,9 +475,14 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-eyedropper me-2"></i>Composición de la Leche
                                                             </div>
                                                             <div class="p-3">
+                                                                {% if datos.composicion_values.0 or datos.composicion_values.1 %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaComposicion_{{ anio }}_{{ mes_num }}"></canvas>
                                                                 </div>
+                                                                <small class="text-muted d-block text-center mt-2">Grasa: {{ datos.composicion_values.0 }}% · Proteína: {{ datos.composicion_values.1 }}%</small>
+                                                                {% else %}
+                                                                <p class="text-muted text-center mb-0 py-4"><i class="bi bi-inbox me-1"></i>Sin análisis de grasa/proteína este mes</p>
+                                                                {% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -454,9 +497,13 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-pie-chart me-2"></i>Costos por Categoría
                                                             </div>
                                                             <div class="p-3">
+                                                                {% if datos.costos_values %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaCostos_{{ anio }}_{{ mes_num }}"></canvas>
                                                                 </div>
+                                                                {% else %}
+                                                                <p class="text-muted text-center mb-0 py-4"><i class="bi bi-inbox me-1"></i>Sin costos registrados este mes</p>
+                                                                {% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -469,6 +516,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaFinanzas_{{ anio }}_{{ mes_num }}"></canvas>
                                                                 </div>
+                                                                <small class="text-muted d-block text-center mt-2">Ingresos: ${{ datos.total_ingresos|floatformat:2 }} · Costos: ${{ datos.total_costos|floatformat:2 }}</small>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -673,7 +721,13 @@ new Chart(ctxCostos, {
                     borderWidth: 2
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: { callbacks: { label: function(c){ return c.label + ': ' + c.parsed + ' L'; } } }
+                }
+            }
         });
     }
 
@@ -691,8 +745,11 @@ new Chart(ctxCostos, {
             },
             options: {
                 responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-                plugins: { legend: { display: false } },
-                scales: { x: { beginAtZero: true } }
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: function(c){ return c.parsed.x + ' L'; } } }
+                },
+                scales: { x: { beginAtZero: true, title: { display: true, text: 'Litros' } } }
             }
         });
     }
@@ -709,7 +766,13 @@ new Chart(ctxCostos, {
                     borderWidth: 2
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: { callbacks: { label: function(c){ return c.label + ': ' + c.parsed; } } }
+                }
+            }
         });
     }
 
@@ -727,8 +790,11 @@ new Chart(ctxCostos, {
             },
             options: {
                 responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-                plugins: { legend: { display: false } },
-                scales: { x: { beginAtZero: true } }
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: function(c){ return c.parsed.x + ' evento(s)'; } } }
+                },
+                scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
             }
         });
     }
@@ -747,8 +813,11 @@ new Chart(ctxCostos, {
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true } }
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: function(c){ return c.parsed.y + ' kg'; } } }
+                },
+                scales: { y: { beginAtZero: true, title: { display: true, text: 'kg' } } }
             }
         });
     }
@@ -767,8 +836,11 @@ new Chart(ctxCostos, {
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true } }
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: function(c){ return c.parsed.y + '%'; } } }
+                },
+                scales: { y: { beginAtZero: true, title: { display: true, text: '%' } } }
             }
         });
     }
@@ -785,7 +857,13 @@ new Chart(ctxCostos, {
                     borderWidth: 2
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' },
+                    tooltip: { callbacks: { label: function(c){ return c.label + ': $' + c.parsed.toFixed(2); } } }
+                }
+            }
         });
     }
 
@@ -803,8 +881,11 @@ new Chart(ctxCostos, {
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true } }
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: function(c){ return '$' + c.parsed.y.toFixed(2); } } }
+                },
+                scales: { y: { beginAtZero: true, title: { display: true, text: '$' } } }
             }
         });
     }
