@@ -415,6 +415,44 @@ Dashboard Estadístico | Hacienda Joseph
                                                     </div>
                                                 </div>
 
+                                                <!-- === CELO DEL MES === -->
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <div class="card-hacienda">
+                                                            <div class="card-header-hacienda">
+                                                                <i class="bi bi-thermometer-half me-2"></i>Celos Observados por Intensidad
+                                                            </div>
+                                                            <div class="p-3">
+                                                                {% if datos.celo_values %}
+                                                                <div style="position: relative; height: 220px;">
+                                                                    <canvas id="graficaCelo_{{ anio }}_{{ mes_num }}"></canvas>
+                                                                </div>
+                                                                <small class="text-muted d-block text-center mt-2">{{ datos.num_celos }} celo(s) observado(s) en total</small>
+                                                                {% else %}
+                                                                <p class="text-muted text-center mb-0 py-4"><i class="bi bi-inbox me-1"></i>Sin celos observados este mes</p>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="card-hacienda">
+                                                            <div class="card-header-hacienda">
+                                                                <i class="bi bi-arrow-left-right me-2"></i>Movimientos de Animales
+                                                            </div>
+                                                            <div class="p-3">
+                                                                {% if datos.movimientos_values %}
+                                                                <div style="position: relative; height: 220px;">
+                                                                    <canvas id="graficaMovimientos_{{ anio }}_{{ mes_num }}"></canvas>
+                                                                </div>
+                                                                <small class="text-muted d-block text-center mt-2">Compras: ${{ datos.monto_compras|floatformat:2 }} · Ventas: ${{ datos.monto_ventas|floatformat:2 }}</small>
+                                                                {% else %}
+                                                                <p class="text-muted text-center mb-0 py-4"><i class="bi bi-inbox me-1"></i>Sin movimientos de animales este mes</p>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                                 <!-- === SANIDAD DEL MES === -->
                                                 <h6 class="fw-bold mt-3 mb-2"><i class="bi bi-clipboard2-pulse me-1"></i>Sanidad</h6>
                                                 <div class="row mb-3">
@@ -445,6 +483,56 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-cash-coin fs-3 text-danger"></i>
                                                                 <h5 class="fw-bold mt-1 mb-0">${{ datos.costo_sanitario|floatformat:2 }}</h5>
                                                                 <small class="text-muted">Costo sanitario total del mes</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- === NUTRICIÓN DEL MES === -->
+                                                <h6 class="fw-bold mt-3 mb-2"><i class="bi bi-basket-fill me-1"></i>Nutrición y Alimentación</h6>
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <div class="card-hacienda">
+                                                            <div class="card-header-hacienda">
+                                                                <i class="bi bi-bar-chart me-2"></i>Raciones: Ofrecido vs Consumido vs Desperdicio
+                                                            </div>
+                                                            <div class="p-3">
+                                                                {% if datos.racion_values.0 %}
+                                                                <div style="position: relative; height: 220px;">
+                                                                    <canvas id="graficaRacion_{{ anio }}_{{ mes_num }}"></canvas>
+                                                                </div>
+                                                                <small class="text-muted d-block text-center mt-2">{% if datos.eficiencia_racion_pct != None %}Eficiencia de consumo: {{ datos.eficiencia_racion_pct }}%{% endif %}</small>
+                                                                {% else %}
+                                                                <p class="text-muted text-center mb-0 py-4"><i class="bi bi-inbox me-1"></i>Sin raciones registradas este mes</p>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="card-hacienda">
+                                                            <div class="card-header-hacienda">
+                                                                <i class="bi bi-droplet-half me-2"></i>Secados y Entregas de Leche
+                                                            </div>
+                                                            <div class="p-3">
+                                                                <div class="row">
+                                                                    <div class="col-6">
+                                                                        <div class="text-center p-2">
+                                                                            <i class="bi bi-pause-circle fs-3" style="color: #fd7e14;"></i>
+                                                                            <h5 class="fw-bold mt-1 mb-0">{{ datos.num_secados }}</h5>
+                                                                            <small class="text-muted">Vaca(s) secada(s)</small>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-6">
+                                                                        <div class="text-center p-2">
+                                                                            <i class="bi bi-truck fs-3" style="color: var(--color-primario);"></i>
+                                                                            <h5 class="fw-bold mt-1 mb-0">{{ datos.entrega_litros|floatformat:1 }} L</h5>
+                                                                            <small class="text-muted">Entregado(s) a planta/cliente</small>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                {% if datos.entrega_cantidad %}
+                                                                <small class="text-muted d-block text-center mt-2">{{ datos.entrega_cantidad }} entrega(s) · ${{ datos.entrega_monto|floatformat:2 }} recibido(s)</small>
+                                                                {% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -886,6 +974,74 @@ new Chart(ctxCostos, {
                     tooltip: { callbacks: { label: function(c){ return '$' + c.parsed.y.toFixed(2); } } }
                 },
                 scales: { y: { beginAtZero: true, title: { display: true, text: '$' } } }
+            }
+        });
+    }
+
+    var elCelo = document.getElementById('graficaCelo_{{ anio }}_{{ mes_num }}');
+    if (elCelo) {
+        new Chart(elCelo.getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: {{ datos.celo_labels|safe|default:"[]" }},
+                datasets: [{
+                    data: {{ datos.celo_values|safe|default:"[]" }},
+                    backgroundColor: ['#dc3545', '#ffc107', '#17a2b8'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: { callbacks: { label: function(c){ return c.label + ': ' + c.parsed; } } }
+                }
+            }
+        });
+    }
+
+    var elMovimientos = document.getElementById('graficaMovimientos_{{ anio }}_{{ mes_num }}');
+    if (elMovimientos) {
+        new Chart(elMovimientos.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: {{ datos.movimientos_labels|safe|default:"[]" }},
+                datasets: [{
+                    label: 'Cantidad',
+                    data: {{ datos.movimientos_values|safe|default:"[]" }},
+                    backgroundColor: ['#28a745', '#dc3545', '#17a2b8', '#4a7c22', '#6c757d', '#fd7e14']
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: function(c){ return c.parsed.y + ' animal(es)'; } } }
+                },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    }
+
+    var elRacion = document.getElementById('graficaRacion_{{ anio }}_{{ mes_num }}');
+    if (elRacion) {
+        new Chart(elRacion.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: {{ datos.racion_labels|safe|default:"[]" }},
+                datasets: [{
+                    label: 'kg',
+                    data: {{ datos.racion_values|safe|default:"[]" }},
+                    backgroundColor: ['#4a7c22', '#17a2b8', '#dc3545']
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: function(c){ return c.parsed.y + ' kg'; } } }
+                },
+                scales: { y: { beginAtZero: true, title: { display: true, text: 'kg' } } }
             }
         });
     }

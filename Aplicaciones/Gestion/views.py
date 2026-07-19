@@ -10725,11 +10725,89 @@ def dashboard_grafico(request):
     for r in pesaje_cat_raw:
         pesaje_cat_por_periodo[(r['anio'], r['mes'])].append(r)
 
+    # --- Celo: observaciones por intensidad (NUEVO por período) ---
+    CELO_LABELS = {'alta': 'Alta', 'media': 'Media', 'baja': 'Baja'}
+    celo_raw = Celo.objects.annotate(
+        anio=ExtractYear('fecha_observacion_ce'), mes=ExtractMonth('fecha_observacion_ce')
+    ).values('anio', 'mes', 'intensidad_ce').annotate(total=Count('pk'))
+    celo_por_periodo = defaultdict(list)
+    for r in celo_raw:
+        celo_por_periodo[(r['anio'], r['mes'])].append(r)
+
+    celo_total_raw = Celo.objects.annotate(
+        anio=ExtractYear('fecha_observacion_ce'), mes=ExtractMonth('fecha_observacion_ce')
+    ).values('anio', 'mes').annotate(total=Count('pk'))
+    celo_total_por_periodo = {(r['anio'], r['mes']): r['total'] for r in celo_total_raw}
+
+    # --- Movimientos de animales: por tipo (NUEVO por período) ---
+    MOVIMIENTO_LABELS = {
+        'compra': 'Compra', 'venta': 'Venta', 'traslado': 'Traslado',
+        'nacimiento': 'Nacimiento', 'muerte': 'Muerte', 'faena': 'Faena'
+    }
+    movimiento_raw = MovimientoAnimal.objects.annotate(
+        anio=ExtractYear('fecha_ma'), mes=ExtractMonth('fecha_ma')
+    ).values('anio', 'mes', 'tipo_movimiento_ma').annotate(total=Count('pk'))
+    movimiento_por_periodo = defaultdict(list)
+    for r in movimiento_raw:
+        movimiento_por_periodo[(r['anio'], r['mes'])].append(r)
+
+    compras_monto_raw = MovimientoAnimal.objects.filter(tipo_movimiento_ma='compra').annotate(
+        anio=ExtractYear('fecha_ma'), mes=ExtractMonth('fecha_ma')
+    ).values('anio', 'mes').annotate(total=Sum('precio_ma'))
+    compras_monto_por_periodo = {(r['anio'], r['mes']): float(r['total'] or 0) for r in compras_monto_raw}
+
+    ventas_monto_raw = MovimientoAnimal.objects.filter(tipo_movimiento_ma='venta').annotate(
+        anio=ExtractYear('fecha_ma'), mes=ExtractMonth('fecha_ma')
+    ).values('anio', 'mes').annotate(total=Sum('precio_ma'))
+    ventas_monto_por_periodo = {(r['anio'], r['mes']): float(r['total'] or 0) for r in ventas_monto_raw}
+
+    muertes_raw = MovimientoAnimal.objects.filter(tipo_movimiento_ma='muerte').annotate(
+        anio=ExtractYear('fecha_ma'), mes=ExtractMonth('fecha_ma')
+    ).values('anio', 'mes').annotate(total=Count('pk'))
+    muertes_por_periodo = {(r['anio'], r['mes']): r['total'] for r in muertes_raw}
+
+    # --- Raciones / Nutrición: ofrecido vs consumido vs desperdicio (NUEVO por período) ---
+    racion_raw = Racion.objects.annotate(
+        anio=ExtractYear('fecha_inicio_ra'), mes=ExtractMonth('fecha_inicio_ra')
+    ).values('anio', 'mes').annotate(
+        ofrecido=Sum('cantidad_ofrecida_kg_ra'),
+        consumido=Sum('cantidad_consumida_kg_ra'),
+        desperdicio=Sum('desperdicio_kg_ra')
+    )
+    racion_por_periodo = {(r['anio'], r['mes']): r for r in racion_raw}
+
+    # --- Secados (NUEVO por período) ---
+    SECADO_LABELS = {
+        'preñez_avanzada': 'Preñez avanzada', 'baja_produccion': 'Baja producción',
+        'enfermedad': 'Enfermedad', 'programado': 'Programado', 'otro': 'Otro'
+    }
+    secado_raw = Secado.objects.annotate(
+        anio=ExtractYear('fecha_ultimo_ordeno_se'), mes=ExtractMonth('fecha_ultimo_ordeno_se')
+    ).values('anio', 'mes').annotate(total=Count('pk'))
+    secado_por_periodo = {(r['anio'], r['mes']): r['total'] for r in secado_raw}
+
+    secado_causa_raw = Secado.objects.annotate(
+        anio=ExtractYear('fecha_ultimo_ordeno_se'), mes=ExtractMonth('fecha_ultimo_ordeno_se')
+    ).values('anio', 'mes', 'causa_se').annotate(total=Count('pk'))
+    secado_causa_por_periodo = defaultdict(list)
+    for r in secado_causa_raw:
+        secado_causa_por_periodo[(r['anio'], r['mes'])].append(r)
+
+    # --- Entregas de leche (venta a planta/cliente) (NUEVO por período) ---
+    entrega_raw = EntregaLeche.objects.annotate(
+        anio=ExtractYear('fecha_el'), mes=ExtractMonth('fecha_el')
+    ).values('anio', 'mes').annotate(
+        litros=Sum('litros_totales_el'), monto=Sum('monto_total_el'), cantidad=Count('pk')
+    )
+    entrega_por_periodo = {(r['anio'], r['mes']): r for r in entrega_raw}
+
     # === UNIR TODOS LOS PERÍODOS ENCONTRADOS ===
     todos_los_periodos = set()
     for d in [prod_por_periodo, calidad_por_periodo, costos_por_periodo, ingresos_por_periodo,
               nuevos_animales_por_periodo, partos_por_periodo, abortos_por_periodo,
-              inseminacion_por_periodo, prenez_por_periodo, eventos_por_periodo, registros_por_periodo]:
+              inseminacion_por_periodo, prenez_por_periodo, eventos_por_periodo, registros_por_periodo,
+              celo_total_por_periodo, movimiento_por_periodo, racion_por_periodo,
+              secado_por_periodo, entrega_por_periodo]:
         todos_los_periodos.update(d.keys())
 
     dashboard_periodos = defaultdict(dict)
@@ -10791,6 +10869,33 @@ def dashboard_grafico(request):
 
         # Peso
         peso_cat_p = pesaje_cat_por_periodo.get(key, [])
+
+        # Celo
+        celo_p = celo_por_periodo.get(key, [])
+        num_celos = celo_total_por_periodo.get(key, 0)
+
+        # Movimientos de animales
+        movimiento_p = movimiento_por_periodo.get(key, [])
+        monto_compras = compras_monto_por_periodo.get(key, 0)
+        monto_ventas = ventas_monto_por_periodo.get(key, 0)
+        num_muertes = muertes_por_periodo.get(key, 0)
+
+        # Nutrición / Raciones
+        racion = racion_por_periodo.get(key, {})
+        kg_ofrecido = float(racion.get('ofrecido') or 0)
+        kg_consumido = float(racion.get('consumido') or 0)
+        kg_desperdicio = float(racion.get('desperdicio') or 0)
+        eficiencia_racion_pct = round(kg_consumido / kg_ofrecido * 100, 1) if kg_ofrecido else None
+
+        # Secados
+        num_secados = secado_por_periodo.get(key, 0)
+        secado_causa_p = secado_causa_por_periodo.get(key, [])
+
+        # Entregas de leche
+        entrega = entrega_por_periodo.get(key, {})
+        entrega_litros = float(entrega.get('litros') or 0)
+        entrega_monto = float(entrega.get('monto') or 0)
+        entrega_cantidad = entrega.get('cantidad', 0)
 
         # --- RECOMENDACIONES ESPECÍFICAS DEL PERÍODO ---
         recs = []
@@ -10858,6 +10963,38 @@ def dashboard_grafico(request):
                     'texto': f'El promedio de litros/ordeño supera en {diff_pct:.1f}% al histórico. Buen desempeño del hato.'
                 })
 
+        if eficiencia_racion_pct is not None and eficiencia_racion_pct < 80:
+            recs.append({
+                'tipo': 'warning', 'icono': 'bi-basket',
+                'titulo': 'Baja eficiencia de consumo alimenticio',
+                'texto': f'Solo se consumió el {eficiencia_racion_pct}% de lo ofrecido ({kg_desperdicio:.1f} kg de desperdicio). Revisar palatabilidad de la ración y frecuencia de reparto.'
+            })
+
+        if num_muertes > 0:
+            recs.append({
+                'tipo': 'danger', 'icono': 'bi-emoji-frown',
+                'titulo': 'Mortalidad detectada',
+                'texto': f'Se registraron {num_muertes} muerte(s) de animales este mes. Investigar causas y reforzar protocolos sanitarios y de manejo.'
+            })
+
+        if celo_p:
+            baja_intensidad = sum(c['total'] for c in celo_p if c['intensidad_ce'] == 'baja')
+            if num_celos and baja_intensidad / num_celos > 0.5:
+                recs.append({
+                    'tipo': 'warning', 'icono': 'bi-thermometer-low',
+                    'titulo': 'Celos de baja intensidad frecuentes',
+                    'texto': f'Más de la mitad de los celos observados este mes fueron de baja intensidad. Puede indicar déficit nutricional o problemas de condición corporal.'
+                })
+
+        if secado_causa_p:
+            enfermedad_secados = sum(s['total'] for s in secado_causa_p if s['causa_se'] == 'enfermedad')
+            if enfermedad_secados > 0:
+                recs.append({
+                    'tipo': 'warning', 'icono': 'bi-virus',
+                    'titulo': 'Secados por enfermedad',
+                    'texto': f'{enfermedad_secados} vaca(s) fueron secadas por enfermedad este mes. Revisar el estado sanitario general del hato lechero.'
+                })
+
         if not recs:
             recs.append({
                 'tipo': 'info', 'icono': 'bi-info-circle',
@@ -10907,6 +11044,23 @@ def dashboard_grafico(request):
             'costo_sanitario': costo_sanitario,
             'peso_cat_labels': [p['fk_an__categoria_an'] for p in peso_cat_p],
             'peso_cat_values': [round(float(p['promedio'] or 0), 1) for p in peso_cat_p],
+            'celo_labels': [CELO_LABELS.get(c['intensidad_ce'], c['intensidad_ce'] or 'Sin dato') for c in celo_p],
+            'celo_values': [c['total'] for c in celo_p],
+            'num_celos': num_celos,
+            'movimientos_labels': [MOVIMIENTO_LABELS.get(m['tipo_movimiento_ma'], m['tipo_movimiento_ma']) for m in movimiento_p],
+            'movimientos_values': [m['total'] for m in movimiento_p],
+            'monto_compras': monto_compras,
+            'monto_ventas': monto_ventas,
+            'num_muertes': num_muertes,
+            'racion_labels': ['Ofrecido', 'Consumido', 'Desperdicio'],
+            'racion_values': [round(kg_ofrecido, 1), round(kg_consumido, 1), round(kg_desperdicio, 1)],
+            'eficiencia_racion_pct': eficiencia_racion_pct,
+            'num_secados': num_secados,
+            'secado_causa_labels': [SECADO_LABELS.get(s['causa_se'], s['causa_se'] or 'Sin dato') for s in secado_causa_p],
+            'secado_causa_values': [s['total'] for s in secado_causa_p],
+            'entrega_litros': entrega_litros,
+            'entrega_monto': entrega_monto,
+            'entrega_cantidad': entrega_cantidad,
             'recomendaciones': recs,
         }
 
