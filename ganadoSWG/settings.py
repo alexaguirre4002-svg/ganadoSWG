@@ -12,29 +12,28 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import dj_database_url
 import os
 from pathlib import Path
-#CLAUDINARY
+
+# CLAUDINARY
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ==========================================
+# SEGURIDAD
+# ==========================================
+SECRET_KEY = 'django-insecure-^)r!fe^4tho3&ipvc$jupgg=pjj5%8+rhx2fysz7%q7p_lq#fx'
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+# ⚠️ IMPORTANTE: DEBUG debe ser False en producción
+DEBUG = False
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'fnlT4o57irBkR6TfMhSs0vGo5pqVPXwI'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 ALLOWED_HOSTS = ['ganadoswg.onrender.com', 'localhost', '127.0.0.1']
 
-
-# Application definition
-
+# ==========================================
+# APLICACIONES
+# ==========================================
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -46,12 +45,15 @@ INSTALLED_APPS = [
     'Aplicaciones.Gestion',
 ]
 
+# ==========================================
+# MIDDLEWARE (WhiteNoise correctamente ubicado)
+# ==========================================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ← Justo aquí (después de Security)
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -76,34 +78,33 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ganadoSWG.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
-# Configuración para Render (producción)
+# ==========================================
+# BASE DE DATOS - CONEXIÓN HÍBRIDA
+# ==========================================
+# ⚠️ Toma DATABASE_URL desde las variables de entorno de Render
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if DATABASE_URL:
+    # 🔥 PRODUCCIÓN: Usa la base de datos de Render
     DATABASES = {
-        'default': dj_database_url.config(default=DATABASE_URL)
+        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
     }
 else:
-    #me permite la concexion de mi bdd local es decir del pc
-    # Configuración para tu PC local (desarrollo)
+    # 💻 DESARROLLO LOCAL: Usa PostgreSQL en tu PC
     DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'bdd_RENDERlocal',           # Nombre de la base de datos (la crearás en pgAdmin)
-        'USER': 'postgres',          # Usuario por defecto de PostgreSQL
-        'PASSWORD': 'root', # La contraseña que pusiste al instalar PostgreSQL
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'bdd_RENDERlocal',
+            'USER': 'postgres',
+            'PASSWORD': 'root',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
     }
-}
 
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
-
+# ==========================================
+# VALIDACIÓN DE CONTRASEÑAS
+# ==========================================
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -119,62 +120,52 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
-
+# ==========================================
+# INTERNACIONALIZACIÓN
+# ==========================================
 LANGUAGE_CODE = 'es-ec'
-
 TIME_ZONE = 'America/Guayaquil'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
+# ==========================================
+# ARCHIVOS ESTÁTICOS
+# ==========================================
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
-# ==========================================
-#GMAIL 
-# CONFIGURACIÓN DE CORREO
-# ==========================================
 
+# 🔥 WhiteNoise para archivos estáticos en producción
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# ==========================================
+# ARCHIVOS MEDIA (Subidas de usuarios)
+# ==========================================
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# ==========================================
+# CONFIGURACIÓN DE CORREO (GMAIL)
+# ==========================================
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-
 EMAIL_HOST_USER = 'alpaaguirre1999@gmail.com'
-
 EMAIL_HOST_PASSWORD = 'piry mxhv iqip kazv'
-
 DEFAULT_FROM_EMAIL = 'Hacienda El Roble <alpaaguirre1999@gmail.com>'
 
-
-
-# ==============================================
-# ARCHIVOS MEDIA (Fotos subidas)
-# ==============================================
-
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# ======== CONFIGURACIÓN DE CLOUDINARY ========
+# ==========================================
+# CONFIGURACIÓN DE CLOUDINARY
+# ==========================================
 cloudinary.config(
-    cloud_name='dnqf7nccg',  # ← CORREGIDO: con la 'q'
+    cloud_name='dnqf7nccg',
     api_key='324326838774969',
-    api_secret='XRZMsNoEGLASui9KgyehZojyugw',  # ← TU API SECRET
+    api_secret='XRZMsNoEGLASui9KgyehZojyugw',
     secure=True
 )
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-# ======== FIN CONFIGURACIÓN CLOUDINARY ========
