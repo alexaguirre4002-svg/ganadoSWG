@@ -63,7 +63,7 @@ Dashboard Estadístico | Hacienda Joseph
     </div>
 </div>
 
-<!-- GRÁFICAS: PRODUCCIÓN -->
+<!-- GRÁFICAS: PRODUCCIÓN Y ANIMALES -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8">
         <div class="card-hacienda">
@@ -79,19 +79,19 @@ Dashboard Estadístico | Hacienda Joseph
     <div class="col-md-4">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
-                <i class="bi bi-pie-chart me-2"></i>Producción por Turno
+                <i class="bi bi-cow me-2"></i>Animales por Categoría
             </div>
             <div class="p-3">
-                <p class="text-muted small mb-2">Reparto histórico (todo el historial) de los litros producidos entre los turnos de ordeño mañana, tarde y único.</p>
-                <canvas id="graficaTurnos" height="200"></canvas>
+                <p class="text-muted small mb-2">Cuántos animales tienes actualmente en cada categoría (ternero, novilla, vaca de leche, vaca seca, toro, etc.). Es una "foto" de la composición actual de tu hato.</p>
+                <canvas id="graficaAnimales" height="150"></canvas>
             </div>
         </div>
     </div>
 </div>
 
-<!-- GRÁFICAS: CALIDAD Y ANIMALES -->
+<!-- GRÁFICAS: CALIDAD Y TOP PRODUCTORES -->
 <div class="row mb-4 animate-fade-in">
-    <div class="col-md-6">
+    <div class="col-md-8">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
                 <i class="bi bi-check-circle me-2"></i>Calidad de Leche por Período
@@ -102,53 +102,27 @@ Dashboard Estadístico | Hacienda Joseph
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card-hacienda">
-            <div class="card-header-hacienda">
-                <i class="bi bi-cow me-2"></i>Animales por Categoría
-            </div>
-            <div class="p-3">
-                <p class="text-muted small mb-2">Cuántos animales tienes actualmente en cada categoría (ternero, novilla, vaca de leche, vaca seca, toro, etc.), sin importar el mes. Es una "foto" de la composición actual de tu hato.</p>
-                <canvas id="graficaAnimales" height="150"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- GRÁFICA: FINANZAS -->
-<div class="row mb-4 animate-fade-in">
-    <div class="col-md-6">
-        <div class="card-hacienda">
-            <div class="card-header-hacienda">
-                <i class="bi bi-cash-coin me-2"></i>Costos por Categoría
-            </div>
-            <div class="p-3">
-                <p class="text-muted small mb-2">Distribución de TODO el historial de gastos entre categorías: alimentación, sanidad, reproducción, mano de obra, mantenimiento, compra de animales, impuestos y otros.</p>
-                <canvas id="graficaCostos" height="150"></canvas>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
+    <div class="col-md-4">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
                 <i class="bi bi-trophy me-2"></i>Top 5 Animales Productores
             </div>
             <div class="p-3">
-                <p class="text-muted small mb-2">Los 5 animales con mayor producción acumulada de leche en todo el historial, con su promedio por ordeño. Útil para identificar a tus mejores productoras.</p>
+                <p class="text-muted small mb-2">Los 5 animales con mayor producción acumulada de leche en todo el historial, con su promedio por ordeño.</p>
                 <table class="table table-sm table-hover">
                     <thead class="table-light">
                         <tr>
                             <th>Animal</th>
-                            <th class="text-end">Total Litros</th>
-                            <th class="text-end">Promedio</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-end">Prom.</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for a in produccion_animal %}
                         <tr>
                             <td><i class="bi bi-cow me-1"></i>{{ a.fk_an__codigo_an }}</td>
-                            <td class="text-end fw-bold">{{ a.total_litros|floatformat:2 }} L</td>
-                            <td class="text-end text-muted">{{ a.promedio|floatformat:2 }} L</td>
+                            <td class="text-end fw-bold">{{ a.total_litros|floatformat:1 }} L</td>
+                            <td class="text-end text-muted">{{ a.promedio|floatformat:1 }} L</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -712,26 +686,6 @@ new Chart(ctxProd, {
     }
 });
 
-// Gráfica de Turnos
-const ctxTurno = document.getElementById('graficaTurnos').getContext('2d');
-new Chart(ctxTurno, {
-    type: 'doughnut',
-    data: {
-        labels: {{ turno_labels|safe|default:"[]" }},
-        datasets: [{
-            data: {{ turno_values|safe|default:"[]" }},
-            backgroundColor: ['#4a7c22', '#fd7e14', '#17a2b8'],
-            borderWidth: 2
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { position: 'bottom' }
-        }
-    }
-});
-
 // Gráfica de Calidad
 const ctxCalidad = document.getElementById('graficaCalidad').getContext('2d');
 new Chart(ctxCalidad, {
@@ -778,33 +732,6 @@ new Chart(ctxAnimales, {
         plugins: { legend: { display: false } },
         scales: {
             y: { beginAtZero: true }
-        }
-    }
-});
-
-// Gráfica de Costos
-const ctxCostos = document.getElementById('graficaCostos').getContext('2d');
-new Chart(ctxCostos, {
-    type: 'pie',
-    data: {
-        labels: {{ cost_labels|safe|default:"[]" }},
-        datasets: [{
-            data: {{ cost_values|safe|default:"[]" }},
-            backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#17a2b8', '#6f42c1'],
-            borderWidth: 2
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { position: 'right' },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        return context.label + ': $' + context.parsed.toFixed(2);
-                    }
-                }
-            }
         }
     }
 });
