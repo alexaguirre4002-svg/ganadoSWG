@@ -71,6 +71,7 @@ Dashboard Estadístico | Hacienda Joseph
                 <i class="bi bi-graph-up me-2"></i>Producción de Leche por Período
             </div>
             <div class="p-3">
+                <p class="text-muted small mb-2">Evolución de los litros totales producidos mes a mes en los últimos 12 meses con datos. Te permite ver si la producción del hato está subiendo o bajando con el tiempo.</p>
                 <canvas id="graficaProduccion" height="120"></canvas>
             </div>
         </div>
@@ -81,6 +82,7 @@ Dashboard Estadístico | Hacienda Joseph
                 <i class="bi bi-pie-chart me-2"></i>Producción por Turno
             </div>
             <div class="p-3">
+                <p class="text-muted small mb-2">Reparto histórico (todo el historial) de los litros producidos entre los turnos de ordeño mañana, tarde y único.</p>
                 <canvas id="graficaTurnos" height="200"></canvas>
             </div>
         </div>
@@ -95,6 +97,7 @@ Dashboard Estadístico | Hacienda Joseph
                 <i class="bi bi-check-circle me-2"></i>Calidad de Leche por Período
             </div>
             <div class="p-3">
+                <p class="text-muted small mb-2">Cuántas muestras de leche analizadas resultaron "aptas" vs "no aptas" cada mes, en los últimos 12 meses con datos. Un aumento sostenido de "no aptos" es señal de alerta sanitaria.</p>
                 <canvas id="graficaCalidad" height="150"></canvas>
             </div>
         </div>
@@ -105,6 +108,7 @@ Dashboard Estadístico | Hacienda Joseph
                 <i class="bi bi-cow me-2"></i>Animales por Categoría
             </div>
             <div class="p-3">
+                <p class="text-muted small mb-2">Cuántos animales tienes actualmente en cada categoría (ternero, novilla, vaca de leche, vaca seca, toro, etc.), sin importar el mes. Es una "foto" de la composición actual de tu hato.</p>
                 <canvas id="graficaAnimales" height="150"></canvas>
             </div>
         </div>
@@ -119,6 +123,7 @@ Dashboard Estadístico | Hacienda Joseph
                 <i class="bi bi-cash-coin me-2"></i>Costos por Categoría
             </div>
             <div class="p-3">
+                <p class="text-muted small mb-2">Distribución de TODO el historial de gastos entre categorías: alimentación, sanidad, reproducción, mano de obra, mantenimiento, compra de animales, impuestos y otros.</p>
                 <canvas id="graficaCostos" height="150"></canvas>
             </div>
         </div>
@@ -129,6 +134,7 @@ Dashboard Estadístico | Hacienda Joseph
                 <i class="bi bi-trophy me-2"></i>Top 5 Animales Productores
             </div>
             <div class="p-3">
+                <p class="text-muted small mb-2">Los 5 animales con mayor producción acumulada de leche en todo el historial, con su promedio por ordeño. Útil para identificar a tus mejores productoras.</p>
                 <table class="table table-sm table-hover">
                     <thead class="table-light">
                         <tr>
@@ -342,6 +348,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-pie-chart me-2"></i>Producción por Turno
                                                             </div>
                                                             <div class="p-3">
+                                                                <p class="text-muted small mb-2">Cuántos litros de leche se produjeron en cada turno de ordeño (mañana, tarde o único) este mes. Sirve para saber en qué turno el hato rinde más.</p>
                                                                 {% if datos.turno_values %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaTurno_{{ anio }}_{{ mes_num }}"></canvas>
@@ -359,6 +366,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-award me-2"></i>Producción por Raza
                                                             </div>
                                                             <div class="p-3">
+                                                                <p class="text-muted small mb-2">Compara cuántos litros aportó cada raza de tu hato este mes. Te dice qué raza es más productiva en tu sistema.</p>
                                                                 {% if datos.raza_values %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaRaza_{{ anio }}_{{ mes_num }}"></canvas>
@@ -389,6 +397,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-pie-chart-fill me-2"></i>Estado de Inseminaciones
                                                             </div>
                                                             <div class="p-3">
+                                                                <p class="text-muted small mb-2">De las inseminaciones hechas este mes, cuántas resultaron preñadas, cuántas no, y cuántas siguen sin diagnóstico confirmado.</p>
                                                                 {% if datos.insem_pie_values %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaInsem_{{ anio }}_{{ mes_num }}"></canvas>
@@ -423,6 +432,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-thermometer-half me-2"></i>Celos Observados por Intensidad
                                                             </div>
                                                             <div class="p-3">
+                                                                <p class="text-muted small mb-2">Clasifica los celos detectados este mes según su intensidad (alta, media o baja). Muchos celos de baja intensidad pueden señalar déficit nutricional o problemas de manejo reproductivo.</p>
                                                                 {% if datos.celo_values %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaCelo_{{ anio }}_{{ mes_num }}"></canvas>
@@ -440,6 +450,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-arrow-left-right me-2"></i>Movimientos de Animales
                                                             </div>
                                                             <div class="p-3">
+                                                                <p class="text-muted small mb-2">Resume las entradas y salidas del hato este mes: compras, ventas, traslados entre potreros, nacimientos, muertes y faenas.</p>
                                                                 {% if datos.movimientos_values %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaMovimientos_{{ anio }}_{{ mes_num }}"></canvas>
@@ -462,6 +473,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-bar-chart me-2"></i>Eventos Sanitarios por Tipo
                                                             </div>
                                                             <div class="p-3">
+                                                                <p class="text-muted small mb-2">Cuántos eventos sanitarios (vacunación, desparasitación, vitaminación, pruebas de tuberculosis/brucelosis, etc.) se aplicaron este mes, agrupados por tipo.</p>
                                                                 {% if datos.eventos_tipo_values %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaEventos_{{ anio }}_{{ mes_num }}"></canvas>
@@ -497,6 +509,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-bar-chart me-2"></i>Raciones: Ofrecido vs Consumido vs Desperdicio
                                                             </div>
                                                             <div class="p-3">
+                                                                <p class="text-muted small mb-2">Compara cuántos kg de alimento se ofrecieron este mes, cuántos realmente comió el ganado, y cuántos se desperdiciaron. Un desperdicio alto indica ineficiencia en la alimentación.</p>
                                                                 {% if datos.racion_values.0 %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaRacion_{{ anio }}_{{ mes_num }}"></canvas>
@@ -514,6 +527,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-droplet-half me-2"></i>Secados y Entregas de Leche
                                                             </div>
                                                             <div class="p-3">
+                                                                <p class="text-muted small mb-2">A la izquierda, cuántas vacas dejaron de producir leche este mes por secado (previo al parto). A la derecha, cuántos litros se entregaron a la planta o cliente comprador.</p>
                                                                 <div class="row">
                                                                     <div class="col-6">
                                                                         <div class="text-center p-2">
@@ -547,6 +561,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-bar-chart-steps me-2"></i>Peso Promedio por Categoría
                                                             </div>
                                                             <div class="p-3">
+                                                                <p class="text-muted small mb-2">Peso promedio registrado en los pesajes de este mes, agrupado por categoría de animal (ternero, novilla, vaca, toro, etc.). Ayuda a detectar categorías con bajo desarrollo.</p>
                                                                 {% if datos.peso_cat_values %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaPeso_{{ anio }}_{{ mes_num }}"></canvas>
@@ -563,6 +578,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-eyedropper me-2"></i>Composición de la Leche
                                                             </div>
                                                             <div class="p-3">
+                                                                <p class="text-muted small mb-2">Porcentaje promedio de grasa y proteína en los análisis de calidad hechos este mes. Estos valores afectan el precio de venta y la calidad nutricional de la leche.</p>
                                                                 {% if datos.composicion_values.0 or datos.composicion_values.1 %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaComposicion_{{ anio }}_{{ mes_num }}"></canvas>
@@ -585,6 +601,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-pie-chart me-2"></i>Costos por Categoría
                                                             </div>
                                                             <div class="p-3">
+                                                                <p class="text-muted small mb-2">En qué se gastó el dinero este mes: alimentación, sanidad, reproducción, mano de obra, mantenimiento, compra de animales, impuestos u otros.</p>
                                                                 {% if datos.costos_values %}
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaCostos_{{ anio }}_{{ mes_num }}"></canvas>
@@ -601,6 +618,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                                 <i class="bi bi-bar-chart me-2"></i>Ingresos vs Costos del Mes
                                                             </div>
                                                             <div class="p-3">
+                                                                <p class="text-muted small mb-2">Compara cuánto dinero entró (ventas de leche, animales, etc.) contra cuánto se gastó este mes. La diferencia entre ambas barras es tu balance/utilidad del período.</p>
                                                                 <div style="position: relative; height: 220px;">
                                                                     <canvas id="graficaFinanzas_{{ anio }}_{{ mes_num }}"></canvas>
                                                                 </div>
