@@ -1,94 +1,151 @@
 {% extends "./plantilla.html" %}
 {% load static %}
 
+<!-- ========================================== -->
+<!-- BLOQUE: TITULO DE LA PAGINA                -->
+<!-- Cambia el titulo que aparece en la pestaña -->
+<!-- del navegador para esta vista especifica   -->
+<!-- ========================================== -->
 {% block titulo %}
     Inicio | Hacienda Joseph
 {% endblock %}
 
+
+<!-- ========================================== -->
+<!-- BLOQUE: BREADCRUMB                         -->
+<!-- Muestra la ruta de navegacion actual       -->
+<!-- Solo deja "Inicio" porque es la pagina raiz-->
+<!-- ========================================== -->
 {% block breadcrumb %}
     <li class="breadcrumb-item active" aria-current="page">Inicio</li>
 {% endblock %}
 
+
+<!-- ========================================== -->
+<!-- BLOQUE: CONTENIDO PRINCIPAL                -->
+<!-- Todo el contenido visual va aqui dentro    -->
+<!-- ========================================== -->
 {% block contenido %}
-    <div class="row mb-2">
+
+    <!-- ========================================== -->
+    <!-- SECCION 1: ENCABEZADO DE BIENVENIDA        -->
+    <!-- Titulo principal y subtitulo del sistema   -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
         <div class="col-12 text-center">
-            <h4 class="fw-bold" style="color: #2c5e1a;">
+            <h2 class="display-5 fw-bold" style="color: var(--color-primario);">
                 <i class="bi bi-tree-fill me-2"></i>¡BIENVENIDOS!
-            </h4>
-            <h6 style="color: #8B4513;">
+            </h2>
+            <h4 class="mb-2" style="color: var(--color-secundario);">
                 <i class="bi bi-clipboard-data me-2"></i>Sistema de gestión de hacienda ganadera
-            </h6>
-            <p class="text-muted" style="font-size: 0.85rem;">
+            </h4>
+            <p class="lead text-muted">
                 Control integral de su ganado, potreros y producción
             </p>
         </div>
     </div>
 
-    <div class="row mb-3">
+
+    <!-- ========================================== -->
+    <!-- SECCION 2: CARRUSEL DE IMAGENES            -->
+    <!-- Muestra fotos representativas de la hacienda-->
+    <!-- Reemplaza las URLs por imagenes reales      -->
+    <!-- ========================================== -->
+    <div class="row mb-5 animate-fade-in">
         <div class="col-12">
-            <div id="carruselHacienda" class="carousel slide carousel-fade shadow rounded-4 overflow-hidden">
+            <div id="carruselHacienda" class="carousel slide carousel-fade shadow-lg rounded-4 overflow-hidden" data-bs-ride="carousel">
+                
+                <!-- Indicadores de slide (puntos debajo) -->
                 <div class="carousel-indicators">
-                    <button type="button" data-bs-target="#carruselHacienda" data-bs-slide-to="0" class="active"></button>
-                    <button type="button" data-bs-target="#carruselHacienda" data-bs-slide-to="1"></button>
-                    <button type="button" data-bs-target="#carruselHacienda" data-bs-slide-to="2"></button>
+                    <button type="button" data-bs-target="#carruselHacienda" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#carruselHacienda" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#carruselHacienda" data-bs-slide-to="2" aria-label="Slide 3"></button>
                 </div>
+
+                <!-- Contenedor de imagenes del carrusel -->
                 <div class="carousel-inner">
+                    
+                    <!-- Slide 1: Ganado en pastoreo -->
                     <div class="carousel-item active">
-                        <img src="https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=1200&h=500&fit=crop" class="d-block w-100" alt="Ganado">
+                        <img src="https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=1200&h=500&fit=crop" 
+                             class="d-block w-100" 
+                             style="height: 500px; object-fit: cover;" 
+                             alt="Ganado en pastoreo">
+                        <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
+                            <h5><i class="bi bi-geo-alt me-2"></i>Ganado en pastoreo</h5>
+                            <p>Control y seguimiento de nuestro rodeo en los potreros.</p>
+                        </div>
                     </div>
+
+                    <!-- Slide 2: Instalaciones de la hacienda -->
                     <div class="carousel-item">
-                        <img src="https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1200&h=500&fit=crop" class="d-block w-100" alt="Instalaciones">
+                        <img src="https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1200&h=500&fit=crop" 
+                             class="d-block w-100" 
+                             style="height: 500px; object-fit: cover;" 
+                             alt="Instalaciones ganaderas">
+                        <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
+                            <h5><i class="bi bi-building me-2"></i>Instalaciones de Calidad</h5>
+                            <p>Infraestructura moderna para el bienestar animal.</p>
+                        </div>
                     </div>
+
+                    <!-- Slide 3: Produccion lechera -->
                     <div class="carousel-item">
-                        <img src="https://images.unsplash.com/photo-1527153857715-3908f2bae5e8?w=1200&h=500&fit=crop" class="d-block w-100" alt="Producción">
+                        <img src="https://images.unsplash.com/photo-1527153857715-3908f2bae5e8?w=1200&h=500&fit=crop" 
+                             class="d-block w-100" 
+                             style="height: 500px; object-fit: cover;" 
+                             alt="Produccion lechera">
+                        <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
+                            <h5><i class="bi bi-droplet me-2"></i>Producción lechera</h5>
+                            <p>Registro diario y control de calidad de la leche.</p>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Boton anterior (flecha izquierda) -->
                 <button class="carousel-control-prev" type="button" data-bs-target="#carruselHacienda" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon"></span>
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Anterior</span>
                 </button>
+                
+                <!-- Boton siguiente (flecha derecha) -->
                 <button class="carousel-control-next" type="button" data-bs-target="#carruselHacienda" data-bs-slide="next">
-                    <span class="carousel-control-next-icon"></span>
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Siguiente</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <div class="row justify-content-center mb-3">
+
+    <!-- ========================================== -->
+    <!-- SECCION 3: BOTONES DE ACCESO RAPIDO        -->
+    <!-- Links directos a las funciones principales -->
+    <!-- del sistema para agilizar la navegacion    -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center mb-5 animate-fade-in">
         <div class="col-md-10 col-lg-8">
-            <div class="card-hacienda p-2">
-                <h6 class="text-center mb-2" style="color: #2c5e1a;">
+            <div class="card-hacienda p-4">
+                <h4 class="text-center mb-4" style="color: var(--color-primario);">
                     <i class="bi bi-lightning-charge me-2"></i>Accesos rápidos
-                </h6>
-                <div class="row g-2 text-center justify-content-center">
-                    <div class="col-6 col-md-5">
-                        <a href="/lecheml/" class="text-decoration-none d-block">
-                            <div class="p-2 rounded-3" style="background: rgba(220,53,69,0.1); border: 2px solid #dc3545;">
-                                <i class="bi bi-cup-straw fs-3" style="color: #dc3545;"></i>
-                                <p class="mt-1 mb-0 fw-bold" style="color: #dc3545; font-size: 0.7rem;">AD-1</p>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-6 col-md-5">
-                        <a href="/prenecesml/" class="text-decoration-none d-block">
-                            <div class="p-2 rounded-3" style="background: rgba(220,53,69,0.1); border: 2px solid #dc3545;">
-                                <i class="bi bi-heart-pulse fs-3" style="color: #dc3545;"></i>
-                                <p class="mt-1 mb-0 fw-bold" style="color: #dc3545; font-size: 0.7rem;">AD-2</p>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-6 col-md-5">
-                        <a href="/calidadlml/" class="text-decoration-none d-block">
-                            <div class="p-2 rounded-3" style="background: rgba(220,53,69,0.1); border: 2px solid #dc3545;">
-                                <i class="bi bi-award fs-3" style="color: #dc3545;"></i>
-                                <p class="mt-1 mb-0 fw-bold" style="color: #dc3545; font-size: 0.7rem;">RL-4</p>
-                            </div>
-                        </a>
-                    </div>
+                </h4>
+                <div class="row g-3 text-center justify-content-center">
+                    <!-- 7. DASHBOARD ESTADÍSTICO -->
                     <div class="col-6 col-md-5">
                         <a href="/dashboard-estadistico/" class="text-decoration-none d-block">
-                            <div class="p-2 rounded-3" style="background: rgba(218,165,32,0.1); border: 2px solid #DAA520;">
-                                <i class="bi bi-bar-chart-line fs-3" style="color: #DAA520;"></i>
-                                <p class="mt-1 mb-0 fw-bold" style="color: #DAA520; font-size: 0.7rem;">Dashboard</p>
+                            <div class="p-3 rounded-3 h-100" style="background: rgba(218,165,32,0.1); border: 2px solid var(--color-acento); transition: all 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                <i class="bi bi-bar-chart-line fs-1" style="color: var(--color-acento);"></i>
+                                <p class="mt-2 mb-0 fw-bold" style="color: var(--color-acento); font-size: 0.9rem;">Dashboard Estadístico</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- 8. MACHINE LEARNING -->
+                    <div class="col-6 col-md-5">
+                        <a href="/dashboardml/" class="text-decoration-none d-block">
+                            <div class="p-3 rounded-3 h-100" style="background: rgba(220,53,69,0.1); border: 2px solid #dc3545; transition: all 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                <i class="bi bi-cpu fs-1" style="color: #dc3545;"></i>
+                                <p class="mt-2 mb-0 fw-bold" style="color: #dc3545; font-size: 0.9rem;">Predicciones ML</p>
                             </div>
                         </a>
                     </div>
@@ -96,32 +153,46 @@
             </div>
         </div>
     </div>
-
-    <div class="row justify-content-center">
+    
+    <!-- ========================================== -->
+    <!-- SECCION 4: INFORMACION DE LA HACIENDA      -->
+    <!-- Datos basicos y descripcion del sistema    -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center animate-fade-in">
         <div class="col-md-8 text-center">
-            <div class="card-hacienda p-2">
-                <i class="bi bi-info-circle fs-3 mb-1" style="color: #2c5e1a;"></i>
-                <h6 style="color: #2c5e1a;">Sobre el sistema</h6>
-                <p class="text-muted" style="font-size: 0.75rem;">
-                    Gestión integral de ganado, salud, reproducción, potreros y producción lechera.
+            <div class="card-hacienda p-4">
+                <i class="bi bi-info-circle fs-1 mb-3" style="color: var(--color-primario);"></i>
+                <h4 style="color: var(--color-primario);">Sobre el sistema</h4>
+                <p class="text-muted">
+                    Este sistema permite gestionar de manera integral todos los procesos de la hacienda: 
+                    registro de ganado, control de salud, planificación de reproducción, 
+                    rotación de potreros y seguimiento de producción lechera.
                 </p>
-                <hr style="border-color: #d4c5a9; margin: 0.3rem 0;">
-                <p class="mb-0" style="font-size: 0.7rem;">
+                <hr style="border-color: var(--color-borde);">
+                <p class="mb-0">
                     <i class="bi bi-calendar3 me-2"></i>
-                    <strong>Temporada:</strong> 2026 - 2026
+                    <strong>Temporada actual:</strong> 2026 - 2026
                 </p>
             </div>
         </div>
     </div>
+
 {% endblock %}
 
+
+<!-- ========================================== -->
+<!-- BLOQUE: SCRIPTS EXTRAS                     -->
+<!-- JavaScript especifico para esta pagina      -->
+<!-- ========================================== -->
 {% block scripts_extra %}
+    <!-- Script para iniciar el carrusel automaticamente -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            new bootstrap.Carousel(document.getElementById('carruselHacienda'), {
-                interval: 4000,
-                wrap: true,
-                touch: true
+            var carrusel = document.getElementById('carruselHacienda');
+            var bsCarrusel = new bootstrap.Carousel(carrusel, {
+                interval: 4000,    // Cambia cada 4 segundos
+                wrap: true,        // Ciclo infinito
+                touch: true        // Soporte para swipe en moviles
             });
         });
     </script>
