@@ -1391,7 +1391,7 @@ def loginusuario(request):
                 # ==========================================
                 if user.intentos_fallidos_us >= 5:
 
-                    user.bloqueado_hasta_us = timezone.now() + timedelta(minutes=30)
+                    user.bloqueado_hasta_us = timezone.now() + timedelta(minutes=5)
 
                     user.save()
 
@@ -1406,7 +1406,7 @@ def loginusuario(request):
 
                     messages.error(
                         request,
-                        "Cuenta bloqueada por 30 minutos por seguridad."
+                        "Cuenta bloqueada por 5 minutos por seguridad."
                     )
 
                 else:

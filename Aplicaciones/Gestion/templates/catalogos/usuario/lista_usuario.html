@@ -91,7 +91,6 @@ Listado de usuarios | Hacienda Joseph
                             <tr>
                                 <th>Id</th>
                                 <th>Usuario</th>
-                                <th>Contraseña</th>
                                 <th>Nombre completo</th>
                                 <th>Rol</th>
                                 <th>Último acceso</th>
@@ -114,21 +113,6 @@ Listado de usuarios | Hacienda Joseph
                                 <td class="fw-bold" style="color: var(--color-primario); font-size:16px;">
                                     {{ usuario.username_us }}
                                     <br><small class="text-muted"><i class="bi bi-envelope me-1"></i>{{ usuario.email_us }}</small>
-                                </td>
-
-                                <!-- Contraseña -->
-                                <td>
-                                    <div class="d-flex align-items-center gap-1">
-                                        <span class="password-mask" id="pass-{{ usuario.id_us }}" style="font-family: monospace; font-size: 14px; background: #f5f0e6; padding: 2px 10px; border-radius: 4px; min-width: 80px;">
-                                            ••••••••
-                                        </span>
-                                        <button class="btn btn-sm btn-hacienda-secondary toggle-password" 
-                                                data-target="pass-{{ usuario.id_us }}"
-                                                data-password="{{ usuario.password_us }}"
-                                                title="Mostrar/ocultar contraseña">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                    </div>
                                 </td>
 
                                 <!-- Nombre completo -->
@@ -206,16 +190,6 @@ Listado de usuarios | Hacienda Joseph
 
                                 <!-- Acciones -->
                                 <td>
-                                    <!-- Ver contraseña con modal -->
-                                    <button type="button"
-                                            class="btn btn-sm btn-hacienda-secondary"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#modalVerPassword"
-                                            data-usuario="{{ usuario.username_us }}"
-                                            data-password="{{ usuario.password_us }}">
-                                        <i class="bi bi-key"></i>
-                                    </button>
-
                                     <!-- Editar -->
                                     <a href="/editarusuario/{{ usuario.id_us }}"
                                        class="btn btn-sm btn-hacienda-secondary">
@@ -240,7 +214,7 @@ Listado de usuarios | Hacienda Joseph
 
                             <!-- Sin registros -->
                             <tr>
-                                <td colspan="8"
+                                <td colspan="7"
                                     class="text-center py-5">
                                     <i class="bi bi-inbox fs-1 text-muted"></i>
                                     <p class="mt-3 text-muted">
@@ -333,53 +307,6 @@ Listado de usuarios | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- Modal para ver contraseña                 -->
-<!-- ========================================== -->
-<div class="modal fade" id="modalVerPassword" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content" style="border-radius: 12px; border: 2px solid #DAA520; overflow: hidden;">
-
-            <!-- Header -->
-            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
-                <h5 class="modal-title" style="color: white; font-weight: 700;">
-                    <i class="bi bi-key me-2" style="color: #DAA520;"></i>
-                    Contraseña del usuario
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-
-            <!-- Body -->
-            <div class="modal-body" style="background: #fff8e6; padding: 25px; text-align: center;">
-                <p class="mb-2" style="color: #5c450e; font-weight: 600;">
-                    <i class="bi bi-person-circle me-1"></i>
-                    Usuario: <span id="modalPasswordUsuario" style="color: #2c5e1a;"></span>
-                </p>
-                <div style="background: white; padding: 15px 20px; border-radius: 8px; border: 2px solid #d4c5a9; display: inline-block; min-width: 200px;">
-                    <code id="modalPasswordTexto" style="font-size: 18px; font-weight: 700; color: #2c5e1a; background: transparent;">
-                        ••••••••
-                    </code>
-                </div>
-                <p class="mt-3 mb-0" style="color: #8B6914; font-size: 12px;">
-                    <i class="bi bi-shield-lock me-1"></i>
-                    Esta contraseña está encriptada en la base de datos
-                </p>
-            </div>
-
-            <!-- Footer -->
-            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
-                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x-lg me-1"></i>Cerrar
-                </button>
-                <button type="button" class="btn btn-hacienda" id="btnCopiarPassword">
-                    <i class="bi bi-clipboard me-1"></i>Copiar
-                </button>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<!-- ========================================== -->
 <!-- Modal de confirmación estilo ganadero     -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalEliminarUsuario" tabindex="-1" aria-hidden="true">
@@ -452,70 +379,10 @@ Listado de usuarios | Hacienda Joseph
 <!-- ========================================== -->
 {% block scripts_extra %}
 
-<!-- Script para mostrar/ocultar contraseña en tabla -->
-<script>
-    document.querySelectorAll('.toggle-password').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var span = document.getElementById(this.dataset.target);
-            var icon = this.querySelector('i');
-            
-            if (span.textContent === '••••••••') {
-                span.textContent = this.dataset.password;
-                icon.className = 'bi bi-eye-slash';
-            } else {
-                span.textContent = '••••••••';
-                icon.className = 'bi bi-eye';
-            }
-        });
-    });
-</script>
-
-<!-- Script para mostrar contraseña en modal -->
-<script>
-    var modalVerPassword = document.getElementById('modalVerPassword');
-    modalVerPassword.addEventListener('show.bs.modal', function(event) {
-        var button = event.relatedTarget;
-        var usuario = button.getAttribute('data-usuario');
-        var password = button.getAttribute('data-password');
-        
-        document.getElementById('modalPasswordUsuario').textContent = usuario;
-        document.getElementById('modalPasswordTexto').textContent = password;
-    });
-</script>
-
-<!-- Script para copiar contraseña -->
-<script>
-    document.getElementById('btnCopiarPassword').addEventListener('click', function() {
-        var passwordText = document.getElementById('modalPasswordTexto').textContent;
-        navigator.clipboard.writeText(passwordText).then(function() {
-            var btn = document.getElementById('btnCopiarPassword');
-            var originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>¡Copiado!';
-            setTimeout(function() {
-                btn.innerHTML = originalText;
-            }, 2000);
-        }).catch(function() {
-            // Fallback para navegadores antiguos
-            var textarea = document.createElement('textarea');
-            textarea.value = passwordText;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            var btn = document.getElementById('btnCopiarPassword');
-            var originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>¡Copiado!';
-            setTimeout(function() {
-                btn.innerHTML = originalText;
-            }, 2000);
-        });
-    });
-</script>
-
 <!-- Script modal eliminar -->
 <script>
     var modalEliminarUsuario = document.getElementById('modalEliminarUsuario');
-    modalEliminarUsuario.addEventListener('show.bs.modal', function(event) {
+    modalEliminarUsuario.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
         var nombre = button.getAttribute('data-nombre');
         var username = button.getAttribute('data-username');
