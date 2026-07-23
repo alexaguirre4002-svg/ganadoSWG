@@ -11127,9 +11127,10 @@ def entrenar_modelos_render(request):
 # VISTA: LECHE ML - AD-1 (PREDICCIÓN EN VIVO)
 # ==========================================
 def leche_ml(request):
-    from .ml_engine import predecir, modelo_esta_entrenado
+    from .ml_engine import modelo_esta_entrenado, obtener_ruta_modelo
+    import joblib
+    import numpy as np
     from django.db.models import Avg, Sum, Count
-    from datetime import timedelta
 
     estado_ad1 = modelo_esta_entrenado('AD-1')
     metrica_ad1 = None
@@ -11144,7 +11145,18 @@ def leche_ml(request):
     predicciones_por_animal = []
 
     if estado_ad1:
-        # OBTENER TODOS LOS ORDEÑOS CON DATOS COMPLETOS (INCLUYE 2026)
+        # ==========================================
+        # CARGAR MODELO UNA SOLA VEZ
+        # ==========================================
+        ruta_modelo = obtener_ruta_modelo('AD-1')
+        modelo_data = joblib.load(ruta_modelo)
+        modelo_ml = modelo_data['modelo']
+        scaler = modelo_data['scaler']
+        features = modelo_data['features']
+
+        # ==========================================
+        # OBTENER TODOS LOS ORDEÑOS
+        # ==========================================
         ordenos = Ordeno.objects.filter(
             temperatura_ambiental_or__isnull=False,
             cantidad_concentrado_kg_or__isnull=False,
@@ -11154,31 +11166,64 @@ def leche_ml(request):
 
         print(f"[ML] Ordeños encontrados: {ordenos.count()}")
 
-        animales_dict = {}
+        if ordenos.exists():
+            # ==========================================
+            # PREPARAR DATOS PARA BATCH PREDICTION
+            # ==========================================
+            animales_dict = {}
+            X_batch = []
+            ordenos_list = []
 
-        for o in ordenos:
-            animal = o.fk_an
-            if not animal:
-                continue
+            for o in ordenos:
+                animal = o.fk_an
+                if not animal:
+                    continue
 
-            # DATOS DE ENTRADA PARA LA PREDICCIÓN
-            datos_entrada = {
-                'temperatura_ambiental': float(o.temperatura_ambiental_or),
-                'cantidad_concentrado_kg': float(o.cantidad_concentrado_kg_or),
-                'temperatura_leche': float(o.temperatura_leche_or)
-            }
+                # Características para el modelo AD-1 (14 características)
+                # Usamos valores predeterminados para características no disponibles
+                caracteristicas = [
+                    0,  # edad_dias
+                    0,  # edad_anios
+                    0,  # raza_cod
+                    0,  # peso_kg
+                    0,  # condicion_corporal
+                    0,  # num_partos
+                    0,  # promedio_7dias
+                    0,  # cantidad_consumida
+                    0,  # cantidad_ofrecida
+                    6,  # mes (Junio por defecto)
+                    0,  # temporada_cod
+                    float(o.temperatura_ambiental_or),
+                    float(o.temperatura_leche_or),
+                    float(o.cantidad_concentrado_kg_or)
+                ]
 
-            # PREDECIR CON EL MODELO .pkl
-            resultado = predecir('AD-1', datos_entrada)
+                X_batch.append(caracteristicas)
+                ordenos_list.append((animal, o))
+                animales_dict[animal.id_an] = {
+                    'animal': animal,
+                    'total_predicciones': 0,
+                    'ultima_fecha': None,
+                    'predicciones': []
+                }
 
-            if resultado.get('exito'):
-                if animal.id_an not in animales_dict:
-                    animales_dict[animal.id_an] = {
-                        'animal': animal,
-                        'total_predicciones': 0,
-                        'ultima_fecha': None,
-                        'predicciones': []
-                    }
+            # ==========================================
+            # ESCALAR TODOS LOS DATOS A LA VEZ
+            # ==========================================
+            X_scaled = scaler.transform(X_batch)
+
+            # ==========================================
+            # PREDECIR TODOS A LA VEZ (BATCH)
+            # ==========================================
+            predicciones = modelo_ml.predict(X_scaled)
+
+            print(f"[ML] {len(predicciones)} predicciones realizadas en lote")
+
+            # ==========================================
+            # ASIGNAR PREDICCIONES A CADA ANIMAL
+            # ==========================================
+            for idx, (animal, o) in enumerate(ordenos_list):
+                pred = round(float(predicciones[idx]), 2)
 
                 animales_dict[animal.id_an]['predicciones'].append({
                     'fecha': o.fecha_or,
@@ -11186,7 +11231,7 @@ def leche_ml(request):
                     'cantidad_concentrado_kg': o.cantidad_concentrado_kg_or,
                     'temperatura_leche': o.temperatura_leche_or,
                     'litros_reales': float(o.litros_or),
-                    'prediccion': round(resultado['prediccion'], 2)
+                    'prediccion': pred
                 })
 
                 animales_dict[animal.id_an]['total_predicciones'] += 1
@@ -11194,11 +11239,11 @@ def leche_ml(request):
                 if animales_dict[animal.id_an]['ultima_fecha'] is None or o.fecha_or > animales_dict[animal.id_an]['ultima_fecha']:
                     animales_dict[animal.id_an]['ultima_fecha'] = o.fecha_or
 
-        predicciones_por_animal = list(animales_dict.values())
-        predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
+            predicciones_por_animal = list(animales_dict.values())
+            predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
 
-        print(f"[ML] Animales con predicciones: {len(predicciones_por_animal)}")
-        print(f"[ML] Total predicciones: {sum(a['total_predicciones'] for a in predicciones_por_animal)}")
+            print(f"[ML] Animales con predicciones: {len(predicciones_por_animal)}")
+            print(f"[ML] Total predicciones: {sum(a['total_predicciones'] for a in predicciones_por_animal)}")
 
     contexto = {
         'estado_ad1': estado_ad1,
@@ -11214,7 +11259,8 @@ def leche_ml(request):
 # VISTA: PREÑECES ML - AD-2 
 # ==========================================
 def preneces_ml(request):
-    from .ml_engine import predecir, modelo_esta_entrenado
+    from .ml_engine import modelo_esta_entrenado, obtener_ruta_modelo
+    import joblib
     from django.db.models import Avg, Sum, Count
 
     estado_ad2 = modelo_esta_entrenado('AD-2')
@@ -11230,8 +11276,16 @@ def preneces_ml(request):
     predicciones_por_animal = []
 
     if estado_ad2:
-        # OBTENER TODAS LAS INSEMINACIONES CON DATOS COMPLETOS
-        # Usamos inseminaciones con resultado 'pendiente' o con resultado ya definido
+        # ==========================================
+        # CARGAR MODELO UNA SOLA VEZ
+        # ==========================================
+        ruta_modelo = obtener_ruta_modelo('AD-2')
+        modelo_data = joblib.load(ruta_modelo)
+        modelo_ml = modelo_data['modelo']
+
+        # ==========================================
+        # OBTENER TODAS LAS INSEMINACIONES
+        # ==========================================
         inseminaciones = Inseminacion.objects.filter(
             condicion_corporal_in__isnull=False,
             fecha_in__isnull=False,
@@ -11242,44 +11296,69 @@ def preneces_ml(request):
 
         print(f"[ML] Inseminaciones encontradas para AD-2: {inseminaciones.count()}")
 
-        animales_dict = {}
+        if inseminaciones.exists():
+            # ==========================================
+            # PREPARAR DATOS PARA BATCH PREDICTION
+            # ==========================================
+            animales_dict = {}
+            X_batch = []
+            ins_list = []
 
-        for ins in inseminaciones:
-            animal = ins.fk_an
-            if not animal:
-                continue
+            for ins in inseminaciones:
+                animal = ins.fk_an
+                if not animal:
+                    continue
 
-            # CALCULAR DÍAS DESDE INSEMINACIÓN
-            dias = (date.today() - ins.fecha_in).days
+                dias = (date.today() - ins.fecha_in).days
 
-            # DATOS DE ENTRADA PARA LA PREDICCIÓN
-            datos_entrada = {
-                'dias_desde_inseminacion': dias,
-                'condicion_corporal': float(ins.condicion_corporal_in or 3),
-                'dia_ciclo': float(ins.dia_ciclo_in or 14),
-            }
+                # Características para AD-2 (11 características)
+                caracteristicas = [
+                    dias,  # dias_desde_inseminacion
+                    0,  # num_partos
+                    0,  # raza_cod
+                    float(ins.condicion_corporal_in or 3),  # condicion_corporal
+                    0,  # produccion_leche
+                    0,  # intensidad_cod
+                    0,  # duracion_celo_horas
+                    0,  # tipo_cod
+                    0,  # toro_cod
+                    0,  # historial_abortos
+                    float(ins.dia_ciclo_in or 14)  # dia_ciclo
+                ]
 
-            # PREDECIR CON EL MODELO .pkl
-            resultado = predecir('AD-2', datos_entrada)
+                X_batch.append(caracteristicas)
+                ins_list.append((animal, ins))
+                animales_dict[animal.id_an] = {
+                    'animal': animal,
+                    'total_predicciones': 0,
+                    'ultima_fecha': None,
+                    'predicciones': []
+                }
 
-            if resultado.get('exito'):
-                if animal.id_an not in animales_dict:
-                    animales_dict[animal.id_an] = {
-                        'animal': animal,
-                        'total_predicciones': 0,
-                        'ultima_fecha': None,
-                        'predicciones': []
-                    }
+            # ==========================================
+            # PREDECIR TODOS A LA VEZ (BATCH)
+            # ==========================================
+            predicciones = modelo_ml.predict(X_batch)
+            probabilidades = modelo_ml.predict_proba(X_batch)
+
+            print(f"[ML] {len(predicciones)} predicciones AD-2 realizadas en lote")
+
+            # ==========================================
+            # ASIGNAR PREDICCIONES A CADA ANIMAL
+            # ==========================================
+            for idx, (animal, ins) in enumerate(ins_list):
+                pred = predicciones[idx]
+                prob = float(max(probabilidades[idx])) if len(probabilidades[idx]) > 0 else 0
 
                 animales_dict[animal.id_an]['predicciones'].append({
                     'fecha': ins.fecha_in,
-                    'dias_desde_inseminacion': dias,
+                    'dias_desde_inseminacion': (date.today() - ins.fecha_in).days,
                     'condicion_corporal': float(ins.condicion_corporal_in or 0),
                     'dia_ciclo': ins.dia_ciclo_in or 14,
                     'tipo_inseminacion': ins.tipo_inseminacion_in,
                     'resultado_real': ins.resultado_in or 'pendiente',
-                    'prediccion': resultado['prediccion'],
-                    'probabilidad': resultado.get('probabilidad', 0)
+                    'prediccion': 'Preñada' if pred == 1 else 'No Preñada',
+                    'probabilidad': round(prob * 100, 1)
                 })
 
                 animales_dict[animal.id_an]['total_predicciones'] += 1
@@ -11287,11 +11366,11 @@ def preneces_ml(request):
                 if animales_dict[animal.id_an]['ultima_fecha'] is None or ins.fecha_in > animales_dict[animal.id_an]['ultima_fecha']:
                     animales_dict[animal.id_an]['ultima_fecha'] = ins.fecha_in
 
-        predicciones_por_animal = list(animales_dict.values())
-        predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
+            predicciones_por_animal = list(animales_dict.values())
+            predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
 
-        print(f"[ML] Animales con predicciones AD-2: {len(predicciones_por_animal)}")
-        print(f"[ML] Total predicciones AD-2: {sum(a['total_predicciones'] for a in predicciones_por_animal)}")
+            print(f"[ML] Animales con predicciones AD-2: {len(predicciones_por_animal)}")
+            print(f"[ML] Total predicciones AD-2: {sum(a['total_predicciones'] for a in predicciones_por_animal)}")
 
     contexto = {
         'estado_ad2': estado_ad2,
@@ -11306,7 +11385,8 @@ def preneces_ml(request):
 # VISTA: CALIDAD LECHE ML - RL-4 
 # ==========================================
 def calidad_leche_ml(request):
-    from .ml_engine import predecir, modelo_esta_entrenado
+    from .ml_engine import modelo_esta_entrenado, obtener_ruta_modelo
+    import joblib
     from django.db.models import Avg, Sum, Count
 
     estado_rl4 = modelo_esta_entrenado('RL-4')
@@ -11322,7 +11402,16 @@ def calidad_leche_ml(request):
     predicciones_por_animal = []
 
     if estado_rl4:
-        # OBTENER TODOS LOS REGISTROS DE CALIDAD DE LECHE CON DATOS COMPLETOS
+        # ==========================================
+        # CARGAR MODELO UNA SOLA VEZ
+        # ==========================================
+        ruta_modelo = obtener_ruta_modelo('RL-4')
+        modelo_data = joblib.load(ruta_modelo)
+        modelo_ml = modelo_data['modelo']
+
+        # ==========================================
+        # OBTENER TODOS LOS REGISTROS DE CALIDAD
+        # ==========================================
         calidades = CalidadLeche.objects.filter(
             grasa_pct_cl__isnull=False,
             proteina_pct_cl__isnull=False,
@@ -11334,31 +11423,49 @@ def calidad_leche_ml(request):
 
         print(f"[ML] Registros de calidad encontrados: {calidades.count()}")
 
-        animales_dict = {}
+        if calidades.exists():
+            # ==========================================
+            # PREPARAR DATOS PARA BATCH PREDICTION
+            # ==========================================
+            animales_dict = {}
+            X_batch = []
+            calidades_list = []
 
-        for c in calidades:
-            animal = c.fk_an
-            if not animal:
-                continue
+            for c in calidades:
+                animal = c.fk_an
+                if not animal:
+                    continue
 
-            # DATOS DE ENTRADA PARA LA PREDICCIÓN
-            datos_entrada = {
-                'grasa_pct': float(c.grasa_pct_cl or 0),
-                'proteina_pct': float(c.proteina_pct_cl or 0),
-                'ccs': float(c.ccs_cl or 0),
-            }
+                caracteristicas = [
+                    float(c.grasa_pct_cl or 0),
+                    float(c.proteina_pct_cl or 0),
+                    float(c.ccs_cl or 0),
+                    0  # ufc (no disponible)
+                ]
 
-            # PREDECIR CON EL MODELO .pkl
-            resultado = predecir('RL-4', datos_entrada)
+                X_batch.append(caracteristicas)
+                calidades_list.append((animal, c))
+                animales_dict[animal.id_an] = {
+                    'animal': animal,
+                    'total_predicciones': 0,
+                    'ultima_fecha': None,
+                    'predicciones': []
+                }
 
-            if resultado.get('exito'):
-                if animal.id_an not in animales_dict:
-                    animales_dict[animal.id_an] = {
-                        'animal': animal,
-                        'total_predicciones': 0,
-                        'ultima_fecha': None,
-                        'predicciones': []
-                    }
+            # ==========================================
+            # PREDECIR TODOS A LA VEZ (BATCH)
+            # ==========================================
+            predicciones = modelo_ml.predict(X_batch)
+            probabilidades = modelo_ml.predict_proba(X_batch)
+
+            print(f"[ML] {len(predicciones)} predicciones de calidad realizadas en lote")
+
+            # ==========================================
+            # ASIGNAR PREDICCIONES A CADA ANIMAL
+            # ==========================================
+            for idx, (animal, c) in enumerate(calidades_list):
+                pred = predicciones[idx]
+                prob = float(max(probabilidades[idx])) if len(probabilidades[idx]) > 0 else 0
 
                 animales_dict[animal.id_an]['predicciones'].append({
                     'fecha': c.fecha_muestreo_cl,
@@ -11366,8 +11473,8 @@ def calidad_leche_ml(request):
                     'proteina_pct': float(c.proteina_pct_cl or 0),
                     'ccs': float(c.ccs_cl or 0),
                     'resultado_real': c.resultado_cl,
-                    'prediccion': resultado['prediccion'],
-                    'probabilidad': resultado.get('probabilidad', 0)
+                    'prediccion': 'Apto' if pred == 1 else 'No Apto',
+                    'probabilidad': prob
                 })
 
                 animales_dict[animal.id_an]['total_predicciones'] += 1
@@ -11375,11 +11482,11 @@ def calidad_leche_ml(request):
                 if animales_dict[animal.id_an]['ultima_fecha'] is None or c.fecha_muestreo_cl > animales_dict[animal.id_an]['ultima_fecha']:
                     animales_dict[animal.id_an]['ultima_fecha'] = c.fecha_muestreo_cl
 
-        predicciones_por_animal = list(animales_dict.values())
-        predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
+            predicciones_por_animal = list(animales_dict.values())
+            predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
 
-        print(f"[ML] Animales con predicciones RL-4: {len(predicciones_por_animal)}")
-        print(f"[ML] Total predicciones RL-4: {sum(a['total_predicciones'] for a in predicciones_por_animal)}")
+            print(f"[ML] Animales con predicciones RL-4: {len(predicciones_por_animal)}")
+            print(f"[ML] Total predicciones RL-4: {sum(a['total_predicciones'] for a in predicciones_por_animal)}")
 
     contexto = {
         'estado_rl4': estado_rl4,
@@ -11388,7 +11495,6 @@ def calidad_leche_ml(request):
     }
 
     return render(request, 'ML/prediccionML/calidadL_ML.html', contexto)
-
 
 
 #API AD-1: HISTORIAL DE PREDICCIONES POR ANIMAL (EN VIVO)
