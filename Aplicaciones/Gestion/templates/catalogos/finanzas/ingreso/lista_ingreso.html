@@ -5,7 +5,7 @@
 <!-- TITULO                                    -->
 <!-- ========================================== -->
 {% block titulo %}
-Listado de Ingresos | Hacienda Joseph
+Listado de ingresos | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -15,6 +15,11 @@ Listado de Ingresos | Hacienda Joseph
 <li class="breadcrumb-item">
     <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">
         Inicio
+    </a>
+</li>
+<li class="breadcrumb-item">
+    <a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">
+        Administración
     </a>
 </li>
 <li class="breadcrumb-item active" aria-current="page">
@@ -27,27 +32,27 @@ Listado de Ingresos | Hacienda Joseph
 <!-- ========================================== -->
 {% block contenido %}
 
-<!-- TARJETAS ESTADÍSTICAS -->
+<!-- Tarjetas estadísticas -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-2">
         <div class="card-hacienda text-center p-3">
             <i class="bi bi-cash-stack fs-2" style="color: var(--color-primario);"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_ingresos }}</h4>
-            <small class="text-muted">Total Ingresos</small>
+            <small class="text-muted">Total ingresos</small>
         </div>
     </div>
     <div class="col-md-2">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
             <i class="bi bi-droplet fs-2 text-success"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_venta_leche }}</h4>
-            <small class="text-muted">Venta Leche</small>
+            <small class="text-muted">Venta leche</small>
         </div>
     </div>
     <div class="col-md-2">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #17a2b8;">
             <i class="bi bi-emoji-smile fs-2" style="color: #17a2b8;"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_venta_animales }}</h4>
-            <small class="text-muted">Venta Animales</small>
+            <small class="text-muted">Venta animales</small>
         </div>
     </div>
     <div class="col-md-2">
@@ -61,24 +66,24 @@ Listado de Ingresos | Hacienda Joseph
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #fd7e14;">
             <i class="bi bi-droplet fs-2 text-warning"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_servicios_inseminacion }}</h4>
-            <small class="text-muted">Serv. Inseminación</small>
+            <small class="text-muted">Serv. inseminación</small>
         </div>
     </div>
     <div class="col-md-2">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
             <i class="bi bi-currency-dollar fs-2 text-danger"></i>
             <h4 class="fw-bold mt-2 mb-0">${{ monto_total_general|stringformat:".2f" }}</h4>
-            <small class="text-muted">Monto Total</small>
+            <small class="text-muted">Monto total</small>
         </div>
     </div>
 </div>
 
-<!-- TITULO -->
+<!-- Titulo -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8">
         <h2 class="fw-bold" style="color: var(--color-primario);">
             <i class="bi bi-graph-up-arrow me-2"></i>
-            Listado de Ingresos
+            Listado de ingresos
         </h2>
         <p class="text-muted mb-0">
             <i class="bi bi-info-circle me-1"></i>
@@ -88,51 +93,78 @@ Listado de Ingresos | Hacienda Joseph
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <a href="/nuevoingreso/" class="btn btn-hacienda">
             <i class="bi bi-plus-circle me-2"></i>
-            Nuevo Ingreso
+            Nuevo ingreso
         </a>
     </div>
 </div>
 
-<!-- TARJETA PRINCIPAL -->
+<!-- Tarjeta principal -->
 <div class="row animate-fade-in">
     <div class="col-12">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
                 <i class="bi bi-list-ul"></i>
-                Ingresos Registrados
+                Ingresos registrados
+                <span class="badge bg-secondary ms-2">{{ ingresos_list.paginator.count }}</span>
             </div>
             <div class="p-4">
+                <!-- Filtro de búsqueda -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="GET" action="" class="d-flex">
+                            <input type="text" name="search" class="form-control form-control-sm" 
+                                   placeholder="🔍 Buscar por categoría o cliente..." 
+                                   value="{{ request.GET.search }}">
+                            <button type="submit" class="btn btn-sm btn-hacienda ms-2">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            {% if request.GET.search %}
+                            <a href="?page=1" class="btn btn-sm btn-hacienda-secondary ms-1">
+                                <i class="bi bi-x-circle"></i>
+                            </a>
+                            {% endif %}
+                        </form>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <small class="text-muted">
+                            Mostrando {{ ingresos_list.start_index }} a {{ ingresos_list.end_index }} 
+                            de {{ ingresos_list.paginator.count }} registros
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Tabla -->
                 <div class="table-responsive">
-                    <table id="tablaIngresos" class="table table-hacienda align-middle mb-0">
+                    <table class="table table-hacienda align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>CATEGORÍA</th>
-                                <th>FECHA</th>
-                                <th>CLIENTE</th>
-                                <th>CANTIDAD</th>
-                                <th>PRECIO UNIT.</th>
-                                <th>MONTO TOTAL</th>
-                                <th>COMPROBANTE</th>
-                                <th>REGISTRADO POR</th>
-                                <th>ACCIONES</th>
+                                <th>Id</th>
+                                <th>Categoría</th>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Cantidad</th>
+                                <th>Precio unit.</th>
+                                <th>Monto total</th>
+                                <th>Comprobante</th>
+                                <th>Registrado por</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for ingreso in ingresos_list %}
                             <tr>
-                                <!-- ID -->
+                                <!-- Id -->
                                 <td class="fw-bold text-muted">#{{ ingreso.id_ig }}</td>
                                 
-                                <!-- CATEGORÍA -->
+                                <!-- Categoría -->
                                 <td>
                                     {% if ingreso.categoria_ig == 'venta_leche' %}
                                     <span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745;">
-                                        <i class="bi bi-droplet me-1"></i>Venta Leche
+                                        <i class="bi bi-droplet me-1"></i>Venta leche
                                     </span>
                                     {% elif ingreso.categoria_ig == 'venta_animales' %}
                                     <span class="badge rounded-pill p-2" style="background:#e2d4f0; color:#4a148c; border: 1px solid #6f42c1;">
-                                        <i class="bi bi-emoji-smile me-1"></i>Venta Animales
+                                        <i class="bi bi-emoji-smile me-1"></i>Venta animales
                                     </span>
                                     {% elif ingreso.categoria_ig == 'venta_subproductos' %}
                                     <span class="badge rounded-pill p-2" style="background:#fff3cd; color:#856404; border: 1px solid #fd7e14;">
@@ -140,7 +172,7 @@ Listado de Ingresos | Hacienda Joseph
                                     </span>
                                     {% elif ingreso.categoria_ig == 'servicios_inseminacion' %}
                                     <span class="badge rounded-pill p-2" style="background:#e3f2fd; color:#0d47a1; border: 1px solid #17a2b8;">
-                                        <i class="bi bi-droplet me-1"></i>Serv. Inseminación
+                                        <i class="bi bi-droplet me-1"></i>Serv. inseminación
                                     </span>
                                     {% else %}
                                     <span class="badge rounded-pill p-2" style="background:#f8f9fa; color:#6c757d; border: 1px solid #adb5bd;">
@@ -149,7 +181,7 @@ Listado de Ingresos | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- FECHA -->
+                                <!-- Fecha -->
                                 <td>
                                     <span class="fw-bold" style="color: #5c450e;">
                                         <i class="bi bi-calendar-check me-1"></i>
@@ -157,7 +189,7 @@ Listado de Ingresos | Hacienda Joseph
                                     </span>
                                 </td>
                                 
-                                <!-- CLIENTE -->
+                                <!-- Cliente -->
                                 <td>
                                     {% if ingreso.cliente_ig %}
                                     <span class="text-muted">
@@ -169,7 +201,7 @@ Listado de Ingresos | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- CANTIDAD -->
+                                <!-- Cantidad -->
                                 <td>
                                     {% if ingreso.cantidad_ig %}
                                     <span class="fw-bold text-success">
@@ -180,7 +212,7 @@ Listado de Ingresos | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- PRECIO UNITARIO -->
+                                <!-- Precio unitario -->
                                 <td>
                                     {% if ingreso.precio_unitario_ig %}
                                     <span class="fw-bold" style="color: #0d47a1;">
@@ -191,7 +223,7 @@ Listado de Ingresos | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- MONTO TOTAL -->
+                                <!-- Monto total -->
                                 <td>
                                     <span class="fw-bold" style="color: #2c5e1a; font-size: 15px;">
                                         <i class="bi bi-currency-dollar me-1"></i>
@@ -199,7 +231,7 @@ Listado de Ingresos | Hacienda Joseph
                                     </span>
                                 </td>
                                 
-                                <!-- COMPROBANTE -->
+                                <!-- Comprobante -->
                                 <td>
                                     {% if ingreso.comprobante_ig %}
                                     <span class="badge rounded-pill p-2" style="background:#e8f5e9; color:#2c5e1a; border: 1px solid #28a745;">
@@ -211,7 +243,7 @@ Listado de Ingresos | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- REGISTRADO POR -->
+                                <!-- Registrado por -->
                                 <td>
                                     <span class="text-muted">
                                         <i class="bi bi-person me-1 text-success"></i>
@@ -222,14 +254,14 @@ Listado de Ingresos | Hacienda Joseph
                                     </small>
                                 </td>
                                 
-                                <!-- ACCIONES -->
+                                <!-- Acciones -->
                                 <td>
-                                    <!-- VER DETALLE (MODAL) -->
+                                    <!-- Ver detalle (modal) -->
                                     <button type="button" class="btn btn-sm btn-info" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#modalDetalleIngreso"
                                             data-id="{{ ingreso.id_ig }}"
-                                            data-categoria="{% if ingreso.categoria_ig == 'venta_leche' %}Venta Leche{% elif ingreso.categoria_ig == 'venta_animales' %}Venta Animales{% elif ingreso.categoria_ig == 'venta_subproductos' %}Subproductos{% elif ingreso.categoria_ig == 'servicios_inseminacion' %}Serv. Inseminación{% else %}Otros{% endif %}"
+                                            data-categoria="{% if ingreso.categoria_ig == 'venta_leche' %}Venta leche{% elif ingreso.categoria_ig == 'venta_animales' %}Venta animales{% elif ingreso.categoria_ig == 'venta_subproductos' %}Subproductos{% elif ingreso.categoria_ig == 'servicios_inseminacion' %}Serv. inseminación{% else %}Otros{% endif %}"
                                             data-categoria-valor="{{ ingreso.categoria_ig }}"
                                             data-fecha="{{ ingreso.fecha_ig|date:'d/m/Y' }}"
                                             data-cliente="{% if ingreso.cliente_ig %}{{ ingreso.cliente_ig }}{% else %}Sin cliente{% endif %}"
@@ -244,17 +276,17 @@ Listado de Ingresos | Hacienda Joseph
                                         <i class="bi bi-eye"></i>
                                     </button>
                                     
-                                    <!-- EDITAR -->
+                                    <!-- Editar -->
                                     <a href="/editaringreso/{{ ingreso.id_ig }}" class="btn btn-sm btn-hacienda-secondary" title="Editar">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                     
-                                    <!-- ELIMINAR -->
+                                    <!-- Eliminar -->
                                     <button type="button" class="btn btn-sm btn-danger"
                                             data-bs-toggle="modal"
                                             data-bs-target="#modalEliminarIngreso"
                                             data-id="{{ ingreso.id_ig }}"
-                                            data-categoria="{% if ingreso.categoria_ig == 'venta_leche' %}Venta Leche{% elif ingreso.categoria_ig == 'venta_animales' %}Venta Animales{% elif ingreso.categoria_ig == 'venta_subproductos' %}Subproductos{% elif ingreso.categoria_ig == 'servicios_inseminacion' %}Serv. Inseminación{% else %}Otros{% endif %}"
+                                            data-categoria="{% if ingreso.categoria_ig == 'venta_leche' %}Venta leche{% elif ingreso.categoria_ig == 'venta_animales' %}Venta animales{% elif ingreso.categoria_ig == 'venta_subproductos' %}Subproductos{% elif ingreso.categoria_ig == 'servicios_inseminacion' %}Serv. inseminación{% else %}Otros{% endif %}"
                                             data-fecha="{{ ingreso.fecha_ig|date:'d/m/Y' }}"
                                             data-monto="{{ ingreso.monto_total_ig|stringformat:'s' }}"
                                             data-url="/eliminaringreso/{{ ingreso.id_ig }}"
@@ -277,11 +309,68 @@ Listado de Ingresos | Hacienda Joseph
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Paginación de Django -->
+                {% if ingresos_list.has_other_pages %}
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            Mostrando {{ ingresos_list.start_index }} a {{ ingresos_list.end_index }} 
+                            de {{ ingresos_list.paginator.count }} registros
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <nav aria-label="Paginación de ingresos">
+                            <ul class="pagination justify-content-end flex-wrap">
+                                {% if ingresos_list.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ ingresos_list.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+
+                                {% for num in ingresos_list.paginator.page_range %}
+                                    {% if ingresos_list.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                    {% elif num > ingresos_list.number|add:'-3' and num < ingresos_list.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                            {{ num }}
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if ingresos_list.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ ingresos_list.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ ingresos_list.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                {% endif %}
             </div>
             <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
                 <small class="text-muted">
                     <i class="bi bi-bar-chart-line me-1"></i>
-                    Total de ingresos: <strong>{{ ingresos_list|length }}</strong> | 
+                    Total de ingresos: <strong>{{ ingresos_list.paginator.count }}</strong> | 
                     Monto total general: <strong style="color: #2c5e1a;">${{ monto_total_general|stringformat:".2f" }}</strong>
                 </small>
             </div>
@@ -290,7 +379,7 @@ Listado de Ingresos | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL DETALLE INGRESO                      -->
+<!-- Modal detalle ingreso                      -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalDetalleIngreso" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -298,7 +387,7 @@ Listado de Ingresos | Hacienda Joseph
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-graph-up-arrow-fill me-2" style="color: #DAA520;"></i>
-                    DETALLE DEL INGRESO
+                    Detalle del ingreso
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -317,54 +406,54 @@ Listado de Ingresos | Hacienda Joseph
                         <div class="p-4">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold">ID INGRESO</label>
+                                    <label class="text-muted small fw-bold">Id ingreso</label>
                                     <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<span id="detalleId"></span></p>
                                 </div>
                                 <div class="col-6 text-end">
-                                    <label class="text-muted small fw-bold">MONTO TOTAL</label>
+                                    <label class="text-muted small fw-bold">Monto total</label>
                                     <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;">$<span id="detalleMonto"></span></p>
                                 </div>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>FECHA</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>Fecha</label>
                                     <p class="mb-0" id="detalleFecha" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>CLIENTE</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>Cliente</label>
                                     <p class="mb-0" id="detalleCliente" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-box me-1"></i>CANTIDAD</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-box me-1"></i>Cantidad</label>
                                     <p class="mb-0" id="detalleCantidad" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-tag me-1"></i>PRECIO UNIT.</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-tag me-1"></i>Precio unit.</label>
                                     <p class="mb-0" id="detallePrecio" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="mb-3">
-                                <label class="text-muted small fw-bold"><i class="bi bi-file-earmark-text me-1"></i>COMPROBANTE</label>
+                                <label class="text-muted small fw-bold"><i class="bi bi-file-earmark-text me-1"></i>Comprobante</label>
                                 <p class="mb-0" id="detalleComprobante" style="color: #5c450e;"></p>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-0">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>REGISTRADO POR</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>Registrado por</label>
                                     <p class="mb-0" id="detalleUsuario" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>FECHA REGISTRO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>Fecha registro</label>
                                     <p class="mb-0" id="detalleCreated" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <div class="row mt-2 mb-0">
                                 <div class="col-12">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-clockwise me-1"></i>ÚLTIMA MODIFICACIÓN</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-clockwise me-1"></i>Última modificación</label>
                                     <p class="mb-0" id="detalleUpdated" style="color: #5c450e;"></p>
                                 </div>
                             </div>
@@ -374,7 +463,7 @@ Listado de Ingresos | Hacienda Joseph
             </div>
             <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
                 <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
-                    <i class="bi bi-pencil-square me-1"></i>Editar Ingreso
+                    <i class="bi bi-pencil-square me-1"></i>Editar ingreso
                 </a>
                 <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
                     <i class="bi bi-x-lg me-1"></i>Cerrar
@@ -385,7 +474,7 @@ Listado de Ingresos | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL ELIMINAR INGRESO                     -->
+<!-- Modal eliminar ingreso                     -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalEliminarIngreso" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -393,7 +482,7 @@ Listado de Ingresos | Hacienda Joseph
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
-                    CONFIRMAR ELIMINACIÓN
+                    Confirmar eliminación
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -422,145 +511,37 @@ Listado de Ingresos | Hacienda Joseph
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- Estilos para paginación                   -->
+<!-- ========================================== -->
+<style>
+    .pagination .page-link {
+        color: var(--color-primario);
+        border-color: #d4c5a9;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: var(--color-primario);
+        border-color: var(--color-primario);
+        color: white;
+    }
+    .pagination .page-link:hover {
+        background-color: #e8f5e9;
+        border-color: var(--color-primario);
+    }
+    .card-header-hacienda .badge {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.65rem;
+    }
+</style>
+
 {% endblock %}
 
 <!-- ========================================== -->
 <!-- SCRIPTS EXTRA                              -->
 <!-- ========================================== -->
 {% block scripts_extra %}
-
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-
-<style>
-    .dataTables_filter {
-        margin-bottom: 20px !important;
-        background: linear-gradient(135deg, #eef7e8, #dcefd0);
-        padding: 15px 20px;
-        border-radius: 18px;
-        border: 2px solid #b7d7a8;
-        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
-        display: flex !important;
-        align-items: center !important;
-        justify-content: end !important;
-        gap: 10px;
-    }
-    .dataTables_filter::before {
-        content: "💰";
-        font-size: 28px;
-    }
-    .dataTables_filter label {
-        font-weight: bold;
-        color: var(--color-primario);
-        font-size: 17px;
-    }
-    .dataTables_filter input {
-        border-radius: 50px !important;
-        border: 3px solid var(--color-primario) !important;
-        padding: 10px 18px !important;
-        background-color: #ffffff !important;
-        color: var(--color-navbar) !important;
-        font-weight: 600 !important;
-        width: 280px !important;
-        transition: 0.3s !important;
-        box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08);
-        margin-left: 10px !important;
-    }
-    .dataTables_filter input:focus {
-        outline: none !important;
-        border-color: #8dc26f !important;
-        box-shadow: 0px 0px 12px rgba(44,94,26,0.4);
-        background-color: #f8fff5 !important;
-    }
-    .dataTables_length select {
-        border-radius: 10px !important;
-        border: 2px solid var(--color-primario) !important;
-        padding: 5px 10px !important;
-    }
-    .dataTables_paginate {
-        width: 100% !important;
-        display: flex !important;
-        justify-content: center !important;
-        margin-top: 25px !important;
-    }
-    .dataTables_paginate .pagination {
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: flex-end !important;
-        align-items: center !important;
-        gap: 0px !important;
-        flex-wrap: nowrap !important;
-    }
-    .paginate_button {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 4px !important;
-        border: none !important;
-        background: #dfeedd !important;
-        color: var(--color-primario) !important;
-        font-weight: bold !important;
-        font-size: 14px !important;
-        display: inline-flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        transition: 0.3s !important;
-        margin: 0 3px !important;
-        vertical-align: middle !important;
-        float: none !important;
-    }
-    .paginate_button.current {
-        background: var(--color-primario) !important;
-        color: white !important;
-        border: 2px solid #8dc26f !important;
-        box-shadow: 0px 0px 8px rgba(44,94,26,0.4);
-    }
-    .paginate_button:hover {
-        background: #3d7a24 !important;
-        color: white !important;
-    }
-    .paginate_button.previous, .paginate_button.next {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 4px !important;
-        background: #dfeedd !important;
-        color: var(--color-primario) !important;
-        font-weight: bold !important;
-        font-size: 16px !important;
-    }
-    .paginate_button.previous:hover, .paginate_button.next:hover {
-        background: #3d7a24 !important;
-        color: white !important;
-    }
-</style>
-
 <script>
-    $(document).ready(function () {
-        $('#tablaIngresos').DataTable({
-            "language": {
-                "lengthMenu": "Mostrar _MENU_ registros",
-                "zeroRecords": "No se encontraron resultados",
-                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                "infoEmpty": "No existen registros",
-                "infoFiltered": "(filtrado de _MAX_ registros)",
-                "search": "Buscar:",
-                "paginate": {
-                    "first": "",
-                    "last": "",
-                    "next": "›",
-                    "previous": "‹"
-                }
-            },
-            "pageLength": 10,
-            "lengthMenu": [5,10,25,50,100],
-            "responsive": true,
-            "pagingType": "simple_numbers",
-            "order": [[2, "desc"]]
-        });
-    });
-</script>
-
-<script>
-    // Modal Detalle Ingreso
+    // Modal detalle ingreso
     var modalDetalleIngreso = document.getElementById('modalDetalleIngreso');
     modalDetalleIngreso.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
@@ -594,16 +575,16 @@ Listado de Ingresos | Hacienda Joseph
         var badgeHtml = '';
         switch(categoriaValor) {
             case 'venta_leche': 
-                badgeHtml = '<span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745; font-size: 14px;"><i class="bi bi-droplet me-1"></i> Venta Leche</span>';
+                badgeHtml = '<span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745; font-size: 14px;"><i class="bi bi-droplet me-1"></i> Venta leche</span>';
                 break;
             case 'venta_animales': 
-                badgeHtml = '<span class="badge rounded-pill p-2" style="background:#e2d4f0; color:#4a148c; border: 1px solid #6f42c1; font-size: 14px;"><i class="bi bi-emoji-smile me-1"></i> Venta Animales</span>';
+                badgeHtml = '<span class="badge rounded-pill p-2" style="background:#e2d4f0; color:#4a148c; border: 1px solid #6f42c1; font-size: 14px;"><i class="bi bi-emoji-smile me-1"></i> Venta animales</span>';
                 break;
             case 'venta_subproductos': 
                 badgeHtml = '<span class="badge rounded-pill p-2" style="background:#fff3cd; color:#856404; border: 1px solid #fd7e14; font-size: 14px;"><i class="bi bi-box-seam me-1"></i> Subproductos</span>';
                 break;
             case 'servicios_inseminacion': 
-                badgeHtml = '<span class="badge rounded-pill p-2" style="background:#e3f2fd; color:#0d47a1; border: 1px solid #17a2b8; font-size: 14px;"><i class="bi bi-droplet me-1"></i> Serv. Inseminación</span>';
+                badgeHtml = '<span class="badge rounded-pill p-2" style="background:#e3f2fd; color:#0d47a1; border: 1px solid #17a2b8; font-size: 14px;"><i class="bi bi-droplet me-1"></i> Serv. inseminación</span>';
                 break;
             default: 
                 badgeHtml = '<span class="badge rounded-pill p-2" style="background:#f8f9fa; color:#6c757d; border: 1px solid #adb5bd; font-size: 14px;"><i class="bi bi-question-circle me-1"></i> Otros</span>';
@@ -615,7 +596,7 @@ Listado de Ingresos | Hacienda Joseph
 </script>
 
 <script>
-    // Modal Eliminar Ingreso
+    // Modal eliminar ingreso
     var modalEliminarIngreso = document.getElementById('modalEliminarIngreso');
     modalEliminarIngreso.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
