@@ -5,7 +5,7 @@
 <!-- TITULO                                    -->
 <!-- ========================================== -->
 {% block titulo %}
-Listado de Animales | Hacienda Joseph
+Listado de animales | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,13 +27,13 @@ Listado de Animales | Hacienda Joseph
 <!-- ========================================== -->
 {% block contenido %}
 
-<!-- TARJETAS ESTADÍSTICAS -->
+<!-- Tarjetas estadísticas -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-2">
         <div class="card-hacienda text-center p-3">
             <i class="bi bi-clipboard-data fs-2" style="color: var(--color-primario);"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_animales }}</h4>
-            <small class="text-muted">Total Animales</small>
+            <small class="text-muted">Total animales</small>
         </div>
     </div>
     <div class="col-md-2">
@@ -54,7 +54,7 @@ Listado de Animales | Hacienda Joseph
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #1565C0;">
             <i class="bi bi-droplet fs-2" style="color: #1565C0;"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_vacas_leche }}</h4>
-            <small class="text-muted">Vacas Leche</small>
+            <small class="text-muted">Vacas leche</small>
         </div>
     </div>
     <div class="col-md-2">
@@ -73,12 +73,12 @@ Listado de Animales | Hacienda Joseph
     </div>
 </div>
 
-<!-- TITULO -->
+<!-- Titulo -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8">
         <h2 class="fw-bold" style="color: var(--color-primario);">
             <i class="bi bi-clipboard-data me-2"></i>
-            Listado de Animales
+            Listado de animales
         </h2>
         <p class="text-muted mb-0">
             <i class="bi bi-info-circle me-1"></i>
@@ -88,48 +88,75 @@ Listado de Animales | Hacienda Joseph
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <a href="/nuevoanimal/" class="btn btn-hacienda">
             <i class="bi bi-plus-circle me-2"></i>
-            Nuevo Animal
+            Nuevo animal
         </a>
     </div>
 </div>
 
-<!-- TARJETA PRINCIPAL -->
+<!-- Tarjeta principal -->
 <div class="row animate-fade-in">
     <div class="col-12">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
                 <i class="bi bi-list-ul"></i>
-                Animales Registrados
+                Animales registrados
+                <span class="badge bg-secondary ms-2">{{ animales.paginator.count }}</span>
             </div>
             <div class="p-4">
+                <!-- Filtro de búsqueda -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="GET" action="" class="d-flex">
+                            <input type="text" name="search" class="form-control form-control-sm" 
+                                   placeholder="🔍 Buscar por código, nombre o raza..." 
+                                   value="{{ request.GET.search }}">
+                            <button type="submit" class="btn btn-sm btn-hacienda ms-2">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            {% if request.GET.search %}
+                            <a href="?page=1" class="btn btn-sm btn-hacienda-secondary ms-1">
+                                <i class="bi bi-x-circle"></i>
+                            </a>
+                            {% endif %}
+                        </form>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <small class="text-muted">
+                            Mostrando {{ animales.start_index }} a {{ animales.end_index }} 
+                            de {{ animales.paginator.count }} registros
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Tabla -->
                 <div class="table-responsive">
-                    <table id="tablaAnimales" class="table table-hacienda align-middle mb-0">
+                    <table class="table table-hacienda align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>CÓDIGO</th>
-                                <th>NOMBRE</th>
-                                <th>RAZA</th>
-                                <th>SEXO</th>
-                                <th>CATEGORÍA</th>
-                                <th>ESTADO</th>
-                                <th>PESO ACT.</th>
-                                <th>POTRERO</th>
-                                <th>ACCIONES</th>
+                                <th>Id</th>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Raza</th>
+                                <th>Sexo</th>
+                                <th>Categoría</th>
+                                <th>Estado</th>
+                                <th>Peso act.</th>
+                                <th>Potrero</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for animal in animales %}
                             <tr>
-                                <!-- ID -->
+                                <!-- Id -->
                                 <td class="fw-bold text-muted">#{{ animal.id_an }}</td>
                                 
-                                <!-- CÓDIGO -->
+                                <!-- Código -->
                                 <td class="fw-bold" style="color: var(--color-primario); font-size:16px;">
                                     {{ animal.codigo_an }}
                                 </td>
                                 
-                                <!-- NOMBRE -->
+                                <!-- Nombre -->
                                 <td>
                                     {% if animal.nombre_an %}
                                         {{ animal.nombre_an }}
@@ -138,7 +165,7 @@ Listado de Animales | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- RAZA -->
+                                <!-- Raza -->
                                 <td>
                                     {% if animal.fk_ra %}
                                         <span class="badge rounded-pill p-2" style="background: #e8f5e9; color: #2c5e1a; border: 1px solid #2c5e1a;">
@@ -150,7 +177,7 @@ Listado de Animales | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- SEXO -->
+                                <!-- Sexo -->
                                 <td>
                                     {% if animal.sexo_an == 'M' %}
                                     <span class="badge rounded-pill p-2" style="background:#87CEEB; color:#1a1a1a;">
@@ -165,7 +192,7 @@ Listado de Animales | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- CATEGORIA -->
+                                <!-- Categoría -->
                                 <td>
                                     {% if animal.categoria_an == 'ternero' %}
                                     <span class="badge rounded-pill p-2" style="background:#FFF3E0; color:#E65100; border: 1px solid #E65100;">
@@ -180,12 +207,12 @@ Listado de Animales | Hacienda Joseph
                                     {% elif animal.categoria_an == 'vaca_leche' %}
                                     <span class="badge rounded-pill p-2" style="background:#E3F2FD; color:#1565C0; border: 1px solid #1565C0;">
                                         <i class="bi bi-droplet me-1"></i>
-                                        Vaca Leche
+                                        Vaca leche
                                     </span>
                                     {% elif animal.categoria_an == 'vaca_seca' %}
                                     <span class="badge rounded-pill p-2" style="background:#FFF8E1; color:#F57F17; border: 1px solid #F57F17;">
                                         <i class="bi bi-pause-circle me-1"></i>
-                                        Vaca Seca
+                                        Vaca seca
                                     </span>
                                     {% elif animal.categoria_an == 'toro' %}
                                     <span class="badge rounded-pill p-2" style="background:#FFEBEE; color:#C62828; border: 1px solid #C62828;">
@@ -207,7 +234,7 @@ Listado de Animales | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- ESTADO -->
+                                <!-- Estado -->
                                 <td>
                                     {% if animal.estado_an == 'activo' %}
                                     <span class="badge rounded-pill bg-success p-2">
@@ -239,7 +266,7 @@ Listado de Animales | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- PESO ACTUAL -->
+                                <!-- Peso actual -->
                                 <td class="fw-bold">
                                     {% if animal.peso_actual_kg_an %}
                                         {{ animal.peso_actual_kg_an }} kg
@@ -248,7 +275,7 @@ Listado de Animales | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- POTRERO -->
+                                <!-- Potrero -->
                                 <td>
                                     {% if animal.fk_potrero_an %}
                                         <i class="bi bi-geo-alt me-1 text-success"></i>
@@ -258,9 +285,9 @@ Listado de Animales | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- ACCIONES -->
+                                <!-- Acciones -->
                                 <td>
-                                    <!-- VER DETALLE (MODAL CON FOTO) -->
+                                    <!-- Ver detalle (modal) -->
                                     <button type="button" class="btn btn-sm btn-info" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#modalDetalleAnimal"
@@ -288,12 +315,12 @@ Listado de Animales | Hacienda Joseph
                                         <i class="bi bi-eye"></i>
                                     </button>
                                     
-                                    <!-- EDITAR -->
+                                    <!-- Editar -->
                                     <a href="/editaranimal/{{ animal.id_an }}" class="btn btn-sm btn-hacienda-secondary" title="Editar">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                     
-                                    <!-- ELIMINAR CON MODAL BOOTSTRAP -->
+                                    <!-- Eliminar -->
                                     <button type="button" class="btn btn-sm btn-danger"
                                             data-bs-toggle="modal"
                                             data-bs-target="#modalEliminarAnimal"
@@ -320,11 +347,68 @@ Listado de Animales | Hacienda Joseph
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Paginación de Django -->
+                {% if animales.has_other_pages %}
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            Mostrando {{ animales.start_index }} a {{ animales.end_index }} 
+                            de {{ animales.paginator.count }} registros
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <nav aria-label="Paginación de animales">
+                            <ul class="pagination justify-content-end flex-wrap">
+                                {% if animales.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ animales.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+
+                                {% for num in animales.paginator.page_range %}
+                                    {% if animales.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                    {% elif num > animales.number|add:'-3' and num < animales.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                            {{ num }}
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if animales.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ animales.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ animales.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                {% endif %}
             </div>
             <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
                 <small class="text-muted">
                     <i class="bi bi-bar-chart-line me-1"></i>
-                    Total de animales: <strong>{{ animales|length }}</strong>
+                    Total de animales: <strong>{{ animales.paginator.count }}</strong>
                 </small>
             </div>
         </div>
@@ -332,7 +416,7 @@ Listado de Animales | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL DETALLE ANIMAL - CON FOTO GRANDE     -->
+<!-- Modal detalle animal - con foto grande    -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalDetalleAnimal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -340,13 +424,13 @@ Listado de Animales | Hacienda Joseph
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-eye-fill me-2" style="color: #DAA520;"></i>
-                    DETALLE DEL ANIMAL
+                    Detalle del animal
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0" style="background: #fff8e6; overflow-y: auto;">
                 <div class="row g-0">
-                    <!-- COLUMNA DE LA FOTO -->
+                    <!-- Columna de la foto -->
                     <div class="col-md-6" style="background: #f5f0e6; border-right: 2px solid #d4c5a9; min-height: 500px; padding: 0;">
                         <div id="contenedorFotoAnimal" style="width: 100%; height: 100%; min-height: 500px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                             <img id="fotoAnimalDetalle" src="" alt="Foto del animal" style="width: 100%; height: 100%; min-height: 500px; object-fit: cover; border-radius: 12px; border: 3px solid #DAA520; box-shadow: 0 4px 15px rgba(0,0,0,0.2); background-color: #f5f0e6; display: none;">
@@ -357,91 +441,91 @@ Listado de Animales | Hacienda Joseph
                             </div>
                         </div>
                     </div>
-                    <!-- COLUMNA DE DATOS -->
+                    <!-- Columna de datos -->
                     <div class="col-md-6">
                         <div class="p-4" style="max-height: 600px; overflow-y: auto;">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold">CÓDIGO</label>
+                                    <label class="text-muted small fw-bold">Código</label>
                                     <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleCodigo"></p>
                                 </div>
                                 <div class="col-6 text-end">
-                                    <label class="text-muted small fw-bold">ESTADO</label>
+                                    <label class="text-muted small fw-bold">Estado</label>
                                     <div id="detalleEstado"></div>
                                 </div>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-diagram-2 me-1"></i>RAZA</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-diagram-2 me-1"></i>Raza</label>
                                     <p class="mb-0" id="detalleRaza" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-gender-ambiguous me-1"></i>SEXO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-gender-ambiguous me-1"></i>Sexo</label>
                                     <p class="mb-0" id="detalleSexo" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-layers me-1"></i>CATEGORÍA</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-layers me-1"></i>Categoría</label>
                                     <p class="mb-0" id="detalleCategoria" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-bar-chart-line me-1"></i>COND. CORPORAL</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-bar-chart-line me-1"></i>Cond. corporal</label>
                                     <p class="mb-0" id="detalleCondicion" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-speedometer me-1"></i>PESO NACIMIENTO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-speedometer me-1"></i>Peso nacimiento</label>
                                     <p class="mb-0 fw-bold" id="detallePesoNacimiento" style="color: #2c5e1a;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-speedometer2 me-1"></i>PESO ACTUAL</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-speedometer2 me-1"></i>Peso actual</label>
                                     <p class="mb-0 fw-bold" id="detallePesoActual" style="color: #2c5e1a;"></p>
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="text-muted small fw-bold"><i class="bi bi-palette me-1"></i>COLOR</label>
+                                <label class="text-muted small fw-bold"><i class="bi bi-palette me-1"></i>Color</label>
                                 <p class="mb-0" id="detalleColor" style="color: #5c450e;"></p>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-3">
                                 <div class="col-4">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-event me-1"></i>NACIMIENTO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-event me-1"></i>Nacimiento</label>
                                     <p class="mb-0" id="detalleFechaNacimiento" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-4">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>INGRESO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>Ingreso</label>
                                     <p class="mb-0" id="detalleFechaIngreso" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-4">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-x me-1"></i>SALIDA</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-x me-1"></i>Salida</label>
                                     <p class="mb-0" id="detalleFechaSalida" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <div class="mb-3" id="filaMotivoSalida" style="display: none;">
-                                <label class="text-muted small fw-bold"><i class="bi bi-question-circle me-1"></i>MOTIVO SALIDA</label>
+                                <label class="text-muted small fw-bold"><i class="bi bi-question-circle me-1"></i>Motivo salida</label>
                                 <p class="mb-0" id="detalleMotivo" style="color: #c0392b;"></p>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-heart me-1"></i>MADRE</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-heart me-1"></i>Madre</label>
                                     <p class="mb-0" id="detalleMadre" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-heart-fill me-1"></i>PADRE</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-heart-fill me-1"></i>Padre</label>
                                     <p class="mb-0" id="detallePadre" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="text-muted small fw-bold"><i class="bi bi-geo-alt me-1"></i>POTRERO</label>
+                                <label class="text-muted small fw-bold"><i class="bi bi-geo-alt me-1"></i>Potrero</label>
                                 <p class="mb-0" id="detallePotrero" style="color: #5c450e;"></p>
                             </div>
                             <div class="mb-0">
-                                <label class="text-muted small fw-bold"><i class="bi bi-eye me-1"></i>SEÑAS PARTICULARES</label>
+                                <label class="text-muted small fw-bold"><i class="bi bi-eye me-1"></i>Señas particulares</label>
                                 <p class="mb-0" id="detalleSenas" style="color: #5c450e; font-style: italic;"></p>
                             </div>
                         </div>
@@ -450,7 +534,7 @@ Listado de Animales | Hacienda Joseph
             </div>
             <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
                 <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
-                    <i class="bi bi-pencil-square me-1"></i>Editar Animal
+                    <i class="bi bi-pencil-square me-1"></i>Editar animal
                 </a>
                 <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
                     <i class="bi bi-x-lg me-1"></i>Cerrar
@@ -461,7 +545,7 @@ Listado de Animales | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL ELIMINAR ANIMAL                      -->
+<!-- Modal eliminar animal                     -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalEliminarAnimal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -469,7 +553,7 @@ Listado de Animales | Hacienda Joseph
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
-                    CONFIRMAR ELIMINACIÓN
+                    Confirmar eliminación
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -483,7 +567,7 @@ Listado de Animales | Hacienda Joseph
                 </p>
                 <p class="mt-2 mb-0" style="color: #c0392b; font-size: 13px;">
                     <i class="bi bi-exclamation-diamond me-1"></i>
-                    Esta acción no se puede deshacer. Se eliminarán todos los registros asociados (movimientos, eventos sanitarios, ordeños, etc.).
+                    Esta acción no se puede deshacer. Se eliminarán todos los registros asociados.
                 </p>
             </div>
             <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
@@ -498,123 +582,27 @@ Listado de Animales | Hacienda Joseph
     </div>
 </div>
 
-{% endblock %}
-
 <!-- ========================================== -->
-<!-- SCRIPTS EXTRA                              -->
+<!-- Estilos para paginación                   -->
 <!-- ========================================== -->
-{% block scripts_extra %}
-
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-
 <style>
-    .dataTables_filter {
-        margin-bottom: 20px !important;
-        background: linear-gradient(135deg, #eef7e8, #dcefd0);
-        padding: 15px 20px;
-        border-radius: 18px;
-        border: 2px solid #b7d7a8;
-        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
-        display: flex !important;
-        align-items: center !important;
-        justify-content: end !important;
-        gap: 10px;
-    }
-    .dataTables_filter::before {
-        content: "🐄";
-        font-size: 28px;
-    }
-    .dataTables_filter label {
-        font-weight: bold;
+    .pagination .page-link {
         color: var(--color-primario);
-        font-size: 17px;
+        border-color: #d4c5a9;
     }
-    .dataTables_filter input {
-        border-radius: 50px !important;
-        border: 3px solid var(--color-primario) !important;
-        padding: 10px 18px !important;
-        background-color: #ffffff !important;
-        color: var(--color-navbar) !important;
-        font-weight: 600 !important;
-        width: 280px !important;
-        transition: 0.3s !important;
-        box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08);
-        margin-left: 10px !important;
+    .pagination .page-item.active .page-link {
+        background-color: var(--color-primario);
+        border-color: var(--color-primario);
+        color: white;
     }
-    .dataTables_filter input:focus {
-        outline: none !important;
-        border-color: #8dc26f !important;
-        box-shadow: 0px 0px 12px rgba(44,94,26,0.4);
-        background-color: #f8fff5 !important;
+    .pagination .page-link:hover {
+        background-color: #e8f5e9;
+        border-color: var(--color-primario);
     }
-    .dataTables_length select {
-        border-radius: 10px !important;
-        border: 2px solid var(--color-primario) !important;
-        padding: 5px 10px !important;
+    .card-header-hacienda .badge {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.65rem;
     }
-    .dataTables_paginate {
-        width: 100% !important;
-        display: flex !important;
-        justify-content: center !important;
-        margin-top: 25px !important;
-    }
-    .dataTables_paginate .pagination {
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: flex-end !important;
-        align-items: center !important;
-        gap: 0px !important;
-        flex-wrap: nowrap !important;
-    }
-    .paginate_button {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 4px !important;
-        border: none !important;
-        background: #dfeedd !important;
-        color: var(--color-primario) !important;
-        font-weight: bold !important;
-        font-size: 14px !important;
-        display: inline-flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        transition: 0.3s !important;
-        margin: 0 3px !important;
-        vertical-align: middle !important;
-        float: none !important;
-    }
-    .paginate_button.current {
-        background: var(--color-primario) !important;
-        color: white !important;
-        border: 2px solid #8dc26f !important;
-        box-shadow: 0px 0px 8px rgba(44,94,26,0.4);
-    }
-    .paginate_button:hover {
-        background: #3d7a24 !important;
-        color: white !important;
-    }
-    .paginate_button.previous, .paginate_button.next {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 4px !important;
-        background: #dfeedd !important;
-        color: var(--color-primario) !important;
-        font-weight: bold !important;
-        font-size: 16px !important;
-        display: inline-flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        transition: 0.3s !important;
-        margin: 0 3px !important;
-        vertical-align: middle !important;
-        float: none !important;
-    }
-    .paginate_button.previous:hover, .paginate_button.next:hover {
-        background: #3d7a24 !important;
-        color: white !important;
-    }
-    /* ESTILOS PARA LA FOTO */
     #contenedorFotoAnimal {
         width: 100%;
         height: 100%;
@@ -652,35 +640,14 @@ Listado de Animales | Hacienda Joseph
     }
 </style>
 
-<script>
-    $(document).ready(function () {
-        $('#tablaAnimales').DataTable({
-            "language": {
-                "lengthMenu": "Mostrar _MENU_ registros",
-                "zeroRecords": "No se encontraron resultados",
-                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                "infoEmpty": "No existen registros",
-                "infoFiltered": "(filtrado de _MAX_ registros)",
-                "search": "Buscar:",
-                "paginate": {
-                    "first": "",
-                    "last": "",
-                    "next": "›",
-                    "previous": "‹"
-                }
-            },
-            "pageLength": 10,
-            "lengthMenu": [5,10,25,50,100],
-            "responsive": true,
-            "pagingType": "simple_numbers"
-        });
-    });
-</script>
+{% endblock %}
 
+<!-- ========================================== -->
+<!-- SCRIPTS EXTRA                              -->
+<!-- ========================================== -->
+{% block scripts_extra %}
 <script>
-    // ==========================================
-    // MODAL DETALLE ANIMAL - CON FOTO GRANDE
-    // ==========================================
+    // Modal detalle animal - con foto grande
     var modalDetalleAnimal = document.getElementById('modalDetalleAnimal');
     modalDetalleAnimal.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
@@ -752,9 +719,7 @@ Listado de Animales | Hacienda Joseph
         }
         document.getElementById('detalleEstado').innerHTML = estadoHtml;
         
-        // ==========================================
-        // MANEJO DE LA FOTO - OCUPA TODO EL CUADRO
-        // ==========================================
+        // Manejo de la foto
         var imgFoto = document.getElementById('fotoAnimalDetalle');
         var placeholder = document.getElementById('placeholderFoto');
         
@@ -785,9 +750,7 @@ Listado de Animales | Hacienda Joseph
 </script>
 
 <script>
-    // ==========================================
-    // MODAL ELIMINAR ANIMAL
-    // ==========================================
+    // Modal eliminar animal
     var modalEliminarAnimal = document.getElementById('modalEliminarAnimal');
     modalEliminarAnimal.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;

@@ -5,7 +5,7 @@
 <!-- TITULO                                    -->
 <!-- ========================================== -->
 {% block titulo %}
-Listado de Potreros | Hacienda Joseph
+Listado de potreros | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,13 +27,13 @@ Listado de Potreros | Hacienda Joseph
 <!-- ========================================== -->
 {% block contenido %}
 
-<!-- TARJETAS ESTADÍSTICAS -->
+<!-- Tarjetas estadísticas -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-3">
         <div class="card-hacienda text-center p-3">
             <i class="bi bi-geo-alt fs-2" style="color: var(--color-primario);"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_potreros }}</h4>
-            <small class="text-muted">Total Potreros</small>
+            <small class="text-muted">Total potreros</small>
         </div>
     </div>
     <div class="col-md-3">
@@ -59,12 +59,12 @@ Listado de Potreros | Hacienda Joseph
     </div>
 </div>
 
-<!-- TITULO -->
+<!-- Titulo -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8">
         <h2 class="fw-bold" style="color: var(--color-primario);">
             <i class="bi bi-geo-alt me-2"></i>
-            Listado de Potreros
+            Listado de potreros
         </h2>
         <p class="text-muted mb-0">
             <i class="bi bi-info-circle me-1"></i>
@@ -74,50 +74,76 @@ Listado de Potreros | Hacienda Joseph
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <a href="/nuevopotrero/" class="btn btn-hacienda">
             <i class="bi bi-plus-circle me-2"></i>
-            Nuevo Potrero
+            Nuevo potrero
         </a>
     </div>
 </div>
 
-<!-- TARJETA PRINCIPAL -->
+<!-- Tarjeta principal -->
 <div class="row animate-fade-in">
     <div class="col-12">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
                 <i class="bi bi-list-ul"></i>
-                Potreros Registrados
+                Potreros registrados
+                <span class="badge bg-secondary ms-2">{{ potreros.paginator.count }}</span>
             </div>
             <div class="p-4">
+                <!-- Filtro de búsqueda -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="GET" action="" class="d-flex">
+                            <input type="text" name="search" class="form-control form-control-sm" 
+                                   placeholder="🔍 Buscar por código o nombre..." 
+                                   value="{{ request.GET.search }}">
+                            <button type="submit" class="btn btn-sm btn-hacienda ms-2">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            {% if request.GET.search %}
+                            <a href="?page=1" class="btn btn-sm btn-hacienda-secondary ms-1">
+                                <i class="bi bi-x-circle"></i>
+                            </a>
+                            {% endif %}
+                        </form>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <small class="text-muted">
+                            Mostrando {{ potreros.start_index }} a {{ potreros.end_index }} 
+                            de {{ potreros.paginator.count }} registros
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Tabla -->
                 <div class="table-responsive">
-                    <table id="tablaPotreros" class="table table-hacienda align-middle mb-0">
+                    <table class="table table-hacienda align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>CÓDIGO</th>
-                                <th>NOMBRE</th>
-                                <th>HECTÁREAS</th>
-                                <th>CAPACIDAD</th>
-                                <th>OCUPACIÓN</th>
-                                <th>ESTADO</th>
-                                <th>COORDENADAS</th>
-                                <th>ACCIONES</th>
+                                <th>Id</th>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Hectáreas</th>
+                                <th>Capacidad</th>
+                                <th>Ocupación</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for potrero in potreros %}
                             <tr>
-                                <!-- ID -->
+                                <!-- Id -->
                                 <td class="fw-bold text-muted">#{{ potrero.id_po }}</td>
                                 
-                                <!-- CÓDIGO -->
+                                <!-- Código -->
                                 <td class="fw-bold" style="color: var(--color-primario); font-size:16px;">
                                     {{ potrero.codigo_po }}
                                 </td>
                                 
-                                <!-- NOMBRE -->
+                                <!-- Nombre -->
                                 <td>{{ potrero.nombre_po }}</td>
                                 
-                                <!-- HECTÁREAS -->
+                                <!-- Hectáreas -->
                                 <td>
                                     <span class="badge rounded-pill p-2" style="background: #e8f5e9; color: #2c5e1a; border: 1px solid #2c5e1a;">
                                         <i class="bi bi-rulers me-1"></i>
@@ -125,7 +151,7 @@ Listado de Potreros | Hacienda Joseph
                                     </span>
                                 </td>
                                 
-                                <!-- CAPACIDAD -->
+                                <!-- Capacidad -->
                                 <td>
                                     <span class="badge rounded-pill p-2" style="background: #fff3e0; color: #e65100; border: 1px solid #e65100;">
                                         <i class="bi bi-people me-1"></i>
@@ -133,7 +159,7 @@ Listado de Potreros | Hacienda Joseph
                                     </span>
                                 </td>
                                 
-                                <!-- OCUPACIÓN -->
+                                <!-- Ocupación -->
                                 <td>
                                     {% with ocupacion=potrero.num_animales capacidad=potrero.capacidad_maxima_po %}
                                     <div class="d-flex align-items-center">
@@ -154,7 +180,7 @@ Listado de Potreros | Hacienda Joseph
                                     {% endwith %}
                                 </td>
                                 
-                                <!-- ESTADO -->
+                                <!-- Estado -->
                                 <td>
                                     {% if potrero.estado_po == 'disponible' %}
                                     <span class="badge rounded-pill bg-success p-2">
@@ -166,7 +192,7 @@ Listado de Potreros | Hacienda Joseph
                                     </span>
                                     {% elif potrero.estado_po == 'en_descanso' %}
                                     <span class="badge rounded-pill p-2" style="background:#ffc107; color:#1a1a1a;">
-                                        <i class="bi bi-pause-circle me-1"></i>En Descanso
+                                        <i class="bi bi-pause-circle me-1"></i>En descanso
                                     </span>
                                     {% elif potrero.estado_po == 'inactivo' %}
                                     <span class="badge rounded-pill bg-secondary p-2">
@@ -177,21 +203,9 @@ Listado de Potreros | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- COORDENADAS -->
+                                <!-- Acciones -->
                                 <td>
-                                    {% if potrero.latitud_po and potrero.longitud_po %}
-                                    <span class="text-muted small">
-                                        <i class="bi bi-geo me-1"></i>
-                                        {{ potrero.latitud_po|floatformat:6 }}, {{ potrero.longitud_po|floatformat:6 }}
-                                    </span>
-                                    {% else %}
-                                    <span class="text-muted fst-italic small">Sin coordenadas</span>
-                                    {% endif %}
-                                </td>
-                                
-                                <!-- ACCIONES -->
-                                <td>
-                                    <!-- VER DETALLE (MODAL) -->
+                                    <!-- Ver detalle (modal) -->
                                     <button type="button" class="btn btn-sm btn-info" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#modalDetallePotrero"
@@ -202,20 +216,18 @@ Listado de Potreros | Hacienda Joseph
                                             data-capacidad="{{ potrero.capacidad_maxima_po }}"
                                             data-ocupacion="{{ potrero.num_animales }}"
                                             data-estado="{{ potrero.estado_po }}"
-                                            data-latitud="{% if potrero.latitud_po %}{{ potrero.latitud_po }}{% else %}---{% endif %}"
-                                            data-longitud="{% if potrero.longitud_po %}{{ potrero.longitud_po }}{% else %}---{% endif %}"
                                             data-observaciones="{% if potrero.observaciones_po %}{{ potrero.observaciones_po }}{% else %}Sin observaciones{% endif %}"
                                             data-created="{{ potrero.created_at_po|date:'d/m/Y H:i' }}"
                                             title="Ver detalle">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                     
-                                    <!-- EDITAR -->
+                                    <!-- Editar -->
                                     <a href="/editarpotrero/{{ potrero.id_po }}" class="btn btn-sm btn-hacienda-secondary" title="Editar">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                     
-                                    <!-- ELIMINAR -->
+                                    <!-- Eliminar -->
                                     <button type="button" class="btn btn-sm btn-danger"
                                             data-bs-toggle="modal"
                                             data-bs-target="#modalEliminarPotrero"
@@ -230,7 +242,7 @@ Listado de Potreros | Hacienda Joseph
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="9" class="text-center py-5">
+                                <td colspan="8" class="text-center py-5">
                                     <i class="bi bi-inbox fs-1 text-muted"></i>
                                     <p class="mt-3 text-muted">No hay potreros registrados</p>
                                     <a href="/nuevopotrero/" class="btn btn-hacienda btn-sm mt-2">
@@ -242,11 +254,68 @@ Listado de Potreros | Hacienda Joseph
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Paginación de Django -->
+                {% if potreros.has_other_pages %}
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            Mostrando {{ potreros.start_index }} a {{ potreros.end_index }} 
+                            de {{ potreros.paginator.count }} registros
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <nav aria-label="Paginación de potreros">
+                            <ul class="pagination justify-content-end flex-wrap">
+                                {% if potreros.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ potreros.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+
+                                {% for num in potreros.paginator.page_range %}
+                                    {% if potreros.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                    {% elif num > potreros.number|add:'-3' and num < potreros.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                            {{ num }}
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if potreros.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ potreros.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ potreros.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                {% endif %}
             </div>
             <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
                 <small class="text-muted">
                     <i class="bi bi-bar-chart-line me-1"></i>
-                    Total de potreros: <strong>{{ potreros|length }}</strong>
+                    Total de potreros: <strong>{{ potreros.paginator.count }}</strong>
                 </small>
             </div>
         </div>
@@ -254,7 +323,7 @@ Listado de Potreros | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL DETALLE POTRERO                      -->
+<!-- Modal detalle potrero                     -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalDetallePotrero" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -262,7 +331,7 @@ Listado de Potreros | Hacienda Joseph
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-geo-alt-fill me-2" style="color: #DAA520;"></i>
-                    DETALLE DEL POTRERO
+                    Detalle del potrero
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -293,47 +362,37 @@ Listado de Potreros | Hacienda Joseph
                         <div class="p-4">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold">CÓDIGO</label>
+                                    <label class="text-muted small fw-bold">Código</label>
                                     <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;" id="detalleCodigoTexto"></p>
                                 </div>
                                 <div class="col-6 text-end">
-                                    <label class="text-muted small fw-bold">ESTADO</label>
+                                    <label class="text-muted small fw-bold">Estado</label>
                                     <div id="detalleEstado"></div>
                                 </div>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-rulers me-1"></i>HECTÁREAS</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-rulers me-1"></i>Hectáreas</label>
                                     <p class="mb-0" id="detalleHectareasTexto" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-people me-1"></i>CAPACIDAD MÁXIMA</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-people me-1"></i>Capacidad máxima</label>
                                     <p class="mb-0" id="detalleCapacidadTexto" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="text-muted small fw-bold"><i class="bi bi-graph-up me-1"></i>OCUPACIÓN ACTUAL</label>
+                                <label class="text-muted small fw-bold"><i class="bi bi-graph-up me-1"></i>Ocupación actual</label>
                                 <p class="mb-0" id="detalleOcupacionTexto" style="color: #5c450e;"></p>
                             </div>
                             <hr style="border-color: #d4c5a9;">
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-geo me-1"></i>LATITUD</label>
-                                    <p class="mb-0" id="detalleLatitud" style="color: #5c450e;"></p>
-                                </div>
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-geo me-1"></i>LONGITUD</label>
-                                    <p class="mb-0" id="detalleLongitud" style="color: #5c450e;"></p>
-                                </div>
-                            </div>
                             <div class="mb-0">
-                                <label class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i>OBSERVACIONES</label>
+                                <label class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i>Observaciones</label>
                                 <p class="mb-0" id="detalleObservaciones" style="color: #5c450e; font-style: italic;"></p>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="mb-0">
-                                <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>REGISTRADO</label>
+                                <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>Registrado</label>
                                 <p class="mb-0" id="detalleCreated" style="color: #5c450e;"></p>
                             </div>
                         </div>
@@ -342,7 +401,7 @@ Listado de Potreros | Hacienda Joseph
             </div>
             <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
                 <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
-                    <i class="bi bi-pencil-square me-1"></i>Editar Potrero
+                    <i class="bi bi-pencil-square me-1"></i>Editar potrero
                 </a>
                 <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
                     <i class="bi bi-x-lg me-1"></i>Cerrar
@@ -353,7 +412,7 @@ Listado de Potreros | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL ELIMINAR POTRERO                     -->
+<!-- Modal eliminar potrero                    -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalEliminarPotrero" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -361,7 +420,7 @@ Listado de Potreros | Hacienda Joseph
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
-                    CONFIRMAR ELIMINACIÓN
+                    Confirmar eliminación
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -390,146 +449,37 @@ Listado de Potreros | Hacienda Joseph
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- Estilos para paginación                   -->
+<!-- ========================================== -->
+<style>
+    .pagination .page-link {
+        color: var(--color-primario);
+        border-color: #d4c5a9;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: var(--color-primario);
+        border-color: var(--color-primario);
+        color: white;
+    }
+    .pagination .page-link:hover {
+        background-color: #e8f5e9;
+        border-color: var(--color-primario);
+    }
+    .card-header-hacienda .badge {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.65rem;
+    }
+</style>
+
 {% endblock %}
 
 <!-- ========================================== -->
 <!-- SCRIPTS EXTRA                              -->
 <!-- ========================================== -->
 {% block scripts_extra %}
-
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-
-<style>
-    .dataTables_filter {
-        margin-bottom: 20px !important;
-        background: linear-gradient(135deg, #eef7e8, #dcefd0);
-        padding: 15px 20px;
-        border-radius: 18px;
-        border: 2px solid #b7d7a8;
-        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
-        display: flex !important;
-        align-items: center !important;
-        justify-content: end !important;
-        gap: 10px;
-    }
-    .dataTables_filter::before {
-        content: "🌿";
-        font-size: 28px;
-    }
-    .dataTables_filter label {
-        font-weight: bold;
-        color: var(--color-primario);
-        font-size: 17px;
-    }
-    .dataTables_filter input {
-        border-radius: 50px !important;
-        border: 3px solid var(--color-primario) !important;
-        padding: 10px 18px !important;
-        background-color: #ffffff !important;
-        color: var(--color-navbar) !important;
-        font-weight: 600 !important;
-        width: 280px !important;
-        transition: 0.3s !important;
-        box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08);
-        margin-left: 10px !important;
-    }
-    .dataTables_filter input:focus {
-        outline: none !important;
-        border-color: #8dc26f !important;
-        box-shadow: 0px 0px 12px rgba(44,94,26,0.4);
-        background-color: #f8fff5 !important;
-    }
-    .dataTables_length select {
-        border-radius: 10px !important;
-        border: 2px solid var(--color-primario) !important;
-        padding: 5px 10px !important;
-    }
-    .dataTables_paginate {
-        width: 100% !important;
-        display: flex !important;
-        justify-content: center !important;
-        margin-top: 25px !important;
-    }
-    .dataTables_paginate .pagination {
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: flex-end !important;
-        align-items: center !important;
-        gap: 0px !important;
-        flex-wrap: nowrap !important;
-    }
-    .paginate_button {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 4px !important;
-        border: none !important;
-        background: #dfeedd !important;
-        color: var(--color-primario) !important;
-        font-weight: bold !important;
-        font-size: 14px !important;
-        display: inline-flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        transition: 0.3s !important;
-        margin: 0 3px !important;
-        vertical-align: middle !important;
-        float: none !important;
-    }
-    .paginate_button.current {
-        background: var(--color-primario) !important;
-        color: white !important;
-        border: 2px solid #8dc26f !important;
-        box-shadow: 0px 0px 8px rgba(44,94,26,0.4);
-    }
-    .paginate_button:hover {
-        background: #3d7a24 !important;
-        color: white !important;
-    }
-    .paginate_button.previous, .paginate_button.next {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 4px !important;
-        background: #dfeedd !important;
-        color: var(--color-primario) !important;
-        font-weight: bold !important;
-        font-size: 16px !important;
-    }
-    .paginate_button.previous:hover, .paginate_button.next:hover {
-        background: #3d7a24 !important;
-        color: white !important;
-    }
-</style>
-
 <script>
-    $(document).ready(function () {
-        $('#tablaPotreros').DataTable({
-            "language": {
-                "lengthMenu": "Mostrar _MENU_ registros",
-                "zeroRecords": "No se encontraron resultados",
-                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                "infoEmpty": "No existen registros",
-                "infoFiltered": "(filtrado de _MAX_ registros)",
-                "search": "Buscar:",
-                "paginate": {
-                    "first": "",
-                    "last": "",
-                    "next": "›",
-                    "previous": "‹"
-                }
-            },
-            "pageLength": 10,
-            "lengthMenu": [5,10,25,50,100],
-            "responsive": true,
-            "pagingType": "simple_numbers"
-        });
-    });
-</script>
-
-<script>
-    // ==========================================
-    // MODAL DETALLE POTRERO
-    // ==========================================
+    // Modal detalle potrero
     var modalDetallePotrero = document.getElementById('modalDetallePotrero');
     modalDetallePotrero.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
@@ -541,8 +491,6 @@ Listado de Potreros | Hacienda Joseph
         var capacidad = button.getAttribute('data-capacidad');
         var ocupacion = button.getAttribute('data-ocupacion');
         var estado = button.getAttribute('data-estado');
-        var latitud = button.getAttribute('data-latitud');
-        var longitud = button.getAttribute('data-longitud');
         var observaciones = button.getAttribute('data-observaciones');
         var created = button.getAttribute('data-created');
         
@@ -555,8 +503,6 @@ Listado de Potreros | Hacienda Joseph
         document.getElementById('detalleHectareasTexto').textContent = hectareas + ' hectáreas';
         document.getElementById('detalleCapacidadTexto').textContent = capacidad + ' animales máximo';
         document.getElementById('detalleOcupacionTexto').textContent = ocupacion + ' de ' + capacidad + ' ocupados';
-        document.getElementById('detalleLatitud').textContent = latitud;
-        document.getElementById('detalleLongitud').textContent = longitud;
         document.getElementById('detalleObservaciones').textContent = observaciones;
         document.getElementById('detalleCreated').textContent = created;
         
@@ -570,7 +516,7 @@ Listado de Potreros | Hacienda Joseph
                 estadoHtml = '<span class="badge rounded-pill p-2" style="background:#dc3545; color:white;"><i class="bi bi-x-circle me-1"></i> Ocupado</span>';
                 break;
             case 'en_descanso':
-                estadoHtml = '<span class="badge rounded-pill p-2" style="background:#ffc107; color:#1a1a1a;"><i class="bi bi-pause-circle me-1"></i> En Descanso</span>';
+                estadoHtml = '<span class="badge rounded-pill p-2" style="background:#ffc107; color:#1a1a1a;"><i class="bi bi-pause-circle me-1"></i> En descanso</span>';
                 break;
             case 'inactivo':
                 estadoHtml = '<span class="badge rounded-pill bg-secondary p-2"><i class="bi bi-slash-circle me-1"></i> Inactivo</span>';
@@ -585,9 +531,7 @@ Listado de Potreros | Hacienda Joseph
 </script>
 
 <script>
-    // ==========================================
-    // MODAL ELIMINAR POTRERO
-    // ==========================================
+    // Modal eliminar potrero
     var modalEliminarPotrero = document.getElementById('modalEliminarPotrero');
     modalEliminarPotrero.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;

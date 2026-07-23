@@ -5,7 +5,7 @@
 <!-- TITULO                                    -->
 <!-- ========================================== -->
 {% block titulo %}
-Listado de Insumos | Hacienda El Roble
+Listado de insumos | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,44 +27,44 @@ Listado de Insumos | Hacienda El Roble
 <!-- ========================================== -->
 {% block contenido %}
 
-<!-- TARJETAS ESTADÍSTICAS -->
+<!-- Tarjetas estadísticas -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-3">
         <div class="card-hacienda text-center p-3">
             <i class="bi bi-box-seam fs-2" style="color: var(--color-primario);"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_insumos }}</h4>
-            <small class="text-muted">Total Insumos</small>
+            <small class="text-muted">Total insumos</small>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
             <i class="bi bi-check-circle fs-2 text-success"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_activos }}</h4>
-            <small class="text-muted">Insumos Activos</small>
+            <small class="text-muted">Insumos activos</small>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
             <i class="bi bi-exclamation-triangle fs-2 text-danger"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_bajo_stock }}</h4>
-            <small class="text-muted">Bajo Stock</small>
+            <small class="text-muted">Bajo stock</small>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #fd7e14;">
             <i class="bi bi-currency-dollar fs-2 text-warning"></i>
             <h4 class="fw-bold mt-2 mb-0">${{ valor_total_inventario|floatformat:2 }}</h4>
-            <small class="text-muted">Valor Inventario</small>
+            <small class="text-muted">Valor inventario</small>
         </div>
     </div>
 </div>
 
-<!-- TITULO -->
+<!-- Titulo -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8">
         <h2 class="fw-bold" style="color: var(--color-primario);">
             <i class="bi bi-box-seam me-2"></i>
-            Listado de Insumos
+            Listado de insumos
         </h2>
         <p class="text-muted mb-0">
             <i class="bi bi-info-circle me-1"></i>
@@ -74,47 +74,74 @@ Listado de Insumos | Hacienda El Roble
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <a href="/nuevoinsumo/" class="btn btn-hacienda">
             <i class="bi bi-plus-circle me-2"></i>
-            Nuevo Insumo
+            Nuevo insumo
         </a>
     </div>
 </div>
 
-<!-- TARJETA PRINCIPAL -->
+<!-- Tarjeta principal -->
 <div class="row animate-fade-in">
     <div class="col-12">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
                 <i class="bi bi-list-ul"></i>
-                Insumos Registrados
+                Insumos registrados
+                <span class="badge bg-secondary ms-2">{{ insumos_con_subtotal|length }}</span>
             </div>
             <div class="p-4">
+                <!-- Filtro de búsqueda -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="GET" action="" class="d-flex">
+                            <input type="text" name="search" class="form-control form-control-sm" 
+                                   placeholder="🔍 Buscar por código, nombre o tipo..." 
+                                   value="{{ request.GET.search }}">
+                            <button type="submit" class="btn btn-sm btn-hacienda ms-2">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            {% if request.GET.search %}
+                            <a href="?page=1" class="btn btn-sm btn-hacienda-secondary ms-1">
+                                <i class="bi bi-x-circle"></i>
+                            </a>
+                            {% endif %}
+                        </form>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <small class="text-muted">
+                            Mostrando {{ insumos_con_subtotal.start_index }} a {{ insumos_con_subtotal.end_index }} 
+                            de {{ insumos_con_subtotal.paginator.count }} registros
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Tabla -->
                 <div class="table-responsive">
-                    <table id="tablaInsumos" class="table table-hacienda align-middle mb-0">
+                    <table class="table table-hacienda align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>CÓDIGO</th>
-                                <th>NOMBRE</th>
-                                <th>TIPO</th>
-                                <th>STOCK (kg)</th>
-                                <th>COSTO/kg</th>
-                                <th>SUBTOTAL</th>
-                                <th>ESTADO</th>
-                                <th>ACCIONES</th>
+                                <th>Id</th>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Tipo</th>
+                                <th>Stock (kg)</th>
+                                <th>Costo/kg</th>
+                                <th>Subtotal</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for item in insumos_con_subtotal %}
                             <tr>
-                                <!-- ID -->
+                                <!-- Id -->
                                 <td class="fw-bold text-muted">#{{ item.insumo.id_ia }}</td>
                                 
-                                <!-- CÓDIGO -->
+                                <!-- Código -->
                                 <td class="fw-bold" style="color: var(--color-primario); font-size:16px;">
                                     {{ item.insumo.codigo_ia }}
                                 </td>
                                 
-                                <!-- NOMBRE -->
+                                <!-- Nombre -->
                                 <td class="fw-bold" style="font-size:16px;">
                                     {{ item.insumo.nombre_ia }}
                                     {% if item.insumo.marca_ia %}
@@ -122,7 +149,7 @@ Listado de Insumos | Hacienda El Roble
                                     {% endif %}
                                 </td>
                                 
-                                <!-- TIPO -->
+                                <!-- Tipo -->
                                 <td>
                                     {% if item.insumo.tipo_ia == 'concentrado' %}
                                     <span class="badge rounded-pill p-2" style="background:#e67e22; color:white; border: 1px solid #d35400;">
@@ -155,7 +182,7 @@ Listado de Insumos | Hacienda El Roble
                                     {% endif %}
                                 </td>
                                 
-                                <!-- STOCK -->
+                                <!-- Stock -->
                                 <td>
                                     <span class="fw-bold {% if item.insumo.stock_kg_ia <= item.insumo.stock_minimo_kg_ia %}text-danger{% else %}text-success{% endif %}">
                                         {{ item.insumo.stock_kg_ia }} kg
@@ -165,14 +192,14 @@ Listado de Insumos | Hacienda El Roble
                                     {% endif %}
                                 </td>
                                 
-                                <!-- COSTO/kg -->
+                                <!-- Costo/kg -->
                                 <td>
                                     <span class="fw-bold" style="color: var(--color-acento);">
                                         ${{ item.insumo.costo_kg_ia }}
                                     </span>
                                 </td>
                                 
-                                <!-- SUBTOTAL (STOCK × COSTO) -->
+                                <!-- Subtotal -->
                                 <td>
                                     <span class="fw-bold" style="color: #2c5e1a; font-size: 15px;">
                                         <i class="bi bi-calculator me-1"></i>
@@ -184,7 +211,7 @@ Listado de Insumos | Hacienda El Roble
                                     </small>
                                 </td>
                                 
-                                <!-- ESTADO -->
+                                <!-- Estado -->
                                 <td>
                                     {% if item.insumo.activo_ia %}
                                     <span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745;">
@@ -197,9 +224,9 @@ Listado de Insumos | Hacienda El Roble
                                     {% endif %}
                                 </td>
                                 
-                                <!-- ACCIONES -->
+                                <!-- Acciones -->
                                 <td>
-                                    <!-- VER DETALLE (MODAL) -->
+                                    <!-- Ver detalle (modal) -->
                                     <button type="button" class="btn btn-sm btn-info" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#modalDetalleInsumo"
@@ -212,19 +239,18 @@ Listado de Insumos | Hacienda El Roble
                                             data-stock-min="{{ item.insumo.stock_minimo_kg_ia }}"
                                             data-costo="{{ item.insumo.costo_kg_ia }}"
                                             data-activo="{% if item.insumo.activo_ia %}true{% else %}false{% endif %}"
-                                            data-descripcion="{% if item.insumo.descripcion_ia %}{{ item.insumo.descripcion_ia }}{% else %}Sin descripción{% endif %}"
                                             data-created="{% if item.insumo.created_at_ia %}{{ item.insumo.created_at_ia|date:'d/m/Y H:i' }}{% else %}---{% endif %}"
                                             data-updated="{% if item.insumo.updated_at_ia %}{{ item.insumo.updated_at_ia|date:'d/m/Y H:i' }}{% else %}---{% endif %}"
                                             title="Ver detalle">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                     
-                                    <!-- EDITAR -->
+                                    <!-- Editar -->
                                     <a href="/editarinsumo/{{ item.insumo.id_ia }}" class="btn btn-sm btn-hacienda-secondary" title="Editar">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                     
-                                    <!-- ELIMINAR -->
+                                    <!-- Eliminar -->
                                     <button type="button" class="btn btn-sm btn-danger"
                                             data-bs-toggle="modal"
                                             data-bs-target="#modalEliminarInsumo"
@@ -251,11 +277,68 @@ Listado de Insumos | Hacienda El Roble
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Paginación de Django -->
+                {% if insumos_con_subtotal.has_other_pages %}
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            Mostrando {{ insumos_con_subtotal.start_index }} a {{ insumos_con_subtotal.end_index }} 
+                            de {{ insumos_con_subtotal.paginator.count }} registros
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <nav aria-label="Paginación de insumos">
+                            <ul class="pagination justify-content-end flex-wrap">
+                                {% if insumos_con_subtotal.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ insumos_con_subtotal.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+
+                                {% for num in insumos_con_subtotal.paginator.page_range %}
+                                    {% if insumos_con_subtotal.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                    {% elif num > insumos_con_subtotal.number|add:'-3' and num < insumos_con_subtotal.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                            {{ num }}
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if insumos_con_subtotal.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ insumos_con_subtotal.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ insumos_con_subtotal.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                {% endif %}
             </div>
             <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
                 <small class="text-muted">
                     <i class="bi bi-bar-chart-line me-1"></i>
-                    Total de insumos: <strong>{{ insumos_con_subtotal|length }}</strong>
+                    Total de insumos: <strong>{{ insumos_con_subtotal.paginator.count }}</strong>
                 </small>
             </div>
         </div>
@@ -263,7 +346,7 @@ Listado de Insumos | Hacienda El Roble
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL DETALLE INSUMO                       -->
+<!-- Modal detalle insumo                     -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalDetalleInsumo" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -271,7 +354,7 @@ Listado de Insumos | Hacienda El Roble
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-box-seam-fill me-2" style="color: #DAA520;"></i>
-                    DETALLE DEL INSUMO
+                    Detalle del insumo
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -292,48 +375,48 @@ Listado de Insumos | Hacienda El Roble
                         <div class="p-4">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold">ID INSUMO</label>
-                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<<span id="detalleId"></span></p>
+                                    <label class="text-muted small fw-bold">Id insumo</label>
+                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<span id="detalleId"></span></p>
                                 </div>
                                 <div class="col-6 text-end">
-                                    <label class="text-muted small fw-bold">ESTADO</label>
+                                    <label class="text-muted small fw-bold">Estado</label>
                                     <div id="detalleEstado"></div>
                                 </div>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-nut me-1"></i>TIPO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-nut me-1"></i>Tipo</label>
                                     <p class="mb-0" id="detalleTipo" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-currency-dollar me-1"></i>COSTO POR KG</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-currency-dollar me-1"></i>Costo por kg</label>
                                     <p class="mb-0 fw-bold" id="detalleCosto" style="color: var(--color-acento);"></p>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-box me-1"></i>STOCK ACTUAL</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-box me-1"></i>Stock actual</label>
                                     <p class="mb-0" id="detalleStock" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-down-circle me-1"></i>STOCK MÍNIMO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-down-circle me-1"></i>Stock mínimo</label>
                                     <p class="mb-0" id="detalleStockMin" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="mb-3">
-                                <label class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i>DESCRIPCIÓN</label>
+                                <label class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i>Descripción</label>
                                 <p class="mb-0" id="detalleDescripcion" style="color: #5c450e; font-style: italic;"></p>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-0">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-clock me-1"></i>FECHA REGISTRO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clock me-1"></i>Fecha registro</label>
                                     <p class="mb-0" id="detalleCreated" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-clockwise me-1"></i>ÚLTIMA MODIFICACIÓN</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-clockwise me-1"></i>Última modificación</label>
                                     <p class="mb-0" id="detalleUpdated" style="color: #5c450e;"></p>
                                 </div>
                             </div>
@@ -343,7 +426,7 @@ Listado de Insumos | Hacienda El Roble
             </div>
             <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
                 <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
-                    <i class="bi bi-pencil-square me-1"></i>Editar Insumo
+                    <i class="bi bi-pencil-square me-1"></i>Editar insumo
                 </a>
                 <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
                     <i class="bi bi-x-lg me-1"></i>Cerrar
@@ -354,7 +437,7 @@ Listado de Insumos | Hacienda El Roble
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL ELIMINAR INSUMO                      -->
+<!-- Modal eliminar insumo                    -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalEliminarInsumo" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -362,7 +445,7 @@ Listado de Insumos | Hacienda El Roble
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
-                    CONFIRMAR ELIMINACIÓN
+                    Confirmar eliminación
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -390,165 +473,37 @@ Listado de Insumos | Hacienda El Roble
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- Estilos para paginación                   -->
+<!-- ========================================== -->
+<style>
+    .pagination .page-link {
+        color: var(--color-primario);
+        border-color: #d4c5a9;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: var(--color-primario);
+        border-color: var(--color-primario);
+        color: white;
+    }
+    .pagination .page-link:hover {
+        background-color: #e8f5e9;
+        border-color: var(--color-primario);
+    }
+    .card-header-hacienda .badge {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.65rem;
+    }
+</style>
+
 {% endblock %}
 
 <!-- ========================================== -->
 <!-- SCRIPTS EXTRA                              -->
 <!-- ========================================== -->
 {% block scripts_extra %}
-
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-
-<style>
-    .dataTables_filter {
-        margin-bottom: 20px !important;
-        background: linear-gradient(135deg, #eef7e8, #dcefd0);
-        padding: 15px 20px;
-        border-radius: 18px;
-        border: 2px solid #b7d7a8;
-        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
-        display: flex !important;
-        align-items: center !important;
-        justify-content: end !important;
-        gap: 10px;
-    }
-    .dataTables_filter::before {
-        content: "📦";
-        font-size: 28px;
-    }
-    .dataTables_filter label {
-        font-weight: bold;
-        color: var(--color-primario);
-        font-size: 17px;
-    }
-    .dataTables_filter input {
-        border-radius: 50px !important;
-        border: 3px solid var(--color-primario) !important;
-        padding: 10px 18px !important;
-        background-color: #ffffff !important;
-        color: var(--color-navbar) !important;
-        font-weight: 600 !important;
-        width: 280px !important;
-        transition: 0.3s !important;
-        box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08);
-        margin-left: 10px !important;
-    }
-    .dataTables_filter input:focus {
-        outline: none !important;
-        border-color: #8dc26f !important;
-        box-shadow: 0px 0px 12px rgba(44,94,26,0.4);
-        background-color: #f8fff5 !important;
-    }
-    .dataTables_length select {
-        border-radius: 10px !important;
-        border: 2px solid var(--color-primario) !important;
-        padding: 5px 10px !important;
-    }
-    .dataTables_paginate {
-        width: 100% !important;
-        display: flex !important;
-        justify-content: center !important;
-        margin-top: 25px !important;
-    }
-    .dataTables_paginate .pagination {
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: flex-end !important;
-        align-items: center !important;
-        gap: 0px !important;
-        flex-wrap: nowrap !important;
-    }
-    .dataTables_paginate .pagination span,
-    .dataTables_paginate .pagination a {
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        vertical-align: middle !important;
-    }
-    .paginate_button {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 4px !important;
-        border: none !important;
-        background: #dfeedd !important;
-        color: var(--color-primario) !important;
-        font-weight: bold !important;
-        font-size: 14px !important;
-        display: inline-flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        transition: 0.3s !important;
-        margin: 0 3px !important;
-        vertical-align: middle !important;
-        float: none !important;
-    }
-    .paginate_button.current {
-        background: var(--color-primario) !important;
-        color: white !important;
-        border: 2px solid #8dc26f !important;
-        box-shadow: 0px 0px 8px rgba(44,94,26,0.4);
-    }
-    .paginate_button:hover {
-        background: #3d7a24 !important;
-        color: white !important;
-    }
-    .paginate_button.previous,
-    .paginate_button.next {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 4px !important;
-        background: #dfeedd !important;
-        color: var(--color-primario) !important;
-        font-weight: bold !important;
-        font-size: 16px !important;
-        display: inline-flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        transition: 0.3s !important;
-        margin: 0 3px !important;
-        vertical-align: middle !important;
-        float: none !important;
-    }
-    .paginate_button.previous:hover,
-    .paginate_button.next:hover {
-        background: #3d7a24 !important;
-        color: white !important;
-    }
-    .paginate_button.previous::after,
-    .paginate_button.next::after {
-        display: none !important;
-    }
-</style>
-
 <script>
-    $(document).ready(function () {
-        $('#tablaInsumos').DataTable({
-            "language": {
-                "lengthMenu": "Mostrar _MENU_ registros",
-                "zeroRecords": "No se encontraron resultados",
-                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                "infoEmpty": "No existen registros",
-                "infoFiltered": "(filtrado de _MAX_ registros)",
-                "search": "Buscar:",
-                "paginate": {
-                    "first": "",
-                    "last": "",
-                    "next": "›",
-                    "previous": "‹"
-                }
-            },
-            "pageLength": 10,
-            "lengthMenu": [5,10,25,50,100],
-            "responsive": true,
-            "pagingType": "simple_numbers",
-            "order": [[0, "desc"]]
-        });
-    });
-</script>
-
-<script>
-    // Modal Detalle Insumo
+    // Modal detalle insumo
     var modalDetalleInsumo = document.getElementById('modalDetalleInsumo');
     modalDetalleInsumo.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
@@ -562,7 +517,6 @@ Listado de Insumos | Hacienda El Roble
         var stockMin = parseFloat(button.getAttribute('data-stock-min'));
         var costo = button.getAttribute('data-costo');
         var activo = button.getAttribute('data-activo') === 'true';
-        var descripcion = button.getAttribute('data-descripcion');
         var created = button.getAttribute('data-created');
         var updated = button.getAttribute('data-updated');
         
@@ -571,47 +525,37 @@ Listado de Insumos | Hacienda El Roble
         document.getElementById('detalleNombre').textContent = nombre;
         document.getElementById('detalleMarca').textContent = marca;
         document.getElementById('detalleCosto').textContent = '$' + costo;
-        document.getElementById('detalleDescripcion').textContent = descripcion;
         document.getElementById('detalleCreated').textContent = created;
         document.getElementById('detalleUpdated').textContent = updated;
         
         // Tipo
-        var tipoTexto = '';
         var tipoHtml = '';
         switch(tipo) {
             case 'concentrado': 
-                tipoTexto = 'Concentrado'; 
                 tipoHtml = '<span class="badge rounded-pill p-2" style="background:#e67e22; color:white; border: 1px solid #d35400;"><i class="bi bi-nut me-1"></i> Concentrado</span>';
                 break;
             case 'sal_mineral': 
-                tipoTexto = 'Sal mineral'; 
                 tipoHtml = '<span class="badge rounded-pill p-2" style="background:#27ae60; color:white; border: 1px solid #1e8449;"><i class="bi bi-tree me-1"></i> Sal mineral</span>';
                 break;
             case 'bloque_nutricional': 
-                tipoTexto = 'Bloque nutricional'; 
                 tipoHtml = '<span class="badge rounded-pill p-2" style="background:#3498db; color:white; border: 1px solid #2980b9;"><i class="bi bi-capsule me-1"></i> Bloque nutricional</span>';
                 break;
             case 'ensilaje': 
-                tipoTexto = 'Ensilaje'; 
                 tipoHtml = '<span class="badge rounded-pill p-2" style="background:#95a5a6; color:white; border: 1px solid #7f8c8d;"><i class="bi bi-gem me-1"></i> Ensilaje</span>';
                 break;
             case 'heno': 
-                tipoTexto = 'Heno'; 
                 tipoHtml = '<span class="badge rounded-pill p-2" style="background:#9b59b6; color:white; border: 1px solid #8e44ad;"><i class="bi bi-heart-pulse me-1"></i> Heno</span>';
                 break;
             case 'pasto': 
-                tipoTexto = 'Pasto'; 
                 tipoHtml = '<span class="badge rounded-pill p-2" style="background:#c0392b; color:white; border: 1px solid #a93226;"><i class="bi bi-prescription me-1"></i> Pasto</span>';
                 break;
             default: 
-                tipoTexto = tipo; 
                 tipoHtml = '<span class="badge rounded-pill bg-secondary p-2"><i class="bi bi-question-circle me-1"></i> ' + tipo + '</span>';
         }
         document.getElementById('detalleTipo').innerHTML = tipoHtml;
         
         // Stock
         var stockHtml = '';
-        var stockClass = '';
         if (stock <= stockMin) {
             stockHtml = '<span class="text-danger fw-bold">' + stock + ' kg</span><br><small class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Bajo stock</small>';
         } else {
@@ -638,7 +582,7 @@ Listado de Insumos | Hacienda El Roble
 </script>
 
 <script>
-    // Modal Eliminar Insumo
+    // Modal eliminar insumo
     var modalEliminarInsumo = document.getElementById('modalEliminarInsumo');
     modalEliminarInsumo.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;

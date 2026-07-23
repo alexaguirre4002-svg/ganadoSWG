@@ -17,6 +17,7 @@ from django.contrib.auth.hashers import make_password
 import random,string
 from django.core.files.storage import FileSystemStorage
 from django.db.models import F, Count, Q, Sum, Avg, Max, Min
+from django.core.paginator import Paginator
 # ====== NUEVO: IMPORTS PARA CLOUDINARY ======
 import cloudinary
 import cloudinary.uploader
@@ -30,16 +31,40 @@ def inicio(request):
 def listaraza(request):
     """
     Muestra el listado completo de razas con estadísticas.
-    Incluye conteos por estado, tipo de producción y animales asociados.
+    Incluye conteos por estado y animales asociados.
+    USANDO PAGINACIÓN SERVER-SIDE para evitar sobrecarga.
     """
-    raza_list = Raza.objects.all().annotate(
+    from django.core.paginator import Paginator
+    from django.db.models import Count, Q
+    
+    # ==========================================
+    # ESTADÍSTICAS (consultas agregadas)
+    # ==========================================
+    total_razas = Raza.objects.count()
+    total_activas = Raza.objects.filter(activo_ra=True).count()
+    total_inactivas = Raza.objects.filter(activo_ra=False).count()
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    razas = Raza.objects.all().annotate(
         total_animales=Count('animal')
     ).order_by('nombre_ra')
     
-    # Estadísticas generales
-    total_razas = raza_list.count()
-    total_activas = raza_list.filter(activo_ra=True).count()
-    total_inactivas = raza_list.filter(activo_ra=False).count()
+    if search:
+        razas = razas.filter(
+            Q(nombre_ra__icontains=search) |
+            Q(origen_ra__icontains=search) |
+            Q(descripcion_ra__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(razas, 20)
+    page_number = request.GET.get('page', 1)
+    raza_list = paginator.get_page(page_number)
     
     contexto = {
         'raza_list': raza_list,
@@ -321,20 +346,43 @@ def listapotrero(request):
     """
     Muestra el listado completo de potreros con estadísticas de ocupación.
     Incluye conteo de animales activos asignados a cada potrero.
+    USANDO PAGINACIÓN SERVER-SIDE para evitar sobrecarga.
     """
-    potreros = Potrero.objects.annotate(
+    from django.core.paginator import Paginator
+    from django.db.models import Count, Q
+    
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    potreros_query = Potrero.objects.annotate(
         num_animales=Count(
             'animal',
             filter=Q(animal__estado_an='activo')
         )
     ).order_by('codigo_po')
-
-    # Estadísticas generales
-    total_potreros = potreros.count()
-    potreros_disponibles = potreros.filter(estado_po='disponible').count()
-    potreros_ocupados = potreros.filter(estado_po='ocupado').count()
-    potreros_descanso = potreros.filter(estado_po='en_descanso').count()
-
+    
+    total_potreros = potreros_query.count()
+    potreros_disponibles = potreros_query.filter(estado_po='disponible').count()
+    potreros_ocupados = potreros_query.filter(estado_po='ocupado').count()
+    potreros_descanso = potreros_query.filter(estado_po='en_descanso').count()
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        potreros_query = potreros_query.filter(
+            Q(codigo_po__icontains=search) |
+            Q(nombre_po__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(potreros_query, 20)
+    page_number = request.GET.get('page', 1)
+    potreros = paginator.get_page(page_number)
+    
     contexto = {
         'potreros': potreros,
         'total_potreros': total_potreros,
@@ -342,7 +390,7 @@ def listapotrero(request):
         'potreros_ocupados': potreros_ocupados,
         'potreros_descanso': potreros_descanso,
     }
-
+    
     return render(request, 'catalogos/potreros/lista_potrero.html', contexto)
 
 # VISTA: NUEVO POTRERO (formulario)
@@ -687,20 +735,39 @@ def nuevoprodvet(request):
     return render(request, 'catalogos/salud/prodvet/nuevo_prodvet.html')
 
 def listadoprodvet(request):
-    prodvetBdd = ProductoVeterinario.objects.all()
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    prodvet_query = ProductoVeterinario.objects.all()
+    
+    total_prodvet = prodvet_query.count()
+    total_activos = prodvet_query.filter(activo_pv=True).count()
+    total_vacunas = prodvet_query.filter(tipo_pv='vacuna').count()
+    total_antibioticos = prodvet_query.filter(tipo_pv='antibiotico').count()
+    total_vitaminas = prodvet_query.filter(tipo_pv='vitamina').count()
+    total_stock_bajo = prodvet_query.filter(stock_pv__lte=F('stock_minimo_pv')).count()
     
     # ==========================================
-    # TARJETAS ESTADÍSTICAS
+    # BÚSQUEDA
     # ==========================================
-    total_prodvet = prodvetBdd.count()
-    total_activos = prodvetBdd.filter(activo_pv=True).count()
-    total_vacunas = prodvetBdd.filter(tipo_pv='vacuna').count()
-    total_antibioticos = prodvetBdd.filter(tipo_pv='antibiotico').count()
-    total_vitaminas = prodvetBdd.filter(tipo_pv='vitamina').count()
-    total_stock_bajo = prodvetBdd.filter(stock_pv__lte=F('stock_minimo_pv')).count()
+    search = request.GET.get('search', '')
+    if search:
+        prodvet_query = prodvet_query.filter(
+            Q(codigo_pv__icontains=search) |
+            Q(nombre_pv__icontains=search) |
+            Q(tipo_pv__icontains=search) |
+            Q(proveedor_pv__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(prodvet_query.order_by('nombre_pv'), 20)
+    page_number = request.GET.get('page', 1)
+    prodvet = paginator.get_page(page_number)
     
     return render(request, 'catalogos/salud/prodvet/lista_prodvet.html', {
-        'prodvet': prodvetBdd,
+        'prodvet': prodvet,
         'total_prodvet': total_prodvet,
         'total_activos': total_activos,
         'total_vacunas': total_vacunas,
@@ -822,20 +889,41 @@ def nuevoinsumo(request):
     return render(request, 'catalogos/insualim/nuevo_insumo.html')
 
 def listadoinsumos(request):
-    insumosBdd = InsumoAlimenticio.objects.all()
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    insumos_query = InsumoAlimenticio.objects.all()
     
-    # ── ESTADÍSTICAS ──
-    total_insumos = insumosBdd.count()
-    total_activos = insumosBdd.filter(activo_ia=True).count()
-    total_bajo_stock = insumosBdd.filter(
-        stock_kg_ia__lte=models.F('stock_minimo_kg_ia')
+    total_insumos = insumos_query.count()
+    total_activos = insumos_query.filter(activo_ia=True).count()
+    total_bajo_stock = insumos_query.filter(
+        stock_kg_ia__lte=F('stock_minimo_kg_ia')
     ).count()
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        insumos_query = insumos_query.filter(
+            Q(codigo_ia__icontains=search) |
+            Q(nombre_ia__icontains=search) |
+            Q(tipo_ia__icontains=search) |
+            Q(proveedor_ia__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(insumos_query.order_by('nombre_ia'), 20)
+    page_number = request.GET.get('page', 1)
+    insumos = paginator.get_page(page_number)
     
     # ── SUBTOTAL POR INSUMO ──
     insumos_con_subtotal = []
     valor_total = 0
     
-    for insumo in insumosBdd:
+    for insumo in insumos:
         stock = float(insumo.stock_kg_ia or 0)
         costo = float(insumo.costo_kg_ia or 0)
         subtotal = round(stock * costo, 2)
@@ -982,23 +1070,40 @@ def nuevadieta(request):
     return render(request, 'catalogos/dieta/nueva_dieta.html')
 
 def listadodietas(request):
-    dietasBdd = Dieta.objects.all()
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    dietas_query = Dieta.objects.all()
     
-    # ── ESTADÍSTICAS ──
-    total_dietas = dietasBdd.count()
-    total_activas = dietasBdd.filter(activa_di=True).count()
-    total_inactivas = dietasBdd.filter(activa_di=False).count()
+    total_dietas = dietas_query.count()
+    total_activas = dietas_query.filter(activa_di=True).count()
+    total_inactivas = dietas_query.filter(activa_di=False).count()
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        dietas_query = dietas_query.filter(
+            Q(codigo_di__icontains=search) |
+            Q(nombre_di__icontains=search) |
+            Q(categoria_objetivo_di__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(dietas_query.order_by('nombre_di'), 20)
+    page_number = request.GET.get('page', 1)
+    dietas = paginator.get_page(page_number)
     
     # Costo promedio diario
-    costos = [float(d.costo_diario_estimado_di or 0) for d in dietasBdd if d.costo_diario_estimado_di]
+    costos = [float(d.costo_diario_estimado_di or 0) for d in dietas if d.costo_diario_estimado_di]
     costo_promedio_diario = sum(costos) / len(costos) if costos else 0
-    
-    # Costo total diario
     costo_total_diario = sum(costos)
     
-    # ── PREPARAR DATOS PARA EL TEMPLATE ──
     dietas_con_datos = []
-    for dieta in dietasBdd:
+    for dieta in dietas:
         dietas_con_datos.append({
             'dieta': dieta,
         })
@@ -1529,8 +1634,29 @@ def nuevousuario(request):
     return render(request, 'catalogos/usuario/nuevo_usuario.html')
 
 def listadousuarios(request):
-    usuariosBdd = Usuario.objects.all()
-    return render(request, 'catalogos/usuario/lista_usuario.html', {'usuarios': usuariosBdd})
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    usuarios_query = Usuario.objects.all().order_by('username_us')
+    
+    search = request.GET.get('search', '')
+    if search:
+        usuarios_query = usuarios_query.filter(
+            Q(username_us__icontains=search) |
+            Q(nombre_us__icontains=search) |
+            Q(apellido_us__icontains=search) |
+            Q(email_us__icontains=search) |
+            Q(rol_us__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(usuarios_query, 20)
+    page_number = request.GET.get('page', 1)
+    usuarios = paginator.get_page(page_number)
+    
+    return render(request, 'catalogos/usuario/lista_usuario.html', {'usuarios': usuarios})
 
 def guardarusuario(request):
     username_us = request.POST['txt_username_us'].strip().lower()
@@ -1774,26 +1900,43 @@ def nuevoanimal(request):
 
 # VISTA: LISTA ANIMALES
 def listaanimal(request):
-    """
-    Muestra el listado completo de animales con sus relaciones.
-    """
-    # Prefetch_related para optimizar consultas de FK
-    animalesBdd = Animal.objects.all().select_related(
+    # ==========================================
+    # ESTADÍSTICAS (conteos agregados)
+    # ==========================================
+    animales_query = Animal.objects.all()
+    
+    total_animales = animales_query.count()
+    total_activos = animales_query.filter(estado_an='activo').count()
+    total_terneros = animales_query.filter(categoria_an='ternero').count()
+    total_vacas_leche = animales_query.filter(categoria_an='vaca_leche').count()
+    total_toros = animales_query.filter(categoria_an='toro').count()
+    total_retirados = animales_query.filter(estado_an='retirado').count()
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    animales_query = Animal.objects.all().select_related(
         'fk_ra', 'fk_potrero_an', 'fk_madre_an', 'fk_padre_an'
     ).order_by('-created_at_an')
     
+    if search:
+        animales_query = animales_query.filter(
+            Q(codigo_an__icontains=search) |
+            Q(nombre_an__icontains=search) |
+            Q(fk_ra__nombre_ra__icontains=search) |
+            Q(categoria_an__icontains=search)
+        )
+    
     # ==========================================
-    # TARJETAS ESTADÍSTICAS
+    # PAGINACIÓN
     # ==========================================
-    total_animales = animalesBdd.count()
-    total_activos = animalesBdd.filter(estado_an='activo').count()
-    total_terneros = animalesBdd.filter(categoria_an='ternero').count()
-    total_vacas_leche = animalesBdd.filter(categoria_an='vaca_leche').count()
-    total_toros = animalesBdd.filter(categoria_an='toro').count()
-    total_retirados = animalesBdd.filter(estado_an='retirado').count()
+    paginator = Paginator(animales_query, 20)
+    page_number = request.GET.get('page', 1)
+    animales = paginator.get_page(page_number)
     
     return render(request, 'catalogos/animal/lista_animal.html', {
-        'animales': animalesBdd,
+        'animales': animales,
         'total_animales': total_animales,
         'total_activos': total_activos,
         'total_terneros': total_terneros,
@@ -1801,6 +1944,7 @@ def listaanimal(request):
         'total_toros': total_toros,
         'total_retirados': total_retirados,
     })
+
 # VISTA: GUARDAR ANIMAL (procesar creación)
 def guardaranimal(request):
     """
@@ -2278,23 +2422,39 @@ def detalleanimal(request, id_an):
 # ==========================================
 # MOVIMIENTOS DE ANIMALES
 # ==========================================
-
 def listamovimiento(request):
-    """
-    Muestra el listado completo de movimientos con estadísticas por tipo.
-    Incluye conteos agregados para el dashboard superior.
-    """
-    movimientos = MovimientoAnimal.objects.all().select_related(
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    movimientos_query = MovimientoAnimal.objects.all().select_related(
         'fk_an', 'fk_potrero_origen_ma', 'fk_potrero_destino_ma', 'fk_us_ma'
     ).order_by('-fecha_ma', '-created_at_ma')
     
-    # Estadísticas generales
-    total_movimientos = movimientos.count()
-    total_compras = movimientos.filter(tipo_movimiento_ma='compra').count()
-    total_ventas = movimientos.filter(tipo_movimiento_ma='venta').count()
-    total_traslados = movimientos.filter(tipo_movimiento_ma='traslado').count()
-    total_nacimientos = movimientos.filter(tipo_movimiento_ma='nacimiento').count()
-    total_muertes = movimientos.filter(tipo_movimiento_ma='muerte').count()
+    total_movimientos = movimientos_query.count()
+    total_compras = movimientos_query.filter(tipo_movimiento_ma='compra').count()
+    total_ventas = movimientos_query.filter(tipo_movimiento_ma='venta').count()
+    total_traslados = movimientos_query.filter(tipo_movimiento_ma='traslado').count()
+    total_nacimientos = movimientos_query.filter(tipo_movimiento_ma='nacimiento').count()
+    total_muertes = movimientos_query.filter(tipo_movimiento_ma='muerte').count()
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        movimientos_query = movimientos_query.filter(
+            Q(fk_an__codigo_an__icontains=search) |
+            Q(tipo_movimiento_ma__icontains=search) |
+            Q(comprador_vendedor_ma__icontains=search) |
+            Q(motivo_ma__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(movimientos_query, 20)
+    page_number = request.GET.get('page', 1)
+    movimientos = paginator.get_page(page_number)
     
     contexto = {
         'movimientos': movimientos,
@@ -2755,25 +2915,42 @@ def eliminarmovimiento(request, id_ma):
 # EVENTOS SANITARIOS
 # ==========================================
 def listaeventosanitario(request):
-    """
-    Muestra el listado completo de eventos sanitarios con estadísticas.
-    Incluye conteos por estado y costo total.
-    """
-    eventos = EventoSanitario.objects.all().select_related(
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    eventos_query = EventoSanitario.objects.all().select_related(
         'fk_an', 'fk_pv', 'fk_us_es'
     ).order_by('-fecha_programada_es', '-created_at_es')
     
-    # Estadísticas generales
-    total_eventos = eventos.count()
-    total_pendientes = eventos.filter(estado_es='pendiente').count()
-    total_ejecutados = eventos.filter(estado_es='ejecutado').count()
-    total_cancelados = eventos.filter(estado_es='cancelado').count()
-    total_pospuestos = eventos.filter(estado_es='pospuesto').count()
+    total_eventos = eventos_query.count()
+    total_pendientes = eventos_query.filter(estado_es='pendiente').count()
+    total_ejecutados = eventos_query.filter(estado_es='ejecutado').count()
+    total_cancelados = eventos_query.filter(estado_es='cancelado').count()
+    total_pospuestos = eventos_query.filter(estado_es='pospuesto').count()
     
-    # Costo total de eventos ejecutados
-    costo_total = eventos.filter(
+    # Costo total
+    costo_total = eventos_query.filter(
         estado_es='ejecutado'
     ).aggregate(total=Sum('costo_es'))['total'] or 0
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        eventos_query = eventos_query.filter(
+            Q(fk_an__codigo_an__icontains=search) |
+            Q(tipo_evento_es__icontains=search) |
+            Q(estado_es__icontains=search) |
+            Q(veterinario_responsable_es__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(eventos_query, 20)
+    page_number = request.GET.get('page', 1)
+    eventos = paginator.get_page(page_number)
     
     contexto = {
         'eventos': eventos,
@@ -3327,27 +3504,43 @@ def eliminareventosanitario(request, id_es):
 # ==========================================
 # REGISTROS CLÍNICOS
 # ==========================================
-
 def listaregistroclinico(request):
-    """
-    Muestra el listado completo de registros clínicos con estadísticas.
-    Incluye conteos por resultado y costo total.
-    """
-    registros = RegistroClinico.objects.all().select_related(
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    registros_query = RegistroClinico.objects.all().select_related(
         'fk_an', 'fk_us_rc'
     ).order_by('-fecha_rc', '-created_at_rc')
     
-    # Estadísticas generales
-    total_registros = registros.count()
-    total_curados = registros.filter(resultado_rc='curado').count()
-    total_en_tratamiento = registros.filter(resultado_rc='en_tratamiento').count()
-    total_cronicos = registros.filter(resultado_rc='cronico').count()
-    total_fallecidos = registros.filter(resultado_rc='fallecido').count()
+    total_registros = registros_query.count()
+    total_curados = registros_query.filter(resultado_rc='curado').count()
+    total_en_tratamiento = registros_query.filter(resultado_rc='en_tratamiento').count()
+    total_cronicos = registros_query.filter(resultado_rc='cronico').count()
+    total_fallecidos = registros_query.filter(resultado_rc='fallecido').count()
     
-    # Costo total de tratamientos
-    costo_total = registros.aggregate(
+    costo_total = registros_query.aggregate(
         total=Sum('costo_tratamiento_rc')
     )['total'] or 0
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        registros_query = registros_query.filter(
+            Q(fk_an__codigo_an__icontains=search) |
+            Q(sintomas_rc__icontains=search) |
+            Q(diagnostico_rc__icontains=search) |
+            Q(resultado_rc__icontains=search) |
+            Q(veterinario_rc__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(registros_query, 20)
+    page_number = request.GET.get('page', 1)
+    registros = paginator.get_page(page_number)
     
     contexto = {
         'registros': registros,
@@ -3360,8 +3553,6 @@ def listaregistroclinico(request):
     }
     
     return render(request, 'catalogos/salud/registrosC/lista_registroC.html', contexto)
-
-
 # ==========================================
 # VISTA: NUEVO REGISTRO CLÍNICO (formulario)
 # ==========================================
@@ -3723,26 +3914,39 @@ def eliminarregistroclinico(request, id_rc):
         messages.error(request, f"Error al eliminar: {str(e)}")
     
     return redirect('/listaregistroclinico/')
-
-#==========================================================================================================================================================S
 # ==========================================
 # CELOS
 # ==========================================
-
 def listacelo(request):
-    """
-    Muestra el listado completo de celos con estadísticas.
-    Incluye conteos por intensidad.
-    """
-    celos = Celo.objects.all().select_related(
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    celos_query = Celo.objects.all().select_related(
         'fk_an', 'fk_us_ce'
     ).order_by('-fecha_observacion_ce', '-created_at_ce')
     
-    # Estadísticas generales
-    total_celos = celos.count()
-    total_alta = celos.filter(intensidad_ce='alta').count()
-    total_media = celos.filter(intensidad_ce='media').count()
-    total_baja = celos.filter(intensidad_ce='baja').count()
+    total_celos = celos_query.count()
+    total_alta = celos_query.filter(intensidad_ce='alta').count()
+    total_media = celos_query.filter(intensidad_ce='media').count()
+    total_baja = celos_query.filter(intensidad_ce='baja').count()
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        celos_query = celos_query.filter(
+            Q(fk_an__codigo_an__icontains=search) |
+            Q(intensidad_ce__icontains=search) |
+            Q(observaciones_ce__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(celos_query, 20)
+    page_number = request.GET.get('page', 1)
+    celos = paginator.get_page(page_number)
     
     contexto = {
         'celos': celos,
@@ -4050,25 +4254,41 @@ def eliminarcelo(request, id_ce):
 # INSEMINACIONES
 # ==========================================
 def listainseminacion(request):
-    """
-    Muestra el listado completo de inseminaciones con estadísticas.
-    Incluye conteos por resultado y costo total.
-    """
-    inseminaciones = Inseminacion.objects.all().select_related(
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    inseminaciones_query = Inseminacion.objects.all().select_related(
         'fk_an', 'fk_an__fk_ra', 'fk_toro_in', 'fk_toro_in__fk_ra', 'fk_us_in'
     ).order_by('-fecha_in', '-created_at_in')
     
-    # Estadísticas generales
-    total_inseminaciones = inseminaciones.count()
-    total_pendientes = inseminaciones.filter(
+    total_inseminaciones = inseminaciones_query.count()
+    total_pendientes = inseminaciones_query.filter(
         Q(resultado_in='pendiente') | Q(resultado_in__isnull=True) | Q(resultado_in='')
     ).count()
-    total_prenadas = inseminaciones.filter(resultado_in='preñada').count()
-    total_no_prenadas = inseminaciones.filter(resultado_in='no_preñada').count()
-    total_artificiales = inseminaciones.filter(tipo_inseminacion_in='artificial').count()
+    total_prenadas = inseminaciones_query.filter(resultado_in='preñada').count()
+    total_no_prenadas = inseminaciones_query.filter(resultado_in='no_preñada').count()
+    total_artificiales = inseminaciones_query.filter(tipo_inseminacion_in='artificial').count()
     
-    # Costo total
-    costo_total = inseminaciones.aggregate(total=Sum('costo_in'))['total'] or 0
+    costo_total = inseminaciones_query.aggregate(total=Sum('costo_in'))['total'] or 0
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        inseminaciones_query = inseminaciones_query.filter(
+            Q(fk_an__codigo_an__icontains=search) |
+            Q(fk_toro_in__codigo_an__icontains=search) |
+            Q(tipo_inseminacion_in__icontains=search) |
+            Q(resultado_in__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(inseminaciones_query, 20)
+    page_number = request.GET.get('page', 1)
+    inseminaciones = paginator.get_page(page_number)
     
     contexto = {
         'inseminaciones': inseminaciones,
@@ -4081,7 +4301,6 @@ def listainseminacion(request):
     }
     
     return render(request, 'catalogos/reproduccion/inseminaciones/lista_inseminacion.html', contexto)
-
 
 # ==========================================
 # VISTA: NUEVA INSEMINACIÓN (formulario)
@@ -4584,14 +4803,35 @@ def eliminainseminacion(request, id_in):
 # PREÑECES
 # ==========================================
 def listaprenez(request):
-    """
-    Muestra el listado completo de preñeces con estadísticas.
-    Incluye conteos por método diagnóstico, inseminación vinculada,
-    próximas a parto (≤30 días) y fechas vencidas.
-    """
-    prenez_list = Prenez.objects.all().select_related(
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    prenez_query = Prenez.objects.all().select_related(
         'fk_an', 'fk_in', 'fk_in__fk_toro_in', 'fk_us_pr'
     ).order_by('-fecha_confirmacion_pr', '-created_at_pr')
+    
+    total_prenez = prenez_query.count()
+    total_con_inseminacion = prenez_query.filter(fk_in__isnull=False).count()
+    total_palpacion = prenez_query.filter(metodo_diagnostico_pr='palpacion').count()
+    total_ultrasonido = prenez_query.filter(metodo_diagnostico_pr='ultrasonido').count()
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        prenez_query = prenez_query.filter(
+            Q(fk_an__codigo_an__icontains=search) |
+            Q(metodo_diagnostico_pr__icontains=search) |
+            Q(observaciones_pr__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(prenez_query, 20)
+    page_number = request.GET.get('page', 1)
+    prenez_list = paginator.get_page(page_number)
     
     # Calcular días restantes para cada preñez
     hoy = date.today()
@@ -4601,19 +4841,11 @@ def listaprenez(request):
         else:
             prenez.dias_restantes = None
     
-    # Estadísticas generales
-    total_prenez = prenez_list.count()
-    total_con_inseminacion = prenez_list.filter(fk_in__isnull=False).count()
-    total_palpacion = prenez_list.filter(metodo_diagnostico_pr='palpacion').count()
-    total_ultrasonido = prenez_list.filter(metodo_diagnostico_pr='ultrasonido').count()
-    
-    # Próximas a parto (≤30 días y no vencidas)
+    # Próximas a parto y vencidas (solo sobre los registros paginados)
     proximas_a_parto = sum(
         1 for p in prenez_list 
         if p.dias_restantes is not None and 0 < p.dias_restantes <= 30
     )
-    
-    # Fechas vencidas (días restantes ≤ 0)
     vencidas = sum(
         1 for p in prenez_list 
         if p.dias_restantes is not None and p.dias_restantes <= 0
@@ -5057,21 +5289,37 @@ def eliminaprenez(request, id_pr):
 # VISTA: LISTAR PARTOS
 # ==========================================
 def listapartos(request):
-    """
-    Muestra el listado completo de partos con estadísticas.
-    Incluye conteos por tipo de parto, asistencia veterinaria y crías registradas.
-    """
-    parto_list = Parto.objects.all().select_related(
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    partos_query = Parto.objects.all().select_related(
         'fk_madre_pa', 'fk_pr', 'fk_cria_pa', 'fk_us_pa'
     ).order_by('-fecha_pa', '-created_at_pa')
     
-    # Estadísticas generales
-    total_partos = parto_list.count()
-    total_normales = parto_list.filter(tipo_parto_pa='normal').count()
-    total_distocicos = parto_list.filter(tipo_parto_pa='distocico').count()
-    total_cesareas = parto_list.filter(tipo_parto_pa='cesarea').count()
-    total_con_veterinario = parto_list.filter(asistencia_veterinaria_pa=True).count()
-    total_crias_registradas = parto_list.filter(fk_cria_pa__isnull=False).count()
+    total_partos = partos_query.count()
+    total_normales = partos_query.filter(tipo_parto_pa='normal').count()
+    total_distocicos = partos_query.filter(tipo_parto_pa='distocico').count()
+    total_cesareas = partos_query.filter(tipo_parto_pa='cesarea').count()
+    total_con_veterinario = partos_query.filter(asistencia_veterinaria_pa=True).count()
+    total_crias_registradas = partos_query.filter(fk_cria_pa__isnull=False).count()
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        partos_query = partos_query.filter(
+            Q(fk_madre_pa__codigo_an__icontains=search) |
+            Q(tipo_parto_pa__icontains=search) |
+            Q(observaciones_pa__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(partos_query, 20)
+    page_number = request.GET.get('page', 1)
+    parto_list = paginator.get_page(page_number)
     
     contexto = {
         'parto_list': parto_list,
@@ -5526,25 +5774,47 @@ def eliminaparto(request, id_pa):
 def listaabortos(request):
     """
     Muestra el listado completo de abortos con estadísticas.
-    Incluye conteos por destino de la madre y abortos del mes actual.
+    USANDO PAGINACIÓN SERVER-SIDE para evitar sobrecarga.
     """
-    aborto_list = Aborto.objects.all().select_related(
+    from django.core.paginator import Paginator
+    from django.db.models import Q, Count
+    
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    abortos_query = Aborto.objects.all().select_related(
         'fk_an', 'fk_us_ab'
     ).order_by('-fecha_ab', '-created_at_ab')
     
-    # Estadísticas generales
-    total_abortos = aborto_list.count()
-    total_reproduccion = aborto_list.filter(destino_madre_ab='reproduccion').count()
-    total_reengorde = aborto_list.filter(destino_madre_ab='reengorde').count()
-    total_venta = aborto_list.filter(destino_madre_ab='venta').count()
-    total_baja = aborto_list.filter(destino_madre_ab='baja').count()
+    total_abortos = abortos_query.count()
+    total_reproduccion = abortos_query.filter(destino_madre_ab='reproduccion').count()
+    total_reengorde = abortos_query.filter(destino_madre_ab='reengorde').count()
+    total_venta = abortos_query.filter(destino_madre_ab='venta').count()
+    total_baja = abortos_query.filter(destino_madre_ab='baja').count()
     
-    # Abortos del mes actual
     hoy = date.today()
-    abortos_mes = aborto_list.filter(
+    abortos_mes = abortos_query.filter(
         fecha_ab__year=hoy.year,
         fecha_ab__month=hoy.month
     ).count()
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        abortos_query = abortos_query.filter(
+            Q(fk_an__codigo_an__icontains=search) |
+            Q(causa_probable_ab__icontains=search) |
+            Q(destino_madre_ab__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(abortos_query, 20)
+    page_number = request.GET.get('page', 1)
+    aborto_list = paginator.get_page(page_number)
     
     contexto = {
         'aborto_list': aborto_list,
@@ -6433,43 +6703,56 @@ def eliminaordeno(request, id_or):
 # CALIDAD DE LECHE
 # ==========================================
 def listacalidadl(request):
-    """
-    Muestra el listado completo de análisis de calidad de leche con estadísticas.
-    Incluye promedios de grasa y proteína, conteos por resultado, 
-    alertas de calidad (CCS > 200,000 o UFC > 100,000) y total de costos.
-    """
-    calidad_list = CalidadLeche.objects.all().select_related(
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    calidad_query = CalidadLeche.objects.all().select_related(
         'fk_an', 'fk_us_cl'
     ).order_by('-fecha_muestreo_cl', '-created_at_cl')
     
-    # Calcular indicadores de calidad para cada registro
+    total_analisis = calidad_query.count()
+    total_apto = calidad_query.filter(resultado_cl='apto').count()
+    total_no_apto = calidad_query.filter(resultado_cl='no_apto').count()
+    total_pendiente = calidad_query.filter(resultado_cl='pendiente').count()
+    
+    # Promedios
+    promedio_grasa = calidad_query.filter(
+        grasa_pct_cl__isnull=False
+    ).aggregate(prom=Avg('grasa_pct_cl'))['prom']
+    
+    promedio_proteina = calidad_query.filter(
+        proteina_pct_cl__isnull=False
+    ).aggregate(prom=Avg('proteina_pct_cl'))['prom']
+    
+    total_costo = calidad_query.filter(
+        costo_analisis_cl__isnull=False
+    ).aggregate(total=Sum('costo_analisis_cl'))['total']
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        calidad_query = calidad_query.filter(
+            Q(fk_an__codigo_an__icontains=search) |
+            Q(resultado_cl__icontains=search) |
+            Q(laboratorio_cl__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(calidad_query, 20)
+    page_number = request.GET.get('page', 1)
+    calidad_list = paginator.get_page(page_number)
+    
+    # Calcular alertas solo para los registros paginados
     for calidad in calidad_list:
         calidad.alerta_ccs = calidad.ccs_cl and calidad.ccs_cl > 200000
         calidad.alerta_ufc = calidad.ufc_cl and calidad.ufc_cl > 100000
         calidad.alerta_grasa_baja = calidad.grasa_pct_cl and calidad.grasa_pct_cl < 3.0
         calidad.alerta_proteina_baja = calidad.proteina_pct_cl and calidad.proteina_pct_cl < 2.8
     
-    # Estadísticas generales
-    total_analisis = calidad_list.count()
-    total_apto = calidad_list.filter(resultado_cl='apto').count()
-    total_no_apto = calidad_list.filter(resultado_cl='no_apto').count()
-    total_pendiente = calidad_list.filter(resultado_cl='pendiente').count()
-    
-    # Promedios (solo registros con datos)
-    promedio_grasa = calidad_list.filter(
-        grasa_pct_cl__isnull=False
-    ).aggregate(prom=Avg('grasa_pct_cl'))['prom']
-    
-    promedio_proteina = calidad_list.filter(
-        proteina_pct_cl__isnull=False
-    ).aggregate(prom=Avg('proteina_pct_cl'))['prom']
-    
-    # TOTAL DE COSTOS (nuevo)
-    total_costo = calidad_list.filter(
-        costo_analisis_cl__isnull=False
-    ).aggregate(total=Sum('costo_analisis_cl'))['total']
-    
-    # Alertas sanitarias
     alertas_sanitarias = sum(
         1 for c in calidad_list 
         if c.ccs_cl and c.ccs_cl > 200000 or c.ufc_cl and c.ufc_cl > 100000
@@ -6483,7 +6766,7 @@ def listacalidadl(request):
         'total_pendiente': total_pendiente,
         'promedio_grasa': round(promedio_grasa, 2) if promedio_grasa else 0,
         'promedio_proteina': round(promedio_proteina, 2) if promedio_proteina else 0,
-        'total_costo': round(total_costo, 2) if total_costo else 0,  # <-- NUEVO
+        'total_costo': round(total_costo, 2) if total_costo else 0,
         'alertas_sanitarias': alertas_sanitarias,
     }
     
@@ -6962,27 +7245,42 @@ def eliminacalidadl(request, id_cl):
 # VISTA: LISTAR SECADOS
 # ==========================================
 def listasecado(request):
-    """
-    Muestra el listado completo de secados con estadísticas.
-    Incluye conteos por causa y alertas de secados recientes.
-    """
-    secado_list = Secado.objects.all().select_related(
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    secado_query = Secado.objects.all().select_related(
         'fk_an', 'fk_us_se'
     ).order_by('-fecha_ultimo_ordeno_se', '-created_at_se')
     
-    # Calcular días desde el último ordeño para cada registro
+    total_secados = secado_query.count()
+    total_preniez = secado_query.filter(causa_se='preñez_avanzada').count()
+    total_baja_prod = secado_query.filter(causa_se='baja_produccion').count()
+    total_enfermedad = secado_query.filter(causa_se='enfermedad').count()
+    total_programado = secado_query.filter(causa_se='programado').count()
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        secado_query = secado_query.filter(
+            Q(fk_an__codigo_an__icontains=search) |
+            Q(causa_se__icontains=search) |
+            Q(observaciones_se__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(secado_query, 20)
+    page_number = request.GET.get('page', 1)
+    secado_list = paginator.get_page(page_number)
+    
+    # Calcular días desde el secado para los registros paginados
     hoy = date.today()
     for secado in secado_list:
         secado.dias_desde_secado = (hoy - secado.fecha_ultimo_ordeno_se).days
     
-    # Estadísticas generales
-    total_secados = secado_list.count()
-    total_preniez = secado_list.filter(causa_se='preñez_avanzada').count()
-    total_baja_prod = secado_list.filter(causa_se='baja_produccion').count()
-    total_enfermedad = secado_list.filter(causa_se='enfermedad').count()
-    total_programado = secado_list.filter(causa_se='programado').count()
-    
-    # Secados recientes (≤30 días)
     secados_recientes = sum(
         1 for s in secado_list 
         if s.dias_desde_secado <= 30
@@ -7295,38 +7593,50 @@ def eliminasecado(request, id_se):
 # ENTREGAS DE LECHE
 # ==========================================
 def listaentrega(request):
-    """
-    Muestra el listado completo de entregas de leche con estadísticas.
-    Incluye totales de litros, monto, promedio de precio y conteos.
-    """
-    entrega_list = EntregaLeche.objects.all().select_related(
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    entrega_query = EntregaLeche.objects.all().select_related(
         'fk_us_el'
     ).order_by('-fecha_el', '-created_at_el')
     
-    # Estadísticas generales
-    total_entregas = entrega_list.count()
+    total_entregas = entrega_query.count()
     
-    # Total litros entregados
-    total_litros = entrega_list.filter(
+    total_litros = entrega_query.filter(
         litros_totales_el__isnull=False
     ).aggregate(total=Sum('litros_totales_el'))['total']
     
-    # Total monto
-    total_monto = entrega_list.filter(
+    total_monto = entrega_query.filter(
         monto_total_el__isnull=False
     ).aggregate(total=Sum('monto_total_el'))['total']
     
-    # Promedio precio por litro
-    promedio_precio = entrega_list.filter(
+    promedio_precio = entrega_query.filter(
         precio_litro_el__isnull=False
     ).aggregate(prom=Avg('precio_litro_el'))['prom']
     
-    # Entregas del mes actual
     hoy = date.today()
-    entregas_mes = entrega_list.filter(
+    entregas_mes = entrega_query.filter(
         fecha_el__year=hoy.year,
         fecha_el__month=hoy.month
     ).count()
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        entrega_query = entrega_query.filter(
+            Q(cliente_el__icontains=search) |
+            Q(observaciones_el__icontains=search) |
+            Q(guia_remision_el__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(entrega_query, 20)
+    page_number = request.GET.get('page', 1)
+    entrega_list = paginator.get_page(page_number)
     
     contexto = {
         'entrega_list': entrega_list,
@@ -7338,7 +7648,6 @@ def listaentrega(request):
     }
     
     return render(request, 'catalogos/produccion/entregaL/lista_entrega.html', contexto)
-
 
 # ==========================================
 # VISTA: NUEVA ENTREGA (formulario)
@@ -7650,43 +7959,57 @@ def eliminaentrega(request, id_el):
 # ==========================================================
 #Racion
 def listaracion(request):
-    """
-    Muestra el listado completo de raciones con estadísticas.
-    Incluye filtros por animal, dieta, insumo y estado (activa/finalizada).
-    """
-    raciones_list = Racion.objects.all().select_related(
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    racion_query = Racion.objects.all().select_related(
         'fk_an', 'fk_di', 'fk_ia', 'fk_us_ra'
     ).order_by('-fecha_inicio_ra', '-created_at_ra')
     
-    # Calcular estado para cada ración
+    total_raciones = racion_query.count()
+    
+    total_ofrecido = racion_query.aggregate(
+        total=Sum('cantidad_ofrecida_kg_ra')
+    )['total'] or 0
+    
+    total_consumido = racion_query.aggregate(
+        total=Sum('cantidad_consumida_kg_ra')
+    )['total'] or 0
+    
+    total_desperdicio = racion_query.aggregate(
+        total=Sum('desperdicio_kg_ra')
+    )['total'] or 0
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        racion_query = racion_query.filter(
+            Q(fk_an__codigo_an__icontains=search) |
+            Q(fk_di__nombre_di__icontains=search) |
+            Q(fk_ia__nombre_ia__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(racion_query, 20)
+    page_number = request.GET.get('page', 1)
+    raciones_list = paginator.get_page(page_number)
+    
+    # Calcular estado y eficiencia para los registros paginados
     hoy = date.today()
     for racion in raciones_list:
         if racion.fecha_fin_ra and racion.fecha_fin_ra < hoy:
             racion.estado = 'finalizada'
         else:
             racion.estado = 'activa'
-        # Calcular eficiencia si hay datos
         racion.eficiencia = racion.calcular_eficiencia()
         racion.desperdicio_pct = racion.calcular_desperdicio_pct()
     
-    # Estadísticas generales
-    total_raciones = raciones_list.count()
     raciones_finalizadas = sum(1 for r in raciones_list if r.estado == 'finalizada')
     
-    # Estadísticas de consumo
-    total_ofrecido = raciones_list.aggregate(
-        total=Sum('cantidad_ofrecida_kg_ra')
-    )['total'] or 0
-    
-    total_consumido = raciones_list.aggregate(
-        total=Sum('cantidad_consumida_kg_ra')
-    )['total'] or 0
-    
-    total_desperdicio = raciones_list.aggregate(
-        total=Sum('desperdicio_kg_ra')
-    )['total'] or 0
-    
-    # Eficiencia promedio
     raciones_con_eficiencia = [r for r in raciones_list if r.eficiencia is not None]
     eficiencia_promedio = round(
         sum(r.eficiencia for r in raciones_con_eficiencia) / len(raciones_con_eficiencia), 2
@@ -8308,37 +8631,52 @@ def eliminaracion(request, id_ra):
 # Asignacion potrero
 #------------------------------
 def listaasignacionp(request):
-    """
-    Muestra el listado completo de asignaciones de potrero con estadísticas.
-    Incluye conteos por estado (activa, vencida, finalizada).
-    """
-    asignaciones_list = AsignacionPotrero.objects.all().select_related(
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    asignacion_query = AsignacionPotrero.objects.all().select_related(
         'fk_po', 'fk_an', 'fk_us_ap'
     ).order_by('-fecha_ingreso_ap', '-created_at_ap')
     
-    hoy = date.today()
+    total_asignaciones = asignacion_query.count()
     
-    # Calcular estado y métricas para cada asignación
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        asignacion_query = asignacion_query.filter(
+            Q(fk_an__codigo_an__icontains=search) |
+            Q(fk_po__codigo_po__icontains=search) |
+            Q(fk_po__nombre_po__icontains=search) |
+            Q(observaciones_ap__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(asignacion_query, 20)
+    page_number = request.GET.get('page', 1)
+    asignaciones_list = paginator.get_page(page_number)
+    
+    # Calcular estado para cada asignación
     for asignacion in asignaciones_list:
         asignacion.estado_calculado = asignacion.estado
         asignacion.dias_en_potrero_calculado = asignacion.dias_en_potrero
         asignacion.dias_restantes_calculado = asignacion.dias_restantes
     
-    # Estadísticas generales
-    total_asignaciones = asignaciones_list.count()
+    # Estadísticas solo sobre los registros paginados (o puedes usar los totales)
     asignaciones_activas = sum(1 for a in asignaciones_list if a.estado_calculado == 'activa')
     asignaciones_vencidas = sum(1 for a in asignaciones_list if a.estado_calculado == 'vencida')
     asignaciones_finalizadas = sum(1 for a in asignaciones_list if a.estado_calculado == 'finalizada')
     
-    # Estadísticas de potreros
-    potreros_ocupados = asignaciones_list.filter(
-        fecha_salida_real_ap__isnull=True
-    ).values('fk_po').distinct().count()
-    
-    # Animales en potrero
-    animales_en_potrero = asignaciones_list.filter(
+    # Para las estadísticas totales, hacer consultas separadas
+    asignaciones_activas_total = AsignacionPotrero.objects.filter(
         fecha_salida_real_ap__isnull=True
     ).count()
+    potreros_ocupados = AsignacionPotrero.objects.filter(
+        fecha_salida_real_ap__isnull=True
+    ).values('fk_po').distinct().count()
     
     contexto = {
         'asignaciones_list': asignaciones_list,
@@ -8347,7 +8685,7 @@ def listaasignacionp(request):
         'asignaciones_vencidas': asignaciones_vencidas,
         'asignaciones_finalizadas': asignaciones_finalizadas,
         'potreros_ocupados': potreros_ocupados,
-        'animales_en_potrero': animales_en_potrero,
+        'animales_en_potrero': asignaciones_activas_total,
     }
     
     return render(request, 'catalogos/potreros/asignacion/lista_asignacionp.html', contexto)
@@ -8762,35 +9100,47 @@ def eliminaasignacionp(request, id_ap):
 
 #Pesajes
 def listapesaje(request):
-    """
-    Muestra el listado completo de pesajes con estadísticas.
-    Incluye promedio de peso, peso máximo, mínimo y conteos por método.
-    """
-    pesaje_list = Pesaje.objects.all().select_related(
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    pesaje_query = Pesaje.objects.all().select_related(
         'fk_an', 'fk_an__fk_ra', 'fk_us_pe'
     ).order_by('-fecha_pe', '-created_at_pe')
     
-    # Estadísticas generales
-    total_pesajes = pesaje_list.count()
+    total_pesajes = pesaje_query.count()
     
-    # Promedio de peso general
-    peso_promedio = pesaje_list.aggregate(promedio=Avg('peso_kg_pe'))['promedio'] or 0
+    peso_promedio = pesaje_query.aggregate(promedio=Avg('peso_kg_pe'))['promedio'] or 0
+    peso_maximo = pesaje_query.aggregate(maximo=Max('peso_kg_pe'))['maximo'] or 0
+    peso_minimo = pesaje_query.aggregate(minimo=Min('peso_kg_pe'))['minimo'] or 0
     
-    # Peso máximo y mínimo
-    peso_maximo = pesaje_list.aggregate(maximo=Max('peso_kg_pe'))['maximo'] or 0
-    peso_minimo = pesaje_list.aggregate(minimo=Min('peso_kg_pe'))['minimo'] or 0
+    total_bascula = pesaje_query.filter(metodo_pe='bascula').count()
+    total_cinta = pesaje_query.filter(metodo_pe='cinta_metrica').count()
+    total_estimacion = pesaje_query.filter(metodo_pe='estimacion_visual').count()
     
-    # Conteos por método
-    total_bascula = pesaje_list.filter(metodo_pe='bascula').count()
-    total_cinta = pesaje_list.filter(metodo_pe='cinta_metrica').count()
-    total_estimacion = pesaje_list.filter(metodo_pe='estimacion_visual').count()
-    
-    # Pesajes del mes actual
     hoy = date.today()
-    pesajes_mes = pesaje_list.filter(
+    pesajes_mes = pesaje_query.filter(
         fecha_pe__year=hoy.year,
         fecha_pe__month=hoy.month
     ).count()
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        pesaje_query = pesaje_query.filter(
+            Q(fk_an__codigo_an__icontains=search) |
+            Q(fk_an__nombre_an__icontains=search) |
+            Q(metodo_pe__icontains=search) |
+            Q(observaciones_pe__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(pesaje_query, 20)
+    page_number = request.GET.get('page', 1)
+    pesaje_list = paginator.get_page(page_number)
     
     contexto = {
         'pesaje_list': pesaje_list,
@@ -9145,34 +9495,46 @@ def eliminapesaje(request, id_pe):
 # MÓDULO 6: ADMINISTRACIÓN FINANCIERA
 # ==========================================================
 def listacosto(request):
-    """
-    Muestra el listado completo de costos con estadísticas.
-    Incluye totales por categoría, mes/año y conteos.
-    """
-    costo_list = Costo.objects.all().select_related(
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    costo_query = Costo.objects.all().select_related(
         'fk_us_co'
     ).order_by('-fecha_co', '-created_at_co')
     
-    # Estadísticas generales
-    total_costos = costo_list.count()
+    total_costos = costo_query.count()
+    monto_total = costo_query.aggregate(total=Sum('monto_co'))['total'] or 0
     
-    # Monto total general
-    monto_total = costo_list.aggregate(total=Sum('monto_co'))['total'] or 0
+    total_alimentacion = costo_query.filter(categoria_co='alimentacion').aggregate(total=Sum('monto_co'))['total'] or 0
+    total_sanidad = costo_query.filter(categoria_co='sanidad').aggregate(total=Sum('monto_co'))['total'] or 0
+    total_reproduccion = costo_query.filter(categoria_co='reproduccion').aggregate(total=Sum('monto_co'))['total'] or 0
+    total_mano_obra = costo_query.filter(categoria_co='mano_obra').aggregate(total=Sum('monto_co'))['total'] or 0
+    total_mantenimiento = costo_query.filter(categoria_co='mantenimiento_infraestructura').aggregate(total=Sum('monto_co'))['total'] or 0
     
-    # Totales por categoría
-    total_alimentacion = costo_list.filter(categoria_co='alimentacion').aggregate(total=Sum('monto_co'))['total'] or 0
-    total_sanidad = costo_list.filter(categoria_co='sanidad').aggregate(total=Sum('monto_co'))['total'] or 0
-    total_reproduccion = costo_list.filter(categoria_co='reproduccion').aggregate(total=Sum('monto_co'))['total'] or 0
-    total_mano_obra = costo_list.filter(categoria_co='mano_obra').aggregate(total=Sum('monto_co'))['total'] or 0
-    total_mantenimiento = costo_list.filter(categoria_co='mantenimiento_infraestructura').aggregate(total=Sum('monto_co'))['total'] or 0
-    
-    # Costos del mes actual
     hoy = date.today()
-    costos_mes = costo_list.filter(
+    costos_mes = costo_query.filter(
         mes_referencia_co=hoy.month,
         anio_referencia_co=hoy.year
     )
     monto_mes = costos_mes.aggregate(total=Sum('monto_co'))['total'] or 0
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        costo_query = costo_query.filter(
+            Q(categoria_co__icontains=search) |
+            Q(descripcion_co__icontains=search) |
+            Q(comprobante_co__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(costo_query, 20)
+    page_number = request.GET.get('page', 1)
+    costo_list = paginator.get_page(page_number)
     
     contexto = {
         'costo_list': costo_list,
@@ -9187,7 +9549,6 @@ def listacosto(request):
     }
     
     return render(request, 'catalogos/finanzas/costo/lista_costo.html', contexto)
-
 
 # ==========================================
 # VISTA: NUEVO COSTO (formulario)
@@ -9539,29 +9900,50 @@ def eliminacosto(request, id_co):
 def listaingreso(request):
     """
     Muestra el listado completo de ingresos con estadísticas.
-    Incluye totales por categoría, mes actual, y gráficos de resumen.
+    USANDO PAGINACIÓN SERVER-SIDE para evitar sobrecarga.
     """
-    ingresos_list = Ingreso.objects.all().select_related('fk_us_ig').order_by('-fecha_ig', '-created_at_ig')
+    from django.core.paginator import Paginator
+    from django.db.models import Q, Count, Sum, Avg
     
-    # Estadísticas generales
-    total_ingresos = ingresos_list.count()
-    monto_total_general = ingresos_list.aggregate(total=Sum('monto_total_ig'))['total'] or Decimal('0')
+    # ==========================================
+    # ESTADÍSTICAS
+    # ==========================================
+    ingreso_query = Ingreso.objects.all().select_related('fk_us_ig').order_by('-fecha_ig', '-created_at_ig')
     
-    # Totales por categoría
-    total_venta_leche = ingresos_list.filter(categoria_ig='venta_leche').aggregate(total=Sum('monto_total_ig'))['total'] or Decimal('0')
-    total_venta_animales = ingresos_list.filter(categoria_ig='venta_animales').aggregate(total=Sum('monto_total_ig'))['total'] or Decimal('0')
-    total_venta_subproductos = ingresos_list.filter(categoria_ig='venta_subproductos').aggregate(total=Sum('monto_total_ig'))['total'] or Decimal('0')
-    total_servicios = ingresos_list.filter(categoria_ig='servicios_inseminacion').aggregate(total=Sum('monto_total_ig'))['total'] or Decimal('0')
-    total_otros = ingresos_list.filter(categoria_ig='otros').aggregate(total=Sum('monto_total_ig'))['total'] or Decimal('0')
+    total_ingresos = ingreso_query.count()
+    monto_total_general = ingreso_query.aggregate(total=Sum('monto_total_ig'))['total'] or 0
     
-    # Mes actual
+    total_venta_leche = ingreso_query.filter(categoria_ig='venta_leche').aggregate(total=Sum('monto_total_ig'))['total'] or 0
+    total_venta_animales = ingreso_query.filter(categoria_ig='venta_animales').aggregate(total=Sum('monto_total_ig'))['total'] or 0
+    total_venta_subproductos = ingreso_query.filter(categoria_ig='venta_subproductos').aggregate(total=Sum('monto_total_ig'))['total'] or 0
+    total_servicios = ingreso_query.filter(categoria_ig='servicios_inseminacion').aggregate(total=Sum('monto_total_ig'))['total'] or 0
+    total_otros = ingreso_query.filter(categoria_ig='otros').aggregate(total=Sum('monto_total_ig'))['total'] or 0
+    
     hoy = date.today()
-    ingresos_mes_actual = ingresos_list.filter(
+    ingresos_mes_actual = ingreso_query.filter(
         fecha_ig__year=hoy.year,
         fecha_ig__month=hoy.month
     )
-    monto_mes_actual = ingresos_mes_actual.aggregate(total=Sum('monto_total_ig'))['total'] or Decimal('0')
+    monto_mes_actual = ingresos_mes_actual.aggregate(total=Sum('monto_total_ig'))['total'] or 0
     cantidad_mes_actual = ingresos_mes_actual.count()
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        ingreso_query = ingreso_query.filter(
+            Q(categoria_ig__icontains=search) |
+            Q(cliente_ig__icontains=search) |
+            Q(comprobante_ig__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(ingreso_query, 20)
+    page_number = request.GET.get('page', 1)
+    ingresos_list = paginator.get_page(page_number)
     
     contexto = {
         'ingresos_list': ingresos_list,
@@ -9910,38 +10292,6 @@ def eliminaingreso(request, id_ig):
 # ==========================================================
 # MÓDULO 7: MACHINE LEARNING
 # ==========================================================
-# MODELOS ML
-
-# ============================================================
-# VISTA: NUEVO MODELO ML (formulario)
-# ============================================================
-
-# ============================================================
-# VISTA: GUARDAR NUEVO MODELO ML
-# ============================================================
-
-# ============================================================
-# VISTA: EDITAR MODELO ML (formulario)
-# ============================================================
-
-# ============================================================
-# VISTA: PROCESAR EDICIÓN MODELO ML
-# ============================================================
-
-# ============================================================
-# VISTA: ACTIVAR / DESACTIVAR MODELO ML (toggle)
-# ============================================================
-
-# ============================================================
-# VISTA: ELIMINAR MODELO ML
-# ============================================================
-
-# ==========================================
-# VISTA: DASHBOARD PRINCIPAL ML
-# ==========================================
-# ==========================================
-# VISTA: DASHBOARD PRINCIPAL ML (CON MESES EN ESPAÑOL)
-# ==========================================
 def dashboardml(request):
     """
     Dashboard de Machine Learning con predicciones automaticas agrupadas por año/mes.

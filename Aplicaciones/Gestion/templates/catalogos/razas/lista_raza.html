@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block titulo %}
-Listado de Razas | Hacienda Joseph
+Listado de razas | Hacienda Joseph
 {% endblock %}
 
 {% block breadcrumb %}
@@ -23,12 +23,13 @@ Listado de Razas | Hacienda Joseph
 
 {% block contenido %}
 
+<!-- Tarjetas estadísticas -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-3">
         <div class="card-hacienda text-center p-3">
             <i class="bi bi-tags fs-2" style="color: var(--color-primario);"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_razas }}</h4>
-            <small class="text-muted">Total Razas</small>
+            <small class="text-muted">Total razas</small>
         </div>
     </div>
     <div class="col-md-3">
@@ -39,7 +40,7 @@ Listado de Razas | Hacienda Joseph
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
             <i class="bi bi-x-octagon fs-2 text-danger"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_inactivas }}</h4>
             <small class="text-muted">Inactivas</small>
@@ -47,11 +48,12 @@ Listado de Razas | Hacienda Joseph
     </div>
 </div>
 
+<!-- Titulo -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8">
         <h2 class="fw-bold" style="color: var(--color-primario);">
             <i class="bi bi-tags-fill me-2"></i>
-            Listado de Razas
+            Listado de razas
         </h2>
         <p class="text-muted mb-0">
             <i class="bi bi-info-circle me-1"></i>
@@ -61,31 +63,59 @@ Listado de Razas | Hacienda Joseph
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <a href="/nuevaraza/" class="btn btn-hacienda">
             <i class="bi bi-plus-circle me-2"></i>
-            Nueva Raza
+            Nueva raza
         </a>
     </div>
 </div>
 
+<!-- Tarjeta principal -->
 <div class="row animate-fade-in">
     <div class="col-12">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
                 <i class="bi bi-list-ul"></i>
-                Razas Registradas
+                Razas registradas
+                <span class="badge bg-secondary ms-2">{{ raza_list.paginator.count }}</span>
             </div>
             <div class="p-4">
+                <!-- Filtro de búsqueda -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="GET" action="" class="d-flex">
+                            <input type="text" name="search" class="form-control form-control-sm" 
+                                   placeholder="🔍 Buscar por nombre..." 
+                                   value="{{ request.GET.search }}">
+                            <button type="submit" class="btn btn-sm btn-hacienda ms-2">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            {% if request.GET.search %}
+                            <a href="?page=1" class="btn btn-sm btn-hacienda-secondary ms-1">
+                                <i class="bi bi-x-circle"></i>
+                            </a>
+                            {% endif %}
+                        </form>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <small class="text-muted">
+                            Mostrando {{ raza_list.start_index }} a {{ raza_list.end_index }} 
+                            de {{ raza_list.paginator.count }} registros
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Tabla -->
                 <div class="table-responsive">
-                    <table id="tablaRaza" class="table table-hacienda align-middle mb-0">
+                    <table class="table table-hacienda align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>NOMBRE</th>
-                                <th>ORIGEN</th>
-                                <th>DESCRIPCIÓN</th>
-                                <th>ESTADO</th>
-                                <th>ANIMALES</th>
-                                <th>REGISTRADO</th>
-                                <th>ACCIONES</th>
+                                <th>Id</th>
+                                <th>Nombre</th>
+                                <th>Origen</th>
+                                <th>Descripción</th>
+                                <th>Estado</th>
+                                <th>Animales</th>
+                                <th>Registrado</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -147,6 +177,7 @@ Listado de Razas | Hacienda Joseph
                                 </td>
                                 
                                 <td>
+                                    <!-- Ver detalle (modal) -->
                                     <button type="button" class="btn btn-sm btn-info" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#modalDetalleRaza"
@@ -162,10 +193,12 @@ Listado de Razas | Hacienda Joseph
                                         <i class="bi bi-eye"></i>
                                     </button>
                                     
+                                    <!-- Editar -->
                                     <a href="/editarraza/{{ raza.id_ra }}" class="btn btn-sm btn-hacienda-secondary" title="Editar">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                     
+                                    <!-- Eliminar -->
                                     <button type="button" class="btn btn-sm btn-danger"
                                             data-bs-toggle="modal"
                                             data-bs-target="#modalEliminarRaza"
@@ -191,24 +224,84 @@ Listado de Razas | Hacienda Joseph
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Paginación de Django -->
+                {% if raza_list.has_other_pages %}
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            Mostrando {{ raza_list.start_index }} a {{ raza_list.end_index }} 
+                            de {{ raza_list.paginator.count }} registros
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <nav aria-label="Paginación de razas">
+                            <ul class="pagination justify-content-end flex-wrap">
+                                {% if raza_list.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ raza_list.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+
+                                {% for num in raza_list.paginator.page_range %}
+                                    {% if raza_list.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                    {% elif num > raza_list.number|add:'-3' and num < raza_list.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                            {{ num }}
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if raza_list.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ raza_list.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ raza_list.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                {% endif %}
             </div>
             <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
                 <small class="text-muted">
                     <i class="bi bi-bar-chart-line me-1"></i>
-                    Total de razas: <strong>{{ raza_list|length }}</strong>
+                    Total de razas: <strong>{{ raza_list.paginator.count }}</strong>
                 </small>
             </div>
         </div>
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- Modal detalle raza                        -->
+<!-- ========================================== -->
 <div class="modal fade" id="modalDetalleRaza" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-tags-fill me-2" style="color: #DAA520;"></i>
-                    DETALLE DE LA RAZA
+                    Detalle de la raza
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -219,10 +312,13 @@ Listado de Razas | Hacienda Joseph
                             <i class="bi bi-tag fs-1" style="color: #2c5e1a;"></i>
                             <p class="mt-3 mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleNombre"></p>
                             <div class="mt-3 w-100 text-center">
-                                <span id="detalleTipoBadge"></span>
+                                <span id="detalleEstadoBadge"></span>
                             </div>
                             <div class="mt-2 w-100 text-center">
-                                <span id="detalleEstadoBadge"></span>
+                                <span class="badge rounded-pill p-2" style="background:#e2d4f0; color:#4a148c; border: 1px solid #6f42c1; font-size: 14px;">
+                                    <i class="bi bi-emoji-smile me-1"></i>
+                                    <span id="detalleAnimales"></span> animal(es)
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -230,34 +326,27 @@ Listado de Razas | Hacienda Joseph
                         <div class="p-4">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold">ID RAZA</label>
-                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<<span id="detalleId"></span></p>
+                                    <label class="text-muted small fw-bold">Id raza</label>
+                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<span id="detalleId"></span></p>
                                 </div>
                                 <div class="col-6 text-end">
-                                    <label class="text-muted small fw-bold">ANIMALES ASOCIADOS</label>
-                                    <p class="mb-0 fw-bold" id="detalleAnimales" style="color: #5c450e;"></p>
-                                </div>
-                            </div>
-                            <hr style="border-color: #d4c5a9;">
-                            <div class="row justify-content-center">
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-globe me-1"></i>ORIGEN</label>
+                                    <label class="text-muted small fw-bold">Origen</label>
                                     <p class="mb-0" id="detalleOrigen" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="mb-3">
-                                <label class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i>DESCRIPCIÓN</label>
+                                <label class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i>Descripción</label>
                                 <p class="mb-0" id="detalleDescripcion" style="color: #5c450e; font-style: italic;"></p>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-0">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>CREADO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>Creado</label>
                                     <p class="mb-0" id="detalleCreated" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-clockwise me-1"></i>ÚLTIMA MOD.</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-clockwise me-1"></i>Última mod.</label>
                                     <p class="mb-0" id="detalleUpdated" style="color: #5c450e;"></p>
                                 </div>
                             </div>
@@ -267,7 +356,7 @@ Listado de Razas | Hacienda Joseph
             </div>
             <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
                 <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
-                    <i class="bi bi-pencil-square me-1"></i>Editar Raza
+                    <i class="bi bi-pencil-square me-1"></i>Editar raza
                 </a>
                 <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
                     <i class="bi bi-x-lg me-1"></i>Cerrar
@@ -277,13 +366,16 @@ Listado de Razas | Hacienda Joseph
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- Modal eliminar raza                       -->
+<!-- ========================================== -->
 <div class="modal fade" id="modalEliminarRaza" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 12px; border: 2px solid #DAA520; overflow: hidden;">
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
-                    CONFIRMAR ELIMINACIÓN
+                    Confirmar eliminación
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -308,141 +400,34 @@ Listado de Razas | Hacienda Joseph
     </div>
 </div>
 
-{% endblock %}
-
-{% block scripts_extra %}
-
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-
+<!-- ========================================== -->
+<!-- Estilos para paginación                   -->
+<!-- ========================================== -->
 <style>
-    .dataTables_filter {
-        margin-bottom: 20px !important;
-        background: linear-gradient(135deg, #eef7e8, #dcefd0);
-        padding: 15px 20px;
-        border-radius: 18px;
-        border: 2px solid #b7d7a8;
-        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
-        display: flex !important;
-        align-items: center !important;
-        justify-content: end !important;
-        gap: 10px;
-    }
-    .dataTables_filter::before {
-        content: "🐄";
-        font-size: 28px;
-    }
-    .dataTables_filter label {
-        font-weight: bold;
+    .pagination .page-link {
         color: var(--color-primario);
-        font-size: 17px;
+        border-color: #d4c5a9;
     }
-    .dataTables_filter input {
-        border-radius: 50px !important;
-        border: 3px solid var(--color-primario) !important;
-        padding: 10px 18px !important;
-        background-color: #ffffff !important;
-        color: var(--color-navbar) !important;
-        font-weight: 600 !important;
-        width: 280px !important;
-        transition: 0.3s !important;
-        box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08);
-        margin-left: 10px !important;
+    .pagination .page-item.active .page-link {
+        background-color: var(--color-primario);
+        border-color: var(--color-primario);
+        color: white;
     }
-    .dataTables_filter input:focus {
-        outline: none !important;
-        border-color: #8dc26f !important;
-        box-shadow: 0px 0px 12px rgba(44,94,26,0.4);
-        background-color: #f8fff5 !important;
+    .pagination .page-link:hover {
+        background-color: #e8f5e9;
+        border-color: var(--color-primario);
     }
-    .dataTables_length select {
-        border-radius: 10px !important;
-        border: 2px solid var(--color-primario) !important;
-        padding: 5px 10px !important;
-    }
-    .dataTables_paginate {
-        width: 100% !important;
-        display: flex !important;
-        justify-content: center !important;
-        margin-top: 25px !important;
-    }
-    .dataTables_paginate .pagination {
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: flex-end !important;
-        align-items: center !important;
-        gap: 0px !important;
-        flex-wrap: nowrap !important;
-    }
-    .paginate_button {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 4px !important;
-        border: none !important;
-        background: #dfeedd !important;
-        color: var(--color-primario) !important;
-        font-weight: bold !important;
-        font-size: 14px !important;
-        display: inline-flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        transition: 0.3s !important;
-        margin: 0 3px !important;
-        vertical-align: middle !important;
-        float: none !important;
-    }
-    .paginate_button.current {
-        background: var(--color-primario) !important;
-        color: white !important;
-        border: 2px solid #8dc26f !important;
-        box-shadow: 0px 0px 8px rgba(44,94,26,0.4);
-    }
-    .paginate_button:hover {
-        background: #3d7a24 !important;
-        color: white !important;
-    }
-    .paginate_button.previous, .paginate_button.next {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 4px !important;
-        background: #dfeedd !important;
-        color: var(--color-primario) !important;
-        font-weight: bold !important;
-        font-size: 16px !important;
-    }
-    .paginate_button.previous:hover, .paginate_button.next:hover {
-        background: #3d7a24 !important;
-        color: white !important;
+    .card-header-hacienda .badge {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.65rem;
     }
 </style>
 
-<script>
-    $(document).ready(function () {
-        $('#tablaRaza').DataTable({
-            "language": {
-                "lengthMenu": "Mostrar _MENU_ registros",
-                "zeroRecords": "No se encontraron resultados",
-                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                "infoEmpty": "No existen registros",
-                "infoFiltered": "(filtrado de _MAX_ registros)",
-                "search": "Buscar:",
-                "paginate": {
-                    "first": "",
-                    "last": "",
-                    "next": "›",
-                    "previous": "‹"
-                }
-            },
-            "pageLength": 10,
-            "lengthMenu": [5,10,25,50,100],
-            "responsive": true,
-            "pagingType": "simple_numbers",
-            "order": [[1, "asc"]]
-        });
-    });
-</script>
+{% endblock %}
 
+{% block scripts_extra %}
 <script>
+    // Modal detalle raza
     var modalDetalleRaza = document.getElementById('modalDetalleRaza');
     modalDetalleRaza.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
@@ -460,9 +445,10 @@ Listado de Razas | Hacienda Joseph
         document.getElementById('detalleNombre').textContent = nombre;
         document.getElementById('detalleOrigen').textContent = origen;
         document.getElementById('detalleDescripcion').textContent = descripcion;
-        document.getElementById('detalleAnimales').textContent = animales + ' animal(es)';
+        document.getElementById('detalleAnimales').textContent = animales;
         document.getElementById('detalleCreated').textContent = created;
         document.getElementById('detalleUpdated').textContent = updated;      
+        
         var estadoHtml = '';
         if (activo) {
             estadoHtml = '<span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745; font-size: 14px;"><i class="bi bi-check-circle me-1"></i> Activa</span>';
@@ -476,6 +462,7 @@ Listado de Razas | Hacienda Joseph
 </script>
 
 <script>
+    // Modal eliminar raza
     var modalEliminarRaza = document.getElementById('modalEliminarRaza');
     modalEliminarRaza.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
@@ -486,5 +473,4 @@ Listado de Razas | Hacienda Joseph
         document.getElementById('btnConfirmarEliminarRaza').setAttribute('href', url);
     });
 </script>
-
 {% endblock %}
