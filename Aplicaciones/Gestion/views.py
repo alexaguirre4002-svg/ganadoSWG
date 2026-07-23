@@ -11402,29 +11402,31 @@ def api_historial_ad1_animal(request, animal_id):
     except Animal.DoesNotExist:
         return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'}, status=404)
 
+    # ✅ Solo verificar que el archivo .pkl existe
     if not modelo_esta_entrenado('AD-1'):
         return JsonResponse({'exito': False, 'mensaje': 'Modelo AD-1 no está entrenado'})
 
-    try:
-        modelo = ModeloML.objects.get(codigo_mm='AD-1')
-    except ModeloML.DoesNotExist:
-        return JsonResponse({'exito': False, 'mensaje': 'Modelo AD-1 no encontrado'})
+    # ✅ Buscar en DB solo si existe (NO es obligatorio)
+    modelo_db = ModeloML.objects.filter(codigo_mm='AD-1').first()
 
-    # OBTENER ORDEÑOS DEL ANIMAL
+    # OBTENER ORDEÑOS DEL ANIMAL (limitados a 200 para evitar timeout)
     ordenos = Ordeno.objects.filter(
         fk_an=animal,
         temperatura_ambiental_or__isnull=False,
         cantidad_concentrado_kg_or__isnull=False,
         temperatura_leche_or__isnull=False
-    ).order_by('-fecha_or')
+    ).order_by('-fecha_or')[:200]
 
     print(f"📊 Ordeños encontrados: {ordenos.count()}")
 
     if not ordenos.exists():
         return JsonResponse({'exito': True, 'mensaje': 'No hay ordeños', 'predicciones': {}})
 
-    meses_espanol = {1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',
-                     7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'}
+    meses_espanol = {
+        1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+        5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+        9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+    }
 
     agrupado = {}
 
@@ -11448,6 +11450,10 @@ def api_historial_ad1_animal(request, animal_id):
         resultado = predecir('AD-1', datos_entrada)
 
         if resultado.get('exito'):
+            confianza = 'N/A'
+            if modelo_db and modelo_db.valor_metrica_mm:
+                confianza = f"R²: {modelo_db.valor_metrica_mm * 100:.1f}%"
+
             agrupado[anio][clave_mes].append({
                 'fecha': o.fecha_or.strftime('%d/%m/%Y'),
                 'temperatura_ambiental': float(o.temperatura_ambiental_or),
@@ -11455,8 +11461,23 @@ def api_historial_ad1_animal(request, animal_id):
                 'temperatura_leche': float(o.temperatura_leche_or),
                 'litros_reales': float(o.litros_or),
                 'prediccion': round(resultado['prediccion'], 2),
-                'confianza': f"R²: {modelo.valor_metrica_mm * 100:.1f}%" if modelo.valor_metrica_mm else 'N/A',
+                'confianza': confianza,
             })
+
+            # Guardar en DB solo si existe el modelo
+            if modelo_db:
+                try:
+                    PrediccionML.objects.get_or_create(
+                        fk_mm=modelo_db,
+                        fk_an=animal,
+                        datos_entrada_pm=datos_entrada,
+                        defaults={
+                            'resultado_prediccion_pm': str(resultado['prediccion']),
+                            'probabilidad_pm': None
+                        }
+                    )
+                except Exception:
+                    pass
 
     return JsonResponse({'exito': True, 'predicciones': agrupado})
 
@@ -11474,14 +11495,12 @@ def api_historial_ad2_animal(request, animal_id):
         print(f"❌ Animal NO encontrado: {animal_id}")
         return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'}, status=404)
 
+    # ✅ Solo verificar que el archivo .pkl existe
     if not modelo_esta_entrenado('AD-2'):
         return JsonResponse({'exito': False, 'mensaje': 'Modelo AD-2 no está entrenado'})
 
-    try:
-        modelo = ModeloML.objects.get(codigo_mm='AD-2')
-        print(f"✅ Modelo AD-2 encontrado")
-    except ModeloML.DoesNotExist:
-        return JsonResponse({'exito': False, 'mensaje': 'Modelo AD-2 no encontrado'})
+    # ✅ Buscar en DB solo si existe (NO es obligatorio)
+    modelo_db = ModeloML.objects.filter(codigo_mm='AD-2').first()
 
     # OBTENER INSEMINACIONES DEL ANIMAL
     inseminaciones = Inseminacion.objects.filter(
@@ -11495,8 +11514,11 @@ def api_historial_ad2_animal(request, animal_id):
     if not inseminaciones.exists():
         return JsonResponse({'exito': True, 'mensaje': 'No hay inseminaciones para este animal', 'predicciones': {}})
 
-    meses_espanol = {1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',
-                     7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'}
+    meses_espanol = {
+        1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+        5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+        9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+    }
 
     agrupado = {}
 
@@ -11522,6 +11544,10 @@ def api_historial_ad2_animal(request, animal_id):
         resultado = predecir('AD-2', datos_entrada)
 
         if resultado.get('exito'):
+            confianza = 'N/A'
+            if modelo_db and modelo_db.valor_metrica_mm:
+                confianza = f"Acc: {modelo_db.valor_metrica_mm * 100:.1f}%"
+
             agrupado[anio][clave_mes].append({
                 'fecha': ins.fecha_in.strftime('%d/%m/%Y'),
                 'dias_desde_inseminacion': dias,
@@ -11531,8 +11557,23 @@ def api_historial_ad2_animal(request, animal_id):
                 'resultado_real': ins.resultado_in or 'pendiente',
                 'prediccion': resultado['prediccion'],
                 'probabilidad': round(resultado.get('probabilidad', 0) * 100, 1),
-                'confianza': f"Acc: {modelo.valor_metrica_mm * 100:.1f}%" if modelo.valor_metrica_mm else 'N/A',
+                'confianza': confianza,
             })
+
+            # Guardar en DB solo si existe el modelo
+            if modelo_db:
+                try:
+                    PrediccionML.objects.get_or_create(
+                        fk_mm=modelo_db,
+                        fk_an=animal,
+                        datos_entrada_pm=datos_entrada,
+                        defaults={
+                            'resultado_prediccion_pm': resultado['prediccion'],
+                            'probabilidad_pm': resultado.get('probabilidad')
+                        }
+                    )
+                except Exception:
+                    pass
 
     print(f"✅ Retornando {len(agrupado)} años de predicciones")
     return JsonResponse({'exito': True, 'predicciones': agrupado})
@@ -11549,13 +11590,12 @@ def api_historial_rl4_animal(request, animal_id):
     except Animal.DoesNotExist:
         return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'}, status=404)
 
+    # ✅ Solo verificar que el archivo .pkl existe
     if not modelo_esta_entrenado('RL-4'):
         return JsonResponse({'exito': False, 'mensaje': 'Modelo RL-4 no está entrenado'})
 
-    try:
-        modelo = ModeloML.objects.get(codigo_mm='RL-4')
-    except ModeloML.DoesNotExist:
-        return JsonResponse({'exito': False, 'mensaje': 'Modelo RL-4 no encontrado'})
+    # ✅ Buscar en DB solo si existe (NO es obligatorio)
+    modelo_db = ModeloML.objects.filter(codigo_mm='RL-4').first()
 
     # OBTENER REGISTROS DE CALIDAD DEL ANIMAL
     calidades = CalidadLeche.objects.filter(
@@ -11573,8 +11613,11 @@ def api_historial_rl4_animal(request, animal_id):
     if not calidades.exists():
         return JsonResponse({'exito': True, 'mensaje': 'No hay registros de calidad para este animal', 'predicciones': {}})
 
-    meses_espanol = {1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',
-                     7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'}
+    meses_espanol = {
+        1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+        5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+        9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+    }
 
     agrupado = {}
 
@@ -11598,6 +11641,10 @@ def api_historial_rl4_animal(request, animal_id):
         resultado = predecir('RL-4', datos_entrada)
 
         if resultado.get('exito'):
+            confianza = 'N/A'
+            if modelo_db and modelo_db.valor_metrica_mm:
+                confianza = f"Acc: {modelo_db.valor_metrica_mm * 100:.1f}%"
+
             agrupado[anio][clave_mes].append({
                 'fecha': c.fecha_muestreo_cl.strftime('%d/%m/%Y'),
                 'grasa_pct': float(c.grasa_pct_cl or 0),
@@ -11606,7 +11653,22 @@ def api_historial_rl4_animal(request, animal_id):
                 'resultado_real': c.resultado_cl,
                 'prediccion': resultado['prediccion'],
                 'probabilidad': round(resultado.get('probabilidad', 0) * 100, 1),
-                'confianza': f"Acc: {modelo.valor_metrica_mm * 100:.1f}%" if modelo.valor_metrica_mm else 'N/A',
+                'confianza': confianza,
             })
+
+            # Guardar en DB solo si existe el modelo
+            if modelo_db:
+                try:
+                    PrediccionML.objects.get_or_create(
+                        fk_mm=modelo_db,
+                        fk_an=animal,
+                        datos_entrada_pm=datos_entrada,
+                        defaults={
+                            'resultado_prediccion_pm': resultado['prediccion'],
+                            'probabilidad_pm': resultado.get('probabilidad')
+                        }
+                    )
+                except Exception:
+                    pass
 
     return JsonResponse({'exito': True, 'predicciones': agrupado})
