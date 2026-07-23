@@ -1,5 +1,5 @@
 # ============================================================
-# ml_engine.py - VERSIÓN COMPLETA CON FUNCIÓN PREDECIR
+# ml_engine.py - VERSIÓN COMPLETA CORREGIDA
 # ============================================================
 import os
 import joblib
@@ -16,10 +16,355 @@ from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import accuracy_score, mean_squared_error, r2_score
 
 from django.conf import settings
-from django.db.models import Avg, Q
+from django.db.models import Avg, Q, Sum, Count
+
 
 # ============================================================
-# FUNCIÓN PRINCIPAL DE ENTRENAMIENTO - SOLO DATOS REALES
+# CONSTANTES PARA CODIFICACIÓN DE RAZAS Y TEMPORADAS
+# ============================================================
+
+RAZAS_MAP = {
+    'Holstein': 0,
+    'Brown Swiss': 1,
+    'Jersey': 2,
+    'Criollo Ecuatoriano': 3,
+    'Mestiza': 4,
+    'Normando': 5,
+    'desconocida': 6
+}
+
+TEMPORADA_MAP = {
+    12: 0,  # invierno
+    1: 0,   # invierno
+    2: 0,   # invierno
+    3: 2,   # primavera
+    4: 2,   # primavera
+    5: 2,   # primavera
+    6: 3,   # verano
+    7: 3,   # verano
+    8: 3,   # verano
+    9: 1,   # otoño
+    10: 1,  # otoño
+    11: 1   # otoño
+}
+
+MESES_ESPANOL = {
+    1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+    5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+    9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+}
+
+NOMBRE_TEMPORADA = {
+    0: 'Invierno',
+    1: 'Otoño',
+    2: 'Primavera',
+    3: 'Verano'
+}
+
+
+# ============================================================
+# FUNCIONES DE CODIFICACIÓN
+# ============================================================
+
+def codificar_raza(raza):
+    """Codifica la raza para el modelo"""
+    return RAZAS_MAP.get(raza, 6)
+
+
+def codificar_temporada(mes):
+    """Codifica la temporada para el modelo"""
+    return TEMPORADA_MAP.get(mes, 0)
+
+
+def obtener_nombre_temporada(mes):
+    """Obtiene el nombre de la temporada"""
+    return NOMBRE_TEMPORADA.get(codificar_temporada(mes), 'Invierno')
+
+
+# ============================================================
+# FUNCIONES DE PREDICCIÓN CORREGIDAS
+# ============================================================
+
+def predecir_ad1(animal_id, datos_entrada):
+    """
+    Predice litros de leche para un animal específico.
+    Usa TODOS los datos del animal para una predicción precisa.
+    """
+    from Aplicaciones.Gestion.models import Animal, Parto, Ordeno
+    from datetime import date, timedelta
+    from django.db.models import Avg
+    
+    # 1. OBTENER DATOS DEL ANIMAL
+    try:
+        animal = Animal.objects.select_related('fk_ra').get(id_an=animal_id)
+    except Animal.DoesNotExist:
+        return {'exito': False, 'mensaje': 'Animal no encontrado'}
+    
+    # 2. CALCULAR EDAD
+    hoy = date.today()
+    if animal.fecha_nacimiento_an:
+        edad_dias = (hoy - animal.fecha_nacimiento_an).days
+        edad_anios = round(edad_dias / 365, 1)
+    else:
+        edad_dias = 0
+        edad_anios = 0
+    
+    # 3. CONTAR PARTOS
+    num_partos = Parto.objects.filter(fk_madre_pa=animal).count()
+    
+    # 4. PROMEDIO DE PRODUCCIÓN ÚLTIMOS 7 DÍAS
+    fecha_inicio = hoy - timedelta(days=7)
+    prom_7dias = Ordeno.objects.filter(
+        fk_an=animal,
+        fecha_or__gte=fecha_inicio,
+        fecha_or__lt=hoy
+    ).aggregate(prom=Avg('litros_or'))['prom'] or 0
+    
+    # 5. RAZA
+    raza = animal.fk_ra.nombre_ra if animal.fk_ra else 'desconocida'
+    raza_cod = codificar_raza(raza)
+    
+    # 6. TEMPORADA
+    mes = datos_entrada.get('mes', hoy.month)
+    temporada_cod = codificar_temporada(mes)
+    
+    # 7. CONSTRUIR CARACTERÍSTICAS COMPLETAS (14 características)
+    caracteristicas = [
+        float(edad_dias),                                      # edad_dias
+        float(edad_anios),                                     # edad_anios
+        float(raza_cod),                                       # raza_cod
+        float(animal.peso_actual_kg_an or 0),                  # peso_kg
+        float(animal.condicion_corporal_an or 0),              # condicion_corporal
+        float(num_partos),                                     # num_partos
+        float(prom_7dias),                                     # promedio_7dias
+        0.0,  # cantidad_consumida (no disponible)
+        0.0,  # cantidad_ofrecida (no disponible)
+        float(mes),                                            # mes
+        float(temporada_cod),                                  # temporada_cod
+        float(datos_entrada.get('temperatura_ambiental', 0)),
+        float(datos_entrada.get('temperatura_leche', 0)),
+        float(datos_entrada.get('cantidad_concentrado_kg', 0))
+    ]
+    
+    # 8. CARGAR MODELO Y PREDECIR
+    ruta_modelo = obtener_ruta_modelo('AD-1')
+    if not os.path.exists(ruta_modelo):
+        return {'exito': False, 'mensaje': 'Modelo AD-1 no encontrado'}
+    
+    modelo_data = joblib.load(ruta_modelo)
+    modelo = modelo_data['modelo']
+    scaler = modelo_data.get('scaler')
+    
+    X = np.array([caracteristicas])
+    if scaler:
+        X_scaled = scaler.transform(X)
+        prediccion = modelo.predict(X_scaled)[0]
+    else:
+        prediccion = modelo.predict(X)[0]
+    
+    return {
+        'exito': True,
+        'prediccion': round(float(prediccion), 2),
+        'datos_usados': {
+            'edad_dias': edad_dias,
+            'edad_anios': edad_anios,
+            'raza': raza,
+            'peso': float(animal.peso_actual_kg_an or 0),
+            'condicion_corporal': float(animal.condicion_corporal_an or 0),
+            'num_partos': num_partos,
+            'promedio_7dias': round(prom_7dias, 2),
+            'mes': mes,
+            'temporada': obtener_nombre_temporada(mes)
+        }
+    }
+
+
+def predecir_ad2(animal_id, datos_entrada):
+    """
+    Predice si una vaca está preñada basado en su historial.
+    """
+    from Aplicaciones.Gestion.models import Animal, Inseminacion, Aborto, Parto
+    
+    # 1. OBTENER DATOS DEL ANIMAL
+    try:
+        animal = Animal.objects.select_related('fk_ra').get(id_an=animal_id)
+    except Animal.DoesNotExist:
+        return {'exito': False, 'mensaje': 'Animal no encontrado'}
+    
+    # 2. CONTAR PARTOS
+    num_partos = Parto.objects.filter(fk_madre_pa=animal).count()
+    
+    # 3. CONTAR ABORTOS
+    historial_abortos = Aborto.objects.filter(fk_an=animal).count()
+    
+    # 4. RAZA
+    raza = animal.fk_ra.nombre_ra if animal.fk_ra else 'desconocida'
+    raza_cod = codificar_raza(raza)
+    
+    # 5. TIPO DE INSEMINACIÓN
+    tipo_inseminacion = datos_entrada.get('tipo_inseminacion', 'artificial')
+    tipo_cod = 0 if tipo_inseminacion == 'artificial' else 1
+    
+    # 6. INTENSIDAD DE CELO
+    intensidad = datos_entrada.get('intensidad_celo', 'media')
+    intensidad_cod = {'baja': 0, 'media': 1, 'alta': 2}.get(intensidad, 1)
+    
+    # 7. PRODUCCIÓN DE LECHE (últimos 7 días)
+    from datetime import date, timedelta
+    from django.db.models import Avg
+    from Aplicaciones.Gestion.models import Ordeno
+    
+    hoy = date.today()
+    fecha_inicio = hoy - timedelta(days=7)
+    produccion_leche = Ordeno.objects.filter(
+        fk_an=animal,
+        fecha_or__gte=fecha_inicio,
+        fecha_or__lt=hoy
+    ).aggregate(prom=Avg('litros_or'))['prom'] or 0
+    
+    # 8. CONSTRUIR CARACTERÍSTICAS (11 características)
+    caracteristicas = [
+        float(datos_entrada.get('dias_desde_inseminacion', 60)),
+        float(num_partos),                                    # num_partos
+        float(raza_cod),                                      # raza_cod
+        float(datos_entrada.get('condicion_corporal', 3)),    # condicion_corporal
+        float(produccion_leche),                              # produccion_leche
+        float(intensidad_cod),                                # intensidad_cod
+        float(datos_entrada.get('duracion_celo_horas', 12)),  # duracion_celo_horas
+        float(tipo_cod),                                      # tipo_cod
+        0.0,  # toro_cod (no disponible)
+        float(historial_abortos),                             # historial_abortos
+        float(datos_entrada.get('dia_ciclo', 14))             # dia_ciclo
+    ]
+    
+    # 9. CARGAR MODELO Y PREDECIR
+    ruta_modelo = obtener_ruta_modelo('AD-2')
+    if not os.path.exists(ruta_modelo):
+        return {'exito': False, 'mensaje': 'Modelo AD-2 no encontrado'}
+    
+    modelo_data = joblib.load(ruta_modelo)
+    modelo = modelo_data['modelo']
+    
+    X = np.array([caracteristicas])
+    prediccion = modelo.predict(X)[0]
+    probabilidad = modelo.predict_proba(X)[0]
+    
+    return {
+        'exito': True,
+        'prediccion': 'Preñada' if prediccion == 1 else 'No Preñada',
+        'probabilidad': round(float(max(probabilidad)) * 100, 1),
+        'datos_usados': {
+            'num_partos': num_partos,
+            'raza': raza,
+            'historial_abortos': historial_abortos,
+            'tipo_inseminacion': tipo_inseminacion,
+            'intensidad_celo': intensidad,
+            'produccion_leche': round(produccion_leche, 2)
+        }
+    }
+
+
+def predecir_rl4(animal_id, datos_entrada):
+    """
+    Predice la calidad de leche basado en análisis reales.
+    """
+    from Aplicaciones.Gestion.models import Animal, CalidadLeche
+    
+    # 1. OBTENER DATOS DEL ANIMAL
+    try:
+        animal = Animal.objects.get(id_an=animal_id)
+    except Animal.DoesNotExist:
+        return {'exito': False, 'mensaje': 'Animal no encontrado'}
+    
+    # 2. OBTENER ÚLTIMO ANÁLISIS DE CALIDAD (si no se proporciona UFC)
+    ufc = datos_entrada.get('ufc', 0)
+    if ufc == 0:
+        ultimo_analisis = CalidadLeche.objects.filter(
+            fk_an=animal,
+            ufc_cl__isnull=False
+        ).order_by('-fecha_muestreo_cl').first()
+        
+        if ultimo_analisis:
+            ufc = float(ultimo_analisis.ufc_cl or 0)
+    
+    # 3. CONSTRUIR CARACTERÍSTICAS (4 características)
+    caracteristicas = [
+        float(datos_entrada.get('grasa_pct', 3.5)),
+        float(datos_entrada.get('proteina_pct', 3.2)),
+        float(datos_entrada.get('ccs', 200000)),
+        float(ufc)
+    ]
+    
+    # 4. CARGAR MODELO Y PREDECIR
+    ruta_modelo = obtener_ruta_modelo('RL-4')
+    if not os.path.exists(ruta_modelo):
+        return {'exito': False, 'mensaje': 'Modelo RL-4 no encontrado'}
+    
+    modelo_data = joblib.load(ruta_modelo)
+    modelo = modelo_data['modelo']
+    
+    X = np.array([caracteristicas])
+    prediccion = modelo.predict(X)[0]
+    probabilidad = modelo.predict_proba(X)[0]
+    
+    return {
+        'exito': True,
+        'prediccion': 'Apto' if prediccion == 1 else 'No Apto',
+        'probabilidad': round(float(max(probabilidad)) * 100, 1),
+        'datos_usados': {
+            'grasa': float(datos_entrada.get('grasa_pct', 3.5)),
+            'proteina': float(datos_entrada.get('proteina_pct', 3.2)),
+            'ccs': float(datos_entrada.get('ccs', 200000)),
+            'ufc': float(ufc)
+        }
+    }
+
+
+# ============================================================
+# FUNCIÓN PREDECIR PRINCIPAL
+# ============================================================
+
+def predecir(codigo_mm, animal_id, datos_entrada):
+    """
+    Punto de entrada principal para predicciones.
+    Ahora requiere animal_id para obtener datos completos.
+    """
+    if codigo_mm == 'AD-1':
+        return predecir_ad1(animal_id, datos_entrada)
+    elif codigo_mm == 'AD-2':
+        return predecir_ad2(animal_id, datos_entrada)
+    elif codigo_mm == 'RL-4':
+        return predecir_rl4(animal_id, datos_entrada)
+    else:
+        return {'exito': False, 'mensaje': f'Modelo {codigo_mm} no implementado'}
+
+
+# ============================================================
+# FUNCIÓN PARA OBTENER RUTA DEL MODELO
+# ============================================================
+
+def obtener_ruta_modelo(codigo_mm):
+    """Obtiene la ruta donde se guarda el archivo .pkl del modelo"""
+    base = os.path.join(settings.BASE_DIR, 'media', 'ml')
+    os.makedirs(base, exist_ok=True)
+    return os.path.join(base, f'{codigo_mm}.pkl')
+
+
+# ============================================================
+# FUNCIÓN PARA VERIFICAR SI UN MODELO ESTÁ ENTRENADO
+# ============================================================
+
+def modelo_esta_entrenado(codigo_mm):
+    """Verifica si un modelo está entrenado (archivo .pkl existe)"""
+    ruta = obtener_ruta_modelo(codigo_mm)
+    print(f"🔍 Buscando modelo en: {ruta}")
+    print(f"📁 ¿Existe? {os.path.exists(ruta)}")
+    print(f"📁 ¿El directorio existe? {os.path.exists(os.path.dirname(ruta))}")
+    return os.path.exists(ruta)
+
+
+# ============================================================
+# FUNCIÓN PRINCIPAL DE ENTRENAMIENTO (SIN CAMBIOS)
 # ============================================================
 
 def entrenar_modelo(codigo_mm, guardar_db=True):
@@ -31,13 +376,8 @@ def entrenar_modelo(codigo_mm, guardar_db=True):
     
     print(f"[ML] Iniciando entrenamiento de {codigo_mm} con datos reales...")
     
-    # -----------------------------------------------------------------------
-    # AD-1: Predicción de Litros de Leche (VERSIÓN MEJORADA)
-    # -----------------------------------------------------------------------
     if codigo_mm == 'AD-1':
         df = obtener_datos_reales_ad1()
-        
-        # VALIDACIÓN ESTRICTA: Si no hay datos suficientes, ERROR
         if df is None or len(df) < 10:
             return {
                 'exito': False,
@@ -45,16 +385,10 @@ def entrenar_modelo(codigo_mm, guardar_db=True):
                            f'Encontrados: {len(df) if df is not None else 0} registros. '
                            f'Se necesitan al menos 10 registros para entrenar.'
             }
-        
-        # Entrenar con datos reales
         resultado = entrenar_ad1_con_datos_reales(df)
         
-    # -----------------------------------------------------------------------
-    # AD-2: Clasificación de Preñez
-    # -----------------------------------------------------------------------
     elif codigo_mm == 'AD-2':
         df = obtener_datos_reales_ad2()
-        
         if df is None or len(df) < 10:
             return {
                 'exito': False,
@@ -62,15 +396,10 @@ def entrenar_modelo(codigo_mm, guardar_db=True):
                            f'Encontrados: {len(df) if df is not None else 0} registros. '
                            f'Se necesitan al menos 10 registros para entrenar.'
             }
-        
         resultado = entrenar_ad2_con_datos_reales(df)
     
-    # -----------------------------------------------------------------------
-    # RL-4: Clasificación de Calidad de Leche
-    # -----------------------------------------------------------------------
     elif codigo_mm == 'RL-4':
         df = obtener_datos_reales_rl4()
-        
         if df is None or len(df) < 10:
             return {
                 'exito': False,
@@ -78,7 +407,6 @@ def entrenar_modelo(codigo_mm, guardar_db=True):
                            f'Encontrados: {len(df) if df is not None else 0} registros. '
                            f'Se necesitan al menos 10 registros para entrenar.'
             }
-        
         resultado = entrenar_rl4_con_datos_reales(df)
     
     else:
@@ -87,7 +415,6 @@ def entrenar_modelo(codigo_mm, guardar_db=True):
             'mensaje': f'❌ Código {codigo_mm} no implementado. Implementados: AD-1, AD-2, RL-4'
         }
     
-    # Guardar en base de datos
     if guardar_db and resultado.get('exito'):
         guardar_modelo_en_db(codigo_mm, resultado)
     
@@ -103,7 +430,6 @@ def guardar_modelo_en_db(codigo_mm, resultado):
     from Aplicaciones.Gestion.models import ModeloML
     
     try:
-        # Mapear códigos a nombres y configuraciones
         config = {
             'AD-1': {
                 'nombre': 'Predicción de Litros de Leche (Datos Reales)',
@@ -398,24 +724,21 @@ def obtener_datos_reales_rl4():
 
 
 # ============================================================
-# FUNCIONES DE ENTRENAMIENTO CON DATOS REALES
+# FUNCIONES DE ENTRENAMIENTO (SIN CAMBIOS)
 # ============================================================
 
 def entrenar_ad1_con_datos_reales(df):
     """Entrena AD-1 con datos reales"""
     from Aplicaciones.Gestion.models import ModeloML
     
-    # Preprocesar
     X, y, encoders = preprocesar_datos_ad1(df)
     if X is None or len(X) < 10:
         return {'exito': False, 'mensaje': f'❌ Error en preprocesamiento de AD-1'}
     
-    # Dividir datos
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
     )
     
-    # Usar GradientBoostingRegressor (mejor que DecisionTree)
     modelo = GradientBoostingRegressor(
         n_estimators=100,
         max_depth=6,
@@ -430,7 +753,6 @@ def entrenar_ad1_con_datos_reales(df):
     r2 = r2_score(y_test, y_pred)
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
     
-    # Guardar modelo
     ruta = obtener_ruta_modelo('AD-1')
     joblib.dump({
         'modelo': modelo,
@@ -540,7 +862,7 @@ def entrenar_rl4_con_datos_reales(df):
 
 
 # ============================================================
-# FUNCIONES DE PREPROCESAMIENTO
+# FUNCIONES DE PREPROCESAMIENTO (SIN CAMBIOS)
 # ============================================================
 
 def preprocesar_datos_ad1(df):
@@ -550,7 +872,6 @@ def preprocesar_datos_ad1(df):
     
     df = df.copy()
     
-    # Codificar variables categóricas
     le_raza = LabelEncoder()
     le_temporada = LabelEncoder()
     
@@ -572,7 +893,6 @@ def preprocesar_datos_ad1(df):
     X = df[features].fillna(0).values
     y = df['litros'].values
     
-    # Escalar
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     
@@ -639,176 +959,3 @@ def preprocesar_datos_rl4(df):
     y = df['apto'].values
     
     return X, y, None
-
-
-# ============================================================
-# FUNCIÓN PARA OBTENER RUTA DEL MODELO
-# ============================================================
-
-def obtener_ruta_modelo(codigo_mm):
-    """Obtiene la ruta donde se guarda el archivo .pkl del modelo"""
-    base = os.path.join(settings.BASE_DIR, 'media', 'ml')
-    os.makedirs(base, exist_ok=True)
-    return os.path.join(base, f'{codigo_mm}.pkl')
-
-
-# ============================================================
-# FUNCIÓN PARA VERIFICAR SI UN MODELO ESTÁ ENTRENADO
-# ============================================================
-
-def modelo_esta_entrenado(codigo_mm):
-    """Verifica si un modelo está entrenado (archivo .pkl existe)"""
-    return os.path.exists(obtener_ruta_modelo(codigo_mm))
-
-
-# ============================================================
-# FUNCIÓN PARA PREDECIR CON UN MODELO ENTRENADO (NUEVA)
-# ============================================================
-
-def predecir(codigo_mm, datos_entrada):
-    """
-    Realiza una predicción con un modelo entrenado.
-    
-    Args:
-        codigo_mm (str): Código del modelo (AD-1, AD-2, RL-4)
-        datos_entrada (dict): Datos de entrada para la predicción
-    
-    Returns:
-        dict: Resultado con 'exito', 'prediccion', 'probabilidad' (si aplica)
-    """
-    ruta_modelo = obtener_ruta_modelo(codigo_mm)
-    
-    if not os.path.exists(ruta_modelo):
-        return {
-            'exito': False,
-            'mensaje': f'El modelo {codigo_mm} no está entrenado. Archivo no encontrado: {ruta_modelo}'
-        }
-    
-    try:
-        # Cargar el modelo y sus dependencias
-        modelo_data = joblib.load(ruta_modelo)
-        modelo = modelo_data['modelo']
-        
-        # ============================================================
-        # AD-1: Predicción de Litros de Leche
-        # ============================================================
-        if codigo_mm == 'AD-1':
-            # Extraer datos de entrada
-            temp_ambiental = float(datos_entrada.get('temperatura_ambiental', 0))
-            concentrado_kg = float(datos_entrada.get('cantidad_concentrado_kg', 0))
-            temp_leche = float(datos_entrada.get('temperatura_leche', 0))
-            
-            # Características del modelo AD-1 (14 características)
-            caracteristicas = [
-                0,  # edad_dias (no disponible)
-                0,  # edad_anios (no disponible)
-                0,  # raza_cod (no disponible)
-                0,  # peso_kg (no disponible)
-                0,  # condicion_corporal (no disponible)
-                0,  # num_partos (no disponible)
-                0,  # promedio_7dias (no disponible)
-                0,  # cantidad_consumida (no disponible)
-                0,  # cantidad_ofrecida (no disponible)
-                6,  # mes (default Junio)
-                0,  # temporada_cod (default)
-                temp_ambiental,
-                temp_leche,
-                concentrado_kg
-            ]
-            
-            # Escalar los datos
-            scaler = modelo_data.get('scaler')
-            if scaler:
-                X = np.array([caracteristicas])
-                X_scaled = scaler.transform(X)
-                prediccion = modelo.predict(X_scaled)[0]
-            else:
-                prediccion = modelo.predict([caracteristicas])[0]
-            
-            return {
-                'exito': True,
-                'prediccion': round(float(prediccion), 2),
-                'mensaje': 'Predicción exitosa'
-            }
-        
-        # ============================================================
-        # AD-2: Clasificación de Preñez
-        # ============================================================
-        elif codigo_mm == 'AD-2':
-            # Extraer datos de entrada
-            dias = float(datos_entrada.get('dias_desde_inseminacion', 60))
-            condicion = float(datos_entrada.get('condicion_corporal', 3))
-            dia_ciclo = float(datos_entrada.get('dia_ciclo', 14))
-            
-            # Características del modelo AD-2 (11 características)
-            caracteristicas = [
-                dias,
-                0,  # num_partos
-                0,  # raza_cod
-                condicion,
-                0,  # produccion_leche
-                0,  # intensidad_cod
-                0,  # duracion_celo_horas
-                0,  # tipo_cod
-                0,  # toro_cod
-                0,  # historial_abortos
-                dia_ciclo
-            ]
-            
-            X = np.array([caracteristicas])
-            prediccion = modelo.predict(X)[0]
-            probabilidad = modelo.predict_proba(X)[0]
-            
-            # Obtener la probabilidad de la clase predicha
-            prob = float(max(probabilidad)) if len(probabilidad) > 0 else 0
-            
-            return {
-                'exito': True,
-                'prediccion': 'Preñada' if prediccion == 1 else 'No Preñada',
-                'probabilidad': prob,
-                'mensaje': 'Predicción exitosa'
-            }
-        
-        # ============================================================
-        # RL-4: Clasificación de Calidad de Leche
-        # ============================================================
-        elif codigo_mm == 'RL-4':
-            # Extraer datos de entrada
-            grasa = float(datos_entrada.get('grasa_pct', 3.5))
-            proteina = float(datos_entrada.get('proteina_pct', 3.2))
-            ccs = float(datos_entrada.get('ccs', 200000))
-            
-            # Características del modelo RL-4
-            caracteristicas = [grasa, proteina, ccs, 0]  # ufc no disponible
-            
-            X = np.array([caracteristicas])
-            prediccion = modelo.predict(X)[0]
-            probabilidad = modelo.predict_proba(X)[0]
-            
-            prob = float(max(probabilidad)) if len(probabilidad) > 0 else 0
-            
-            return {
-                'exito': True,
-                'prediccion': 'Apto' if prediccion == 1 else 'No Apto',
-                'probabilidad': prob,
-                'mensaje': 'Predicción exitosa'
-            }
-        
-        else:
-            return {
-                'exito': False,
-                'mensaje': f'Código {codigo_mm} no implementado para predicción'
-            }
-            
-    except Exception as e:
-        return {
-            'exito': False,
-            'mensaje': f'Error al predecir: {str(e)}'
-        }
-
-def modelo_esta_entrenado(codigo_mm):
-    ruta = obtener_ruta_modelo(codigo_mm)
-    print(f"🔍 Buscando modelo en: {ruta}")
-    print(f"📁 ¿Existe? {os.path.exists(ruta)}")
-    print(f"📁 ¿El directorio existe? {os.path.exists(os.path.dirname(ruta))}")
-    return os.path.exists(ruta)
