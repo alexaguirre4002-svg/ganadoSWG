@@ -1,7 +1,6 @@
 import base64
 from decimal import Decimal,InvalidOperation
 from django.db import transaction
-import os
 from django.contrib import messages
 from django.db import models
 from django.http import JsonResponse
@@ -21,6 +20,14 @@ from django.core.paginator import Paginator
 # ====== NUEVO: IMPORTS PARA CLOUDINARY ======
 import cloudinary
 import cloudinary.uploader
+# ============================================================
+# CONSTANTES PARA MESES EN ESPAÑOL  ← AGREGAR AQUÍ
+# ============================================================
+MESES_ESPANOL = {
+    1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+    5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+    9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+}
 
 def inicio(request):
     return render(request,'inicio.html')
