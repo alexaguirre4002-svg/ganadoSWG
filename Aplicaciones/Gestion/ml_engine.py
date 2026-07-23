@@ -805,3 +805,10 @@ def predecir(codigo_mm, datos_entrada):
             'exito': False,
             'mensaje': f'Error al predecir: {str(e)}'
         }
+
+def modelo_esta_entrenado(codigo_mm):
+    ruta = obtener_ruta_modelo(codigo_mm)
+    print(f"🔍 Buscando modelo en: {ruta}")
+    print(f"📁 ¿Existe? {os.path.exists(ruta)}")
+    print(f"📁 ¿El directorio existe? {os.path.exists(os.path.dirname(ruta))}")
+    return os.path.exists(ruta)
