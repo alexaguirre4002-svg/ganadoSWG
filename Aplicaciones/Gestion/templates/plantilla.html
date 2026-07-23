@@ -75,12 +75,12 @@
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 20px 24px;
+            padding: 10px 20px !important;
         }
 
         /* ===== SCROLLBAR PERSONALIZADO ===== */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
 
         ::-webkit-scrollbar-track {
@@ -97,32 +97,35 @@
             background: var(--color-navbar);
         }
 
-        /* ===== NAVBAR PRINCIPAL ===== */
+        /* ===== NAVBAR PRINCIPAL - REDUCIDO ===== */
         .navbar-ganaderia {
             background: linear-gradient(135deg, var(--color-navbar) 0%, #2d5016 100%);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            padding: 0.8rem 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            padding: 0.2rem 0 !important;
+            min-height: 40px !important;
         }
 
         .navbar-brand {
             font-weight: 700;
-            font-size: 1.4rem;
+            font-size: 0.95rem !important;
             color: var(--color-acento) !important;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            padding: 0 !important;
         }
 
         .navbar-brand i {
-            margin-right: 10px;
-            font-size: 1.6rem;
+            margin-right: 5px;
+            font-size: 1rem !important;
         }
 
         .nav-link {
             color: rgba(255,255,255,0.9) !important;
             font-weight: 500;
-            padding: 0.6rem 1.2rem !important;
-            border-radius: 6px;
+            padding: 0.15rem 0.6rem !important;
+            border-radius: 4px;
             transition: all 0.3s ease;
-            margin: 0 3px;
+            margin: 0 1px;
+            font-size: 0.75rem !important;
         }
 
         .nav-link:hover, .nav-link.active {
@@ -135,22 +138,30 @@
             background-color: var(--color-navbar);
             border: 1px solid var(--color-acento);
             box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            padding: 0.3rem 0 !important;
         }
 
         .dropdown-item {
             color: rgba(255,255,255,0.9);
-            padding: 0.7rem 1.5rem;
+            padding: 0.2rem 1rem !important;
+            font-size: 0.75rem;
             transition: all 0.2s;
         }
 
         .dropdown-item:hover {
             background-color: var(--color-secundario);
             color: white;
-            padding-left: 1.8rem;
+            padding-left: 1.2rem !important;
         }
 
         .dropdown-divider {
             border-color: rgba(218, 165, 32, 0.3);
+            margin: 0.2rem 0 !important;
+        }
+
+        .navbar-toggler {
+            padding: 0.15rem 0.5rem !important;
+            font-size: 0.8rem !important;
         }
 
         /* ===== BOTONES ESTILO HACIENDA ===== */
@@ -158,16 +169,17 @@
             background: linear-gradient(135deg, var(--color-primario), #3d7a24);
             color: white;
             border: none;
-            padding: 0.6rem 1.5rem;
-            border-radius: 8px;
+            padding: 0.4rem 1.2rem;
+            border-radius: 6px;
             font-weight: 600;
+            font-size: 0.85rem;
             transition: all 0.3s;
-            box-shadow: 0 4px 10px rgba(44, 94, 26, 0.3);
+            box-shadow: 0 3px 8px rgba(44, 94, 26, 0.3);
         }
 
         .btn-hacienda:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(44, 94, 26, 0.4);
+            box-shadow: 0 5px 12px rgba(44, 94, 26, 0.4);
             color: white;
         }
 
@@ -192,36 +204,37 @@
         .card-hacienda {
             background: var(--color-card);
             border: 1px solid var(--color-borde);
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
             transition: transform 0.3s, box-shadow 0.3s;
             overflow: hidden;
         }
 
         .card-hacienda:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
         }
 
         .card-header-hacienda {
             background: linear-gradient(135deg, var(--color-primario), #3d7a24);
             color: white;
             font-weight: 700;
-            padding: 1rem 1.5rem;
-            border-bottom: 3px solid var(--color-acento);
+            padding: 0.6rem 1.2rem;
+            border-bottom: 2px solid var(--color-acento);
+            font-size: 0.9rem;
         }
 
         .card-header-hacienda i {
-            margin-right: 8px;
+            margin-right: 6px;
             color: var(--color-acento);
         }
 
         .stat-card {
             background: linear-gradient(135deg, #ffffff 0%, #f8f4ec 100%);
-            border-left: 5px solid var(--color-primario);
-            border-radius: 10px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-left: 4px solid var(--color-primario);
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.06);
         }
 
         .stat-card.ganado { border-left-color: var(--color-primario); }
@@ -230,7 +243,7 @@
         .stat-card.produccion { border-left-color: var(--color-acento); }
 
         .stat-number {
-            font-size: 2.2rem;
+            font-size: 1.6rem;
             font-weight: 800;
             color: var(--color-navbar);
             margin-bottom: 0;
@@ -238,17 +251,17 @@
 
         .stat-label {
             color: #6c757d;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         /* ===== TABLAS ESTILO HACIENDA ===== */
         .table-hacienda {
             background: white;
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
         .table-hacienda thead {
@@ -259,16 +272,17 @@
         .table-hacienda th {
             font-weight: 600;
             text-transform: uppercase;
-            font-size: 0.85rem;
+            font-size: 0.7rem;
             letter-spacing: 0.5px;
-            padding: 1rem;
+            padding: 0.6rem 1rem;
             border: none;
         }
 
         .table-hacienda td {
-            padding: 1rem;
+            padding: 0.6rem 1rem;
             vertical-align: middle;
             border-bottom: 1px solid #e9ecef;
+            font-size: 0.85rem;
         }
 
         .table-hacienda tbody tr:hover {
@@ -277,10 +291,10 @@
 
         /* ===== BADGES Y ETIQUETAS ===== */
         .badge-ganado {
-            padding: 0.5em 1em;
+            padding: 0.3em 0.8em;
             border-radius: 20px;
             font-weight: 600;
-            font-size: 0.85em;
+            font-size: 0.7rem;
         }
 
         .badge-toro { background-color: #8B4513; color: white; }
@@ -293,36 +307,60 @@
         /* ===== FORMULARIOS ===== */
         .form-hacienda .form-control, .form-hacienda .form-select {
             border: 2px solid #d4c5a9;
-            border-radius: 8px;
-            padding: 0.7rem 1rem;
+            border-radius: 6px;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
             transition: all 0.3s;
         }
 
         .form-hacienda .form-control:focus, .form-hacienda .form-select:focus {
             border-color: var(--color-primario);
-            box-shadow: 0 0 0 0.2rem rgba(44, 94, 26, 0.25);
+            box-shadow: 0 0 0 0.15rem rgba(44, 94, 26, 0.2);
         }
 
         .form-hacienda label {
             font-weight: 600;
             color: var(--color-navbar);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
+            font-size: 0.85rem;
         }
 
-        /* ===== FOOTER ===== */
+        /* ===== FOOTER - REDUCIDO ===== */
         .footer-hacienda {
             background: linear-gradient(135deg, var(--color-footer), #0f1a0c);
             color: rgba(255,255,255,0.8);
-            padding: 2rem 0 1rem;
+            padding: 0.4rem 0 0.2rem !important;
             margin-top: auto;
-            border-top: 4px solid var(--color-acento);
+            border-top: 2px solid var(--color-acento);
             flex-shrink: 0;
+            font-size: 0.65rem !important;
         }
 
         .footer-hacienda h5 {
             color: var(--color-acento);
             font-weight: 700;
-            margin-bottom: 1rem;
+            margin-bottom: 0.2rem !important;
+            font-size: 0.75rem !important;
+        }
+
+        .footer-hacienda .small {
+            font-size: 0.6rem !important;
+        }
+
+        .footer-hacienda .row {
+            margin-bottom: 0 !important;
+        }
+
+        .footer-hacienda .mb-3 {
+            margin-bottom: 0.2rem !important;
+        }
+
+        .footer-hacienda hr {
+            margin: 0.2rem 0 !important;
+        }
+
+        .footer-hacienda p {
+            margin-bottom: 0.05rem !important;
         }
 
         .footer-hacienda a {
@@ -337,10 +375,11 @@
 
         /* ===== BREADCRUMB ===== */
         .breadcrumb-hacienda {
-            background: linear-gradient(90deg, rgba(44,94,26,0.1), transparent);
-            padding: 0.8rem 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
+            background: linear-gradient(90deg, rgba(44,94,26,0.08), transparent);
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 0.8rem;
+            font-size: 0.8rem;
         }
 
         .breadcrumb-hacienda .breadcrumb-item.active {
@@ -350,27 +389,31 @@
 
         /* ===== ANIMACIONES ===== */
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .animate-fade-in {
-            animation: fadeInUp 0.6s ease-out;
+            animation: fadeInUp 0.5s ease-out;
         }
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
-            .stat-number { font-size: 1.8rem; }
-            .navbar-brand { font-size: 1.1rem; }
-            
-            .container-fluid {
-                padding: 15px 16px;
+            .stat-number { font-size: 1.3rem; }
+            .navbar-brand { font-size: 0.8rem !important; }
+            .container-fluid { padding: 8px 12px !important; }
+        }
+
+        @media (max-width: 992px) {
+            .navbar-nav .nav-link {
+                padding: 0.3rem 0.5rem !important;
+                font-size: 0.7rem !important;
             }
         }
 
         /* ===== ACCESO RESTRINGIDO ===== */
         .acceso-restringido {
-            min-height: 70vh;
+            min-height: 60vh;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -381,22 +424,37 @@
             border: 2px solid var(--color-acento);
             border-radius: 12px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-            padding: 3rem;
-            max-width: 500px;
+            padding: 2rem;
+            max-width: 450px;
             width: 100%;
             text-align: center;
         }
 
         .acceso-icono {
-            font-size: 4rem;
+            font-size: 3rem;
             color: var(--color-acento);
-            margin-bottom: 1rem;
+            margin-bottom: 0.8rem;
         }
 
         .acceso-titulo {
             color: var(--color-navbar);
             font-weight: 700;
             margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        /* ===== AJUSTES CARRUSEL ===== */
+        .carousel-item img {
+            height: 350px !important;
+            object-fit: cover;
+        }
+
+        .carousel-caption h5 {
+            font-size: 1rem !important;
+        }
+
+        .carousel-caption p {
+            font-size: 0.8rem !important;
         }
     </style>
 </head>
@@ -404,7 +462,7 @@
 
     <!-- ===== NAVBAR PRINCIPAL ===== -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-ganaderia sticky-top">
-        <div class="container-fluid px-4">
+        <div class="container-fluid px-3">
             <!-- Brand / Logo -->
             <a class="navbar-brand" href="{% url 'inicio' %}">
                 <i class="bi bi-tree-fill"></i>
@@ -523,7 +581,7 @@
                         <ul class="dropdown-menu dropdown-menu-end" style="background-color: #1a3d0f; border: 1px solid #DAA520;">
                             <!-- Info del usuario -->
                             <li>
-                                <div class="dropdown-item-text px-3 py-2" style="color: #ffffff;">
+                                <div class="dropdown-item-text px-3 py-1" style="color: #ffffff; font-size: 0.75rem;">
                                     <i class="bi bi-person-badge me-2" style="color: #DAA520;"></i>
                                     <strong style="color: #DAA520;">Usuario:</strong> 
                                     <span style="color: #ffffff;">{{ request.session.usuario_username|default:"N/A" }}</span>
@@ -584,11 +642,11 @@
     </nav>
 
     <!-- ===== CONTENIDO PRINCIPAL ===== -->
-    <main class="flex-grow-1 py-4">
+    <main class="flex-grow-1 py-2">
         
         {% if request.session.usuario_id %}
         <!-- USUARIO LOGUEADO -->
-        <div class="container-fluid px-4">
+        <div class="container-fluid px-3">
             
             <nav aria-label="breadcrumb" class="breadcrumb-hacienda">
                 <ol class="breadcrumb mb-0">
@@ -612,15 +670,15 @@
                 <div class="acceso-card animate-fade-in">
                     <i class="bi bi-shield-lock acceso-icono"></i>
                     <h3 class="acceso-titulo">Acceso restringido</h3>
-                    <p class="text-muted mb-4">Debe iniciar sesión para acceder al sistema de gestión ganadera.</p>
+                    <p class="text-muted mb-3" style="font-size: 0.9rem;">Debe iniciar sesión para acceder al sistema de gestión ganadera.</p>
                     
-                    <a href="/login/" class="btn btn-hacienda btn-lg">
+                    <a href="/login/" class="btn btn-hacienda">
                         <i class="bi bi-box-arrow-in-right me-2"></i>
                         Iniciar sesión
                     </a>
                     
-                    <div class="mt-3">
-                        <small class="text-muted">
+                    <div class="mt-2">
+                        <small class="text-muted" style="font-size: 0.7rem;">
                             <i class="bi bi-shield-lock me-1"></i>
                             Sistema protegido. Solo usuarios autorizados.
                         </small>
@@ -635,24 +693,23 @@
     <!-- ===== FOOTER ===== -->
     {% if request.session.usuario_id %}
     <footer class="footer-hacienda">
-        <div class="container-fluid px-4">
+        <div class="container-fluid px-3">
             <div class="row">
-                <div class="col-md-4 mb-3">
-                    <h5><i class="bi bi-tree-fill me-2"></i>Hacienda Joseph</h5>
-                    <p class="small">Sistema de gestión ganadera. Control y seguimiento de su hacienda de manera eficiente y profesional.</p>
+                <div class="col-md-4 mb-1">
+                    <h5><i class="bi bi-tree-fill me-1"></i>Hacienda Joseph</h5>
+                    <p class="small" style="margin-bottom: 0.05rem !important;">Sistema de gestión ganadera. Control y seguimiento de su hacienda.</p>
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-md-4 mb-1">
                     <h5>Contacto</h5>
-                    <p class="small mb-1"><i class="bi bi-geo-alt me-2"></i>Pertenece al cantón Pujilí, en la Provincia de cotopaxi</p>
-                    <p class="small mb-1"><i class="bi bi-geo-alt me-2"></i>Km 14 antes de llegar a Pilalo</p>
-                    <p class="small mb-1"><i class="bi bi-person me-2"></i>Propietario Juan Carlos Chancusig Chisag</p>
-                    <p class="small mb-1"><i class="bi bi-telephone me-2"></i>(+593) 0984609972</p>
-                    <p class="small"><i class="bi bi-envelope me-2"></i>leojuan1976@gmail.com</p>
+                    <p class="small mb-0"><i class="bi bi-geo-alt me-1"></i>Pujilí, Cotopaxi</p>
+                    <p class="small mb-0"><i class="bi bi-person me-1"></i>Juan Carlos Chancusig</p>
+                    <p class="small mb-0"><i class="bi bi-telephone me-1"></i>(+593) 0984609972</p>
+                    <p class="small"><i class="bi bi-envelope me-1"></i>leojuan1976@gmail.com</p>
                 </div>
             </div>
-            <hr style="border-color: rgba(218,165,32,0.3);">
+            <hr style="border-color: rgba(218,165,32,0.3); margin: 0.2rem 0 !important;">
             <div class="text-center small">
-                <p class="mb-0"> Desarrollado por <strong>Alex Aguirre y Adrian Fabara</strong> &copy; 2026 | 
+                <p class="mb-0" style="font-size: 0.6rem !important;"> Desarrollado por <strong>Alex Aguirre y Adrian Fabara</strong> &copy; 2026 | 
                 <span style="color: var(--color-acento);">Sistema de Gestión Ganadera v1.0</span></p>
             </div>
         </div>
