@@ -49,17 +49,6 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
             <small class="text-muted">Animales con predicciones</small>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #DAA520;">
-            <i class="bi bi-calendar3 fs-2" style="color: #DAA520;"></i>
-            <h4 class="fw-bold mt-2 mb-0">
-                {% with ultima_fecha=predicciones_por_animal.0.ultima_fecha|date:"d/m/Y" %}
-                    {{ ultima_fecha|default:"N/A" }}
-                {% endwith %}
-            </h4>
-            <small class="text-muted">Última predicción</small>
-        </div>
-    </div>
 </div>
 
 <!-- BOTONES DE ACCION -->
