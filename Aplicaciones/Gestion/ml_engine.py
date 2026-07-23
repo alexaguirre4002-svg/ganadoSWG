@@ -1,5 +1,5 @@
 # ============================================================
-# ml_engine.py - VERSIÓN COMPLETA CON PREDICCIONES FUTURAS
+# ml_engine.py - VERSIÓN OPTIMIZADA PARA RENDER
 # ============================================================
 import os
 import joblib
@@ -104,398 +104,305 @@ def obtener_metrica_modelo(codigo_mm):
 
 # ============================================================
 # ============================================================
-# PREDICCIÓN AD-1: LITROS DE LECHE (FUTURO) - CORREGIDO
+# PREDICCIÓN AD-1: LITROS DE LECHE (OPTIMIZADO)
 # ============================================================
 # ============================================================
-def predecir_mes_futuro_ad1(animal_id, mes, anio):
-    """
-    Predice los litros de leche para un mes FUTURO.
-    AHORA USA DATOS REALES DE LA BDD.
-    """
+
+def predecir_anio_actual_ad1(animal_id):
+    """Predice SOLO el año actual para AD-1 - OPTIMIZADO (BATCH)"""
     from Aplicaciones.Gestion.models import Animal, Ordeno, Parto
     from django.db.models import Avg, Count
-
+    
+    anio_actual = date.today().year
+    resultados = {}
+    
     try:
         animal = Animal.objects.select_related('fk_ra').get(id_an=animal_id)
     except Animal.DoesNotExist:
-        return {'exito': False, 'mensaje': 'Animal no encontrado'}
-
+        return {}
+    
     # ============================================================
-    # 1. OBTENER PROMEDIOS HISTÓRICOS DEL ANIMAL PARA ESE MES
+    # 1. CONSULTAS UNA SOLA VEZ (FUERA DEL CICLO)
     # ============================================================
-    promedios = Ordeno.objects.filter(
-        fk_an=animal,
-        fecha_or__month=mes,
-        fecha_or__year__lt=anio
-    ).aggregate(
+    todos_ordenos = Ordeno.objects.filter(fk_an=animal)
+    
+    if not todos_ordenos.exists():
+        return {}
+    
+    promedios_generales = todos_ordenos.aggregate(
         temp_amb_prom=Avg('temperatura_ambiental_or'),
         temp_leche_prom=Avg('temperatura_leche_or'),
         concentrado_prom=Avg('cantidad_concentrado_kg_or'),
-        litros_prom=Avg('litros_or'),
-        count=Count('id_or')
+        litros_prom=Avg('litros_or')
     )
-
-    # Si no hay datos para ese mes, usar TODOS los datos del animal
-    if promedios['count'] == 0 or promedios['count'] is None:
-        promedios_generales = Ordeno.objects.filter(
-            fk_an=animal
-        ).aggregate(
-            temp_amb_prom=Avg('temperatura_ambiental_or'),
-            temp_leche_prom=Avg('temperatura_leche_or'),
-            concentrado_prom=Avg('cantidad_concentrado_kg_or'),
-            litros_prom=Avg('litros_or'),
-            count=Count('id_or')
-        )
-        promedios = promedios_generales
-
-    # ============================================================
-    # 2. SI NO HAY NINGÚN DATO, USAR VALORES PREDETERMINADOS
-    # ============================================================
-    temp_amb = float(promedios.get('temp_amb_prom') or 22.0)
-    temp_leche = float(promedios.get('temp_leche_prom') or 38.0)
-    concentrado = float(promedios.get('concentrado_prom') or 3.0)
-    litros_promedio = float(promedios.get('litros_prom') or 0)
-    cantidad_registros = promedios.get('count') or 0
-
-    # ============================================================
-    # 3. DATOS DEL ANIMAL PARA EL MES FUTURO
-    # ============================================================
-    fecha_prediccion = date(anio, mes, 1)
+    
+    temp_amb = float(promedios_generales.get('temp_amb_prom') or 22.0)
+    temp_leche = float(promedios_generales.get('temp_leche_prom') or 38.0)
+    concentrado = float(promedios_generales.get('concentrado_prom') or 3.0)
+    litros_promedio = float(promedios_generales.get('litros_prom') or 0)
+    
     edad_dias = 0
     if animal.fecha_nacimiento_an:
-        edad_dias = (fecha_prediccion - animal.fecha_nacimiento_an).days
-
+        edad_dias = (date(anio_actual, 1, 1) - animal.fecha_nacimiento_an).days
+    
     num_partos = Parto.objects.filter(fk_madre_pa=animal).count()
     raza = animal.fk_ra.nombre_ra if animal.fk_ra else 'desconocida'
     raza_cod = codificar_raza(raza)
-    temporada_cod = codificar_temporada(mes)
-
+    
     # ============================================================
-    # 4. CONSTRUIR CARACTERÍSTICAS PARA EL MODELO (14 características)
-    # ============================================================
-    caracteristicas = [
-        float(edad_dias),                    # 0: edad_dias
-        float(edad_dias / 365),              # 1: edad_anios
-        float(raza_cod),                     # 2: raza_cod
-        float(animal.peso_actual_kg_an or 0),# 3: peso_kg
-        float(animal.condicion_corporal_an or 0), # 4: condicion_corporal
-        float(num_partos),                   # 5: num_partos
-        float(litros_promedio),              # 6: promedio_7dias (usamos el histórico)
-        0.0,                                 # 7: cantidad_consumida
-        0.0,                                 # 8: cantidad_ofrecida
-        float(mes),                          # 9: mes
-        float(temporada_cod),                # 10: temporada_cod
-        temp_amb,                            # 11: temp_ambiental (del histórico)
-        temp_leche,                          # 12: temp_leche (del histórico)
-        concentrado                          # 13: concentrado_kg (del histórico)
-    ]
-
-    # ============================================================
-    # 5. CARGAR MODELO Y PREDECIR
+    # 2. CARGAR MODELO UNA SOLA VEZ
     # ============================================================
     ruta = obtener_ruta_modelo('AD-1')
     if not os.path.exists(ruta):
-        return {'exito': False, 'mensaje': 'Modelo AD-1 no encontrado. Ejecute: python manage.py entrenar_ml AD-1'}
-
+        for mes in range(1, 13):
+            resultados[mes] = {'exito': False, 'mensaje': 'Modelo AD-1 no encontrado'}
+        return resultados
+    
     modelo_data = joblib.load(ruta)
     modelo = modelo_data['modelo']
     scaler = modelo_data.get('scaler')
-
-    X = np.array([caracteristicas])
-    if scaler:
-        X_scaled = scaler.transform(X)
-        prediccion = modelo.predict(X_scaled)[0]
-    else:
-        prediccion = modelo.predict(X)[0]
-
+    
     # ============================================================
-    # 6. OBTENER MÉTRICA DEL MODELO
+    # 3. PREDECIR TODOS LOS MESES EN BATCH
     # ============================================================
-    metrica = obtener_metrica_modelo('AD-1')
-
-    return {
-        'exito': True,
-        'prediccion': round(float(prediccion), 2),
-        'mes': mes,
-        'anio': anio,
-        'nombre_mes': MESES_ESPANOL.get(mes, 'Desconocido'),
-        'temporada': obtener_nombre_temporada(mes),
-        'temperatura_ambiental': round(temp_amb, 1),
-        'concentrado': round(concentrado, 2),
-        'temp_leche': round(temp_leche, 1),
-        'detalle': {
-            'edad_anios': round(edad_dias / 365, 1),
-            'raza': raza,
-            'peso_kg': float(animal.peso_actual_kg_an or 0),
-            'condicion_corporal': float(animal.condicion_corporal_an or 0),
-            'num_partos': num_partos,
-            'promedio_historico_mes': round(litros_promedio, 2),
-            'registros_usados': cantidad_registros,
-            'fecha_prediccion': f"{anio}-{mes:02d}-01"
-        },
-        'metrica': metrica
-    }
-
-
-def predecir_anio_actual_ad1(animal_id):
-    """Predice SOLO el año actual para AD-1"""
-    anio_actual = date.today().year
-    resultados = {}
+    X_batch = []
+    meses_list = []
+    
     for mes in range(1, 13):
-        resultado = predecir_mes_futuro_ad1(animal_id, mes, anio_actual)
-        if resultado['exito']:
-            resultados[mes] = resultado
+        temporada_cod = codificar_temporada(mes)
+        
+        caracteristicas = [
+            float(edad_dias),
+            float(edad_dias / 365),
+            float(raza_cod),
+            float(animal.peso_actual_kg_an or 0),
+            float(animal.condicion_corporal_an or 0),
+            float(num_partos),
+            float(litros_promedio),
+            0.0, 0.0,
+            float(mes),
+            float(temporada_cod),
+            temp_amb, temp_leche, concentrado
+        ]
+        
+        X_batch.append(caracteristicas)
+        meses_list.append(mes)
+    
+    # PREDECIR TODOS A LA VEZ
+    X_array = np.array(X_batch)
+    if scaler:
+        X_scaled = scaler.transform(X_array)
+        predicciones = modelo.predict(X_scaled)
+    else:
+        predicciones = modelo.predict(X_array)
+    
+    # ASIGNAR RESULTADOS
+    metrica = obtener_metrica_modelo('AD-1')
+    
+    for idx, mes in enumerate(meses_list):
+        resultados[mes] = {
+            'exito': True,
+            'prediccion': round(float(predicciones[idx]), 2),
+            'mes': mes,
+            'anio': anio_actual,
+            'nombre_mes': MESES_ESPANOL.get(mes, 'Desconocido'),
+            'temporada': obtener_nombre_temporada(mes),
+            'temperatura_ambiental': round(temp_amb, 1),
+            'concentrado': round(concentrado, 2),
+            'temp_leche': round(temp_leche, 1),
+            'detalle': {
+                'edad_anios': round(edad_dias / 365, 1),
+                'raza': raza,
+                'peso_kg': float(animal.peso_actual_kg_an or 0),
+                'condicion_corporal': float(animal.condicion_corporal_an or 0),
+                'num_partos': num_partos,
+                'promedio_historico': round(litros_promedio, 2),
+                'fecha_prediccion': f"{anio_actual}-{mes:02d}-01"
+            },
+            'metrica': metrica
+        }
+    
     return resultados
 
 
 # ============================================================
 # ============================================================
-# PREDICCIÓN AD-2: PREÑEZ (FUTURO) - CORREGIDO
+# PREDICCIÓN AD-2: PREÑEZ (OPTIMIZADO)
 # ============================================================
 # ============================================================
-def predecir_mes_futuro_ad2(animal_id, mes, anio):
-    """
-    Predice si una vaca estará preñada en un mes FUTURO.
-    AHORA USA DATOS REALES DE LA BDD.
-    """
+
+def predecir_anio_actual_ad2(animal_id):
+    """Predice SOLO el año actual para AD-2 - OPTIMIZADO"""
     from Aplicaciones.Gestion.models import Animal, Inseminacion, Aborto, Parto, Ordeno
     from django.db.models import Avg
-
+    
+    anio_actual = date.today().year
+    resultados = {}
+    
     try:
         animal = Animal.objects.select_related('fk_ra').get(id_an=animal_id)
     except Animal.DoesNotExist:
-        return {'exito': False, 'mensaje': 'Animal no encontrado'}
-
+        return {}
+    
     # ============================================================
-    # 1. DATOS HISTÓRICOS DEL ANIMAL
+    # 1. CONSULTAS UNA SOLA VEZ (FUERA DEL CICLO)
     # ============================================================
     num_partos = Parto.objects.filter(fk_madre_pa=animal).count()
     historial_abortos = Aborto.objects.filter(fk_an=animal).count()
     raza = animal.fk_ra.nombre_ra if animal.fk_ra else 'desconocida'
     raza_cod = codificar_raza(raza)
-
-    # ============================================================
-    # 2. PROMEDIO DE PRODUCCIÓN DE LECHE
-    # ============================================================
-    produccion = Ordeno.objects.filter(fk_an=animal).aggregate(
-        prom=Avg('litros_or')
-    )['prom'] or 0
-
-    # ============================================================
-    # 3. ÚLTIMA INSEMINACIÓN (para calcular días)
-    # ============================================================
-    ultima_ins = Inseminacion.objects.filter(
-        fk_an=animal
-    ).order_by('-fecha_in').first()
-
+    produccion = Ordeno.objects.filter(fk_an=animal).aggregate(prom=Avg('litros_or'))['prom'] or 0
+    
+    ultima_ins = Inseminacion.objects.filter(fk_an=animal).order_by('-fecha_in').first()
+    condicion = 3
+    dia_ciclo = 14
+    
     if ultima_ins:
-        dias_desde = (date(anio, mes, 1) - ultima_ins.fecha_in).days
-        fecha_ultima_ins = ultima_ins.fecha_in
-        tipo_ins = ultima_ins.tipo_inseminacion_in
-        # Usar el día del ciclo de la última inseminación
+        condicion = float(ultima_ins.condicion_corporal_in or 3)
         dia_ciclo = ultima_ins.dia_ciclo_in or 14
-        # Usar la condición corporal de la última inseminación
-        condicion = ultima_ins.condicion_corporal_in or 3
-    else:
-        dias_desde = 60
-        fecha_ultima_ins = None
-        tipo_ins = 'No registrada'
-        dia_ciclo = 14
-        condicion = 3
-
+    
     # ============================================================
-    # 4. CONDICIÓN CORPORAL PROMEDIO (si no hay de última inseminación)
-    # ============================================================
-    if ultima_ins and ultima_ins.condicion_corporal_in:
-        condicion = float(ultima_ins.condicion_corporal_in)
-    else:
-        condicion_prom = Inseminacion.objects.filter(
-            fk_an=animal,
-            condicion_corporal_in__isnull=False
-        ).aggregate(prom=Avg('condicion_corporal_in'))['prom'] or 3
-        condicion = float(condicion_prom)
-
-    # ============================================================
-    # 5. CONSTRUIR CARACTERÍSTICAS PARA EL MODELO (11 características)
-    # ============================================================
-    caracteristicas = [
-        float(dias_desde),           # 0: dias_desde_inseminacion
-        float(num_partos),           # 1: num_partos
-        float(raza_cod),             # 2: raza_cod
-        condicion,                   # 3: condicion_corporal
-        float(produccion),           # 4: produccion_leche
-        1.0,                         # 5: intensidad_cod (por defecto)
-        12.0,                        # 6: duracion_celo_horas (por defecto)
-        0.0,                         # 7: tipo_cod (por defecto)
-        0.0,                         # 8: toro_cod (por defecto)
-        float(historial_abortos),    # 9: historial_abortos
-        float(dia_ciclo)             # 10: dia_ciclo
-    ]
-
-    # ============================================================
-    # 6. CARGAR MODELO Y PREDECIR
+    # 2. CARGAR MODELO UNA SOLA VEZ
     # ============================================================
     ruta = obtener_ruta_modelo('AD-2')
     if not os.path.exists(ruta):
-        return {'exito': False, 'mensaje': 'Modelo AD-2 no encontrado. Ejecute: python manage.py entrenar_ml AD-2'}
-
+        for mes in range(1, 13):
+            resultados[mes] = {'exito': False, 'mensaje': 'Modelo AD-2 no encontrado'}
+        return resultados
+    
     modelo_data = joblib.load(ruta)
     modelo = modelo_data['modelo']
-
-    X = np.array([caracteristicas])
-    prediccion = modelo.predict(X)[0]
-    probabilidad = modelo.predict_proba(X)[0]
-
+    
     # ============================================================
-    # 7. OBTENER MÉTRICA DEL MODELO
+    # 3. PREDECIR TODOS LOS MESES
     # ============================================================
     metrica = obtener_metrica_modelo('AD-2')
-
-    return {
-        'exito': True,
-        'prediccion': 'Preñada' if prediccion == 1 else 'No Preñada',
-        'probabilidad': round(float(max(probabilidad)) * 100, 1),
-        'mes': mes,
-        'anio': anio,
-        'nombre_mes': MESES_ESPANOL.get(mes, 'Desconocido'),
-        'dias_posparto': dias_desde,
-        'condicion_corporal': round(condicion, 1),
-        'detalle': {
-            'fecha_ultima_inseminacion': fecha_ultima_ins.strftime('%d/%m/%Y') if fecha_ultima_ins else 'No registrada',
-            'tipo_inseminacion': tipo_ins,
-            'num_partos': num_partos,
-            'raza': raza,
-            'produccion_leche': round(float(produccion), 2),
-            'historial_abortos': historial_abortos,
-            'dia_ciclo': dia_ciclo,
-            'fecha_prediccion': f"{anio}-{mes:02d}-01"
-        },
-        'metrica': metrica
-    }
-
-
-def predecir_anio_actual_ad2(animal_id):
-    """Predice SOLO el año actual para AD-2"""
-    anio_actual = date.today().year
-    resultados = {}
+    
     for mes in range(1, 13):
-        resultado = predecir_mes_futuro_ad2(animal_id, mes, anio_actual)
-        if resultado['exito']:
-            resultados[mes] = resultado
+        if ultima_ins:
+            dias_desde = (date(anio_actual, mes, 1) - ultima_ins.fecha_in).days
+        else:
+            dias_desde = 60
+        
+        caracteristicas = [
+            float(dias_desde),
+            float(num_partos),
+            float(raza_cod),
+            condicion,
+            float(produccion),
+            1.0, 12.0, 0.0, 0.0,
+            float(historial_abortos),
+            float(dia_ciclo)
+        ]
+        
+        try:
+            X = np.array([caracteristicas])
+            prediccion = modelo.predict(X)[0]
+            probabilidad = modelo.predict_proba(X)[0]
+            
+            resultados[mes] = {
+                'exito': True,
+                'prediccion': 'Preñada' if prediccion == 1 else 'No Preñada',
+                'probabilidad': round(float(max(probabilidad)) * 100, 1),
+                'mes': mes,
+                'anio': anio_actual,
+                'nombre_mes': MESES_ESPANOL.get(mes, 'Desconocido'),
+                'dias_posparto': dias_desde,
+                'condicion_corporal': round(condicion, 1),
+                'detalle': {
+                    'fecha_ultima_inseminacion': ultima_ins.fecha_in.strftime('%d/%m/%Y') if ultima_ins else 'No registrada',
+                    'tipo_inseminacion': ultima_ins.tipo_inseminacion_in if ultima_ins else 'No registrada',
+                    'num_partos': num_partos,
+                    'raza': raza,
+                    'produccion_leche': round(float(produccion), 2),
+                    'historial_abortos': historial_abortos,
+                    'dia_ciclo': dia_ciclo,
+                    'fecha_prediccion': f"{anio_actual}-{mes:02d}-01"
+                },
+                'metrica': metrica
+            }
+        except Exception as e:
+            resultados[mes] = {'exito': False, 'mensaje': str(e)}
+    
     return resultados
 
 
 # ============================================================
 # ============================================================
-# PREDICCIÓN RL-4: CALIDAD DE LECHE (FUTURO) - CORREGIDO
+# PREDICCIÓN RL-4: CALIDAD DE LECHE (OPTIMIZADO)
 # ============================================================
 # ============================================================
-def predecir_mes_futuro_rl4(animal_id, mes, anio):
-    """
-    Predice la calidad de leche para un mes FUTURO.
-    AHORA USA DATOS REALES DE LA BDD.
-    """
-    from Aplicaciones.Gestion.models import Animal, CalidadLeche
-    from django.db.models import Avg, Count
 
+def predecir_anio_actual_rl4(animal_id):
+    """Predice SOLO el año actual para RL-4 - OPTIMIZADO"""
+    from Aplicaciones.Gestion.models import Animal, CalidadLeche
+    from django.db.models import Avg
+    
+    anio_actual = date.today().year
+    resultados = {}
+    
     try:
         animal = Animal.objects.get(id_an=animal_id)
     except Animal.DoesNotExist:
-        return {'exito': False, 'mensaje': 'Animal no encontrado'}
-
+        return {}
+    
     # ============================================================
-    # 1. PROMEDIOS HISTÓRICOS PARA ESE MES
+    # 1. CONSULTAS UNA SOLA VEZ
     # ============================================================
-    promedios = CalidadLeche.objects.filter(
-        fk_an=animal,
-        fecha_muestreo_cl__month=mes,
-        fecha_muestreo_cl__year__lt=anio
-    ).aggregate(
+    promedios = CalidadLeche.objects.filter(fk_an=animal).aggregate(
         grasa_prom=Avg('grasa_pct_cl'),
         proteina_prom=Avg('proteina_pct_cl'),
-        ccs_prom=Avg('ccs_cl'),
-        ufc_prom=Avg('ufc_cl'),
-        count=Count('id_cl')
+        ccs_prom=Avg('ccs_cl')
     )
-
-    # Si no hay datos para ese mes, usar TODOS los datos del animal
-    if promedios['count'] == 0 or promedios['count'] is None:
-        promedios_generales = CalidadLeche.objects.filter(
-            fk_an=animal
-        ).aggregate(
-            grasa_prom=Avg('grasa_pct_cl'),
-            proteina_prom=Avg('proteina_pct_cl'),
-            ccs_prom=Avg('ccs_cl'),
-            ufc_prom=Avg('ufc_cl'),
-            count=Count('id_cl')
-        )
-        promedios = promedios_generales
-
-    # ============================================================
-    # 2. SI NO HAY NINGÚN DATO, USAR VALORES PREDETERMINADOS
-    # ============================================================
+    
     grasa = float(promedios.get('grasa_prom') or 3.5)
     proteina = float(promedios.get('proteina_prom') or 3.2)
     ccs = float(promedios.get('ccs_prom') or 200000)
-    ufc = float(promedios.get('ufc_prom') or 0)
-    cantidad_registros = promedios.get('count') or 0
-
+    
     # ============================================================
-    # 3. CONSTRUIR CARACTERÍSTICAS PARA EL MODELO (4 características)
-    # ============================================================
-    caracteristicas = [
-        grasa,
-        proteina,
-        ccs,
-        ufc
-    ]
-
-    # ============================================================
-    # 4. CARGAR MODELO Y PREDECIR
+    # 2. CARGAR MODELO UNA SOLA VEZ
     # ============================================================
     ruta = obtener_ruta_modelo('RL-4')
     if not os.path.exists(ruta):
-        return {'exito': False, 'mensaje': 'Modelo RL-4 no encontrado. Ejecute: python manage.py entrenar_ml RL-4'}
-
+        for mes in range(1, 13):
+            resultados[mes] = {'exito': False, 'mensaje': 'Modelo RL-4 no encontrado'}
+        return resultados
+    
     modelo_data = joblib.load(ruta)
     modelo = modelo_data['modelo']
-
-    X = np.array([caracteristicas])
-    prediccion = modelo.predict(X)[0]
-    probabilidad = modelo.predict_proba(X)[0]
-
+    
     # ============================================================
-    # 5. OBTENER MÉTRICA DEL MODELO
+    # 3. PREDECIR TODOS LOS MESES
     # ============================================================
     metrica = obtener_metrica_modelo('RL-4')
-
-    return {
-        'exito': True,
-        'prediccion': 'Apto' if prediccion == 1 else 'No Apto',
-        'probabilidad': round(float(max(probabilidad)) * 100, 1),
-        'mes': mes,
-        'anio': anio,
-        'nombre_mes': MESES_ESPANOL.get(mes, 'Desconocido'),
-        'grasa': round(grasa, 2),
-        'proteina': round(proteina, 2),
-        'ccs': round(ccs, 0),
-        'ufc': round(ufc, 0),
-        'detalle': {
-            'registros_usados': cantidad_registros,
-            'fecha_prediccion': f"{anio}-{mes:02d}-01"
-        },
-        'metrica': metrica
-    }
-
-
-def predecir_anio_actual_rl4(animal_id):
-    """Predice SOLO el año actual para RL-4"""
-    anio_actual = date.today().year
-    resultados = {}
+    
     for mes in range(1, 13):
-        resultado = predecir_mes_futuro_rl4(animal_id, mes, anio_actual)
-        if resultado['exito']:
-            resultados[mes] = resultado
+        caracteristicas = [grasa, proteina, ccs, 0.0]
+        
+        try:
+            X = np.array([caracteristicas])
+            prediccion = modelo.predict(X)[0]
+            probabilidad = modelo.predict_proba(X)[0]
+            
+            resultados[mes] = {
+                'exito': True,
+                'prediccion': 'Apto' if prediccion == 1 else 'No Apto',
+                'probabilidad': round(float(max(probabilidad)) * 100, 1),
+                'mes': mes,
+                'anio': anio_actual,
+                'nombre_mes': MESES_ESPANOL.get(mes, 'Desconocido'),
+                'grasa': round(grasa, 2),
+                'proteina': round(proteina, 2),
+                'ccs': round(ccs, 0),
+                'ufc': 0,
+                'detalle': {
+                    'fecha_prediccion': f"{anio_actual}-{mes:02d}-01"
+                },
+                'metrica': metrica
+            }
+        except Exception as e:
+            resultados[mes] = {'exito': False, 'mensaje': str(e)}
+    
     return resultados
 
 
@@ -512,7 +419,9 @@ def predecir(codigo_mm, datos_entrada):
         if animal_id:
             mes = datos_entrada.get('mes', date.today().month)
             anio = datos_entrada.get('anio', date.today().year)
-            return predecir_mes_futuro_ad1(animal_id, mes, anio)
+            # Para compatibilidad, llamamos a la función optimizada pero solo devolvemos un mes
+            predicciones = predecir_anio_actual_ad1(animal_id)
+            return predicciones.get(mes, {'exito': False, 'mensaje': 'Mes no disponible'})
         else:
             return {'exito': False, 'mensaje': 'Se requiere animal_id para AD-1'}
     
@@ -521,7 +430,8 @@ def predecir(codigo_mm, datos_entrada):
         if animal_id:
             mes = datos_entrada.get('mes', date.today().month)
             anio = datos_entrada.get('anio', date.today().year)
-            return predecir_mes_futuro_ad2(animal_id, mes, anio)
+            predicciones = predecir_anio_actual_ad2(animal_id)
+            return predicciones.get(mes, {'exito': False, 'mensaje': 'Mes no disponible'})
         else:
             return {'exito': False, 'mensaje': 'Se requiere animal_id para AD-2'}
     
@@ -530,7 +440,8 @@ def predecir(codigo_mm, datos_entrada):
         if animal_id:
             mes = datos_entrada.get('mes', date.today().month)
             anio = datos_entrada.get('anio', date.today().year)
-            return predecir_mes_futuro_rl4(animal_id, mes, anio)
+            predicciones = predecir_anio_actual_rl4(animal_id)
+            return predicciones.get(mes, {'exito': False, 'mensaje': 'Mes no disponible'})
         else:
             return {'exito': False, 'mensaje': 'Se requiere animal_id para RL-4'}
     
@@ -539,7 +450,7 @@ def predecir(codigo_mm, datos_entrada):
 
 
 # ============================================================
-# FUNCIONES DE ENTRENAMIENTO (ORIGINALES - SIN CAMBIOS)
+# FUNCIONES DE ENTRENAMIENTO
 # ============================================================
 
 def entrenar_modelo(codigo_mm, guardar_db=True):
@@ -649,7 +560,7 @@ def guardar_modelo_en_db(codigo_mm, resultado):
 
 
 # ============================================================
-# FUNCIONES DE OBTENCIÓN DE DATOS (ORIGINALES - SIN CAMBIOS)
+# FUNCIONES DE OBTENCIÓN DE DATOS
 # ============================================================
 
 def obtener_datos_reales_ad1():
@@ -861,7 +772,7 @@ def obtener_datos_reales_rl4():
 
 
 # ============================================================
-# FUNCIONES DE ENTRENAMIENTO (ORIGINALES)
+# FUNCIONES DE ENTRENAMIENTO
 # ============================================================
 
 def entrenar_ad1_con_datos_reales(df):
@@ -960,7 +871,7 @@ def entrenar_rl4_con_datos_reales(df):
 
 
 # ============================================================
-# FUNCIONES DE PREPROCESAMIENTO (ORIGINALES)
+# FUNCIONES DE PREPROCESAMIENTO
 # ============================================================
 
 def preprocesar_datos_ad1(df):

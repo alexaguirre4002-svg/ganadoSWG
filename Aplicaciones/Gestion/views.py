@@ -11471,14 +11471,12 @@ def entrenar_modelos_render(request):
 # ============================================================
 # VISTAS DE MACHINE LEARNING - PREDICCIONES CON ANIMAL_ID
 # ============================================================
-
 def leche_ml(request):
     """
     Vista para AD-1: Predicciones de litros de leche.
     USA BATCH PREDICTION para optimizar con muchos datos.
     """
-    from .ml_engine import modelo_esta_entrenado, obtener_ruta_modelo, predecir_anio_actual_ad1
-    import joblib
+    from .ml_engine import modelo_esta_entrenado, predecir_anio_actual_ad1
     from django.db.models import Avg, Sum, Count
 
     estado_ad1 = modelo_esta_entrenado('AD-1')
@@ -11494,15 +11492,15 @@ def leche_ml(request):
     predicciones_por_animal = []
 
     if estado_ad1:
-        # OBTENER TODOS LOS ANIMALES QUE TIENEN ORDEÑOS
+        # OBTENER SOLO LOS PRIMEROS 20 ANIMALES CON ORDEÑOS
         animales_con_ordenos = Ordeno.objects.filter(
             temperatura_ambiental_or__isnull=False,
             cantidad_concentrado_kg_or__isnull=False,
             temperatura_leche_or__isnull=False,
             litros_or__isnull=False
-        ).values_list('fk_an', flat=True).distinct()
+        ).values_list('fk_an', flat=True).distinct()[:20]  # ← SOLO 20
 
-        print(f"[ML] Animales con ordeños: {len(animales_con_ordenos)}")
+        print(f"[ML] Procesando {len(animales_con_ordenos)} animales (limitado a 20)")
 
         for animal_id in animales_con_ordenos:
             try:
@@ -11510,7 +11508,7 @@ def leche_ml(request):
             except Animal.DoesNotExist:
                 continue
 
-            # Obtener predicciones FUTURAS para el año actual
+            # Obtener predicciones FUTURAS para el año actual (OPTIMIZADO)
             predicciones_futuras = predecir_anio_actual_ad1(animal_id)
 
             if predicciones_futuras:
@@ -11529,10 +11527,6 @@ def leche_ml(request):
                     'predicciones': predicciones_futuras
                 })
 
-            # Limitar a los primeros 50 animales para no sobrecargar
-            if len(predicciones_por_animal) >= 50:
-                break
-
         predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
 
     contexto = {
@@ -11542,15 +11536,12 @@ def leche_ml(request):
     }
 
     return render(request, 'ML/prediccionML/lecheL_ML.html', contexto)
-
-
 def preneces_ml(request):
     """
     Vista para AD-2: Predicciones de preñez.
     USA BATCH PREDICTION para optimizar con muchos datos.
     """
-    from .ml_engine import modelo_esta_entrenado, obtener_ruta_modelo, predecir_anio_actual_ad2
-    import joblib
+    from .ml_engine import modelo_esta_entrenado, predecir_anio_actual_ad2
     from django.db.models import Avg, Sum, Count
 
     estado_ad2 = modelo_esta_entrenado('AD-2')
@@ -11566,14 +11557,14 @@ def preneces_ml(request):
     predicciones_por_animal = []
 
     if estado_ad2:
-        # OBTENER TODOS LOS ANIMALES QUE TIENEN INSEMINACIONES
+        # OBTENER SOLO LOS PRIMEROS 20 ANIMALES CON INSEMINACIONES
         animales_con_inseminaciones = Inseminacion.objects.filter(
             condicion_corporal_in__isnull=False,
             fecha_in__isnull=False,
             fk_an__isnull=False
-        ).values_list('fk_an', flat=True).distinct()
+        ).values_list('fk_an', flat=True).distinct()[:20]  # ← SOLO 20
 
-        print(f"[ML] Animales con inseminaciones: {len(animales_con_inseminaciones)}")
+        print(f"[ML] Procesando {len(animales_con_inseminaciones)} animales (limitado a 20)")
 
         for animal_id in animales_con_inseminaciones:
             try:
@@ -11581,7 +11572,7 @@ def preneces_ml(request):
             except Animal.DoesNotExist:
                 continue
 
-            # Obtener predicciones FUTURAS para el año actual
+            # Obtener predicciones FUTURAS para el año actual (OPTIMIZADO)
             predicciones_futuras = predecir_anio_actual_ad2(animal_id)
 
             if predicciones_futuras:
@@ -11600,10 +11591,6 @@ def preneces_ml(request):
                     'predicciones': predicciones_futuras
                 })
 
-            # Limitar a los primeros 50 animales para no sobrecargar
-            if len(predicciones_por_animal) >= 50:
-                break
-
         predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
 
     contexto = {
@@ -11613,15 +11600,12 @@ def preneces_ml(request):
     }
 
     return render(request, 'ML/prediccionML/preneces_ML.html', contexto)
-
-
 def calidad_leche_ml(request):
     """
     Vista para RL-4: Predicciones de calidad de leche.
     USA BATCH PREDICTION para optimizar con muchos datos.
     """
-    from .ml_engine import modelo_esta_entrenado, obtener_ruta_modelo, predecir_anio_actual_rl4
-    import joblib
+    from .ml_engine import modelo_esta_entrenado, predecir_anio_actual_rl4
     from django.db.models import Avg, Sum, Count
 
     estado_rl4 = modelo_esta_entrenado('RL-4')
@@ -11637,15 +11621,15 @@ def calidad_leche_ml(request):
     predicciones_por_animal = []
 
     if estado_rl4:
-        # OBTENER TODOS LOS ANIMALES QUE TIENEN CALIDAD DE LECHE
+        # OBTENER SOLO LOS PRIMEROS 20 ANIMALES CON CALIDAD DE LECHE
         animales_con_calidad = CalidadLeche.objects.filter(
             grasa_pct_cl__isnull=False,
             proteina_pct_cl__isnull=False,
             ccs_cl__isnull=False,
             resultado_cl__isnull=False
-        ).exclude(resultado_cl='pendiente').values_list('fk_an', flat=True).distinct()
+        ).exclude(resultado_cl='pendiente').values_list('fk_an', flat=True).distinct()[:20]  # ← SOLO 20
 
-        print(f"[ML] Animales con calidad de leche: {len(animales_con_calidad)}")
+        print(f"[ML] Procesando {len(animales_con_calidad)} animales (limitado a 20)")
 
         for animal_id in animales_con_calidad:
             try:
@@ -11653,7 +11637,7 @@ def calidad_leche_ml(request):
             except Animal.DoesNotExist:
                 continue
 
-            # Obtener predicciones FUTURAS para el año actual
+            # Obtener predicciones FUTURAS para el año actual (OPTIMIZADO)
             predicciones_futuras = predecir_anio_actual_rl4(animal_id)
 
             if predicciones_futuras:
@@ -11672,10 +11656,6 @@ def calidad_leche_ml(request):
                     'predicciones': predicciones_futuras
                 })
 
-            # Limitar a los primeros 50 animales para no sobrecargar
-            if len(predicciones_por_animal) >= 50:
-                break
-
         predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
 
     contexto = {
@@ -11685,17 +11665,6 @@ def calidad_leche_ml(request):
     }
 
     return render(request, 'ML/prediccionML/calidadL_ML.html', contexto)
-
-# ============================================================
-# CONSTANTES PARA MESES (AGREGAR AL INICIO DE views.py)
-# ============================================================
-
-MESES_ESPANOL = {
-    1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
-    5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
-    9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
-}
-
 
 # ============================================================
 # APIS PARA HISTORIAL DE PREDICCIONES
