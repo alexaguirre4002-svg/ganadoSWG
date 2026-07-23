@@ -11468,10 +11468,17 @@ def entrenar_modelos_render(request):
 # ==========================================
 # VISTA: LECHE ML - AD-1 (PREDICCIÓN EN VIVO)
 # ==========================================
+# ============================================================
+# VISTAS DE MACHINE LEARNING - PREDICCIONES CON ANIMAL_ID
+# ============================================================
+
 def leche_ml(request):
-    from .ml_engine import modelo_esta_entrenado, obtener_ruta_modelo
+    """
+    Vista para AD-1: Predicciones de litros de leche.
+    USA BATCH PREDICTION para optimizar con muchos datos.
+    """
+    from .ml_engine import modelo_esta_entrenado, obtener_ruta_modelo, predecir_anio_actual_ad1
     import joblib
-    import numpy as np
     from django.db.models import Avg, Sum, Count
 
     estado_ad1 = modelo_esta_entrenado('AD-1')
@@ -11487,105 +11494,46 @@ def leche_ml(request):
     predicciones_por_animal = []
 
     if estado_ad1:
-        # ==========================================
-        # CARGAR MODELO UNA SOLA VEZ
-        # ==========================================
-        ruta_modelo = obtener_ruta_modelo('AD-1')
-        modelo_data = joblib.load(ruta_modelo)
-        modelo_ml = modelo_data['modelo']
-        scaler = modelo_data['scaler']
-        features = modelo_data['features']
-
-        # ==========================================
-        # OBTENER TODOS LOS ORDEÑOS
-        # ==========================================
-        ordenos = Ordeno.objects.filter(
+        # OBTENER TODOS LOS ANIMALES QUE TIENEN ORDEÑOS
+        animales_con_ordenos = Ordeno.objects.filter(
             temperatura_ambiental_or__isnull=False,
             cantidad_concentrado_kg_or__isnull=False,
             temperatura_leche_or__isnull=False,
             litros_or__isnull=False
-        ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_or')
+        ).values_list('fk_an', flat=True).distinct()
 
-        print(f"[ML] Ordeños encontrados: {ordenos.count()}")
+        print(f"[ML] Animales con ordeños: {len(animales_con_ordenos)}")
 
-        if ordenos.exists():
-            # ==========================================
-            # PREPARAR DATOS PARA BATCH PREDICTION
-            # ==========================================
-            animales_dict = {}
-            X_batch = []
-            ordenos_list = []
+        for animal_id in animales_con_ordenos:
+            try:
+                animal = Animal.objects.select_related('fk_ra', 'fk_potrero_an').get(id_an=animal_id)
+            except Animal.DoesNotExist:
+                continue
 
-            for o in ordenos:
-                animal = o.fk_an
-                if not animal:
-                    continue
+            # Obtener predicciones FUTURAS para el año actual
+            predicciones_futuras = predecir_anio_actual_ad1(animal_id)
 
-                # Características para el modelo AD-1 (14 características)
-                # Usamos valores predeterminados para características no disponibles
-                caracteristicas = [
-                    0,  # edad_dias
-                    0,  # edad_anios
-                    0,  # raza_cod
-                    0,  # peso_kg
-                    0,  # condicion_corporal
-                    0,  # num_partos
-                    0,  # promedio_7dias
-                    0,  # cantidad_consumida
-                    0,  # cantidad_ofrecida
-                    6,  # mes (Junio por defecto)
-                    0,  # temporada_cod
-                    float(o.temperatura_ambiental_or),
-                    float(o.temperatura_leche_or),
-                    float(o.cantidad_concentrado_kg_or)
-                ]
+            if predicciones_futuras:
+                # Obtener la última fecha de las predicciones
+                ultima_fecha = None
+                for mes, pred in predicciones_futuras.items():
+                    if pred.get('exito'):
+                        fecha_pred = date.today().replace(month=mes, day=1)
+                        if ultima_fecha is None or fecha_pred > ultima_fecha:
+                            ultima_fecha = fecha_pred
 
-                X_batch.append(caracteristicas)
-                ordenos_list.append((animal, o))
-                animales_dict[animal.id_an] = {
+                predicciones_por_animal.append({
                     'animal': animal,
-                    'total_predicciones': 0,
-                    'ultima_fecha': None,
-                    'predicciones': []
-                }
-
-            # ==========================================
-            # ESCALAR TODOS LOS DATOS A LA VEZ
-            # ==========================================
-            X_scaled = scaler.transform(X_batch)
-
-            # ==========================================
-            # PREDECIR TODOS A LA VEZ (BATCH)
-            # ==========================================
-            predicciones = modelo_ml.predict(X_scaled)
-
-            print(f"[ML] {len(predicciones)} predicciones realizadas en lote")
-
-            # ==========================================
-            # ASIGNAR PREDICCIONES A CADA ANIMAL
-            # ==========================================
-            for idx, (animal, o) in enumerate(ordenos_list):
-                pred = round(float(predicciones[idx]), 2)
-
-                animales_dict[animal.id_an]['predicciones'].append({
-                    'fecha': o.fecha_or,
-                    'temperatura_ambiental': o.temperatura_ambiental_or,
-                    'cantidad_concentrado_kg': o.cantidad_concentrado_kg_or,
-                    'temperatura_leche': o.temperatura_leche_or,
-                    'litros_reales': float(o.litros_or),
-                    'prediccion': pred
+                    'total_predicciones': len(predicciones_futuras),
+                    'ultima_fecha': ultima_fecha,
+                    'predicciones': predicciones_futuras
                 })
 
-                animales_dict[animal.id_an]['total_predicciones'] += 1
+            # Limitar a los primeros 50 animales para no sobrecargar
+            if len(predicciones_por_animal) >= 50:
+                break
 
-                if animales_dict[animal.id_an]['ultima_fecha'] is None or o.fecha_or > animales_dict[animal.id_an]['ultima_fecha']:
-                    animales_dict[animal.id_an]['ultima_fecha'] = o.fecha_or
-
-            predicciones_por_animal = list(animales_dict.values())
-            predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
-
-            print(f"[ML] Animales con predicciones: {len(predicciones_por_animal)}")
-            print(f"[ML] Total predicciones: {sum(a['total_predicciones'] for a in predicciones_por_animal)}")
+        predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
 
     contexto = {
         'estado_ad1': estado_ad1,
@@ -11596,12 +11544,12 @@ def leche_ml(request):
     return render(request, 'ML/prediccionML/lecheL_ML.html', contexto)
 
 
-
-# ==========================================
-# VISTA: PREÑECES ML - AD-2 
-# ==========================================
 def preneces_ml(request):
-    from .ml_engine import modelo_esta_entrenado, obtener_ruta_modelo
+    """
+    Vista para AD-2: Predicciones de preñez.
+    USA BATCH PREDICTION para optimizar con muchos datos.
+    """
+    from .ml_engine import modelo_esta_entrenado, obtener_ruta_modelo, predecir_anio_actual_ad2
     import joblib
     from django.db.models import Avg, Sum, Count
 
@@ -11618,101 +11566,45 @@ def preneces_ml(request):
     predicciones_por_animal = []
 
     if estado_ad2:
-        # ==========================================
-        # CARGAR MODELO UNA SOLA VEZ
-        # ==========================================
-        ruta_modelo = obtener_ruta_modelo('AD-2')
-        modelo_data = joblib.load(ruta_modelo)
-        modelo_ml = modelo_data['modelo']
-
-        # ==========================================
-        # OBTENER TODAS LAS INSEMINACIONES
-        # ==========================================
-        inseminaciones = Inseminacion.objects.filter(
+        # OBTENER TODOS LOS ANIMALES QUE TIENEN INSEMINACIONES
+        animales_con_inseminaciones = Inseminacion.objects.filter(
             condicion_corporal_in__isnull=False,
             fecha_in__isnull=False,
             fk_an__isnull=False
-        ).select_related(
-            'fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an'
-        ).order_by('-fecha_in')
+        ).values_list('fk_an', flat=True).distinct()
 
-        print(f"[ML] Inseminaciones encontradas para AD-2: {inseminaciones.count()}")
+        print(f"[ML] Animales con inseminaciones: {len(animales_con_inseminaciones)}")
 
-        if inseminaciones.exists():
-            # ==========================================
-            # PREPARAR DATOS PARA BATCH PREDICTION
-            # ==========================================
-            animales_dict = {}
-            X_batch = []
-            ins_list = []
+        for animal_id in animales_con_inseminaciones:
+            try:
+                animal = Animal.objects.select_related('fk_ra', 'fk_potrero_an').get(id_an=animal_id)
+            except Animal.DoesNotExist:
+                continue
 
-            for ins in inseminaciones:
-                animal = ins.fk_an
-                if not animal:
-                    continue
+            # Obtener predicciones FUTURAS para el año actual
+            predicciones_futuras = predecir_anio_actual_ad2(animal_id)
 
-                dias = (date.today() - ins.fecha_in).days
+            if predicciones_futuras:
+                # Obtener la última fecha de las predicciones
+                ultima_fecha = None
+                for mes, pred in predicciones_futuras.items():
+                    if pred.get('exito'):
+                        fecha_pred = date.today().replace(month=mes, day=1)
+                        if ultima_fecha is None or fecha_pred > ultima_fecha:
+                            ultima_fecha = fecha_pred
 
-                # Características para AD-2 (11 características)
-                caracteristicas = [
-                    dias,  # dias_desde_inseminacion
-                    0,  # num_partos
-                    0,  # raza_cod
-                    float(ins.condicion_corporal_in or 3),  # condicion_corporal
-                    0,  # produccion_leche
-                    0,  # intensidad_cod
-                    0,  # duracion_celo_horas
-                    0,  # tipo_cod
-                    0,  # toro_cod
-                    0,  # historial_abortos
-                    float(ins.dia_ciclo_in or 14)  # dia_ciclo
-                ]
-
-                X_batch.append(caracteristicas)
-                ins_list.append((animal, ins))
-                animales_dict[animal.id_an] = {
+                predicciones_por_animal.append({
                     'animal': animal,
-                    'total_predicciones': 0,
-                    'ultima_fecha': None,
-                    'predicciones': []
-                }
-
-            # ==========================================
-            # PREDECIR TODOS A LA VEZ (BATCH)
-            # ==========================================
-            predicciones = modelo_ml.predict(X_batch)
-            probabilidades = modelo_ml.predict_proba(X_batch)
-
-            print(f"[ML] {len(predicciones)} predicciones AD-2 realizadas en lote")
-
-            # ==========================================
-            # ASIGNAR PREDICCIONES A CADA ANIMAL
-            # ==========================================
-            for idx, (animal, ins) in enumerate(ins_list):
-                pred = predicciones[idx]
-                prob = float(max(probabilidades[idx])) if len(probabilidades[idx]) > 0 else 0
-
-                animales_dict[animal.id_an]['predicciones'].append({
-                    'fecha': ins.fecha_in,
-                    'dias_desde_inseminacion': (date.today() - ins.fecha_in).days,
-                    'condicion_corporal': float(ins.condicion_corporal_in or 0),
-                    'dia_ciclo': ins.dia_ciclo_in or 14,
-                    'tipo_inseminacion': ins.tipo_inseminacion_in,
-                    'resultado_real': ins.resultado_in or 'pendiente',
-                    'prediccion': 'Preñada' if pred == 1 else 'No Preñada',
-                    'probabilidad': round(prob * 100, 1)
+                    'total_predicciones': len(predicciones_futuras),
+                    'ultima_fecha': ultima_fecha,
+                    'predicciones': predicciones_futuras
                 })
 
-                animales_dict[animal.id_an]['total_predicciones'] += 1
+            # Limitar a los primeros 50 animales para no sobrecargar
+            if len(predicciones_por_animal) >= 50:
+                break
 
-                if animales_dict[animal.id_an]['ultima_fecha'] is None or ins.fecha_in > animales_dict[animal.id_an]['ultima_fecha']:
-                    animales_dict[animal.id_an]['ultima_fecha'] = ins.fecha_in
-
-            predicciones_por_animal = list(animales_dict.values())
-            predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
-
-            print(f"[ML] Animales con predicciones AD-2: {len(predicciones_por_animal)}")
-            print(f"[ML] Total predicciones AD-2: {sum(a['total_predicciones'] for a in predicciones_por_animal)}")
+        predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
 
     contexto = {
         'estado_ad2': estado_ad2,
@@ -11723,11 +11615,12 @@ def preneces_ml(request):
     return render(request, 'ML/prediccionML/preneces_ML.html', contexto)
 
 
-# ==========================================
-# VISTA: CALIDAD LECHE ML - RL-4 
-# ==========================================
 def calidad_leche_ml(request):
-    from .ml_engine import modelo_esta_entrenado, obtener_ruta_modelo
+    """
+    Vista para RL-4: Predicciones de calidad de leche.
+    USA BATCH PREDICTION para optimizar con muchos datos.
+    """
+    from .ml_engine import modelo_esta_entrenado, obtener_ruta_modelo, predecir_anio_actual_rl4
     import joblib
     from django.db.models import Avg, Sum, Count
 
@@ -11744,91 +11637,46 @@ def calidad_leche_ml(request):
     predicciones_por_animal = []
 
     if estado_rl4:
-        # ==========================================
-        # CARGAR MODELO UNA SOLA VEZ
-        # ==========================================
-        ruta_modelo = obtener_ruta_modelo('RL-4')
-        modelo_data = joblib.load(ruta_modelo)
-        modelo_ml = modelo_data['modelo']
-
-        # ==========================================
-        # OBTENER TODOS LOS REGISTROS DE CALIDAD
-        # ==========================================
-        calidades = CalidadLeche.objects.filter(
+        # OBTENER TODOS LOS ANIMALES QUE TIENEN CALIDAD DE LECHE
+        animales_con_calidad = CalidadLeche.objects.filter(
             grasa_pct_cl__isnull=False,
             proteina_pct_cl__isnull=False,
             ccs_cl__isnull=False,
             resultado_cl__isnull=False
-        ).exclude(
-            resultado_cl='pendiente'
-        ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_muestreo_cl')
+        ).exclude(resultado_cl='pendiente').values_list('fk_an', flat=True).distinct()
 
-        print(f"[ML] Registros de calidad encontrados: {calidades.count()}")
+        print(f"[ML] Animales con calidad de leche: {len(animales_con_calidad)}")
 
-        if calidades.exists():
-            # ==========================================
-            # PREPARAR DATOS PARA BATCH PREDICTION
-            # ==========================================
-            animales_dict = {}
-            X_batch = []
-            calidades_list = []
+        for animal_id in animales_con_calidad:
+            try:
+                animal = Animal.objects.select_related('fk_ra', 'fk_potrero_an').get(id_an=animal_id)
+            except Animal.DoesNotExist:
+                continue
 
-            for c in calidades:
-                animal = c.fk_an
-                if not animal:
-                    continue
+            # Obtener predicciones FUTURAS para el año actual
+            predicciones_futuras = predecir_anio_actual_rl4(animal_id)
 
-                caracteristicas = [
-                    float(c.grasa_pct_cl or 0),
-                    float(c.proteina_pct_cl or 0),
-                    float(c.ccs_cl or 0),
-                    0  # ufc (no disponible)
-                ]
+            if predicciones_futuras:
+                # Obtener la última fecha de las predicciones
+                ultima_fecha = None
+                for mes, pred in predicciones_futuras.items():
+                    if pred.get('exito'):
+                        fecha_pred = date.today().replace(month=mes, day=1)
+                        if ultima_fecha is None or fecha_pred > ultima_fecha:
+                            ultima_fecha = fecha_pred
 
-                X_batch.append(caracteristicas)
-                calidades_list.append((animal, c))
-                animales_dict[animal.id_an] = {
+                predicciones_por_animal.append({
                     'animal': animal,
-                    'total_predicciones': 0,
-                    'ultima_fecha': None,
-                    'predicciones': []
-                }
-
-            # ==========================================
-            # PREDECIR TODOS A LA VEZ (BATCH)
-            # ==========================================
-            predicciones = modelo_ml.predict(X_batch)
-            probabilidades = modelo_ml.predict_proba(X_batch)
-
-            print(f"[ML] {len(predicciones)} predicciones de calidad realizadas en lote")
-
-            # ==========================================
-            # ASIGNAR PREDICCIONES A CADA ANIMAL
-            # ==========================================
-            for idx, (animal, c) in enumerate(calidades_list):
-                pred = predicciones[idx]
-                prob = float(max(probabilidades[idx])) if len(probabilidades[idx]) > 0 else 0
-
-                animales_dict[animal.id_an]['predicciones'].append({
-                    'fecha': c.fecha_muestreo_cl,
-                    'grasa_pct': float(c.grasa_pct_cl or 0),
-                    'proteina_pct': float(c.proteina_pct_cl or 0),
-                    'ccs': float(c.ccs_cl or 0),
-                    'resultado_real': c.resultado_cl,
-                    'prediccion': 'Apto' if pred == 1 else 'No Apto',
-                    'probabilidad': prob
+                    'total_predicciones': len(predicciones_futuras),
+                    'ultima_fecha': ultima_fecha,
+                    'predicciones': predicciones_futuras
                 })
 
-                animales_dict[animal.id_an]['total_predicciones'] += 1
+            # Limitar a los primeros 50 animales para no sobrecargar
+            if len(predicciones_por_animal) >= 50:
+                break
 
-                if animales_dict[animal.id_an]['ultima_fecha'] is None or c.fecha_muestreo_cl > animales_dict[animal.id_an]['ultima_fecha']:
-                    animales_dict[animal.id_an]['ultima_fecha'] = c.fecha_muestreo_cl
-
-            predicciones_por_animal = list(animales_dict.values())
-            predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
-
-            print(f"[ML] Animales con predicciones RL-4: {len(predicciones_por_animal)}")
-            print(f"[ML] Total predicciones RL-4: {sum(a['total_predicciones'] for a in predicciones_por_animal)}")
+        predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
 
     contexto = {
         'estado_rl4': estado_rl4,
@@ -11850,12 +11698,17 @@ MESES_ESPANOL = {
 
 
 # ============================================================
-# API AD-1: PREDICCIONES DEL AÑO ACTUAL CON DATOS DETALLADOS
+# APIS PARA HISTORIAL DE PREDICCIONES
 # ============================================================
+
+MESES_ESPANOL_API = {
+    1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+    5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+    9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+}
+
 def api_historial_ad1_animal(request, animal_id):
-    """
-    API que muestra PREDICCIONES FUTURAS del año actual.
-    """
+    """API que devuelve predicciones FUTURAS de AD-1 para un animal."""
     from .ml_engine import predecir_anio_actual_ad1
 
     try:
@@ -11870,71 +11723,26 @@ def api_historial_ad1_animal(request, animal_id):
 
     for mes, resultado in predicciones.items():
         if resultado['exito']:
-            mes_nombre = MESES_ESPANOL.get(mes, 'Desconocido')
+            mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
             clave = f"{mes_nombre} {anio_actual}"
 
             if clave not in agrupado[anio_actual]:
                 agrupado[anio_actual][clave] = []
 
-            detalle = resultado.get('detalle', {})
-            metrica = resultado.get('metrica', {})
-
             agrupado[anio_actual][clave].append({
-                'mes': mes,
                 'fecha': f"01/{mes:02d}/{anio_actual}",
-                'prediccion': resultado['prediccion'],
-                'temporada': resultado.get('temporada', 'N/A'),
-                # ============================================================
-                # DATOS PARA EL HTML - NOMBRES CORRECTOS
-                # ============================================================
                 'temperatura_ambiental': resultado.get('temperatura_ambiental', 'N/A'),
-                'concentrado': resultado.get('concentrado', 'N/A'),
-                'temp_leche': resultado.get('temp_leche', 'N/A'),
-                # DATOS ADICIONALES PARA EL DETALLE
-                'detalle': detalle,
-                'metrica_nombre': metrica.get('nombre', 'N/A'),
-                'metrica_valor': metrica.get('porcentaje', 0),
-                'metrica_descripcion': obtener_descripcion_metrica(metrica)
+                'cantidad_concentrado_kg': resultado.get('concentrado', 'N/A'),
+                'temperatura_leche': resultado.get('temp_leche', 'N/A'),
+                'prediccion': resultado['prediccion'],
+                'confianza': f"R²: {resultado.get('metrica', {}).get('porcentaje', 0)}%"
             })
 
     return JsonResponse({'exito': True, 'predicciones': agrupado})
 
 
-def obtener_descripcion_metrica(metrica):
-    """Obtiene una descripción entendible de la métrica"""
-    nombre = metrica.get('nombre', 'N/A')
-    valor = metrica.get('porcentaje', 0)
-
-    if nombre == 'R²':
-        if valor >= 90:
-            return f"✅ Excelente: El modelo explica el {valor}% de la variabilidad de la producción. Predicciones muy confiables."
-        elif valor >= 70:
-            return f"✅ Bueno: El modelo explica el {valor}% de la variabilidad. Predicciones confiables."
-        elif valor >= 50:
-            return f"⚠️ Aceptable: El modelo explica el {valor}% de la variabilidad. Predicciones moderadamente confiables."
-        else:
-            return f"❌ Bajo: El modelo solo explica el {valor}% de la variabilidad. Predicciones poco confiables."
-    elif nombre == 'Accuracy':
-        if valor >= 90:
-            return f"✅ Excelente: El modelo acierta en el {valor}% de los casos. Muy confiable."
-        elif valor >= 70:
-            return f"✅ Bueno: El modelo acierta en el {valor}% de los casos. Confiable."
-        elif valor >= 50:
-            return f"⚠️ Aceptable: El modelo acierta en el {valor}% de los casos. Moderadamente confiable."
-        else:
-            return f"❌ Bajo: El modelo solo acierta en el {valor}% de los casos. Poco confiable."
-
-    return "ℹ️ No hay métrica disponible para este modelo."
-
-
-# ============================================================
-# API AD-2: PREDICCIONES DEL AÑO ACTUAL CON DATOS DETALLADOS
-# ============================================================
-
 def api_historial_ad2_animal(request, animal_id):
-    """
-    API que muestra PREDICCIONES FUTURAS de preñez del año actual.
-    """
+    """API que devuelve predicciones FUTURAS de AD-2 para un animal."""
     from .ml_engine import predecir_anio_actual_ad2
 
     try:
@@ -11949,43 +11757,25 @@ def api_historial_ad2_animal(request, animal_id):
 
     for mes, resultado in predicciones.items():
         if resultado['exito']:
-            mes_nombre = MESES_ESPANOL.get(mes, 'Desconocido')
+            mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
             clave = f"{mes_nombre} {anio_actual}"
 
             if clave not in agrupado[anio_actual]:
                 agrupado[anio_actual][clave] = []
 
-            detalle = resultado.get('detalle', {})
-            metrica = resultado.get('metrica', {})
-
             agrupado[anio_actual][clave].append({
-                'mes': mes,
                 'fecha': f"01/{mes:02d}/{anio_actual}",
-                'prediccion': resultado['prediccion'],
-                'probabilidad': resultado.get('probabilidad', 0),
-                # ============================================================
-                # DATOS PARA EL HTML - NOMBRES CORRECTOS
-                # ============================================================
                 'dias_posparto': resultado.get('dias_posparto', 'N/A'),
                 'condicion_corporal': resultado.get('condicion_corporal', 'N/A'),
-                # DATOS ADICIONALES PARA EL DETALLE
-                'detalle': detalle,
-                'metrica_nombre': metrica.get('nombre', 'N/A'),
-                'metrica_valor': metrica.get('porcentaje', 0),
-                'metrica_descripcion': obtener_descripcion_metrica(metrica)
+                'prediccion': resultado['prediccion'],
+                'confianza': f"{resultado.get('probabilidad', 0)}%"
             })
 
     return JsonResponse({'exito': True, 'predicciones': agrupado})
 
 
-# ============================================================
-# API RL-4: PREDICCIONES DEL AÑO ACTUAL CON DATOS DETALLADOS
-# ============================================================
-
 def api_historial_rl4_animal(request, animal_id):
-    """
-    API que muestra PREDICCIONES FUTURAS de calidad del año actual.
-    """
+    """API que devuelve predicciones FUTURAS de RL-4 para un animal."""
     from .ml_engine import predecir_anio_actual_rl4
 
     try:
@@ -12000,32 +11790,19 @@ def api_historial_rl4_animal(request, animal_id):
 
     for mes, resultado in predicciones.items():
         if resultado['exito']:
-            mes_nombre = MESES_ESPANOL.get(mes, 'Desconocido')
+            mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
             clave = f"{mes_nombre} {anio_actual}"
 
             if clave not in agrupado[anio_actual]:
                 agrupado[anio_actual][clave] = []
 
-            detalle = resultado.get('detalle', {})
-            metrica = resultado.get('metrica', {})
-
             agrupado[anio_actual][clave].append({
-                'mes': mes,
                 'fecha': f"01/{mes:02d}/{anio_actual}",
-                'prediccion': resultado['prediccion'],
-                'probabilidad': resultado.get('probabilidad', 0),
-                # ============================================================
-                # DATOS PARA EL HTML - NOMBRES CORRECTOS
-                # ============================================================
                 'grasa': resultado.get('grasa', 'N/A'),
                 'proteina': resultado.get('proteina', 'N/A'),
                 'ccs': resultado.get('ccs', 'N/A'),
-                'ufc': resultado.get('ufc', 'N/A'),
-                # DATOS ADICIONALES PARA EL DETALLE
-                'detalle': detalle,
-                'metrica_nombre': metrica.get('nombre', 'N/A'),
-                'metrica_valor': metrica.get('porcentaje', 0),
-                'metrica_descripcion': obtener_descripcion_metrica(metrica)
+                'prediccion': resultado['prediccion'],
+                'confianza': f"{resultado.get('probabilidad', 0)}%"
             })
 
     return JsonResponse({'exito': True, 'predicciones': agrupado})
