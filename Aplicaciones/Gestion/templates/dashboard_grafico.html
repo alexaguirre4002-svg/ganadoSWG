@@ -2,14 +2,14 @@
 {% load static %}
 
 {% block titulo %}
-Dashboard Estadístico | Hacienda Joseph
+Dashboard estadístico | Hacienda Joseph
 {% endblock %}
 
 {% block breadcrumb %}
 <li class="breadcrumb-item">
     <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a>
 </li>
-<li class="breadcrumb-item active" aria-current="page">Dashboard Estadístico</li>
+<li class="breadcrumb-item active" aria-current="page">Dashboard estadístico</li>
 {% endblock %}
 
 {% block contenido %}
@@ -18,57 +18,19 @@ Dashboard Estadístico | Hacienda Joseph
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8">
         <h2 class="fw-bold" style="color: var(--color-primario);">
-            <i class="bi bi-bar-chart-line me-2"></i>Dashboard Estadístico
+            <i class="bi bi-bar-chart-line me-2"></i>Dashboard 
         </h2>
         <p class="text-muted mb-0">
-            <i class="bi bi-info-circle me-1"></i>Análisis integral de la hacienda con Machine Learning
+            <i class="bi bi-info-circle me-1"></i>Análisis integral de la hacienda
         </p>
     </div>
-    <div class="col-md-4 text-md-end mt-3 mt-md-0">
-        <a href="{% url 'dashboardml' %}" class="btn btn-hacienda-secondary">
-            <i class="bi bi-cpu me-2"></i>Dashboard ML
-        </a>
-    </div>
 </div>
-
-<!-- RESUMEN GENERAL -->
-<div class="row mb-4 animate-fade-in">
-    <div class="col-md-3">
-        <div class="card-hacienda text-center p-3">
-            <i class="bi bi-droplet fs-2" style="color: var(--color-primario);"></i>
-            <h4 class="fw-bold mt-2 mb-0">{{ total_ingresos|floatformat:2 }}</h4>
-            <small class="text-muted">Total Ingresos ($)</small>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
-            <i class="bi bi-cash-stack fs-2 text-danger"></i>
-            <h4 class="fw-bold mt-2 mb-0">{{ total_costos|floatformat:2 }}</h4>
-            <small class="text-muted">Total Costos ($)</small>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card-hacienda text-center p-3" style="border-left: 4px solid {% if balance >= 0 %}#28a745{% else %}#dc3545{% endif %};">
-            <i class="bi bi-wallet2 fs-2 {% if balance >= 0 %}text-success{% else %}text-danger{% endif %}"></i>
-            <h4 class="fw-bold mt-2 mb-0">{{ balance|floatformat:2 }}</h4>
-            <small class="text-muted">Balance ($)</small>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #17a2b8;">
-            <i class="bi bi-cow fs-2" style="color: #17a2b8;"></i>
-            <h4 class="fw-bold mt-2 mb-0">{{ total_animales }}</h4>
-            <small class="text-muted">Total Animales</small>
-        </div>
-    </div>
-</div>
-
 <!-- GRÁFICAS: PRODUCCIÓN Y ANIMALES -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
-                <i class="bi bi-graph-up me-2"></i>Producción de Leche por Período
+                <i class="bi bi-graph-up me-2"></i>Producción de leche por período
             </div>
             <div class="p-3">
                 <p class="text-muted small mb-2">Evolución de los litros totales producidos mes a mes en los últimos 12 meses con datos. Te permite ver si la producción del hato está subiendo o bajando con el tiempo.</p>
@@ -79,7 +41,7 @@ Dashboard Estadístico | Hacienda Joseph
     <div class="col-md-4">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
-                <i class="bi bi-cow me-2"></i>Animales por Categoría
+                <i class="bi bi-cow me-2"></i>Animales por categoría
             </div>
             <div class="p-3">
                 <p class="text-muted small mb-2">Cuántos animales tienes actualmente en cada categoría (ternero, novilla, vaca de leche, vaca seca, toro, etc.). Es una "foto" de la composición actual de tu hato.</p>
@@ -94,7 +56,7 @@ Dashboard Estadístico | Hacienda Joseph
     <div class="col-md-8">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
-                <i class="bi bi-check-circle me-2"></i>Calidad de Leche por Período
+                <i class="bi bi-check-circle me-2"></i>Calidad de leche por período
             </div>
             <div class="p-3">
                 <p class="text-muted small mb-2">Cuántas muestras de leche analizadas resultaron "aptas" vs "no aptas" cada mes, en los últimos 12 meses con datos. Un aumento sostenido de "no aptos" es señal de alerta sanitaria.</p>
@@ -105,7 +67,7 @@ Dashboard Estadístico | Hacienda Joseph
     <div class="col-md-4">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
-                <i class="bi bi-trophy me-2"></i>Top 5 Animales Productores
+                <i class="bi bi-trophy me-2"></i>Top 5 animales productores
             </div>
             <div class="p-3">
                 <p class="text-muted small mb-2">Los 5 animales con mayor producción acumulada de leche en todo el historial, con su promedio por ordeño.</p>
@@ -137,7 +99,7 @@ Dashboard Estadístico | Hacienda Joseph
     <div class="col-12">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
-                <i class="bi bi-lightbulb me-2"></i>Recomendaciones del Sistema (Machine Learning)
+                <i class="bi bi-lightbulb me-2"></i>recomendaciones del sistema (Machine Learning)
             </div>
             <div class="p-3">
                 <div class="row">
@@ -157,58 +119,6 @@ Dashboard Estadístico | Hacienda Joseph
         </div>
     </div>
 </div>
-
-<!-- ESTADO ML -->
-<div class="row mb-4 animate-fade-in">
-    <div class="col-12">
-        <div class="card-hacienda">
-            <div class="card-header-hacienda">
-                <i class="bi bi-cpu me-2"></i>Estado de Machine Learning
-            </div>
-            <div class="p-3">
-                <div class="row">
-                    <div class="col-md-4 text-center">
-                        <div class="p-3">
-                            {% if ml_estado.ad1 %}
-                            <i class="bi bi-check-circle-fill text-success fs-1"></i>
-                            <h5 class="mt-2">AD-1: Activo</h5>
-                            <small class="text-muted">Predicción de Litros</small>
-                            {% else %}
-                            <i class="bi bi-x-circle-fill text-danger fs-1"></i>
-                            <h5 class="mt-2">AD-1: Inactivo</h5>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="col-md-4 text-center">
-                        <div class="p-3">
-                            {% if ml_estado.ad2 %}
-                            <i class="bi bi-check-circle-fill text-success fs-1"></i>
-                            <h5 class="mt-2">AD-2: Activo</h5>
-                            <small class="text-muted">Predicción de Preñez</small>
-                            {% else %}
-                            <i class="bi bi-x-circle-fill text-danger fs-1"></i>
-                            <h5 class="mt-2">AD-2: Inactivo</h5>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="col-md-4 text-center">
-                        <div class="p-3">
-                            {% if ml_estado.rl4 %}
-                            <i class="bi bi-check-circle-fill text-success fs-1"></i>
-                            <h5 class="mt-2">RL-4: Activo</h5>
-                            <small class="text-muted">Calidad de Leche</small>
-                            {% else %}
-                            <i class="bi bi-x-circle-fill text-danger fs-1"></i>
-                            <h5 class="mt-2">RL-4: Inactivo</h5>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- ==========================================================
      HISTORIAL DETALLADO POR AÑO → MES
      Cada mes trae TODAS sus gráficas de módulo: producción,
@@ -218,7 +128,7 @@ Dashboard Estadístico | Hacienda Joseph
     <div class="col-12">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
-                <i class="bi bi-calendar3 me-2"></i>Historial Detallado por Año y Mes
+                <i class="bi bi-calendar3 me-2"></i>Historial detallado por año y mes
             </div>
             <div class="p-3">
                 {% if dashboard_periodos %}
@@ -319,7 +229,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                     <div class="col-md-6">
                                                         <div class="card-hacienda">
                                                             <div class="card-header-hacienda">
-                                                                <i class="bi bi-pie-chart me-2"></i>Producción por Turno
+                                                                <i class="bi bi-pie-chart me-2"></i>Producción por turno
                                                             </div>
                                                             <div class="p-3">
                                                                 <p class="text-muted small mb-2">Cuántos litros de leche se produjeron en cada turno de ordeño (mañana, tarde o único) este mes. Sirve para saber en qué turno el hato rinde más.</p>
@@ -337,7 +247,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                     <div class="col-md-6">
                                                         <div class="card-hacienda">
                                                             <div class="card-header-hacienda">
-                                                                <i class="bi bi-award me-2"></i>Producción por Raza
+                                                                <i class="bi bi-award me-2"></i>Producción por raza
                                                             </div>
                                                             <div class="p-3">
                                                                 <p class="text-muted small mb-2">Compara cuántos litros aportó cada raza de tu hato este mes. Te dice qué raza es más productiva en tu sistema.</p>
@@ -368,7 +278,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                     <div class="col-md-6">
                                                         <div class="card-hacienda">
                                                             <div class="card-header-hacienda">
-                                                                <i class="bi bi-pie-chart-fill me-2"></i>Estado de Inseminaciones
+                                                                <i class="bi bi-pie-chart-fill me-2"></i>Estado de inseminaciones
                                                             </div>
                                                             <div class="p-3">
                                                                 <p class="text-muted small mb-2">De las inseminaciones hechas este mes, cuántas resultaron preñadas, cuántas no, y cuántas siguen sin diagnóstico confirmado.</p>
@@ -403,7 +313,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                     <div class="col-md-6">
                                                         <div class="card-hacienda">
                                                             <div class="card-header-hacienda">
-                                                                <i class="bi bi-thermometer-half me-2"></i>Celos Observados por Intensidad
+                                                                <i class="bi bi-thermometer-half me-2"></i>Celos observados por intensidad
                                                             </div>
                                                             <div class="p-3">
                                                                 <p class="text-muted small mb-2">Clasifica los celos detectados este mes según su intensidad (alta, media o baja). Muchos celos de baja intensidad pueden señalar déficit nutricional o problemas de manejo reproductivo.</p>
@@ -421,7 +331,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                     <div class="col-md-6">
                                                         <div class="card-hacienda">
                                                             <div class="card-header-hacienda">
-                                                                <i class="bi bi-arrow-left-right me-2"></i>Movimientos de Animales
+                                                                <i class="bi bi-arrow-left-right me-2"></i>Movimientos de animales
                                                             </div>
                                                             <div class="p-3">
                                                                 <p class="text-muted small mb-2">Resume las entradas y salidas del hato este mes: compras, ventas, traslados entre potreros, nacimientos, muertes y faenas.</p>
@@ -444,7 +354,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                     <div class="col-md-6">
                                                         <div class="card-hacienda">
                                                             <div class="card-header-hacienda">
-                                                                <i class="bi bi-bar-chart me-2"></i>Eventos Sanitarios por Tipo
+                                                                <i class="bi bi-bar-chart me-2"></i>Eventos sanitarios por tipo
                                                             </div>
                                                             <div class="p-3">
                                                                 <p class="text-muted small mb-2">Cuántos eventos sanitarios (vacunación, desparasitación, vitaminación, pruebas de tuberculosis/brucelosis, etc.) se aplicaron este mes, agrupados por tipo.</p>
@@ -549,7 +459,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                     <div class="col-md-6">
                                                         <div class="card-hacienda">
                                                             <div class="card-header-hacienda">
-                                                                <i class="bi bi-eyedropper me-2"></i>Composición de la Leche
+                                                                <i class="bi bi-eyedropper me-2"></i>Composición de la leche
                                                             </div>
                                                             <div class="p-3">
                                                                 <p class="text-muted small mb-2">Porcentaje promedio de grasa y proteína en los análisis de calidad hechos este mes. Estos valores afectan el precio de venta y la calidad nutricional de la leche.</p>
@@ -572,7 +482,7 @@ Dashboard Estadístico | Hacienda Joseph
                                                     <div class="col-md-6">
                                                         <div class="card-hacienda">
                                                             <div class="card-header-hacienda">
-                                                                <i class="bi bi-pie-chart me-2"></i>Costos por Categoría
+                                                                <i class="bi bi-pie-chart me-2"></i>Costos por categoría
                                                             </div>
                                                             <div class="p-3">
                                                                 <p class="text-muted small mb-2">En qué se gastó el dinero este mes: alimentación, sanidad, reproducción, mano de obra, mantenimiento, compra de animales, impuestos u otros.</p>
