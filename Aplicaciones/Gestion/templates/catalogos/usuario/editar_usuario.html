@@ -1,7 +1,7 @@
 {% extends "plantilla.html" %}
 
 {% block titulo %}
-    Editar Usuario | Hacienda El Roble
+    Editar usuario | Hacienda El Roble
 {% endblock %}
 
 {% block breadcrumb %}
@@ -15,7 +15,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Usuario
+                <i class="bi bi-pencil-square me-2"></i>Editar usuario
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Modifique los datos de <strong>{{ usuario.username_us }}</strong>
@@ -28,7 +28,7 @@
             <div class="card-hacienda">
                 
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos del Usuario
+                    <i class="bi bi-clipboard-check"></i>Datos del usuario
                 </div>
 
                 <div class="p-4">
@@ -41,7 +41,7 @@
                             <!-- USERNAME -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_username_us">
-                                    <i class="bi bi-person-badge me-1"></i>Nombre de Usuario <span class="text-danger">*</span>
+                                    <i class="bi bi-person-badge me-1"></i>Nombre de usuario <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
                                        name="txt_username_us" 
@@ -57,7 +57,7 @@
                             <!-- EMAIL -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_email_us">
-                                    <i class="bi bi-envelope me-1"></i>Correo Electrónico <span class="text-danger">*</span>
+                                    <i class="bi bi-envelope me-1"></i>Correo electrónico <span class="text-danger">*</span>
                                 </label>
                                 <input type="email" 
                                        name="txt_email_us" 
@@ -196,7 +196,7 @@
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="txt_password_us">
-                                            <i class="bi bi-key me-1"></i>Nueva Contraseña
+                                            <i class="bi bi-key me-1"></i>Nueva contraseña
                                         </label>
                                         <div class="input-group">
                                             <input type="password" 
@@ -213,7 +213,7 @@
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label for="txt_confirm_password">
-                                            <i class="bi bi-key-fill me-1"></i>Confirmar Nueva Contraseña
+                                            <i class="bi bi-key-fill me-1"></i>Confirmar nueva contraseña
                                         </label>
                                         <input type="password" 
                                                name="txt_confirm_password" 
@@ -244,7 +244,7 @@
                         <!-- BOTONES -->
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listadousuarios/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar
