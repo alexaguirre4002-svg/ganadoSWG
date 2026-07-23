@@ -5,7 +5,7 @@
 <!-- TITULO                                    -->
 <!-- ========================================== -->
 {% block titulo %}
-Listado de Ordeños | Hacienda Joseph
+Listado de ordeños | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -32,58 +32,58 @@ Listado de Ordeños | Hacienda Joseph
 <!-- ========================================== -->
 {% block contenido %}
 
-<!-- TARJETAS ESTADÍSTICAS -->
+<!-- Tarjetas estadísticas -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-2">
         <div class="card-hacienda text-center p-3">
             <i class="bi bi-droplet fs-2" style="color: var(--color-primario);"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_ordenos }}</h4>
-            <small class="text-muted">Total Ordeños</small>
+            <small class="text-muted">Total ordeños</small>
         </div>
     </div>
     <div class="col-md-2">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
             <i class="bi bi-sun fs-2 text-success"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_manana }}</h4>
-            <small class="text-muted">Turno Mañana</small>
+            <small class="text-muted">Turno mañana</small>
         </div>
     </div>
     <div class="col-md-2">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #fd7e14;">
             <i class="bi bi-sunset fs-2 text-warning"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_tarde }}</h4>
-            <small class="text-muted">Turno Tarde</small>
+            <small class="text-muted">Turno tarde</small>
         </div>
     </div>
     <div class="col-md-2">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #17a2b8;">
             <i class="bi bi-cup-straw fs-2" style="color: #17a2b8;"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ litros_hoy }}</h4>
-            <small class="text-muted">Litros Hoy</small>
+            <small class="text-muted">Litros hoy</small>
         </div>
     </div>
     <div class="col-md-2">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #6f42c1;">
             <i class="bi bi-graph-up fs-2" style="color: #6f42c1;"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ promedio_litros }}</h4>
-            <small class="text-muted">Promedio Litros</small>
+            <small class="text-muted">Promedio litros</small>
         </div>
     </div>
     <div class="col-md-2">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
             <i class="bi bi-thermometer-high fs-2 text-danger"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ alertas_temp }}</h4>
-            <small class="text-muted">Alertas Temp.</small>
+            <small class="text-muted">Alertas temp.</small>
         </div>
     </div>
 </div>
 
-<!-- TITULO -->
+<!-- Titulo -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8">
         <h2 class="fw-bold" style="color: var(--color-primario);">
             <i class="bi bi-droplet-fill me-2"></i>
-            Listado de Ordeños
+            Listado de ordeños
         </h2>
         <p class="text-muted mb-0">
             <i class="bi bi-info-circle me-1"></i>
@@ -93,24 +93,22 @@ Listado de Ordeños | Hacienda Joseph
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <a href="/nuevoordeno/" class="btn btn-hacienda">
             <i class="bi bi-plus-circle me-2"></i>
-            Nuevo Ordeño
+            Nuevo ordeño
         </a>
     </div>
 </div>
 
-<!-- TARJETA PRINCIPAL -->
+<!-- Tarjeta principal -->
 <div class="row animate-fade-in">
     <div class="col-12">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
                 <i class="bi bi-list-ul"></i>
-                Ordeños Registrados
+                Ordeños registrados
                 <span class="badge bg-secondary ms-2">{{ ordeno_list.paginator.count }}</span>
             </div>
             <div class="p-4">
-                <!-- ========================================== -->
-                <!-- FILTRO DE BÚSQUEDA (NUEVO)                -->
-                <!-- ========================================== -->
+                <!-- Filtro de búsqueda -->
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <form method="GET" action="" class="d-flex">
@@ -135,33 +133,31 @@ Listado de Ordeños | Hacienda Joseph
                     </div>
                 </div>
 
-                <!-- ========================================== -->
-                <!-- TABLA (MISMA ESTRUCTURA QUE ANTES)       -->
-                <!-- ========================================== -->
+                <!-- Tabla -->
                 <div class="table-responsive">
                     <table id="tablaOrdeno" class="table table-hacienda align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>ANIMAL</th>
-                                <th>FECHA</th>
-                                <th>TURNO</th>
-                                <th>LITROS</th>
-                                <th>TEMP. LECHE</th>
-                                <th>CONCENTRADO</th>
-                                <th>TEMP. AMBIENTE</th>
-                                <th>OBSERVACIONES</th>
-                                <th>REGISTRADO POR</th>
-                                <th>ACCIONES</th>
+                                <th>Id</th>
+                                <th>Animal</th>
+                                <th>Fecha</th>
+                                <th>Turno</th>
+                                <th>Litros</th>
+                                <th>Temp. leche</th>
+                                <th>Concentrado</th>
+                                <th>Temp. ambiente</th>
+                                <th>Observaciones</th>
+                                <th>Registrado por</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for ordeno in ordeno_list %}
                             <tr>
-                                <!-- ID -->
+                                <!-- Id -->
                                 <td class="fw-bold text-muted">#{{ ordeno.id_or }}</td>
                                 
-                                <!-- ANIMAL -->
+                                <!-- Animal -->
                                 <td>
                                     <span class="badge rounded-pill p-2" style="background: #e8f5e9; color: #2c5e1a; border: 1px solid #2c5e1a;">
                                         <i class="bi bi-emoji-smile me-1"></i>
@@ -173,7 +169,7 @@ Listado de Ordeños | Hacienda Joseph
                                     <br><small class="text-muted"><i class="bi bi-tag me-1"></i>{{ ordeno.fk_an.categoria_an }}</small>
                                 </td>
                                 
-                                <!-- FECHA -->
+                                <!-- Fecha -->
                                 <td>
                                     <span class="fw-bold" style="color: #5c450e;">
                                         <i class="bi bi-calendar-check me-1"></i>
@@ -181,7 +177,7 @@ Listado de Ordeños | Hacienda Joseph
                                     </span>
                                 </td>
                                 
-                                <!-- TURNO -->
+                                <!-- Turno -->
                                 <td>
                                     {% if ordeno.turno_or == 'manana' %}
                                     <span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745;">
@@ -198,7 +194,7 @@ Listado de Ordeños | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- LITROS -->
+                                <!-- Litros -->
                                 <td>
                                     {% if ordeno.litros_or >= 20 %}
                                     <span class="badge rounded-pill p-2" style="background:#28a745; color:white;">
@@ -215,7 +211,7 @@ Listado de Ordeños | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- TEMPERATURA LECHE -->
+                                <!-- Temp. leche -->
                                 <td>
                                     {% if ordeno.temperatura_leche_or %}
                                         {% if ordeno.temperatura_leche_or > 7 %}
@@ -236,7 +232,7 @@ Listado de Ordeños | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- CONCENTRADO -->
+                                <!-- Concentrado -->
                                 <td>
                                     {% if ordeno.cantidad_concentrado_kg_or %}
                                     <span class="text-muted">
@@ -248,7 +244,7 @@ Listado de Ordeños | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- TEMPERATURA AMBIENTAL -->
+                                <!-- Temp. ambiente -->
                                 <td>
                                     {% if ordeno.temperatura_ambiental_or %}
                                     <span class="text-muted">
@@ -260,7 +256,7 @@ Listado de Ordeños | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- OBSERVACIONES -->
+                                <!-- Observaciones -->
                                 <td>
                                     {% if ordeno.observaciones_or %}
                                     <span class="text-muted" style="font-size: 13px;">
@@ -272,7 +268,7 @@ Listado de Ordeños | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- REGISTRADO POR -->
+                                <!-- Registrado por -->
                                 <td>
                                     <span class="text-muted">
                                         <i class="bi bi-person me-1 text-success"></i>
@@ -283,9 +279,9 @@ Listado de Ordeños | Hacienda Joseph
                                     </small>
                                 </td>
                                 
-                                <!-- ACCIONES -->
+                                <!-- Acciones -->
                                 <td>
-                                    <!-- VER DETALLE (MODAL) -->
+                                    <!-- Ver detalle (modal) -->
                                     <button type="button" class="btn btn-sm btn-info" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#modalDetalleOrdeno"
@@ -307,12 +303,12 @@ Listado de Ordeños | Hacienda Joseph
                                         <i class="bi bi-eye"></i>
                                     </button>
                                     
-                                    <!-- EDITAR -->
+                                    <!-- Editar -->
                                     <a href="/editarordeno/{{ ordeno.id_or }}" class="btn btn-sm btn-hacienda-secondary" title="Editar">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                     
-                                    <!-- ELIMINAR -->
+                                    <!-- Eliminar -->
                                     <button type="button" class="btn btn-sm btn-danger"
                                             data-bs-toggle="modal"
                                             data-bs-target="#modalEliminarOrdeno"
@@ -342,9 +338,7 @@ Listado de Ordeños | Hacienda Joseph
                     </table>
                 </div>
 
-                <!-- ========================================== -->
-                <!-- PAGINACIÓN DE DJANGO (NUEVO)             -->
-                <!-- ========================================== -->
+                <!-- Paginación de Django -->
                 {% if ordeno_list.has_other_pages %}
                 <div class="row mt-4">
                     <div class="col-md-6">
@@ -412,7 +406,7 @@ Listado de Ordeños | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL DETALLE ORDEÑO                       -->
+<!-- Modal detalle ordeño                      -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalDetalleOrdeno" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -420,7 +414,7 @@ Listado de Ordeños | Hacienda Joseph
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-droplet-fill me-2" style="color: #DAA520;"></i>
-                    DETALLE DEL ORDEÑO
+                    Detalle del ordeño
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -444,60 +438,60 @@ Listado de Ordeños | Hacienda Joseph
                         <div class="p-4">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold">ID ORDEÑO</label>
+                                    <label class="text-muted small fw-bold">Id ordeño</label>
                                     <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<span id="detalleId"></span></p>
                                 </div>
                                 <div class="col-6 text-end">
-                                    <label class="text-muted small fw-bold">FECHA</label>
+                                    <label class="text-muted small fw-bold">Fecha</label>
                                     <p class="mb-0 fw-bold" style="color: #5c450e;" id="detalleFecha"></p>
                                 </div>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-sun me-1"></i>TURNO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-sun me-1"></i>Turno</label>
                                     <p class="mb-0" id="detalleTurno" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-droplet me-1"></i>LITROS</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-droplet me-1"></i>Litros</label>
                                     <p class="mb-0 fw-bold" id="detalleLitros" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-thermometer me-1"></i>TEMP. LECHE</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-thermometer me-1"></i>Temp. leche</label>
                                     <p class="mb-0" id="detalleTempLeche" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-thermometer-sun me-1"></i>TEMP. AMBIENTE</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-thermometer-sun me-1"></i>Temp. ambiente</label>
                                     <p class="mb-0" id="detalleTempAmbiente" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-12">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-basket me-1"></i>CONCENTRADO (kg)</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-basket me-1"></i>Concentrado (kg)</label>
                                     <p class="mb-0" id="detalleConcentrado" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="mb-3">
-                                <label class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i>OBSERVACIONES</label>
+                                <label class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i>Observaciones</label>
                                 <p class="mb-0" id="detalleObservaciones" style="color: #5c450e; font-style: italic;"></p>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-0">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>REGISTRADO POR</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>Registrado por</label>
                                     <p class="mb-0" id="detalleUsuario" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>FECHA REGISTRO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>Fecha registro</label>
                                     <p class="mb-0" id="detalleCreated" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <div class="row mt-2 mb-0">
                                 <div class="col-12">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-clockwise me-1"></i>ÚLTIMA MODIFICACIÓN</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-clockwise me-1"></i>Última modificación</label>
                                     <p class="mb-0" id="detalleUpdated" style="color: #5c450e;"></p>
                                 </div>
                             </div>
@@ -507,7 +501,7 @@ Listado de Ordeños | Hacienda Joseph
             </div>
             <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
                 <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
-                    <i class="bi bi-pencil-square me-1"></i>Editar Ordeño
+                    <i class="bi bi-pencil-square me-1"></i>Editar ordeño
                 </a>
                 <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
                     <i class="bi bi-x-lg me-1"></i>Cerrar
@@ -518,7 +512,7 @@ Listado de Ordeños | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL ELIMINAR ORDEÑO                      -->
+<!-- Modal eliminar ordeño                     -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalEliminarOrdeno" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -526,7 +520,7 @@ Listado de Ordeños | Hacienda Joseph
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
-                    CONFIRMAR ELIMINACIÓN
+                    Confirmar eliminación
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -556,7 +550,7 @@ Listado de Ordeños | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- ESTILOS PARA PAGINACIÓN                   -->
+<!-- Estilos para paginación                   -->
 <!-- ========================================== -->
 <style>
     .pagination .page-link {
@@ -581,11 +575,11 @@ Listado de Ordeños | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
-<!-- SCRIPTS EXTRA                              -->
+<!-- Scripts extra                             -->
 <!-- ========================================== -->
 {% block scripts_extra %}
 <script>
-    // Modal Detalle Ordeño
+    // Modal detalle ordeño
     var modalDetalleOrdeno = document.getElementById('modalDetalleOrdeno');
     modalDetalleOrdeno.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
@@ -659,11 +653,11 @@ Listado de Ordeños | Hacienda Joseph
         if (tempLeche !== '---') {
             var temp = parseFloat(tempLeche);
             if (temp > 7) {
-                tempLecheHtml = '<span class="badge rounded-pill p-2" style="background:#dc3545; color:white;"><i class="bi bi-thermometer-high me-1"></i> ' + temp + '°C (ALTA)</span>';
+                tempLecheHtml = '<span class="badge rounded-pill p-2" style="background:#dc3545; color:white;"><i class="bi bi-thermometer-high me-1"></i> ' + temp + '°C (alta)</span>';
             } else if (temp < 4) {
-                tempLecheHtml = '<span class="badge rounded-pill p-2" style="background:#17a2b8; color:white;"><i class="bi bi-thermometer-low me-1"></i> ' + temp + '°C (BAJA)</span>';
+                tempLecheHtml = '<span class="badge rounded-pill p-2" style="background:#17a2b8; color:white;"><i class="bi bi-thermometer-low me-1"></i> ' + temp + '°C (baja)</span>';
             } else {
-                tempLecheHtml = '<span class="badge rounded-pill p-2" style="background:#28a745; color:white;"><i class="bi bi-thermometer me-1"></i> ' + temp + '°C (OK)</span>';
+                tempLecheHtml = '<span class="badge rounded-pill p-2" style="background:#28a745; color:white;"><i class="bi bi-thermometer me-1"></i> ' + temp + '°C (ok)</span>';
             }
         } else {
             tempLecheHtml = '<span class="text-muted fst-italic">No registrada</span>';
@@ -693,7 +687,7 @@ Listado de Ordeños | Hacienda Joseph
 </script>
 
 <script>
-    // Modal Eliminar Ordeño
+    // Modal eliminar ordeño
     var modalEliminarOrdeno = document.getElementById('modalEliminarOrdeno');
     modalEliminarOrdeno.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
@@ -711,5 +705,5 @@ Listado de Ordeños | Hacienda Joseph
     });
 </script>
 
-<!-- ELIMINADO: DataTables y su CSS para evitar carga de 13,808 registros -->
+<!-- Eliminado: DataTables y su CSS para evitar carga de 13,808 registros -->
 {% endblock %}
