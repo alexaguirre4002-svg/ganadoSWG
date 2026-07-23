@@ -10750,7 +10750,6 @@ def prediccion_rl4(request):
 # ==========================================
 # VISTA: DASHBOARD GRÁFICO (ESTADÍSTICAS) - GRÁFICAS POR PERÍODO
 # ==========================================
-
 def dashboard_grafico(request):
     """
     Dashboard gráfico con estadísticas generales de la hacienda,
@@ -10767,13 +10766,14 @@ def dashboard_grafico(request):
     from collections import defaultdict
 
     # === PRODUCCIÓN DE LECHE (GLOBAL - RESUMEN SUPERIOR) ===
+    # 🔥 ELIMINADO EL LÍMITE [:12] PARA MOSTRAR TODOS LOS PERIODOS
     produccion_mes = Ordeno.objects.annotate(
         mes=ExtractMonth('fecha_or'),
         anio=ExtractYear('fecha_or')
     ).values('mes', 'anio').annotate(
         total_litros=Sum('litros_or'),
         cantidad=Count('pk')
-    ).order_by('anio', 'mes')[:12]
+    ).order_by('anio', 'mes')  # ← SIN LÍMITE
 
     produccion_animal = Ordeno.objects.values('fk_an__codigo_an').annotate(
         total_litros=Sum('litros_or'),
@@ -10783,13 +10783,15 @@ def dashboard_grafico(request):
     litros_turno = Ordeno.objects.values('turno_or').annotate(total=Sum('litros_or'))
 
     # === CALIDAD DE LECHE (GLOBAL) ===
+    # 🔥 ELIMINADO EL LÍMITE [:12]
     calidad_mes = CalidadLeche.objects.annotate(
         mes=ExtractMonth('fecha_muestreo_cl'),
         anio=ExtractYear('fecha_muestreo_cl')
     ).values('mes', 'anio').annotate(
         aptos=Count('pk', filter=Q(resultado_cl='apto')),
         no_aptos=Count('pk', filter=Q(resultado_cl='no_apto'))
-    ).order_by('anio', 'mes')[:12]
+    ).order_by('anio', 'mes')  # ← SIN LÍMITE
+
     calidad_total = CalidadLeche.objects.count()
 
     # === ANIMALES (GLOBAL) ===
@@ -10813,11 +10815,11 @@ def dashboard_grafico(request):
         'rl4': modelo_esta_entrenado('RL-4'),
     }
 
-    # === RECOMENDACIONES GLOBALES (resumen superior, sin cambios) ===
+    # === RECOMENDACIONES GLOBALES ===
     recomendaciones = []
 
     if produccion_mes:
-        ultimos_3 = list(produccion_mes)[-3:]
+        ultimos_3 = list(produccion_mes)[-3:] if len(produccion_mes) >= 3 else list(produccion_mes)
         if len(ultimos_3) >= 2:
             tendencia = ultimos_3[-1]['total_litros'] - ultimos_3[0]['total_litros']
             if tendencia > 0:
@@ -10868,7 +10870,7 @@ def dashboard_grafico(request):
             'texto': 'Los modelos de predicción están entrenados y listos para apoyar la toma de decisiones.'
         })
 
-    # Recomendaciones globales adicionales (sin gráficas propias, solo texto)
+    # Recomendaciones globales adicionales
     insem_estado_global = Inseminacion.objects.values('resultado_in').annotate(cantidad=Count('pk'))
     total_insem_global = sum(i['cantidad'] for i in insem_estado_global)
     pendientes_insem_global = next((i['cantidad'] for i in insem_estado_global if i['resultado_in'] == 'pendiente'), 0)
@@ -10890,7 +10892,7 @@ def dashboard_grafico(request):
             'texto': f'"{cat_min["categoria_an"]}" tiene el peso promedio más bajo ({round(float(cat_min["promedio"] or 0),1)} kg) de todo el hato. Revisar su plan nutricional.'
         })
 
-    # === PREPARAR DATOS PARA LAS GRÁFICAS GLOBALES ORIGINALES ===
+    # === PREPARAR DATOS PARA LAS GRÁFICAS GLOBALES ===
     meses_labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
     prod_labels = []
@@ -10953,7 +10955,7 @@ def dashboard_grafico(request):
     for r in turno_raw:
         turno_por_periodo[(r['anio'], r['mes'])].append(r)
 
-    # --- Producción por raza (NUEVO por período) ---
+    # --- Producción por raza ---
     raza_raw = Ordeno.objects.annotate(
         anio=ExtractYear('fecha_or'), mes=ExtractMonth('fecha_or')
     ).values('anio', 'mes', 'fk_an__fk_ra__nombre_ra').annotate(total=Sum('litros_or'))
@@ -10971,7 +10973,7 @@ def dashboard_grafico(request):
     )
     calidad_por_periodo = {(r['anio'], r['mes']): r for r in calidad_raw}
 
-    # --- Composición de leche (grasa/proteína) (NUEVO por período) ---
+    # --- Composición de leche ---
     composicion_raw = CalidadLeche.objects.annotate(
         anio=ExtractYear('fecha_muestreo_cl'), mes=ExtractMonth('fecha_muestreo_cl')
     ).exclude(grasa_pct_cl__isnull=True).values('anio', 'mes').annotate(
@@ -11022,7 +11024,6 @@ def dashboard_grafico(request):
     )
     inseminacion_por_periodo = {(r['anio'], r['mes']): r for r in inseminacion_raw}
 
-    # --- Estado de inseminaciones detallado (NUEVO por período, para el pie chart) ---
     RESULTADO_INSEM_LABELS = {'preñada': 'Preñada', 'no_preñada': 'No Preñada', 'pendiente': 'Pendiente'}
     insem_detalle_raw = Inseminacion.objects.annotate(
         anio=ExtractYear('fecha_in'), mes=ExtractMonth('fecha_in')
@@ -11046,7 +11047,6 @@ def dashboard_grafico(request):
     )
     eventos_por_periodo = {(r['anio'], r['mes']): r for r in evento_raw}
 
-    # --- Eventos sanitarios por tipo (NUEVO por período) ---
     eventos_tipo_raw = EventoSanitario.objects.annotate(
         anio=ExtractYear('fecha_programada_es'), mes=ExtractMonth('fecha_programada_es')
     ).values('anio', 'mes', 'tipo_evento_es').annotate(total=Count('pk'))
@@ -11059,7 +11059,7 @@ def dashboard_grafico(request):
     ).values('anio', 'mes').annotate(total=Count('pk'), costo=Sum('costo_tratamiento_rc'))
     registros_por_periodo = {(r['anio'], r['mes']): r for r in registro_raw}
 
-    # --- Peso promedio por categoría (NUEVO por período, desde Pesaje) ---
+    # --- Peso ---
     pesaje_cat_raw = Pesaje.objects.annotate(
         anio=ExtractYear('fecha_pe'), mes=ExtractMonth('fecha_pe')
     ).values('anio', 'mes', 'fk_an__categoria_an').annotate(promedio=Avg('peso_kg_pe'))
@@ -11067,7 +11067,7 @@ def dashboard_grafico(request):
     for r in pesaje_cat_raw:
         pesaje_cat_por_periodo[(r['anio'], r['mes'])].append(r)
 
-    # --- Celo: observaciones por intensidad (NUEVO por período) ---
+    # --- Celo ---
     CELO_LABELS = {'alta': 'Alta', 'media': 'Media', 'baja': 'Baja'}
     celo_raw = Celo.objects.annotate(
         anio=ExtractYear('fecha_observacion_ce'), mes=ExtractMonth('fecha_observacion_ce')
@@ -11081,7 +11081,7 @@ def dashboard_grafico(request):
     ).values('anio', 'mes').annotate(total=Count('pk'))
     celo_total_por_periodo = {(r['anio'], r['mes']): r['total'] for r in celo_total_raw}
 
-    # --- Movimientos de animales: por tipo (NUEVO por período) ---
+    # --- Movimientos ---
     MOVIMIENTO_LABELS = {
         'compra': 'Compra', 'venta': 'Venta', 'traslado': 'Traslado',
         'nacimiento': 'Nacimiento', 'muerte': 'Muerte', 'faena': 'Faena'
@@ -11108,7 +11108,7 @@ def dashboard_grafico(request):
     ).values('anio', 'mes').annotate(total=Count('pk'))
     muertes_por_periodo = {(r['anio'], r['mes']): r['total'] for r in muertes_raw}
 
-    # --- Raciones / Nutrición: ofrecido vs consumido vs desperdicio (NUEVO por período) ---
+    # --- Raciones ---
     racion_raw = Racion.objects.annotate(
         anio=ExtractYear('fecha_inicio_ra'), mes=ExtractMonth('fecha_inicio_ra')
     ).values('anio', 'mes').annotate(
@@ -11118,7 +11118,7 @@ def dashboard_grafico(request):
     )
     racion_por_periodo = {(r['anio'], r['mes']): r for r in racion_raw}
 
-    # --- Secados (NUEVO por período) ---
+    # --- Secados ---
     SECADO_LABELS = {
         'preñez_avanzada': 'Preñez avanzada', 'baja_produccion': 'Baja producción',
         'enfermedad': 'Enfermedad', 'programado': 'Programado', 'otro': 'Otro'
@@ -11135,7 +11135,7 @@ def dashboard_grafico(request):
     for r in secado_causa_raw:
         secado_causa_por_periodo[(r['anio'], r['mes'])].append(r)
 
-    # --- Entregas de leche (venta a planta/cliente) (NUEVO por período) ---
+    # --- Entregas de leche ---
     entrega_raw = EntregaLeche.objects.annotate(
         anio=ExtractYear('fecha_el'), mes=ExtractMonth('fecha_el')
     ).values('anio', 'mes').annotate(
@@ -11216,13 +11216,13 @@ def dashboard_grafico(request):
         celo_p = celo_por_periodo.get(key, [])
         num_celos = celo_total_por_periodo.get(key, 0)
 
-        # Movimientos de animales
+        # Movimientos
         movimiento_p = movimiento_por_periodo.get(key, [])
         monto_compras = compras_monto_por_periodo.get(key, 0)
         monto_ventas = ventas_monto_por_periodo.get(key, 0)
         num_muertes = muertes_por_periodo.get(key, 0)
 
-        # Nutrición / Raciones
+        # Nutrición
         racion = racion_por_periodo.get(key, {})
         kg_ofrecido = float(racion.get('ofrecido') or 0)
         kg_consumido = float(racion.get('consumido') or 0)
@@ -11233,13 +11233,13 @@ def dashboard_grafico(request):
         num_secados = secado_por_periodo.get(key, 0)
         secado_causa_p = secado_causa_por_periodo.get(key, [])
 
-        # Entregas de leche
+        # Entregas
         entrega = entrega_por_periodo.get(key, {})
         entrega_litros = float(entrega.get('litros') or 0)
         entrega_monto = float(entrega.get('monto') or 0)
         entrega_cantidad = entrega.get('cantidad', 0)
 
-        # --- RECOMENDACIONES ESPECÍFICAS DEL PERÍODO ---
+        # --- RECOMENDACIONES DEL PERÍODO ---
         recs = []
 
         if pct_aptos is not None:
@@ -11406,8 +11406,7 @@ def dashboard_grafico(request):
             'recomendaciones': recs,
         }
 
-    # Filtrar: solo mostrar desde el año que realmente empezó a operar la hacienda.
-    # Esto evita que datos mal cargados (fechas erróneas anteriores) contaminen el historial.
+    # 🔥 FILTRO DE AÑO MÍNIMO (elimina basura, pero conserva 2021-2026)
     ANIO_MINIMO_HISTORIAL = 2021
     dashboard_periodos = {
         a: m for a, m in dashboard_periodos.items() if a >= ANIO_MINIMO_HISTORIAL
@@ -11427,7 +11426,7 @@ def dashboard_grafico(request):
         'ml_estado': ml_estado,
         'recomendaciones': recomendaciones,
         'dashboard_periodos': dashboard_periodos,
-        # Gráficas globales originales (sin cambios de tu versión inicial)
+        # Gráficas globales originales (AHORA CON TODOS LOS PERIODOS)
         'prod_labels': prod_labels,
         'prod_values': prod_values,
         'turno_labels': turno_labels,
