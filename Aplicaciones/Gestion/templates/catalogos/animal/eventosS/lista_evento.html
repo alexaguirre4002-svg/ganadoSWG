@@ -5,7 +5,7 @@
 <!-- TITULO                                    -->
 <!-- ========================================== -->
 {% block titulo %}
-Listado de Eventos Sanitarios | Hacienda Joseph
+Listado de eventos sanitarios | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -23,7 +23,7 @@ Listado de Eventos Sanitarios | Hacienda Joseph
     </a>
 </li>
 <li class="breadcrumb-item active" aria-current="page">
-    Eventos Sanitarios
+    Eventos sanitarios
 </li>
 {% endblock %}
 
@@ -32,13 +32,13 @@ Listado de Eventos Sanitarios | Hacienda Joseph
 <!-- ========================================== -->
 {% block contenido %}
 
-<!-- TARJETAS ESTADÍSTICAS -->
+<!-- Tarjetas estadísticas -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-2">
         <div class="card-hacienda text-center p-3">
             <i class="bi bi-heart-pulse fs-2" style="color: var(--color-primario);"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_eventos }}</h4>
-            <small class="text-muted">Total Eventos</small>
+            <small class="text-muted">Total eventos</small>
         </div>
     </div>
     <div class="col-md-2">
@@ -73,17 +73,17 @@ Listado de Eventos Sanitarios | Hacienda Joseph
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #17a2b8;">
             <i class="bi bi-currency-dollar fs-2" style="color: #17a2b8;"></i>
             <h4 class="fw-bold mt-2 mb-0">${{ costo_total|default:"0.00" }}</h4>
-            <small class="text-muted">Costo Total</small>
+            <small class="text-muted">Costo total</small>
         </div>
     </div>
 </div>
 
-<!-- TITULO -->
+<!-- Titulo -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8">
         <h2 class="fw-bold" style="color: var(--color-primario);">
             <i class="bi bi-heart-pulse me-2"></i>
-            Listado de Eventos Sanitarios
+            Listado de eventos sanitarios
         </h2>
         <p class="text-muted mb-0">
             <i class="bi bi-info-circle me-1"></i>
@@ -93,44 +93,71 @@ Listado de Eventos Sanitarios | Hacienda Joseph
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <a href="/nuevoeventosanitario/" class="btn btn-hacienda">
             <i class="bi bi-plus-circle me-2"></i>
-            Nuevo Evento Sanitario
+            Nuevo evento sanitario
         </a>
     </div>
 </div>
 
-<!-- TARJETA PRINCIPAL -->
+<!-- Tarjeta principal -->
 <div class="row animate-fade-in">
     <div class="col-12">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
                 <i class="bi bi-list-ul"></i>
-                Eventos Sanitarios Registrados
+                Eventos sanitarios registrados
+                <span class="badge bg-secondary ms-2">{{ eventos.paginator.count }}</span>
             </div>
             <div class="p-4">
+                <!-- Filtro de búsqueda -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="GET" action="" class="d-flex">
+                            <input type="text" name="search" class="form-control form-control-sm" 
+                                   placeholder="🔍 Buscar por animal o tipo..." 
+                                   value="{{ request.GET.search }}">
+                            <button type="submit" class="btn btn-sm btn-hacienda ms-2">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            {% if request.GET.search %}
+                            <a href="?page=1" class="btn btn-sm btn-hacienda-secondary ms-1">
+                                <i class="bi bi-x-circle"></i>
+                            </a>
+                            {% endif %}
+                        </form>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <small class="text-muted">
+                            Mostrando {{ eventos.start_index }} a {{ eventos.end_index }} 
+                            de {{ eventos.paginator.count }} registros
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Tabla -->
                 <div class="table-responsive">
-                    <table id="tablaEventosSanitarios" class="table table-hacienda align-middle mb-0">
+                    <table class="table table-hacienda align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>FECHA PROG.</th>
-                                <th>FECHA EJEC.</th>
-                                <th>ANIMAL</th>
-                                <th>TIPO</th>
-                                <th>ESTADO</th>
-                                <th>PRODUCTO</th>
-                                <th>VÍA</th>
-                                <th>VETERINARIO</th>
-                                <th>COSTO</th>
-                                <th>ACCIONES</th>
+                                <th>Id</th>
+                                <th>Fecha prog.</th>
+                                <th>Fecha ejec.</th>
+                                <th>Animal</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Producto</th>
+                                <th>Vía</th>
+                                <th>Veterinario</th>
+                                <th>Costo</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for evento in eventos %}
                             <tr>
-                                <!-- ID -->
+                                <!-- Id -->
                                 <td class="fw-bold text-muted">#{{ evento.id_es }}</td>
                                 
-                                <!-- FECHA PROGRAMADA -->
+                                <!-- Fecha programada -->
                                 <td>
                                     <span class="fw-bold" style="color: #5c450e;">
                                         <i class="bi bi-calendar-event me-1"></i>
@@ -138,7 +165,7 @@ Listado de Eventos Sanitarios | Hacienda Joseph
                                     </span>
                                 </td>
                                 
-                                <!-- FECHA EJECUTADA -->
+                                <!-- Fecha ejecutada -->
                                 <td>
                                     {% if evento.fecha_ejecutada_es %}
                                     <span class="fw-bold text-success">
@@ -153,7 +180,7 @@ Listado de Eventos Sanitarios | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- ANIMAL -->
+                                <!-- Animal -->
                                 <td>
                                     <span class="badge rounded-pill p-2" style="background: #e8f5e9; color: #2c5e1a; border: 1px solid #2c5e1a;">
                                         <i class="bi bi-emoji-smile me-1"></i>
@@ -164,7 +191,7 @@ Listado de Eventos Sanitarios | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- TIPO -->
+                                <!-- Tipo -->
                                 <td>
                                     {% if evento.tipo_evento_es == 'vacunacion' %}
                                     <span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745;">
@@ -193,7 +220,7 @@ Listado de Eventos Sanitarios | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- ESTADO -->
+                                <!-- Estado -->
                                 <td>
                                     {% if evento.estado_es == 'pendiente' %}
                                     <span class="badge rounded-pill p-2" style="background:#ffc107; color:#1a1a1a;">
@@ -216,7 +243,7 @@ Listado de Eventos Sanitarios | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- PRODUCTO -->
+                                <!-- Producto -->
                                 <td>
                                     {% if evento.fk_pv %}
                                     <span class="text-muted">
@@ -228,7 +255,7 @@ Listado de Eventos Sanitarios | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- VÍA ADMINISTRACIÓN -->
+                                <!-- Vía administración -->
                                 <td>
                                     {% if evento.via_administracion_es %}
                                     <span class="badge rounded-pill p-2" style="background:#e3f2fd; color:#1565c0; border: 1px solid #1565c0;">
@@ -249,7 +276,7 @@ Listado de Eventos Sanitarios | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- VETERINARIO -->
+                                <!-- Veterinario -->
                                 <td>
                                     {% if evento.veterinario_responsable_es %}
                                     <span class="text-muted">
@@ -261,7 +288,7 @@ Listado de Eventos Sanitarios | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- COSTO -->
+                                <!-- Costo -->
                                 <td class="fw-bold">
                                     {% if evento.costo_es %}
                                     <span style="color: #2c5e1a;">
@@ -273,9 +300,9 @@ Listado de Eventos Sanitarios | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- ACCIONES -->
+                                <!-- Acciones -->
                                 <td>
-                                    <!-- VER DETALLE (MODAL) -->
+                                    <!-- Ver detalle (modal) -->
                                     <button type="button" class="btn btn-sm btn-info" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#modalDetalleEvento"
@@ -298,12 +325,12 @@ Listado de Eventos Sanitarios | Hacienda Joseph
                                         <i class="bi bi-eye"></i>
                                     </button>
                                     
-                                    <!-- EDITAR -->
+                                    <!-- Editar -->
                                     <a href="/editareventosanitario/{{ evento.id_es }}" class="btn btn-sm btn-hacienda-secondary" title="Editar">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                     
-                                    <!-- ELIMINAR -->
+                                    <!-- Eliminar -->
                                     <button type="button" class="btn btn-sm btn-danger"
                                             data-bs-toggle="modal"
                                             data-bs-target="#modalEliminarEvento"
@@ -331,11 +358,68 @@ Listado de Eventos Sanitarios | Hacienda Joseph
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Paginación de Django -->
+                {% if eventos.has_other_pages %}
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            Mostrando {{ eventos.start_index }} a {{ eventos.end_index }} 
+                            de {{ eventos.paginator.count }} registros
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <nav aria-label="Paginación de eventos sanitarios">
+                            <ul class="pagination justify-content-end flex-wrap">
+                                {% if eventos.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ eventos.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+
+                                {% for num in eventos.paginator.page_range %}
+                                    {% if eventos.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                    {% elif num > eventos.number|add:'-3' and num < eventos.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                            {{ num }}
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if eventos.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ eventos.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ eventos.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                {% endif %}
             </div>
             <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
                 <small class="text-muted">
                     <i class="bi bi-bar-chart-line me-1"></i>
-                    Total de eventos: <strong>{{ eventos|length }}</strong>
+                    Total de eventos: <strong>{{ eventos.paginator.count }}</strong>
                 </small>
             </div>
         </div>
@@ -343,7 +427,7 @@ Listado de Eventos Sanitarios | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL DETALLE EVENTO SANITARIO             -->
+<!-- Modal detalle evento sanitario             -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalDetalleEvento" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -351,7 +435,7 @@ Listado de Eventos Sanitarios | Hacienda Joseph
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-heart-pulse-fill me-2" style="color: #DAA520;"></i>
-                    DETALLE DEL EVENTO SANITARIO
+                    Detalle del evento sanitario
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -371,62 +455,62 @@ Listado de Eventos Sanitarios | Hacienda Joseph
                         <div class="p-4">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold">ID EVENTO</label>
-                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<<span id="detalleId"></span></p>
+                                    <label class="text-muted small fw-bold">Id evento</label>
+                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<span id="detalleId"></span></p>
                                 </div>
                                 <div class="col-6 text-end">
-                                    <label class="text-muted small fw-bold">ESTADO</label>
+                                    <label class="text-muted small fw-bold">Estado</label>
                                     <div id="detalleEstado"></div>
                                 </div>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-event me-1"></i>FECHA PROGRAMADA</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-event me-1"></i>Fecha programada</label>
                                     <p class="mb-0" id="detalleFechaProg" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>FECHA EJECUTADA</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>Fecha ejecutada</label>
                                     <p class="mb-0" id="detalleFechaEjec" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-box-seam me-1"></i>PRODUCTO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-box-seam me-1"></i>Producto</label>
                                     <p class="mb-0" id="detalleProducto" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-droplet me-1"></i>DOSIS</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-droplet me-1"></i>Dosis</label>
                                     <p class="mb-0" id="detalleDosis" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-activity me-1"></i>VÍA ADMINISTRACIÓN</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-activity me-1"></i>Vía administración</label>
                                     <p class="mb-0" id="detalleVia" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-person-badge me-1"></i>VETERINARIO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person-badge me-1"></i>Veterinario</label>
                                     <p class="mb-0" id="detalleVeterinario" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="mb-3">
-                                <label class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i>RESULTADO</label>
+                                <label class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i>Resultado</label>
                                 <p class="mb-0" id="detalleResultado" style="color: #5c450e; font-style: italic;"></p>
                             </div>
                             <div class="mb-0">
-                                <label class="text-muted small fw-bold"><i class="bi bi-currency-dollar me-1"></i>COSTO</label>
+                                <label class="text-muted small fw-bold"><i class="bi bi-currency-dollar me-1"></i>Costo</label>
                                 <p class="mb-0 fw-bold" id="detalleCosto" style="color: #2c5e1a;"></p>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-0">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>REGISTRADO POR</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>Registrado por</label>
                                     <p class="mb-0" id="detalleUsuario" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>FECHA REGISTRO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>Fecha registro</label>
                                     <p class="mb-0" id="detalleCreated" style="color: #5c450e;"></p>
                                 </div>
                             </div>
@@ -436,7 +520,7 @@ Listado de Eventos Sanitarios | Hacienda Joseph
             </div>
             <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
                 <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
-                    <i class="bi bi-pencil-square me-1"></i>Editar Evento
+                    <i class="bi bi-pencil-square me-1"></i>Editar evento
                 </a>
                 <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
                     <i class="bi bi-x-lg me-1"></i>Cerrar
@@ -447,7 +531,7 @@ Listado de Eventos Sanitarios | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL ELIMINAR EVENTO SANITARIO            -->
+<!-- Modal eliminar evento sanitario            -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalEliminarEvento" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -455,7 +539,7 @@ Listado de Eventos Sanitarios | Hacienda Joseph
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
-                    CONFIRMAR ELIMINACIÓN
+                    Confirmar eliminación
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -484,145 +568,37 @@ Listado de Eventos Sanitarios | Hacienda Joseph
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- Estilos para paginación                   -->
+<!-- ========================================== -->
+<style>
+    .pagination .page-link {
+        color: var(--color-primario);
+        border-color: #d4c5a9;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: var(--color-primario);
+        border-color: var(--color-primario);
+        color: white;
+    }
+    .pagination .page-link:hover {
+        background-color: #e8f5e9;
+        border-color: var(--color-primario);
+    }
+    .card-header-hacienda .badge {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.65rem;
+    }
+</style>
+
 {% endblock %}
 
 <!-- ========================================== -->
 <!-- SCRIPTS EXTRA                              -->
 <!-- ========================================== -->
 {% block scripts_extra %}
-
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-
-<style>
-    .dataTables_filter {
-        margin-bottom: 20px !important;
-        background: linear-gradient(135deg, #eef7e8, #dcefd0);
-        padding: 15px 20px;
-        border-radius: 18px;
-        border: 2px solid #b7d7a8;
-        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
-        display: flex !important;
-        align-items: center !important;
-        justify-content: end !important;
-        gap: 10px;
-    }
-    .dataTables_filter::before {
-        content: "💉";
-        font-size: 28px;
-    }
-    .dataTables_filter label {
-        font-weight: bold;
-        color: var(--color-primario);
-        font-size: 17px;
-    }
-    .dataTables_filter input {
-        border-radius: 50px !important;
-        border: 3px solid var(--color-primario) !important;
-        padding: 10px 18px !important;
-        background-color: #ffffff !important;
-        color: var(--color-navbar) !important;
-        font-weight: 600 !important;
-        width: 280px !important;
-        transition: 0.3s !important;
-        box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08);
-        margin-left: 10px !important;
-    }
-    .dataTables_filter input:focus {
-        outline: none !important;
-        border-color: #8dc26f !important;
-        box-shadow: 0px 0px 12px rgba(44,94,26,0.4);
-        background-color: #f8fff5 !important;
-    }
-    .dataTables_length select {
-        border-radius: 10px !important;
-        border: 2px solid var(--color-primario) !important;
-        padding: 5px 10px !important;
-    }
-    .dataTables_paginate {
-        width: 100% !important;
-        display: flex !important;
-        justify-content: center !important;
-        margin-top: 25px !important;
-    }
-    .dataTables_paginate .pagination {
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: flex-end !important;
-        align-items: center !important;
-        gap: 0px !important;
-        flex-wrap: nowrap !important;
-    }
-    .paginate_button {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 4px !important;
-        border: none !important;
-        background: #dfeedd !important;
-        color: var(--color-primario) !important;
-        font-weight: bold !important;
-        font-size: 14px !important;
-        display: inline-flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        transition: 0.3s !important;
-        margin: 0 3px !important;
-        vertical-align: middle !important;
-        float: none !important;
-    }
-    .paginate_button.current {
-        background: var(--color-primario) !important;
-        color: white !important;
-        border: 2px solid #8dc26f !important;
-        box-shadow: 0px 0px 8px rgba(44,94,26,0.4);
-    }
-    .paginate_button:hover {
-        background: #3d7a24 !important;
-        color: white !important;
-    }
-    .paginate_button.previous, .paginate_button.next {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 4px !important;
-        background: #dfeedd !important;
-        color: var(--color-primario) !important;
-        font-weight: bold !important;
-        font-size: 16px !important;
-    }
-    .paginate_button.previous:hover, .paginate_button.next:hover {
-        background: #3d7a24 !important;
-        color: white !important;
-    }
-</style>
-
 <script>
-    $(document).ready(function () {
-        $('#tablaEventosSanitarios').DataTable({
-            "language": {
-                "lengthMenu": "Mostrar _MENU_ registros",
-                "zeroRecords": "No se encontraron resultados",
-                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                "infoEmpty": "No existen registros",
-                "infoFiltered": "(filtrado de _MAX_ registros)",
-                "search": "Buscar:",
-                "paginate": {
-                    "first": "",
-                    "last": "",
-                    "next": "›",
-                    "previous": "‹"
-                }
-            },
-            "pageLength": 10,
-            "lengthMenu": [5,10,25,50,100],
-            "responsive": true,
-            "pagingType": "simple_numbers",
-            "order": [[1, "asc"]]
-        });
-    });
-</script>
-
-<script>
-    // Modal Detalle Evento
+    // Modal detalle evento
     var modalDetalleEvento = document.getElementById('modalDetalleEvento');
     modalDetalleEvento.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
@@ -649,7 +625,20 @@ Listado de Eventos Sanitarios | Hacienda Joseph
         document.getElementById('detalleAnimal').textContent = animal + ' - ' + animalNombre;
         document.getElementById('detalleProducto').textContent = producto;
         document.getElementById('detalleDosis').textContent = dosis !== '---' ? dosis + ' ml/unidades' : '---';
-        document.getElementById('detalleVia').textContent = via.charAt(0).toUpperCase() + via.slice(1);
+        
+        // Via con formato
+        var viaTexto = via;
+        if (via !== '---') {
+            switch(via) {
+                case 'oral': viaTexto = 'Oral'; break;
+                case 'subcutanea': viaTexto = 'Subcutánea'; break;
+                case 'intramuscular': viaTexto = 'Intramuscular'; break;
+                case 'intravenosa': viaTexto = 'Intravenosa'; break;
+                case 'topica': viaTexto = 'Tópica'; break;
+                default: viaTexto = via;
+            }
+        }
+        document.getElementById('detalleVia').textContent = viaTexto;
         document.getElementById('detalleVeterinario').textContent = veterinario;
         document.getElementById('detalleResultado').textContent = resultado;
         document.getElementById('detalleCosto').textContent = costo !== '---' ? '$ ' + costo : '---';
@@ -659,12 +648,12 @@ Listado de Eventos Sanitarios | Hacienda Joseph
         // Tipo con texto
         var tipoTexto = '';
         switch(tipo) {
-            case 'vacunacion': tipoTexto = 'VACUNACIÓN'; break;
-            case 'desparasitacion': tipoTexto = 'DESPARASITACIÓN'; break;
-            case 'vitaminacion': tipoTexto = 'VITAMINACIÓN'; break;
-            case 'prueba_tuberculosis': tipoTexto = 'PRUEBA TUBERCULOSIS'; break;
-            case 'prueba_brucelosis': tipoTexto = 'PRUEBA BRUCELOSIS'; break;
-            default: tipoTexto = 'OTRO';
+            case 'vacunacion': tipoTexto = 'Vacunación'; break;
+            case 'desparasitacion': tipoTexto = 'Desparasitación'; break;
+            case 'vitaminacion': tipoTexto = 'Vitaminación'; break;
+            case 'prueba_tuberculosis': tipoTexto = 'Prueba tuberculosis'; break;
+            case 'prueba_brucelosis': tipoTexto = 'Prueba brucelosis'; break;
+            default: tipoTexto = 'Otro';
         }
         document.getElementById('detalleTipo').textContent = tipoTexto;
         
@@ -700,7 +689,7 @@ Listado de Eventos Sanitarios | Hacienda Joseph
 </script>
 
 <script>
-    // Modal Eliminar Evento
+    // Modal eliminar evento
     var modalEliminarEvento = document.getElementById('modalEliminarEvento');
     modalEliminarEvento.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
@@ -711,12 +700,12 @@ Listado de Eventos Sanitarios | Hacienda Joseph
         
         var tipoTexto = '';
         switch(tipo) {
-            case 'vacunacion': tipoTexto = 'VACUNACIÓN'; break;
-            case 'desparasitacion': tipoTexto = 'DESPARASITACIÓN'; break;
-            case 'vitaminacion': tipoTexto = 'VITAMINACIÓN'; break;
-            case 'prueba_tuberculosis': tipoTexto = 'PRUEBA TUBERCULOSIS'; break;
-            case 'prueba_brucelosis': tipoTexto = 'PRUEBA BRUCELOSIS'; break;
-            default: tipoTexto = 'OTRO';
+            case 'vacunacion': tipoTexto = 'Vacunación'; break;
+            case 'desparasitacion': tipoTexto = 'Desparasitación'; break;
+            case 'vitaminacion': tipoTexto = 'Vitaminación'; break;
+            case 'prueba_tuberculosis': tipoTexto = 'Prueba tuberculosis'; break;
+            case 'prueba_brucelosis': tipoTexto = 'Prueba brucelosis'; break;
+            default: tipoTexto = 'Otro';
         }
         
         document.getElementById('tipoEventoModal').textContent = tipoTexto;

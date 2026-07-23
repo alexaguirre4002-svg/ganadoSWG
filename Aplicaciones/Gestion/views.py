@@ -20,14 +20,6 @@ from django.core.paginator import Paginator
 # ====== NUEVO: IMPORTS PARA CLOUDINARY ======
 import cloudinary
 import cloudinary.uploader
-# ============================================================
-# CONSTANTES PARA MESES EN ESPAÑOL  ← AGREGAR AQUÍ
-# ============================================================
-MESES_ESPANOL = {
-    1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
-    5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
-    9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
-}
 
 def inicio(request):
     return render(request,'inicio.html')
@@ -11847,185 +11839,129 @@ def calidad_leche_ml(request):
     return render(request, 'ML/prediccionML/calidadL_ML.html', contexto)
 
 # ============================================================
-# API AD-1: HISTORIAL DE PREDICCIONES POR ANIMAL (CORREGIDA)
+# CONSTANTES PARA MESES (AGREGAR AL INICIO DE views.py)
+# ============================================================
+
+MESES_ESPANOL = {
+    1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+    5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+    9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+}
+
+
+# ============================================================
+# API AD-1: PREDICCIONES FUTURAS POR AÑO/MES
 # ============================================================
 
 def api_historial_ad1_animal(request, animal_id):
     """
-    API que muestra el historial de predicciones AD-1 para un animal.
-    AHORA usa TODOS los datos del animal para predicciones precisas.
+    API que muestra PREDICCIONES FUTURAS de litros de leche por mes.
     """
-    from .ml_engine import predecir_ad1
+    from .ml_engine import predecir_anios_ad1
     
     try:
         animal = Animal.objects.get(id_an=animal_id)
     except Animal.DoesNotExist:
         return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'})
     
-    # Obtener ordeños del animal
-    ordenos = Ordeno.objects.filter(
-        fk_an=animal,
-        temperatura_ambiental_or__isnull=False,
-        cantidad_concentrado_kg_or__isnull=False,
-        temperatura_leche_or__isnull=False
-    ).order_by('-fecha_or')[:200]
+    # Obtener predicciones para año actual y siguiente
+    predicciones = predecir_anios_ad1(animal_id)
     
+    # Organizar por año/mes
     agrupado = {}
-    for o in ordenos:
-        datos_entrada = {
-            'temperatura_ambiental': float(o.temperatura_ambiental_or),
-            'cantidad_concentrado_kg': float(o.cantidad_concentrado_kg_or),
-            'temperatura_leche': float(o.temperatura_leche_or),
-            'mes': o.fecha_or.month
-        }
-        
-        # ¡AHORA usa TODOS los datos del animal!
-        resultado = predecir_ad1(animal_id, datos_entrada)
-        
-        if resultado['exito']:
-            anio = o.fecha_or.year
-            mes_nombre = MESES_ESPANOL[o.fecha_or.month]
-            clave = f"{mes_nombre} {anio}"
-            
-            if anio not in agrupado:
-                agrupado[anio] = {}
-            if clave not in agrupado[anio]:
-                agrupado[anio][clave] = []
-            
-            agrupado[anio][clave].append({
-                'fecha': o.fecha_or.strftime('%d/%m/%Y'),
-                'temperatura_ambiental': float(o.temperatura_ambiental_or),
-                'cantidad_concentrado_kg': float(o.cantidad_concentrado_kg_or),
-                'temperatura_leche': float(o.temperatura_leche_or),
-                'litros_reales': float(o.litros_or),
-                'prediccion': resultado['prediccion'],
-                'datos_animal': resultado.get('datos_usados', {}),
-                'confianza': 'R²: N/A'
-            })
+    for anio, meses in predicciones.items():
+        agrupado[anio] = {}
+        for mes, resultado in meses.items():
+            if resultado['exito']:
+                mes_nombre = MESES_ESPANOL.get(mes, 'Desconocido')
+                clave = f"{mes_nombre} {anio}"
+                
+                if clave not in agrupado[anio]:
+                    agrupado[anio][clave] = []
+                
+                agrupado[anio][clave].append({
+                    'fecha': f"01/{mes:02d}/{anio}",
+                    'prediccion': resultado['prediccion'],
+                    'datos_usados': resultado.get('datos_usados', {}),
+                    'confianza': 'N/A'
+                })
     
     return JsonResponse({'exito': True, 'predicciones': agrupado})
 
 
 # ============================================================
-# API AD-2: HISTORIAL DE PREDICCIONES POR ANIMAL (CORREGIDA)
+# API AD-2: PREDICCIONES FUTURAS POR AÑO/MES
 # ============================================================
 
 def api_historial_ad2_animal(request, animal_id):
     """
-    API que muestra el historial de predicciones AD-2 para un animal.
-    AHORA usa TODOS los datos del animal.
+    API que muestra PREDICCIONES FUTURAS de preñez por mes.
     """
-    from .ml_engine import predecir_ad2
+    from .ml_engine import predecir_anios_ad2
     
     try:
         animal = Animal.objects.get(id_an=animal_id)
     except Animal.DoesNotExist:
         return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'})
     
-    inseminaciones = Inseminacion.objects.filter(
-        fk_an=animal,
-        condicion_corporal_in__isnull=False,
-        fecha_in__isnull=False
-    ).order_by('-fecha_in')
+    predicciones = predecir_anios_ad2(animal_id)
     
     agrupado = {}
-    for ins in inseminaciones:
-        dias = (date.today() - ins.fecha_in).days
-        
-        datos_entrada = {
-            'dias_desde_inseminacion': dias,
-            'condicion_corporal': float(ins.condicion_corporal_in or 3),
-            'dia_ciclo': float(ins.dia_ciclo_in or 14),
-            'tipo_inseminacion': ins.tipo_inseminacion_in or 'artificial',
-            'intensidad_celo': 'media',
-            'duracion_celo_horas': 12
-        }
-        
-        resultado = predecir_ad2(animal_id, datos_entrada)
-        
-        if resultado['exito']:
-            anio = ins.fecha_in.year
-            mes_nombre = MESES_ESPANOL[ins.fecha_in.month]
-            clave = f"{mes_nombre} {anio}"
-            
-            if anio not in agrupado:
-                agrupado[anio] = {}
-            if clave not in agrupado[anio]:
-                agrupado[anio][clave] = []
-            
-            agrupado[anio][clave].append({
-                'fecha': ins.fecha_in.strftime('%d/%m/%Y'),
-                'dias_desde_inseminacion': dias,
-                'condicion_corporal': float(ins.condicion_corporal_in or 0),
-                'dia_ciclo': ins.dia_ciclo_in or 14,
-                'tipo_inseminacion': ins.tipo_inseminacion_in,
-                'resultado_real': ins.resultado_in or 'pendiente',
-                'prediccion': resultado['prediccion'],
-                'probabilidad': resultado.get('probabilidad'),
-                'confianza': f"{resultado.get('probabilidad', 0)}%",
-                'datos_animal': resultado.get('datos_usados', {})
-            })
+    for anio, meses in predicciones.items():
+        agrupado[anio] = {}
+        for mes, resultado in meses.items():
+            if resultado['exito']:
+                mes_nombre = MESES_ESPANOL.get(mes, 'Desconocido')
+                clave = f"{mes_nombre} {anio}"
+                
+                if clave not in agrupado[anio]:
+                    agrupado[anio][clave] = []
+                
+                agrupado[anio][clave].append({
+                    'fecha': f"01/{mes:02d}/{anio}",
+                    'prediccion': resultado['prediccion'],
+                    'probabilidad': resultado.get('probabilidad', 0),
+                    'confianza': f"{resultado.get('probabilidad', 0)}%",
+                    'datos_usados': resultado.get('datos_usados', {})
+                })
     
     return JsonResponse({'exito': True, 'predicciones': agrupado})
 
 
 # ============================================================
-# API RL-4: HISTORIAL DE PREDICCIONES POR ANIMAL (CORREGIDA)
+# API RL-4: PREDICCIONES FUTURAS POR AÑO/MES
 # ============================================================
 
 def api_historial_rl4_animal(request, animal_id):
     """
-    API que muestra el historial de predicciones RL-4 para un animal.
-    AHORA usa TODOS los datos del animal.
+    API que muestra PREDICCIONES FUTURAS de calidad de leche por mes.
     """
-    from .ml_engine import predecir_rl4
+    from .ml_engine import predecir_anios_rl4
     
     try:
         animal = Animal.objects.get(id_an=animal_id)
     except Animal.DoesNotExist:
         return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'})
     
-    calidades = CalidadLeche.objects.filter(
-        fk_an=animal,
-        grasa_pct_cl__isnull=False,
-        proteina_pct_cl__isnull=False,
-        ccs_cl__isnull=False,
-        resultado_cl__isnull=False
-    ).exclude(
-        resultado_cl='pendiente'
-    ).order_by('-fecha_muestreo_cl')
+    predicciones = predecir_anios_rl4(animal_id)
     
     agrupado = {}
-    for c in calidades:
-        datos_entrada = {
-            'grasa_pct': float(c.grasa_pct_cl or 0),
-            'proteina_pct': float(c.proteina_pct_cl or 0),
-            'ccs': float(c.ccs_cl or 0),
-            'ufc': float(c.ufc_cl or 0)
-        }
-        
-        resultado = predecir_rl4(animal_id, datos_entrada)
-        
-        if resultado['exito']:
-            anio = c.fecha_muestreo_cl.year
-            mes_nombre = MESES_ESPANOL[c.fecha_muestreo_cl.month]
-            clave = f"{mes_nombre} {anio}"
-            
-            if anio not in agrupado:
-                agrupado[anio] = {}
-            if clave not in agrupado[anio]:
-                agrupado[anio][clave] = []
-            
-            agrupado[anio][clave].append({
-                'fecha': c.fecha_muestreo_cl.strftime('%d/%m/%Y'),
-                'grasa_pct': float(c.grasa_pct_cl or 0),
-                'proteina_pct': float(c.proteina_pct_cl or 0),
-                'ccs': float(c.ccs_cl or 0),
-                'ufc': float(c.ufc_cl or 0),
-                'resultado_real': c.resultado_cl,
-                'prediccion': resultado['prediccion'],
-                'probabilidad': resultado.get('probabilidad'),
-                'confianza': f"{resultado.get('probabilidad', 0)}%"
-            })
+    for anio, meses in predicciones.items():
+        agrupado[anio] = {}
+        for mes, resultado in meses.items():
+            if resultado['exito']:
+                mes_nombre = MESES_ESPANOL.get(mes, 'Desconocido')
+                clave = f"{mes_nombre} {anio}"
+                
+                if clave not in agrupado[anio]:
+                    agrupado[anio][clave] = []
+                
+                agrupado[anio][clave].append({
+                    'fecha': f"01/{mes:02d}/{anio}",
+                    'prediccion': resultado['prediccion'],
+                    'probabilidad': resultado.get('probabilidad', 0),
+                    'confianza': f"{resultado.get('probabilidad', 0)}%",
+                    'datos_usados': resultado.get('datos_usados', {})
+                })
     
     return JsonResponse({'exito': True, 'predicciones': agrupado})
