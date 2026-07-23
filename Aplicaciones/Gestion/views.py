@@ -11850,118 +11850,156 @@ MESES_ESPANOL = {
 
 
 # ============================================================
-# API AD-1: PREDICCIONES FUTURAS POR AÑO/MES
+# API AD-1: PREDICCIONES DEL AÑO ACTUAL CON DATOS DETALLADOS
 # ============================================================
 
 def api_historial_ad1_animal(request, animal_id):
     """
-    API que muestra PREDICCIONES FUTURAS de litros de leche por mes.
+    API que muestra PREDICCIONES FUTURAS del año actual.
     """
-    from .ml_engine import predecir_anios_ad1
+    from .ml_engine import predecir_anio_actual_ad1
     
     try:
         animal = Animal.objects.get(id_an=animal_id)
     except Animal.DoesNotExist:
         return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'})
     
-    # Obtener predicciones para año actual y siguiente
-    predicciones = predecir_anios_ad1(animal_id)
+    # Obtener predicciones SOLO del año actual
+    anio_actual = date.today().year
+    predicciones = predecir_anio_actual_ad1(animal_id)
     
-    # Organizar por año/mes
-    agrupado = {}
-    for anio, meses in predicciones.items():
-        agrupado[anio] = {}
-        for mes, resultado in meses.items():
-            if resultado['exito']:
-                mes_nombre = MESES_ESPANOL.get(mes, 'Desconocido')
-                clave = f"{mes_nombre} {anio}"
-                
-                if clave not in agrupado[anio]:
-                    agrupado[anio][clave] = []
-                
-                agrupado[anio][clave].append({
-                    'fecha': f"01/{mes:02d}/{anio}",
-                    'prediccion': resultado['prediccion'],
-                    'datos_usados': resultado.get('datos_usados', {}),
-                    'confianza': 'N/A'
-                })
+    # Organizar por mes
+    agrupado = {
+        anio_actual: {}
+    }
+    
+    for mes, resultado in predicciones.items():
+        if resultado['exito']:
+            mes_nombre = MESES_ESPANOL.get(mes, 'Desconocido')
+            clave = f"{mes_nombre} {anio_actual}"
+            
+            if clave not in agrupado[anio_actual]:
+                agrupado[anio_actual][clave] = []
+            
+            datos = resultado.get('datos_usados', {})
+            metrica = resultado.get('metrica', {})
+            
+            agrupado[anio_actual][clave].append({
+                'mes': mes,
+                'fecha': f"01/{mes:02d}/{anio_actual}",
+                'prediccion': resultado['prediccion'],
+                'temporada': resultado.get('temporada', 'N/A'),
+                'temperatura_ambiental': datos.get('temperatura_ambiental', 'N/A'),
+                'temperatura_leche': datos.get('temperatura_leche', 'N/A'),
+                'concentrado_kg': datos.get('concentrado_kg', 'N/A'),
+                'edad_anios': datos.get('edad_anios', 'N/A'),
+                'raza': datos.get('raza', 'N/A'),
+                'peso_kg': datos.get('peso_kg', 'N/A'),
+                'condicion_corporal': datos.get('condicion_corporal', 'N/A'),
+                'num_partos': datos.get('num_partos', 'N/A'),
+                'promedio_historico_mes': datos.get('promedio_historico_mes', 'N/A'),
+                'registros_usados': datos.get('registros_usados', 0),
+                'metrica_nombre': metrica.get('nombre', 'N/A'),
+                'metrica_valor': metrica.get('porcentaje', 0)
+            })
     
     return JsonResponse({'exito': True, 'predicciones': agrupado})
 
 
 # ============================================================
-# API AD-2: PREDICCIONES FUTURAS POR AÑO/MES
+# API AD-2: PREDICCIONES DEL AÑO ACTUAL CON DATOS DETALLADOS
 # ============================================================
 
 def api_historial_ad2_animal(request, animal_id):
     """
-    API que muestra PREDICCIONES FUTURAS de preñez por mes.
+    API que muestra PREDICCIONES FUTURAS de preñez del año actual.
     """
-    from .ml_engine import predecir_anios_ad2
+    from .ml_engine import predecir_anio_actual_ad2
     
     try:
         animal = Animal.objects.get(id_an=animal_id)
     except Animal.DoesNotExist:
         return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'})
     
-    predicciones = predecir_anios_ad2(animal_id)
+    anio_actual = date.today().year
+    predicciones = predecir_anio_actual_ad2(animal_id)
     
-    agrupado = {}
-    for anio, meses in predicciones.items():
-        agrupado[anio] = {}
-        for mes, resultado in meses.items():
-            if resultado['exito']:
-                mes_nombre = MESES_ESPANOL.get(mes, 'Desconocido')
-                clave = f"{mes_nombre} {anio}"
-                
-                if clave not in agrupado[anio]:
-                    agrupado[anio][clave] = []
-                
-                agrupado[anio][clave].append({
-                    'fecha': f"01/{mes:02d}/{anio}",
-                    'prediccion': resultado['prediccion'],
-                    'probabilidad': resultado.get('probabilidad', 0),
-                    'confianza': f"{resultado.get('probabilidad', 0)}%",
-                    'datos_usados': resultado.get('datos_usados', {})
-                })
+    agrupado = {anio_actual: {}}
+    
+    for mes, resultado in predicciones.items():
+        if resultado['exito']:
+            mes_nombre = MESES_ESPANOL.get(mes, 'Desconocido')
+            clave = f"{mes_nombre} {anio_actual}"
+            
+            if clave not in agrupado[anio_actual]:
+                agrupado[anio_actual][clave] = []
+            
+            datos = resultado.get('datos_usados', {})
+            metrica = resultado.get('metrica', {})
+            
+            agrupado[anio_actual][clave].append({
+                'mes': mes,
+                'fecha': f"01/{mes:02d}/{anio_actual}",
+                'prediccion': resultado['prediccion'],
+                'probabilidad': resultado.get('probabilidad', 0),
+                'dias_desde_inseminacion': datos.get('dias_desde_inseminacion', 'N/A'),
+                'fecha_ultima_inseminacion': datos.get('fecha_ultima_inseminacion', 'N/A'),
+                'tipo_inseminacion': datos.get('tipo_inseminacion', 'N/A'),
+                'num_partos': datos.get('num_partos', 'N/A'),
+                'raza': datos.get('raza', 'N/A'),
+                'condicion_corporal': datos.get('condicion_corporal', 'N/A'),
+                'produccion_leche': datos.get('produccion_leche', 'N/A'),
+                'historial_abortos': datos.get('historial_abortos', 0),
+                'metrica_nombre': metrica.get('nombre', 'N/A'),
+                'metrica_valor': metrica.get('porcentaje', 0)
+            })
     
     return JsonResponse({'exito': True, 'predicciones': agrupado})
 
 
 # ============================================================
-# API RL-4: PREDICCIONES FUTURAS POR AÑO/MES
+# API RL-4: PREDICCIONES DEL AÑO ACTUAL CON DATOS DETALLADOS
 # ============================================================
 
 def api_historial_rl4_animal(request, animal_id):
     """
-    API que muestra PREDICCIONES FUTURAS de calidad de leche por mes.
+    API que muestra PREDICCIONES FUTURAS de calidad del año actual.
     """
-    from .ml_engine import predecir_anios_rl4
+    from .ml_engine import predecir_anio_actual_rl4
     
     try:
         animal = Animal.objects.get(id_an=animal_id)
     except Animal.DoesNotExist:
         return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'})
     
-    predicciones = predecir_anios_rl4(animal_id)
+    anio_actual = date.today().year
+    predicciones = predecir_anio_actual_rl4(animal_id)
     
-    agrupado = {}
-    for anio, meses in predicciones.items():
-        agrupado[anio] = {}
-        for mes, resultado in meses.items():
-            if resultado['exito']:
-                mes_nombre = MESES_ESPANOL.get(mes, 'Desconocido')
-                clave = f"{mes_nombre} {anio}"
-                
-                if clave not in agrupado[anio]:
-                    agrupado[anio][clave] = []
-                
-                agrupado[anio][clave].append({
-                    'fecha': f"01/{mes:02d}/{anio}",
-                    'prediccion': resultado['prediccion'],
-                    'probabilidad': resultado.get('probabilidad', 0),
-                    'confianza': f"{resultado.get('probabilidad', 0)}%",
-                    'datos_usados': resultado.get('datos_usados', {})
-                })
+    agrupado = {anio_actual: {}}
+    
+    for mes, resultado in predicciones.items():
+        if resultado['exito']:
+            mes_nombre = MESES_ESPANOL.get(mes, 'Desconocido')
+            clave = f"{mes_nombre} {anio_actual}"
+            
+            if clave not in agrupado[anio_actual]:
+                agrupado[anio_actual][clave] = []
+            
+            datos = resultado.get('datos_usados', {})
+            metrica = resultado.get('metrica', {})
+            
+            agrupado[anio_actual][clave].append({
+                'mes': mes,
+                'fecha': f"01/{mes:02d}/{anio_actual}",
+                'prediccion': resultado['prediccion'],
+                'probabilidad': resultado.get('probabilidad', 0),
+                'grasa_pct': datos.get('grasa_pct', 'N/A'),
+                'proteina_pct': datos.get('proteina_pct', 'N/A'),
+                'ccs': datos.get('ccs', 'N/A'),
+                'ufc': datos.get('ufc', 'N/A'),
+                'registros_usados': datos.get('registros_usados', 0),
+                'metrica_nombre': metrica.get('nombre', 'N/A'),
+                'metrica_valor': metrica.get('porcentaje', 0)
+            })
     
     return JsonResponse({'exito': True, 'predicciones': agrupado})

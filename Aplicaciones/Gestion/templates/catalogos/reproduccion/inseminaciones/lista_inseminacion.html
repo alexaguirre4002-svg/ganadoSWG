@@ -5,7 +5,7 @@
 <!-- TITULO                                    -->
 <!-- ========================================== -->
 {% block titulo %}
-Listado de Inseminaciones | Hacienda Joseph
+Listado de inseminaciones | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -32,13 +32,13 @@ Listado de Inseminaciones | Hacienda Joseph
 <!-- ========================================== -->
 {% block contenido %}
 
-<!-- TARJETAS ESTADÍSTICAS -->
+<!-- Tarjetas estadísticas -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-2">
         <div class="card-hacienda text-center p-3">
             <i class="bi bi-droplet fs-2" style="color: var(--color-primario);"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_inseminaciones }}</h4>
-            <small class="text-muted">Total Inseminaciones</small>
+            <small class="text-muted">Total inseminaciones</small>
         </div>
     </div>
     <div class="col-md-2">
@@ -59,31 +59,31 @@ Listado de Inseminaciones | Hacienda Joseph
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
             <i class="bi bi-x-circle fs-2 text-danger"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_no_prenadas }}</h4>
-            <small class="text-muted">No Preñadas</small>
+            <small class="text-muted">No preñadas</small>
         </div>
     </div>
     <div class="col-md-2">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #17a2b8;">
             <i class="bi bi-egg fs-2" style="color: #17a2b8;"></i>
             <h4 class="fw-bold mt-2 mb-0">{{ total_artificiales }}</h4>
-            <small class="text-muted">Inseminación Artificial</small>
+            <small class="text-muted">Inseminación artificial</small>
         </div>
     </div>
     <div class="col-md-2">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #6f42c1;">
             <i class="bi bi-currency-dollar fs-2" style="color: #6f42c1;"></i>
             <h4 class="fw-bold mt-2 mb-0">${{ costo_total|default:"0.00" }}</h4>
-            <small class="text-muted">Costo Total</small>
+            <small class="text-muted">Costo total</small>
         </div>
     </div>
 </div>
 
-<!-- TITULO -->
+<!-- Titulo -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8">
         <h2 class="fw-bold" style="color: var(--color-primario);">
             <i class="bi bi-droplet me-2"></i>
-            Listado de Inseminaciones
+            Listado de inseminaciones
         </h2>
         <p class="text-muted mb-0">
             <i class="bi bi-info-circle me-1"></i>
@@ -93,45 +93,72 @@ Listado de Inseminaciones | Hacienda Joseph
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <a href="/nuevainseminacion/" class="btn btn-hacienda">
             <i class="bi bi-plus-circle me-2"></i>
-            Nueva Inseminación
+            Nueva inseminación
         </a>
     </div>
 </div>
 
-<!-- TARJETA PRINCIPAL -->
+<!-- Tarjeta principal -->
 <div class="row animate-fade-in">
     <div class="col-12">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
                 <i class="bi bi-list-ul"></i>
-                Inseminaciones Registradas
+                Inseminaciones registradas
+                <span class="badge bg-secondary ms-2">{{ inseminaciones.paginator.count }}</span>
             </div>
             <div class="p-4">
+                <!-- Filtro de búsqueda -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="GET" action="" class="d-flex">
+                            <input type="text" name="search" class="form-control form-control-sm" 
+                                   placeholder="🔍 Buscar por animal o tipo..." 
+                                   value="{{ request.GET.search }}">
+                            <button type="submit" class="btn btn-sm btn-hacienda ms-2">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            {% if request.GET.search %}
+                            <a href="?page=1" class="btn btn-sm btn-hacienda-secondary ms-1">
+                                <i class="bi bi-x-circle"></i>
+                            </a>
+                            {% endif %}
+                        </form>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <small class="text-muted">
+                            Mostrando {{ inseminaciones.start_index }} a {{ inseminaciones.end_index }} 
+                            de {{ inseminaciones.paginator.count }} registros
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Tabla -->
                 <div class="table-responsive">
-                    <table id="tablaInseminaciones" class="table table-hacienda align-middle mb-0">
+                    <table class="table table-hacienda align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>FECHA</th>
-                                <th>HEMBRA</th>
-                                <th>TIPO</th>
-                                <th>DÍA CICLO</th>
-                                <th>TORO / LOTE</th>
-                                <th>COND. CORP.</th>
-                                <th>RESULTADO</th>
-                                <th>FECHA RESULT.</th>
-                                <th>VETERINARIO</th>
-                                <th>COSTO</th>
-                                <th>ACCIONES</th>
+                                <th>Id</th>
+                                <th>Fecha</th>
+                                <th>Hembra</th>
+                                <th>Tipo</th>
+                                <th>Día ciclo</th>
+                                <th>Toro / lote</th>
+                                <th>Cond. corp.</th>
+                                <th>Resultado</th>
+                                <th>Fecha result.</th>
+                                <th>Veterinario</th>
+                                <th>Costo</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for inseminacion in inseminaciones %}
                             <tr>
-                                <!-- ID -->
+                                <!-- Id -->
                                 <td class="fw-bold text-muted">#{{ inseminacion.id_in }}</td>
                                 
-                                <!-- FECHA -->
+                                <!-- Fecha -->
                                 <td>
                                     <span class="fw-bold" style="color: #5c450e;">
                                         <i class="bi bi-calendar-event me-1"></i>
@@ -139,7 +166,7 @@ Listado de Inseminaciones | Hacienda Joseph
                                     </span>
                                 </td>
                                 
-                                <!-- HEMBRA (FK_AN) -->
+                                <!-- Hembra -->
                                 <td>
                                     <span class="badge rounded-pill p-2" style="background: #fce4ec; color: #880e4f; border: 1px solid #880e4f;">
                                         <i class="bi bi-gender-female me-1"></i>
@@ -151,7 +178,7 @@ Listado de Inseminaciones | Hacienda Joseph
                                     <br><small class="text-muted fst-italic">{{ inseminacion.fk_an.raza_an|default:'' }}</small>
                                 </td>
                                 
-                                <!-- TIPO INSEMINACIÓN -->
+                                <!-- Tipo inseminación -->
                                 <td>
                                     {% if inseminacion.tipo_inseminacion_in == 'natural' %}
                                     <span class="badge rounded-pill p-2" style="background:#d4edda; color:#155724; border: 1px solid #28a745;">
@@ -164,7 +191,7 @@ Listado de Inseminaciones | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- DÍA DEL CICLO -->
+                                <!-- Día del ciclo -->
                                 <td class="text-center">
                                     {% if inseminacion.dia_ciclo_in %}
                                     <span class="badge rounded-pill p-2" style="background:#fff3cd; color:#856404; border: 1px solid #fd7e14;">
@@ -175,7 +202,7 @@ Listado de Inseminaciones | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- TORO / LOTE SEMEN -->
+                                <!-- Toro / lote semen -->
                                 <td>
                                     {% if inseminacion.tipo_inseminacion_in == 'natural' and inseminacion.fk_toro_in %}
                                     <span class="text-muted">
@@ -195,7 +222,7 @@ Listado de Inseminaciones | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- CONDICIÓN CORPORAL -->
+                                <!-- Condición corporal -->
                                 <td class="text-center">
                                     {% if inseminacion.condicion_corporal_in %}
                                     <div class="d-flex flex-column align-items-center">
@@ -221,7 +248,7 @@ Listado de Inseminaciones | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- RESULTADO -->
+                                <!-- Resultado -->
                                 <td>
                                     {% if inseminacion.resultado_in == 'pendiente' or not inseminacion.resultado_in %}
                                     <span class="badge rounded-pill p-2" style="background:#ffc107; color:#1a1a1a;">
@@ -233,12 +260,12 @@ Listado de Inseminaciones | Hacienda Joseph
                                     </span>
                                     {% elif inseminacion.resultado_in == 'no_preñada' %}
                                     <span class="badge rounded-pill p-2" style="background:#dc3545; color:white;">
-                                        <i class="bi bi-x-circle me-1"></i>No Preñada
+                                        <i class="bi bi-x-circle me-1"></i>No preñada
                                     </span>
                                     {% endif %}
                                 </td>
                                 
-                                <!-- FECHA RESULTADO -->
+                                <!-- Fecha resultado -->
                                 <td>
                                     {% if inseminacion.fecha_resultado_in %}
                                     <span class="fw-bold text-success">
@@ -252,7 +279,7 @@ Listado de Inseminaciones | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- VETERINARIO -->
+                                <!-- Veterinario -->
                                 <td>
                                     {% if inseminacion.veterinario_in %}
                                     <span class="text-muted">
@@ -264,7 +291,7 @@ Listado de Inseminaciones | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- COSTO -->
+                                <!-- Costo -->
                                 <td class="fw-bold">
                                     {% if inseminacion.costo_in %}
                                     <span style="color: #2c5e1a;">
@@ -276,9 +303,9 @@ Listado de Inseminaciones | Hacienda Joseph
                                     {% endif %}
                                 </td>
                                 
-                                <!-- ACCIONES -->
+                                <!-- Acciones -->
                                 <td>
-                                    <!-- VER DETALLE (MODAL) -->
+                                    <!-- Ver detalle (modal) -->
                                     <button type="button" class="btn btn-sm btn-info" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#modalDetalleInseminacion"
@@ -303,12 +330,12 @@ Listado de Inseminaciones | Hacienda Joseph
                                         <i class="bi bi-eye"></i>
                                     </button>
                                     
-                                    <!-- EDITAR -->
+                                    <!-- Editar -->
                                     <a href="/editarinseminacion/{{ inseminacion.id_in }}" class="btn btn-sm btn-hacienda-secondary" title="Editar">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                     
-                                    <!-- ELIMINAR -->
+                                    <!-- Eliminar -->
                                     <button type="button" class="btn btn-sm btn-danger"
                                             data-bs-toggle="modal"
                                             data-bs-target="#modalEliminarInseminacion"
@@ -336,11 +363,68 @@ Listado de Inseminaciones | Hacienda Joseph
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Paginación de Django -->
+                {% if inseminaciones.has_other_pages %}
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            Mostrando {{ inseminaciones.start_index }} a {{ inseminaciones.end_index }} 
+                            de {{ inseminaciones.paginator.count }} registros
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <nav aria-label="Paginación de inseminaciones">
+                            <ul class="pagination justify-content-end flex-wrap">
+                                {% if inseminaciones.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ inseminaciones.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+
+                                {% for num in inseminaciones.paginator.page_range %}
+                                    {% if inseminaciones.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                    {% elif num > inseminaciones.number|add:'-3' and num < inseminaciones.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                            {{ num }}
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if inseminaciones.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ inseminaciones.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ inseminaciones.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                {% endif %}
             </div>
             <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
                 <small class="text-muted">
                     <i class="bi bi-bar-chart-line me-1"></i>
-                    Total de inseminaciones: <strong>{{ inseminaciones|length }}</strong>
+                    Total de inseminaciones: <strong>{{ inseminaciones.paginator.count }}</strong>
                 </small>
             </div>
         </div>
@@ -348,7 +432,7 @@ Listado de Inseminaciones | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL DETALLE INSEMINACIÓN                 -->
+<!-- Modal detalle inseminación                 -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalDetalleInseminacion" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -356,7 +440,7 @@ Listado de Inseminaciones | Hacienda Joseph
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-droplet-fill me-2" style="color: #DAA520;"></i>
-                    DETALLE DE LA INSEMINACIÓN
+                    Detalle de la inseminación
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -377,64 +461,64 @@ Listado de Inseminaciones | Hacienda Joseph
                         <div class="p-4">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold">ID INSEMINACIÓN</label>
+                                    <label class="text-muted small fw-bold">Id inseminación</label>
                                     <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<span id="detalleId"></span></p>
                                 </div>
                                 <div class="col-6 text-end">
-                                    <label class="text-muted small fw-bold">RESULTADO</label>
+                                    <label class="text-muted small fw-bold">Resultado</label>
                                     <div id="detalleResultado"></div>
                                 </div>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-event me-1"></i>FECHA INSEMINACIÓN</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-event me-1"></i>Fecha inseminación</label>
                                     <p class="mb-0" id="detalleFecha" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>FECHA RESULTADO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>Fecha resultado</label>
                                     <p class="mb-0" id="detalleFechaResultado" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-week me-1"></i>DÍA DEL CICLO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-week me-1"></i>Día del ciclo</label>
                                     <p class="mb-0" id="detalleDiaCiclo" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-heart-pulse me-1"></i>CONDICIÓN CORPORAL</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-heart-pulse me-1"></i>Condición corporal</label>
                                     <p class="mb-0" id="detalleCondicion" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-6" id="colToro">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-gender-male me-1"></i>TORO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-gender-male me-1"></i>Toro</label>
                                     <p class="mb-0" id="detalleToro" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6" id="colLote">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-box-seam me-1"></i>LOTE SEMEN</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-box-seam me-1"></i>Lote semen</label>
                                     <p class="mb-0" id="detalleLote" style="color: #5c450e;"></p>
                                 </div>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-person-badge me-1"></i>VETERINARIO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person-badge me-1"></i>Veterinario</label>
                                     <p class="mb-0" id="detalleVeterinario" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-currency-dollar me-1"></i>COSTO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-currency-dollar me-1"></i>Costo</label>
                                     <p class="mb-0 fw-bold" id="detalleCosto" style="color: #2c5e1a;"></p>
                                 </div>
                             </div>
                             <hr style="border-color: #d4c5a9;">
                             <div class="row mb-0">
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>REGISTRADO POR</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>Registrado por</label>
                                     <p class="mb-0" id="detalleUsuario" style="color: #5c450e;"></p>
                                 </div>
                                 <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>FECHA REGISTRO</label>
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>Fecha registro</label>
                                     <p class="mb-0" id="detalleCreated" style="color: #5c450e;"></p>
                                 </div>
                             </div>
@@ -444,7 +528,7 @@ Listado de Inseminaciones | Hacienda Joseph
             </div>
             <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
                 <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
-                    <i class="bi bi-pencil-square me-1"></i>Editar Inseminación
+                    <i class="bi bi-pencil-square me-1"></i>Editar inseminación
                 </a>
                 <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
                     <i class="bi bi-x-lg me-1"></i>Cerrar
@@ -455,7 +539,7 @@ Listado de Inseminaciones | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL ELIMINAR INSEMINACIÓN                -->
+<!-- Modal eliminar inseminación                -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalEliminarInseminacion" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -463,7 +547,7 @@ Listado de Inseminaciones | Hacienda Joseph
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
-                    CONFIRMAR ELIMINACIÓN
+                    Confirmar eliminación
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -492,145 +576,37 @@ Listado de Inseminaciones | Hacienda Joseph
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- Estilos para paginación                   -->
+<!-- ========================================== -->
+<style>
+    .pagination .page-link {
+        color: var(--color-primario);
+        border-color: #d4c5a9;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: var(--color-primario);
+        border-color: var(--color-primario);
+        color: white;
+    }
+    .pagination .page-link:hover {
+        background-color: #e8f5e9;
+        border-color: var(--color-primario);
+    }
+    .card-header-hacienda .badge {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.65rem;
+    }
+</style>
+
 {% endblock %}
 
 <!-- ========================================== -->
 <!-- SCRIPTS EXTRA                              -->
 <!-- ========================================== -->
 {% block scripts_extra %}
-
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-
-<style>
-    .dataTables_filter {
-        margin-bottom: 20px !important;
-        background: linear-gradient(135deg, #eef7e8, #dcefd0);
-        padding: 15px 20px;
-        border-radius: 18px;
-        border: 2px solid #b7d7a8;
-        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
-        display: flex !important;
-        align-items: center !important;
-        justify-content: end !important;
-        gap: 10px;
-    }
-    .dataTables_filter::before {
-        content: "🐄";
-        font-size: 28px;
-    }
-    .dataTables_filter label {
-        font-weight: bold;
-        color: var(--color-primario);
-        font-size: 17px;
-    }
-    .dataTables_filter input {
-        border-radius: 50px !important;
-        border: 3px solid var(--color-primario) !important;
-        padding: 10px 18px !important;
-        background-color: #ffffff !important;
-        color: var(--color-navbar) !important;
-        font-weight: 600 !important;
-        width: 280px !important;
-        transition: 0.3s !important;
-        box-shadow: inset 0px 2px 5px rgba(0,0,0,0.08);
-        margin-left: 10px !important;
-    }
-    .dataTables_filter input:focus {
-        outline: none !important;
-        border-color: #8dc26f !important;
-        box-shadow: 0px 0px 12px rgba(44,94,26,0.4);
-        background-color: #f8fff5 !important;
-    }
-    .dataTables_length select {
-        border-radius: 10px !important;
-        border: 2px solid var(--color-primario) !important;
-        padding: 5px 10px !important;
-    }
-    .dataTables_paginate {
-        width: 100% !important;
-        display: flex !important;
-        justify-content: center !important;
-        margin-top: 25px !important;
-    }
-    .dataTables_paginate .pagination {
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: flex-end !important;
-        align-items: center !important;
-        gap: 0px !important;
-        flex-wrap: nowrap !important;
-    }
-    .paginate_button {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 4px !important;
-        border: none !important;
-        background: #dfeedd !important;
-        color: var(--color-primario) !important;
-        font-weight: bold !important;
-        font-size: 14px !important;
-        display: inline-flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        transition: 0.3s !important;
-        margin: 0 3px !important;
-        vertical-align: middle !important;
-        float: none !important;
-    }
-    .paginate_button.current {
-        background: var(--color-primario) !important;
-        color: white !important;
-        border: 2px solid #8dc26f !important;
-        box-shadow: 0px 0px 8px rgba(44,94,26,0.4);
-    }
-    .paginate_button:hover {
-        background: #3d7a24 !important;
-        color: white !important;
-    }
-    .paginate_button.previous, .paginate_button.next {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 4px !important;
-        background: #dfeedd !important;
-        color: var(--color-primario) !important;
-        font-weight: bold !important;
-        font-size: 16px !important;
-    }
-    .paginate_button.previous:hover, .paginate_button.next:hover {
-        background: #3d7a24 !important;
-        color: white !important;
-    }
-</style>
-
 <script>
-    $(document).ready(function () {
-        $('#tablaInseminaciones').DataTable({
-            "language": {
-                "lengthMenu": "Mostrar _MENU_ registros",
-                "zeroRecords": "No se encontraron resultados",
-                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                "infoEmpty": "No existen registros",
-                "infoFiltered": "(filtrado de _MAX_ registros)",
-                "search": "Buscar:",
-                "paginate": {
-                    "first": "",
-                    "last": "",
-                    "next": "›",
-                    "previous": "‹"
-                }
-            },
-            "pageLength": 10,
-            "lengthMenu": [5,10,25,50,100],
-            "responsive": true,
-            "pagingType": "simple_numbers",
-            "order": [[1, "desc"]]
-        });
-    });
-</script>
-
-<script>
-    // Modal Detalle Inseminación
+    // Modal detalle inseminación
     var modalDetalleInseminacion = document.getElementById('modalDetalleInseminacion');
     modalDetalleInseminacion.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
@@ -666,7 +642,7 @@ Listado de Inseminaciones | Hacienda Joseph
         document.getElementById('detalleFechaResultado').textContent = fechaResultado;
         
         // Tipo con texto
-        var tipoTexto = tipo === 'natural' ? 'INSEMINACIÓN NATURAL' : 'INSEMINACIÓN ARTIFICIAL';
+        var tipoTexto = tipo === 'natural' ? 'Inseminación natural' : 'Inseminación artificial';
         document.getElementById('detalleTipo').textContent = tipoTexto;
         
         // Mostrar/ocultar toro o lote según tipo
@@ -693,8 +669,8 @@ Listado de Inseminaciones | Hacienda Joseph
                 badgeHtml = '<span class="badge rounded-pill p-2" style="background:#28a745; color:white; font-size: 14px;"><i class="bi bi-check-circle me-1"></i> Preñada</span>';
                 break;
             case 'no_preñada':
-                resultadoHtml = '<span class="badge rounded-pill p-2" style="background:#dc3545; color:white;"><i class="bi bi-x-circle me-1"></i> No Preñada</span>';
-                badgeHtml = '<span class="badge rounded-pill p-2" style="background:#dc3545; color:white; font-size: 14px;"><i class="bi bi-x-circle me-1"></i> No Preñada</span>';
+                resultadoHtml = '<span class="badge rounded-pill p-2" style="background:#dc3545; color:white;"><i class="bi bi-x-circle me-1"></i> No preñada</span>';
+                badgeHtml = '<span class="badge rounded-pill p-2" style="background:#dc3545; color:white; font-size: 14px;"><i class="bi bi-x-circle me-1"></i> No preñada</span>';
                 break;
             default:
                 resultadoHtml = '<span class="badge rounded-pill bg-secondary p-2">' + resultado + '</span>';
@@ -708,7 +684,7 @@ Listado de Inseminaciones | Hacienda Joseph
 </script>
 
 <script>
-    // Modal Eliminar Inseminación
+    // Modal eliminar inseminación
     var modalEliminarInseminacion = document.getElementById('modalEliminarInseminacion');
     modalEliminarInseminacion.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
@@ -717,7 +693,7 @@ Listado de Inseminaciones | Hacienda Joseph
         var tipo = button.getAttribute('data-tipo');
         var url = button.getAttribute('data-url');
         
-        var tipoTexto = tipo === 'natural' ? 'INSEMINACIÓN NATURAL' : 'INSEMINACIÓN ARTIFICIAL';
+        var tipoTexto = tipo === 'natural' ? 'Inseminación natural' : 'Inseminación artificial';
         
         document.getElementById('hembraInseminacionModal').textContent = hembra;
         document.getElementById('tipoInseminacionModal').textContent = tipoTexto;
