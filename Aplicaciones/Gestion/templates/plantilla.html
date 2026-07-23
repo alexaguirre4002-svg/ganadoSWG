@@ -87,11 +87,21 @@
             overflow-x: hidden !important;
         }
 
-        /* ===== NAVBAR PRINCIPAL ===== */
+        /* ===== NAVBAR PRINCIPAL - CORREGIDO ===== */
         .navbar-ganaderia {
             background: linear-gradient(135deg, var(--color-navbar) 0%, #2d5016 100%);
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             padding: 0.8rem 0;
+            width: 100%;
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+        }
+
+        .navbar-ganaderia .container-fluid {
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+            max-width: 100% !important;
         }
 
         .navbar-brand {
@@ -99,6 +109,7 @@
             font-size: 1.4rem;
             color: var(--color-acento) !important;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            white-space: nowrap;
         }
 
         .navbar-brand i {
@@ -106,13 +117,20 @@
             font-size: 1.6rem;
         }
 
+        /* ===== MENÚ NAVBAR ===== */
+        .navbar-nav {
+            flex-wrap: wrap;
+        }
+
         .nav-link {
             color: rgba(255,255,255,0.9) !important;
             font-weight: 500;
-            padding: 0.6rem 1.2rem !important;
+            padding: 0.6rem 1rem !important;
             border-radius: 6px;
             transition: all 0.3s ease;
-            margin: 0 3px;
+            margin: 0 2px;
+            white-space: nowrap;
+            font-size: 0.95rem;
         }
 
         .nav-link:hover, .nav-link.active {
@@ -125,12 +143,14 @@
             background-color: var(--color-navbar);
             border: 1px solid var(--color-acento);
             box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            min-width: 200px;
         }
 
         .dropdown-item {
             color: rgba(255,255,255,0.9);
             padding: 0.7rem 1.5rem;
             transition: all 0.2s;
+            white-space: nowrap;
         }
 
         .dropdown-item:hover {
@@ -141,6 +161,48 @@
 
         .dropdown-divider {
             border-color: rgba(218, 165, 32, 0.3);
+        }
+
+        /* ===== NAVBAR TOGGLER ===== */
+        .navbar-toggler {
+            border-color: rgba(255,255,255,0.5);
+            padding: 0.5rem 0.8rem;
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255,255,255,0.9)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+
+        /* ===== RESPONSIVE NAVBAR ===== */
+        @media (max-width: 1200px) {
+            .nav-link {
+                font-size: 0.85rem;
+                padding: 0.5rem 0.7rem !important;
+            }
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .navbar-nav {
+                flex-direction: column;
+                width: 100%;
+            }
+            .nav-link {
+                padding: 0.7rem 1rem !important;
+                width: 100%;
+            }
+            .dropdown-menu {
+                background-color: rgba(26, 61, 15, 0.95);
+                border: none;
+                box-shadow: none;
+                padding-left: 20px;
+            }
+            .dropdown-item {
+                padding: 0.5rem 1rem;
+                font-size: 0.95rem;
+            }
         }
 
         /* ===== BOTONES ESTILO HACIENDA ===== */
@@ -432,7 +494,7 @@
 
     <!-- ===== NAVBAR PRINCIPAL ===== -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-ganaderia sticky-top">
-        <div class="container-fluid px-4">
+        <div class="container-fluid">
             <!-- Brand / Logo -->
             <a class="navbar-brand" href="{% url 'inicio' %}">
                 <i class="bi bi-tree-fill"></i>
@@ -440,7 +502,7 @@
             </a>
             
             <!-- Botón Toggler para móviles -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarGanaderia">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarGanaderia" aria-controls="navbarGanaderia" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
@@ -452,7 +514,7 @@
                 
                     <!-- ===== MÓDULO GANADO ===== -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-cow me-1"></i> Ganado
                         </a>
                         <ul class="dropdown-menu">
@@ -465,7 +527,7 @@
 
                     <!-- ===== MÓDULO POTREROS ===== -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-map me-1"></i> Potreros
                         </a>
                         <ul class="dropdown-menu">
@@ -476,7 +538,7 @@
 
                     <!-- ===== MÓDULO SALUD ===== -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-heart-pulse me-1"></i> Salud
                         </a>
                         <ul class="dropdown-menu">
@@ -488,7 +550,7 @@
 
                     <!-- ===== MÓDULO ALIMENTOS ===== -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-basket me-1"></i> Alimentos
                         </a>
                         <ul class="dropdown-menu">
@@ -500,7 +562,7 @@
 
                     <!-- ===== MÓDULO REPRODUCCIÓN ===== -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-diagram-3 me-1"></i> Reproducción
                         </a>
                         <ul class="dropdown-menu">
@@ -514,7 +576,7 @@
 
                     <!-- ===== MÓDULO PRODUCCIÓN ===== -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-graph-up-arrow me-1"></i> Producción
                         </a>
                         <ul class="dropdown-menu">
@@ -527,7 +589,7 @@
 
                     <!-- ===== MÓDULO FINANZAS ===== -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-cash-stack me-1"></i> Finanzas
                         </a>
                         <ul class="dropdown-menu">
@@ -544,7 +606,7 @@
                     
                     {% if request.session.usuario_id %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle me-1"></i> 
                             {{ request.session.usuario_nombre|default:"Usuario" }}
                         </a>
