@@ -10295,28 +10295,21 @@ def dashboardml(request):
     """
     Dashboard de Machine Learning con predicciones automaticas agrupadas por año/mes.
     Muestra historial completo de predicciones para cada animal.
+    SOLO ANIMALES ACTIVOS Y EN CATEGORÍAS CORRECTAS.
     Incluye modal de detalle del animal al hacer clic.
     """
     from .ml_engine import modelo_esta_entrenado, predecir
     from collections import defaultdict
+    from django.db.models import Max
 
     # ==========================================
     # FUNCIÓN INTERNA PARA NOMBRES DE MESES EN ESPAÑOL
     # ==========================================
     def nombre_mes_espanol(numero_mes):
         meses = {
-            1: 'Enero',
-            2: 'Febrero',
-            3: 'Marzo',
-            4: 'Abril',
-            5: 'Mayo',
-            6: 'Junio',
-            7: 'Julio',
-            8: 'Agosto',
-            9: 'Septiembre',
-            10: 'Octubre',
-            11: 'Noviembre',
-            12: 'Diciembre'
+            1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+            5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+            9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
         }
         return meses.get(numero_mes, 'Desconocido')
 
@@ -10338,16 +10331,26 @@ def dashboardml(request):
         if m: metrica_rl4 = round(float(m.valor_metrica_mm), 4) if m.valor_metrica_mm else None
     except: pass
 
-    # ──────────────────────────────────────────────────────
-    # AD-1: TODOS los ordeños, agrupados por AÑO → MES
-    # ──────────────────────────────────────────────────────
-    predicciones_ad1_agrupadas = {}  # {año: {mes: [predicciones]}}
+    # ==========================================================
+    # AD-1: SOLO VACAS LECHERAS ACTIVAS
+    # ==========================================================
+    predicciones_ad1_agrupadas = {}
     if estado_ad1:
+        # FILTRO: SOLO VACAS LECHERAS ACTIVAS
+        animales_activos_ad1 = Animal.objects.filter(
+            estado_an='activo',
+            categoria_an='vaca_leche',
+            sexo_an='H'
+        ).values_list('id_an', flat=True)
+
         ordenos = Ordeno.objects.filter(
+            fk_an__in=animales_activos_ad1,
             temperatura_ambiental_or__isnull=False,
             cantidad_concentrado_kg_or__isnull=False,
             temperatura_leche_or__isnull=False
-        ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_or')
+        ).select_related(
+            'fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an'
+        ).order_by('-fecha_or')
 
         modelo_db_ad1 = ModeloML.objects.filter(codigo_mm='AD-1').first()
 
@@ -10409,6 +10412,7 @@ def dashboardml(request):
                     except Exception:
                         pass
 
+        # ORDENAR: años más recientes primero
         predicciones_ad1_agrupadas = dict(
             sorted(predicciones_ad1_agrupadas.items(), reverse=True)
         )
@@ -10421,16 +10425,26 @@ def dashboardml(request):
                 )
             )
 
-    # ──────────────────────────────────────────────────────
-    # AD-2: TODAS las inseminaciones pendientes, agrupadas por AÑO → MES
-    # ──────────────────────────────────────────────────────
+    # ==========================================================
+    # AD-2: SOLO HEMBRAS REPRODUCTIVAS ACTIVAS
+    # ==========================================================
     predicciones_ad2_agrupadas = {}
     if estado_ad2:
+        # FILTRO: SOLO HEMBRAS REPRODUCTIVAS ACTIVAS
+        animales_activos_ad2 = Animal.objects.filter(
+            estado_an='activo',
+            sexo_an='H',
+            categoria_an__in=['vaca_leche', 'vaca_seca', 'novilla']
+        ).values_list('id_an', flat=True)
+
         inseminaciones = Inseminacion.objects.filter(
+            fk_an__in=animales_activos_ad2,
             resultado_in='pendiente',
             condicion_corporal_in__isnull=False,
             fecha_in__isnull=False
-        ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_in')
+        ).select_related(
+            'fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an'
+        ).order_by('-fecha_in')
 
         modelo_db_ad2 = ModeloML.objects.filter(codigo_mm='AD-2').first()
 
@@ -10493,6 +10507,7 @@ def dashboardml(request):
                     except Exception:
                         pass
 
+        # ORDENAR: años más recientes primero
         predicciones_ad2_agrupadas = dict(
             sorted(predicciones_ad2_agrupadas.items(), reverse=True)
         )
@@ -10505,16 +10520,26 @@ def dashboardml(request):
                 )
             )
 
-    # ──────────────────────────────────────────────────────
-    # RL-4: TODAS las calidades de leche, agrupadas por AÑO → MES
-    # ──────────────────────────────────────────────────────
+    # ==========================================================
+    # RL-4: SOLO VACAS LECHERAS ACTIVAS
+    # ==========================================================
     predicciones_rl4_agrupadas = {}
     if estado_rl4:
+        # FILTRO: SOLO VACAS LECHERAS ACTIVAS
+        animales_activos_rl4 = Animal.objects.filter(
+            estado_an='activo',
+            categoria_an='vaca_leche',
+            sexo_an='H'
+        ).values_list('id_an', flat=True)
+
         calidades = CalidadLeche.objects.filter(
+            fk_an__in=animales_activos_rl4,
             grasa_pct_cl__isnull=False,
             proteina_pct_cl__isnull=False,
             ccs_cl__isnull=False
-        ).select_related('fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an').order_by('-fecha_muestreo_cl')
+        ).select_related(
+            'fk_an', 'fk_an__fk_ra', 'fk_an__fk_potrero_an'
+        ).order_by('-fecha_muestreo_cl')
 
         modelo_db_rl4 = ModeloML.objects.filter(codigo_mm='RL-4').first()
 
@@ -10576,6 +10601,7 @@ def dashboardml(request):
                     except Exception:
                         pass
 
+        # ORDENAR: años más recientes primero
         predicciones_rl4_agrupadas = dict(
             sorted(predicciones_rl4_agrupadas.items(), reverse=True)
         )
@@ -10589,8 +10615,12 @@ def dashboardml(request):
             )
 
     return render(request, 'ML/prediccionML/dashboard/dashboard_ml.html', {
-        'estado_ad1': estado_ad1, 'estado_ad2': estado_ad2, 'estado_rl4': estado_rl4,
-        'metrica_ad1': metrica_ad1, 'metrica_ad2': metrica_ad2, 'metrica_rl4': metrica_rl4,
+        'estado_ad1': estado_ad1, 
+        'estado_ad2': estado_ad2, 
+        'estado_rl4': estado_rl4,
+        'metrica_ad1': metrica_ad1, 
+        'metrica_ad2': metrica_ad2, 
+        'metrica_rl4': metrica_rl4,
         'predicciones_ad1_agrupadas': predicciones_ad1_agrupadas,
         'predicciones_ad2_agrupadas': predicciones_ad2_agrupadas,
         'predicciones_rl4_agrupadas': predicciones_rl4_agrupadas,
@@ -11473,43 +11503,61 @@ def entrenar_modelos_render(request):
 def leche_ml(request):
     """
     Vista para AD-1: Predicciones de litros de leche.
-    USA BATCH PREDICTION para optimizar con muchos datos.
+    SOLO vacas lecheras ACTIVAS.
     """
     from .ml_engine import modelo_esta_entrenado, predecir_anio_actual_ad1
-    from django.db.models import Avg, Sum, Count
-
+    
     estado_ad1 = modelo_esta_entrenado('AD-1')
     metrica_ad1 = None
-
+    
     try:
         modelo = ModeloML.objects.get(codigo_mm='AD-1')
         if modelo.valor_metrica_mm:
             metrica_ad1 = round(float(modelo.valor_metrica_mm) * 100, 1)
     except ModeloML.DoesNotExist:
         pass
-
+    
     predicciones_por_animal = []
-
+    
     if estado_ad1:
-        # OBTENER SOLO LOS PRIMEROS 20 ANIMALES CON ORDEÑOS
+        # ✅ FILTRO CORRECTO: SOLO VACAS LECHERAS ACTIVAS
+        animales_activos = Animal.objects.filter(
+            estado_an='activo',           # ← EXCLUYE muertos, vendidos, retirados
+            categoria_an='vaca_leche',     # ← SOLO vacas en producción
+            sexo_an='H'                    # ← SOLO hembras
+        ).values_list('id_an', flat=True)
+        
+        # ✅ OBTENER ANIMALES CON ORDEÑOS (priorizando los más recientes)
         animales_con_ordenos = Ordeno.objects.filter(
+            fk_an__in=animales_activos,    # ← SOLO animales activos
             temperatura_ambiental_or__isnull=False,
             cantidad_concentrado_kg_or__isnull=False,
             temperatura_leche_or__isnull=False,
             litros_or__isnull=False
-        ).values_list('fk_an', flat=True).distinct()[:20]  # ← SOLO 20
-
-        print(f"[ML] Procesando {len(animales_con_ordenos)} animales (limitado a 20)")
-
-        for animal_id in animales_con_ordenos:
+        ).values_list('fk_an', flat=True).distinct()
+        
+        # ✅ ORDENAR POR FECHA MÁS RECIENTE (los que tienen ordeños más nuevos)
+        animales_con_fecha = Ordeno.objects.filter(
+            fk_an__in=animales_con_ordenos
+        ).values('fk_an').annotate(
+            ultima_fecha=Max('fecha_or')
+        ).order_by('-ultima_fecha')[:20]  # ← Los 20 más recientes
+        
+        animal_ids = [a['fk_an'] for a in animales_con_fecha]
+        
+        print(f"[ML] Procesando {len(animal_ids)} vacas lecheras activas")
+        
+        for animal_id in animal_ids:
             try:
-                animal = Animal.objects.select_related('fk_ra', 'fk_potrero_an').get(id_an=animal_id)
+                animal = Animal.objects.select_related(
+                    'fk_ra', 'fk_potrero_an'
+                ).get(id_an=animal_id)
             except Animal.DoesNotExist:
                 continue
-
-            # Obtener predicciones FUTURAS para el año actual (OPTIMIZADO)
+            
+            # Obtener predicciones FUTURAS para el año actual
             predicciones_futuras = predecir_anio_actual_ad1(animal_id)
-
+            
             if predicciones_futuras:
                 # Obtener la última fecha de las predicciones
                 ultima_fecha = None
@@ -11518,151 +11566,193 @@ def leche_ml(request):
                         fecha_pred = date.today().replace(month=mes, day=1)
                         if ultima_fecha is None or fecha_pred > ultima_fecha:
                             ultima_fecha = fecha_pred
-
+                
                 predicciones_por_animal.append({
                     'animal': animal,
                     'total_predicciones': len(predicciones_futuras),
                     'ultima_fecha': ultima_fecha,
                     'predicciones': predicciones_futuras
                 })
-
-        predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
-
+        
+        # ✅ ORDENAR POR CANTIDAD DE PREDICCIONES (las más completas primero)
+        predicciones_por_animal.sort(
+            key=lambda x: x['total_predicciones'], 
+            reverse=True
+        )
+    
     contexto = {
         'estado_ad1': estado_ad1,
         'metrica_ad1': metrica_ad1,
         'predicciones_por_animal': predicciones_por_animal,
     }
-
+    
     return render(request, 'ML/prediccionML/lecheL_ML.html', contexto)
+
 def preneces_ml(request):
     """
     Vista para AD-2: Predicciones de preñez.
-    USA BATCH PREDICTION para optimizar con muchos datos.
+    SOLO vacas en edad reproductiva (vaca_leche, vaca_seca, novilla) ACTIVAS.
     """
     from .ml_engine import modelo_esta_entrenado, predecir_anio_actual_ad2
-    from django.db.models import Avg, Sum, Count
-
+    
     estado_ad2 = modelo_esta_entrenado('AD-2')
     metrica_ad2 = None
-
+    
     try:
         modelo = ModeloML.objects.get(codigo_mm='AD-2')
         if modelo.valor_metrica_mm:
             metrica_ad2 = round(float(modelo.valor_metrica_mm) * 100, 1)
     except ModeloML.DoesNotExist:
         pass
-
+    
     predicciones_por_animal = []
-
+    
     if estado_ad2:
-        # OBTENER SOLO LOS PRIMEROS 20 ANIMALES CON INSEMINACIONES
+        # ✅ FILTRO CORRECTO: SOLO ANIMALES REPRODUCTIVOS ACTIVOS
+        animales_activos = Animal.objects.filter(
+            estado_an='activo',                    # ← EXCLUYE muertos, vendidos, retirados
+            sexo_an='H',                           # ← SOLO hembras
+            categoria_an__in=['vaca_leche', 'vaca_seca', 'novilla']  # ← REPRODUCTIVAS
+        ).values_list('id_an', flat=True)
+        
+        # ✅ OBTENER ANIMALES CON INSEMINACIONES
         animales_con_inseminaciones = Inseminacion.objects.filter(
+            fk_an__in=animales_activos,
             condicion_corporal_in__isnull=False,
-            fecha_in__isnull=False,
-            fk_an__isnull=False
-        ).values_list('fk_an', flat=True).distinct()[:20]  # ← SOLO 20
-
-        print(f"[ML] Procesando {len(animales_con_inseminaciones)} animales (limitado a 20)")
-
-        for animal_id in animales_con_inseminaciones:
+            fecha_in__isnull=False
+        ).values_list('fk_an', flat=True).distinct()
+        
+        # ✅ ORDENAR POR FECHA DE INSEMINACIÓN MÁS RECIENTE
+        animales_con_fecha = Inseminacion.objects.filter(
+            fk_an__in=animales_con_inseminaciones
+        ).values('fk_an').annotate(
+            ultima_fecha=Max('fecha_in')
+        ).order_by('-ultima_fecha')[:20]
+        
+        animal_ids = [a['fk_an'] for a in animales_con_fecha]
+        
+        print(f"[ML] Procesando {len(animal_ids)} animales reproductivos activos")
+        
+        for animal_id in animal_ids:
             try:
-                animal = Animal.objects.select_related('fk_ra', 'fk_potrero_an').get(id_an=animal_id)
+                animal = Animal.objects.select_related(
+                    'fk_ra', 'fk_potrero_an'
+                ).get(id_an=animal_id)
             except Animal.DoesNotExist:
                 continue
-
-            # Obtener predicciones FUTURAS para el año actual (OPTIMIZADO)
+            
             predicciones_futuras = predecir_anio_actual_ad2(animal_id)
-
+            
             if predicciones_futuras:
-                # Obtener la última fecha de las predicciones
                 ultima_fecha = None
                 for mes, pred in predicciones_futuras.items():
                     if pred.get('exito'):
                         fecha_pred = date.today().replace(month=mes, day=1)
                         if ultima_fecha is None or fecha_pred > ultima_fecha:
                             ultima_fecha = fecha_pred
-
+                
                 predicciones_por_animal.append({
                     'animal': animal,
                     'total_predicciones': len(predicciones_futuras),
                     'ultima_fecha': ultima_fecha,
                     'predicciones': predicciones_futuras
                 })
-
-        predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
-
+        
+        predicciones_por_animal.sort(
+            key=lambda x: x['total_predicciones'], 
+            reverse=True
+        )
+    
     contexto = {
         'estado_ad2': estado_ad2,
         'metrica_ad2': metrica_ad2,
         'predicciones_por_animal': predicciones_por_animal,
     }
-
+    
     return render(request, 'ML/prediccionML/preneces_ML.html', contexto)
+
 def calidad_leche_ml(request):
     """
     Vista para RL-4: Predicciones de calidad de leche.
-    USA BATCH PREDICTION para optimizar con muchos datos.
+    SOLO vacas lecheras ACTIVAS.
     """
     from .ml_engine import modelo_esta_entrenado, predecir_anio_actual_rl4
-    from django.db.models import Avg, Sum, Count
-
+    
     estado_rl4 = modelo_esta_entrenado('RL-4')
     metrica_rl4 = None
-
+    
     try:
         modelo = ModeloML.objects.get(codigo_mm='RL-4')
         if modelo.valor_metrica_mm:
             metrica_rl4 = round(float(modelo.valor_metrica_mm) * 100, 1)
     except ModeloML.DoesNotExist:
         pass
-
+    
     predicciones_por_animal = []
-
+    
     if estado_rl4:
-        # OBTENER SOLO LOS PRIMEROS 20 ANIMALES CON CALIDAD DE LECHE
+        # ✅ FILTRO CORRECTO: SOLO VACAS LECHERAS ACTIVAS
+        animales_activos = Animal.objects.filter(
+            estado_an='activo',           # ← EXCLUYE muertos, vendidos, retirados
+            categoria_an='vaca_leche',     # ← SOLO vacas en producción
+            sexo_an='H'                    # ← SOLO hembras
+        ).values_list('id_an', flat=True)
+        
+        # ✅ OBTENER ANIMALES CON CALIDAD DE LECHE
         animales_con_calidad = CalidadLeche.objects.filter(
+            fk_an__in=animales_activos,
             grasa_pct_cl__isnull=False,
             proteina_pct_cl__isnull=False,
-            ccs_cl__isnull=False,
-            resultado_cl__isnull=False
-        ).exclude(resultado_cl='pendiente').values_list('fk_an', flat=True).distinct()[:20]  # ← SOLO 20
-
-        print(f"[ML] Procesando {len(animales_con_calidad)} animales (limitado a 20)")
-
-        for animal_id in animales_con_calidad:
+            ccs_cl__isnull=False
+        ).values_list('fk_an', flat=True).distinct()
+        
+        # ✅ ORDENAR POR FECHA DE MUESTREO MÁS RECIENTE
+        animales_con_fecha = CalidadLeche.objects.filter(
+            fk_an__in=animales_con_calidad
+        ).values('fk_an').annotate(
+            ultima_fecha=Max('fecha_muestreo_cl')
+        ).order_by('-ultima_fecha')[:20]
+        
+        animal_ids = [a['fk_an'] for a in animales_con_fecha]
+        
+        print(f"[ML] Procesando {len(animal_ids)} vacas lecheras activas")
+        
+        for animal_id in animal_ids:
             try:
-                animal = Animal.objects.select_related('fk_ra', 'fk_potrero_an').get(id_an=animal_id)
+                animal = Animal.objects.select_related(
+                    'fk_ra', 'fk_potrero_an'
+                ).get(id_an=animal_id)
             except Animal.DoesNotExist:
                 continue
-
-            # Obtener predicciones FUTURAS para el año actual (OPTIMIZADO)
+            
             predicciones_futuras = predecir_anio_actual_rl4(animal_id)
-
+            
             if predicciones_futuras:
-                # Obtener la última fecha de las predicciones
                 ultima_fecha = None
                 for mes, pred in predicciones_futuras.items():
                     if pred.get('exito'):
                         fecha_pred = date.today().replace(month=mes, day=1)
                         if ultima_fecha is None or fecha_pred > ultima_fecha:
                             ultima_fecha = fecha_pred
-
+                
                 predicciones_por_animal.append({
                     'animal': animal,
                     'total_predicciones': len(predicciones_futuras),
                     'ultima_fecha': ultima_fecha,
                     'predicciones': predicciones_futuras
                 })
-
-        predicciones_por_animal.sort(key=lambda x: x['total_predicciones'], reverse=True)
-
+        
+        predicciones_por_animal.sort(
+            key=lambda x: x['total_predicciones'], 
+            reverse=True
+        )
+    
     contexto = {
         'estado_rl4': estado_rl4,
         'metrica_rl4': metrica_rl4,
         'predicciones_por_animal': predicciones_por_animal,
     }
-
+    
     return render(request, 'ML/prediccionML/calidadL_ML.html', contexto)
 
 # ============================================================
