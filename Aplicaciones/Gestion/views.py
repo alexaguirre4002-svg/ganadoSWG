@@ -11852,58 +11852,79 @@ MESES_ESPANOL = {
 # ============================================================
 # API AD-1: PREDICCIONES DEL AÑO ACTUAL CON DATOS DETALLADOS
 # ============================================================
-
 def api_historial_ad1_animal(request, animal_id):
     """
     API que muestra PREDICCIONES FUTURAS del año actual.
     """
     from .ml_engine import predecir_anio_actual_ad1
-    
+
     try:
         animal = Animal.objects.get(id_an=animal_id)
     except Animal.DoesNotExist:
         return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'})
-    
-    # Obtener predicciones SOLO del año actual
+
     anio_actual = date.today().year
     predicciones = predecir_anio_actual_ad1(animal_id)
-    
-    # Organizar por mes
-    agrupado = {
-        anio_actual: {}
-    }
-    
+
+    agrupado = {anio_actual: {}}
+
     for mes, resultado in predicciones.items():
         if resultado['exito']:
             mes_nombre = MESES_ESPANOL.get(mes, 'Desconocido')
             clave = f"{mes_nombre} {anio_actual}"
-            
+
             if clave not in agrupado[anio_actual]:
                 agrupado[anio_actual][clave] = []
-            
-            datos = resultado.get('datos_usados', {})
+
+            detalle = resultado.get('detalle', {})
             metrica = resultado.get('metrica', {})
-            
+
             agrupado[anio_actual][clave].append({
                 'mes': mes,
                 'fecha': f"01/{mes:02d}/{anio_actual}",
                 'prediccion': resultado['prediccion'],
                 'temporada': resultado.get('temporada', 'N/A'),
-                'temperatura_ambiental': datos.get('temperatura_ambiental', 'N/A'),
-                'temperatura_leche': datos.get('temperatura_leche', 'N/A'),
-                'concentrado_kg': datos.get('concentrado_kg', 'N/A'),
-                'edad_anios': datos.get('edad_anios', 'N/A'),
-                'raza': datos.get('raza', 'N/A'),
-                'peso_kg': datos.get('peso_kg', 'N/A'),
-                'condicion_corporal': datos.get('condicion_corporal', 'N/A'),
-                'num_partos': datos.get('num_partos', 'N/A'),
-                'promedio_historico_mes': datos.get('promedio_historico_mes', 'N/A'),
-                'registros_usados': datos.get('registros_usados', 0),
+                # ============================================================
+                # DATOS PARA EL HTML - NOMBRES CORRECTOS
+                # ============================================================
+                'temperatura_ambiental': resultado.get('temperatura_ambiental', 'N/A'),
+                'concentrado': resultado.get('concentrado', 'N/A'),
+                'temp_leche': resultado.get('temp_leche', 'N/A'),
+                # DATOS ADICIONALES PARA EL DETALLE
+                'detalle': detalle,
                 'metrica_nombre': metrica.get('nombre', 'N/A'),
-                'metrica_valor': metrica.get('porcentaje', 0)
+                'metrica_valor': metrica.get('porcentaje', 0),
+                'metrica_descripcion': obtener_descripcion_metrica(metrica)
             })
-    
+
     return JsonResponse({'exito': True, 'predicciones': agrupado})
+
+
+def obtener_descripcion_metrica(metrica):
+    """Obtiene una descripción entendible de la métrica"""
+    nombre = metrica.get('nombre', 'N/A')
+    valor = metrica.get('porcentaje', 0)
+
+    if nombre == 'R²':
+        if valor >= 90:
+            return f"✅ Excelente: El modelo explica el {valor}% de la variabilidad de la producción. Predicciones muy confiables."
+        elif valor >= 70:
+            return f"✅ Bueno: El modelo explica el {valor}% de la variabilidad. Predicciones confiables."
+        elif valor >= 50:
+            return f"⚠️ Aceptable: El modelo explica el {valor}% de la variabilidad. Predicciones moderadamente confiables."
+        else:
+            return f"❌ Bajo: El modelo solo explica el {valor}% de la variabilidad. Predicciones poco confiables."
+    elif nombre == 'Accuracy':
+        if valor >= 90:
+            return f"✅ Excelente: El modelo acierta en el {valor}% de los casos. Muy confiable."
+        elif valor >= 70:
+            return f"✅ Bueno: El modelo acierta en el {valor}% de los casos. Confiable."
+        elif valor >= 50:
+            return f"⚠️ Aceptable: El modelo acierta en el {valor}% de los casos. Moderadamente confiable."
+        else:
+            return f"❌ Bajo: El modelo solo acierta en el {valor}% de los casos. Poco confiable."
+
+    return "ℹ️ No hay métrica disponible para este modelo."
 
 
 # ============================================================
@@ -11915,45 +11936,45 @@ def api_historial_ad2_animal(request, animal_id):
     API que muestra PREDICCIONES FUTURAS de preñez del año actual.
     """
     from .ml_engine import predecir_anio_actual_ad2
-    
+
     try:
         animal = Animal.objects.get(id_an=animal_id)
     except Animal.DoesNotExist:
         return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'})
-    
+
     anio_actual = date.today().year
     predicciones = predecir_anio_actual_ad2(animal_id)
-    
+
     agrupado = {anio_actual: {}}
-    
+
     for mes, resultado in predicciones.items():
         if resultado['exito']:
             mes_nombre = MESES_ESPANOL.get(mes, 'Desconocido')
             clave = f"{mes_nombre} {anio_actual}"
-            
+
             if clave not in agrupado[anio_actual]:
                 agrupado[anio_actual][clave] = []
-            
-            datos = resultado.get('datos_usados', {})
+
+            detalle = resultado.get('detalle', {})
             metrica = resultado.get('metrica', {})
-            
+
             agrupado[anio_actual][clave].append({
                 'mes': mes,
                 'fecha': f"01/{mes:02d}/{anio_actual}",
                 'prediccion': resultado['prediccion'],
                 'probabilidad': resultado.get('probabilidad', 0),
-                'dias_desde_inseminacion': datos.get('dias_desde_inseminacion', 'N/A'),
-                'fecha_ultima_inseminacion': datos.get('fecha_ultima_inseminacion', 'N/A'),
-                'tipo_inseminacion': datos.get('tipo_inseminacion', 'N/A'),
-                'num_partos': datos.get('num_partos', 'N/A'),
-                'raza': datos.get('raza', 'N/A'),
-                'condicion_corporal': datos.get('condicion_corporal', 'N/A'),
-                'produccion_leche': datos.get('produccion_leche', 'N/A'),
-                'historial_abortos': datos.get('historial_abortos', 0),
+                # ============================================================
+                # DATOS PARA EL HTML - NOMBRES CORRECTOS
+                # ============================================================
+                'dias_posparto': resultado.get('dias_posparto', 'N/A'),
+                'condicion_corporal': resultado.get('condicion_corporal', 'N/A'),
+                # DATOS ADICIONALES PARA EL DETALLE
+                'detalle': detalle,
                 'metrica_nombre': metrica.get('nombre', 'N/A'),
-                'metrica_valor': metrica.get('porcentaje', 0)
+                'metrica_valor': metrica.get('porcentaje', 0),
+                'metrica_descripcion': obtener_descripcion_metrica(metrica)
             })
-    
+
     return JsonResponse({'exito': True, 'predicciones': agrupado})
 
 
@@ -11966,40 +11987,45 @@ def api_historial_rl4_animal(request, animal_id):
     API que muestra PREDICCIONES FUTURAS de calidad del año actual.
     """
     from .ml_engine import predecir_anio_actual_rl4
-    
+
     try:
         animal = Animal.objects.get(id_an=animal_id)
     except Animal.DoesNotExist:
         return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'})
-    
+
     anio_actual = date.today().year
     predicciones = predecir_anio_actual_rl4(animal_id)
-    
+
     agrupado = {anio_actual: {}}
-    
+
     for mes, resultado in predicciones.items():
         if resultado['exito']:
             mes_nombre = MESES_ESPANOL.get(mes, 'Desconocido')
             clave = f"{mes_nombre} {anio_actual}"
-            
+
             if clave not in agrupado[anio_actual]:
                 agrupado[anio_actual][clave] = []
-            
-            datos = resultado.get('datos_usados', {})
+
+            detalle = resultado.get('detalle', {})
             metrica = resultado.get('metrica', {})
-            
+
             agrupado[anio_actual][clave].append({
                 'mes': mes,
                 'fecha': f"01/{mes:02d}/{anio_actual}",
                 'prediccion': resultado['prediccion'],
                 'probabilidad': resultado.get('probabilidad', 0),
-                'grasa_pct': datos.get('grasa_pct', 'N/A'),
-                'proteina_pct': datos.get('proteina_pct', 'N/A'),
-                'ccs': datos.get('ccs', 'N/A'),
-                'ufc': datos.get('ufc', 'N/A'),
-                'registros_usados': datos.get('registros_usados', 0),
+                # ============================================================
+                # DATOS PARA EL HTML - NOMBRES CORRECTOS
+                # ============================================================
+                'grasa': resultado.get('grasa', 'N/A'),
+                'proteina': resultado.get('proteina', 'N/A'),
+                'ccs': resultado.get('ccs', 'N/A'),
+                'ufc': resultado.get('ufc', 'N/A'),
+                # DATOS ADICIONALES PARA EL DETALLE
+                'detalle': detalle,
                 'metrica_nombre': metrica.get('nombre', 'N/A'),
-                'metrica_valor': metrica.get('porcentaje', 0)
+                'metrica_valor': metrica.get('porcentaje', 0),
+                'metrica_descripcion': obtener_descripcion_metrica(metrica)
             })
-    
+
     return JsonResponse({'exito': True, 'predicciones': agrupado})
