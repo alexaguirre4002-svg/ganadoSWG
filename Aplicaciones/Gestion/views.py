@@ -20,7 +20,6 @@ from django.db.models import F, Count, Q, Sum, Avg, Max, Min
 # ====== NUEVO: IMPORTS PARA CLOUDINARY ======
 import cloudinary
 import cloudinary.uploader
-import cloudinary.api
 
 def inicio(request):
     return render(request,'inicio.html')
@@ -5924,36 +5923,45 @@ def listaordeno(request):
     """
     Muestra el listado completo de ordeños con estadísticas.
     Incluye conteos por turno, litros del día, promedio y alertas de temperatura.
+    USANDO PAGINACIÓN SERVER-SIDE para evitar sobrecarga.
     """
-    ordeno_list = Ordeno.objects.all().select_related(
-        'fk_an', 'fk_us_or'
-    ).order_by('-fecha_or', '-created_at_or')
+    from django.core.paginator import Paginator
+    from django.db.models import Avg, Sum, Count
+    
+    # ==========================================
+    # ESTADÍSTICAS (consultas agregadas, NO todos los registros)
+    # ==========================================
+    total_ordenos = Ordeno.objects.count()
+    total_manana = Ordeno.objects.filter(turno_or='manana').count()
+    total_tarde = Ordeno.objects.filter(turno_or='tarde').count()
+    total_unico = Ordeno.objects.filter(turno_or='unico').count()
     
     hoy = date.today()
-    
-    # Estadísticas generales
-    total_ordenos = ordeno_list.count()
-    total_manana = ordeno_list.filter(turno_or='manana').count()
-    total_tarde = ordeno_list.filter(turno_or='tarde').count()
-    total_unico = ordeno_list.filter(turno_or='unico').count()
-    
-    # Litros de hoy
     litros_hoy = Ordeno.objects.filter(fecha_or=hoy).aggregate(
         total=Sum('litros_or')
     )['total'] or 0
     
-    # Promedio de litros
     promedio_litros = Ordeno.objects.aggregate(
         promedio=Avg('litros_or')
     )['promedio'] or 0
     
-    # Alertas de temperatura (fuera de rango 4-7°C)
     alertas_temp = Ordeno.objects.filter(
         temperatura_leche_or__isnull=False
     ).exclude(
         temperatura_leche_or__gte=4,
         temperatura_leche_or__lte=7
     ).count()
+    
+    # ==========================================
+    # PAGINACIÓN (solo trae los registros necesarios)
+    # ==========================================
+    ordenos = Ordeno.objects.all().select_related(
+        'fk_an', 'fk_us_or'
+    ).order_by('-fecha_or', '-created_at_or')
+    
+    paginator = Paginator(ordenos, 20)  # 20 registros por página
+    page_number = request.GET.get('page', 1)
+    ordeno_list = paginator.get_page(page_number)
     
     contexto = {
         'ordeno_list': ordeno_list,
