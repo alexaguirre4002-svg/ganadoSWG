@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from datetime import datetime, date, timedelta
+from django.utils import timezone
 
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
@@ -607,7 +608,7 @@ def guardar_modelo_en_db(codigo_mm, resultado):
         )
         
         modelo_db.archivo_modelo_mm = resultado.get('ruta_modelo')
-        modelo_db.fecha_entrenamiento_mm = datetime.now()
+        modelo_db.fecha_entrenamiento_mm = timezone.now()
         modelo_db.valor_metrica_mm = cfg['valor']
         modelo_db.save()
         
