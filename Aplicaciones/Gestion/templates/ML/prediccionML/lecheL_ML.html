@@ -256,7 +256,7 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
 <!-- MODAL HISTORIAL ML - PREDICCIONES POR MES  -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalHistorialML" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 95vw;">
         <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
@@ -396,7 +396,7 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
 <!-- MODAL HISTORIAL ML - PREDICCIONES POR MES  -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalHistorialML" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 95vw;">
         <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
@@ -973,6 +973,12 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
                                     <thead class="table-light">
                                         <tr>
                                             <th>Fecha</th>
+                                            <th>Raza</th>
+                                            <th>Edad</th>
+                                            <th>Peso</th>
+                                            <th>Cond. Corp.</th>
+                                            <th>Nº Partos</th>
+                                            <th>Prom. Histórico</th>
                                             <th>Temp. Amb.</th>
                                             <th>Concentrado</th>
                                             <th>Temp. Leche</th>
@@ -987,6 +993,12 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
                     html += `
                         <tr>
                             <td><small>${p.fecha || 'N/A'}</small></td>
+                            <td>${p.raza || 'N/A'}</td>
+                            <td>${p.edad_anios || 'N/A'} años</td>
+                            <td>${p.peso_kg || 'N/A'} kg</td>
+                            <td>${p.condicion_corporal || 'N/A'}/5</td>
+                            <td>${p.num_partos ?? 'N/A'}</td>
+                            <td>${p.promedio_historico || 'N/A'} L</td>
                             <td>${p.temperatura_ambiental || 'N/A'}°C</td>
                             <td>${p.cantidad_concentrado_kg || 'N/A'} kg</td>
                             <td>${p.temperatura_leche || 'N/A'}°C</td>

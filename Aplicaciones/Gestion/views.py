@@ -11766,101 +11766,146 @@ MESES_ESPANOL_API = {
 }
 
 def api_historial_ad1_animal(request, animal_id):
-    """API que devuelve predicciones FUTURAS de AD-1 para un animal."""
+    """API que devuelve predicciones FUTURAS de AD-1 para un animal, con TODAS las variables usadas por el modelo."""
     from .ml_engine import predecir_anio_actual_ad1
 
     try:
-        animal = Animal.objects.get(id_an=animal_id)
-    except Animal.DoesNotExist:
-        return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'})
+        try:
+            animal = Animal.objects.get(id_an=animal_id)
+        except Animal.DoesNotExist:
+            return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'})
 
-    anio_actual = date.today().year
-    predicciones = predecir_anio_actual_ad1(animal_id)
+        anio_actual = date.today().year
+        predicciones = predecir_anio_actual_ad1(animal_id)
 
-    agrupado = {anio_actual: {}}
+        agrupado = {anio_actual: {}}
 
-    for mes, resultado in predicciones.items():
-        if resultado['exito']:
-            mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
-            clave = f"{mes_nombre} {anio_actual}"
+        for mes, resultado in predicciones.items():
+            if resultado.get('exito'):
+                mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
+                clave = f"{mes_nombre} {anio_actual}"
 
-            if clave not in agrupado[anio_actual]:
-                agrupado[anio_actual][clave] = []
+                if clave not in agrupado[anio_actual]:
+                    agrupado[anio_actual][clave] = []
 
-            agrupado[anio_actual][clave].append({
-                'fecha': f"01/{mes:02d}/{anio_actual}",
-                'temperatura_ambiental': resultado.get('temperatura_ambiental', 'N/A'),
-                'cantidad_concentrado_kg': resultado.get('concentrado', 'N/A'),
-                'temperatura_leche': resultado.get('temp_leche', 'N/A'),
-                'prediccion': resultado['prediccion'],
-                'confianza': f"R²: {resultado.get('metrica', {}).get('porcentaje', 0)}%"
-            })
+                detalle = resultado.get('detalle', {})
 
-    return JsonResponse({'exito': True, 'predicciones': agrupado})
+                agrupado[anio_actual][clave].append({
+                    'fecha': f"01/{mes:02d}/{anio_actual}",
+                    'temperatura_ambiental': resultado.get('temperatura_ambiental', 'N/A'),
+                    'cantidad_concentrado_kg': resultado.get('concentrado', 'N/A'),
+                    'temperatura_leche': resultado.get('temp_leche', 'N/A'),
+                    # ---- variables que faltaban ----
+                    'raza': detalle.get('raza', 'N/A'),
+                    'edad_anios': detalle.get('edad_anios', 'N/A'),
+                    'peso_kg': detalle.get('peso_kg', 'N/A'),
+                    'condicion_corporal': detalle.get('condicion_corporal', 'N/A'),
+                    'num_partos': detalle.get('num_partos', 'N/A'),
+                    'promedio_historico': detalle.get('promedio_historico', 'N/A'),
+                    # ---------------------------------
+                    'prediccion': resultado['prediccion'],
+                    'confianza': f"R²: {resultado.get('metrica', {}).get('porcentaje', 0)}%"
+                })
+
+        return JsonResponse({'exito': True, 'predicciones': agrupado})
+
+    except Exception as e:
+        # SOLUCION AL ERROR POR PROCESAMIENTO DE MUCHOS DATOS:
+        # si algo falla (timeout de consulta, dato corrupto, etc.) devolvemos
+        # un JSON controlado en vez de que el servidor truene con un error 500.
+        return JsonResponse({
+            'exito': False,
+            'mensaje': f'Ocurrió un error generando el historial de AD-1: {str(e)}'
+        }, status=200)
 
 
 def api_historial_ad2_animal(request, animal_id):
-    """API que devuelve predicciones FUTURAS de AD-2 para un animal."""
+    """API que devuelve predicciones FUTURAS de AD-2 para un animal, con TODAS las variables usadas por el modelo."""
     from .ml_engine import predecir_anio_actual_ad2
 
     try:
-        animal = Animal.objects.get(id_an=animal_id)
-    except Animal.DoesNotExist:
-        return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'})
+        try:
+            animal = Animal.objects.get(id_an=animal_id)
+        except Animal.DoesNotExist:
+            return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'})
 
-    anio_actual = date.today().year
-    predicciones = predecir_anio_actual_ad2(animal_id)
+        anio_actual = date.today().year
+        predicciones = predecir_anio_actual_ad2(animal_id)
 
-    agrupado = {anio_actual: {}}
+        agrupado = {anio_actual: {}}
 
-    for mes, resultado in predicciones.items():
-        if resultado['exito']:
-            mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
-            clave = f"{mes_nombre} {anio_actual}"
+        for mes, resultado in predicciones.items():
+            if resultado.get('exito'):
+                mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
+                clave = f"{mes_nombre} {anio_actual}"
 
-            if clave not in agrupado[anio_actual]:
-                agrupado[anio_actual][clave] = []
+                if clave not in agrupado[anio_actual]:
+                    agrupado[anio_actual][clave] = []
 
-            agrupado[anio_actual][clave].append({
-                'fecha': f"01/{mes:02d}/{anio_actual}",
-                'dias_posparto': resultado.get('dias_posparto', 'N/A'),
-                'condicion_corporal': resultado.get('condicion_corporal', 'N/A'),
-                'prediccion': resultado['prediccion'],
-                'confianza': f"{resultado.get('probabilidad', 0)}%"
-            })
+                detalle = resultado.get('detalle', {})
 
-    return JsonResponse({'exito': True, 'predicciones': agrupado})
+                agrupado[anio_actual][clave].append({
+                    'fecha': f"01/{mes:02d}/{anio_actual}",
+                    'dias_desde_inseminacion': resultado.get('dias_posparto', 'N/A'),
+                    'condicion_corporal': resultado.get('condicion_corporal', 'N/A'),
+                    # ---- variables que faltaban ----
+                    'raza': detalle.get('raza', 'N/A'),
+                    'tipo_inseminacion': detalle.get('tipo_inseminacion', 'N/A'),
+                    'num_partos': detalle.get('num_partos', 'N/A'),
+                    'produccion_leche': detalle.get('produccion_leche', 'N/A'),
+                    'historial_abortos': detalle.get('historial_abortos', 'N/A'),
+                    'fecha_ultima_inseminacion': detalle.get('fecha_ultima_inseminacion', 'N/A'),
+                    # ---------------------------------
+                    'prediccion': resultado['prediccion'],
+                    'confianza': f"{resultado.get('probabilidad', 0)}%"
+                })
+
+        return JsonResponse({'exito': True, 'predicciones': agrupado})
+
+    except Exception as e:
+        return JsonResponse({
+            'exito': False,
+            'mensaje': f'Ocurrió un error generando el historial de AD-2: {str(e)}'
+        }, status=200)
 
 
 def api_historial_rl4_animal(request, animal_id):
-    """API que devuelve predicciones FUTURAS de RL-4 para un animal."""
+    """API que devuelve predicciones FUTURAS de RL-4 para un animal, con TODAS las variables usadas por el modelo."""
     from .ml_engine import predecir_anio_actual_rl4
 
     try:
-        animal = Animal.objects.get(id_an=animal_id)
-    except Animal.DoesNotExist:
-        return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'})
+        try:
+            animal = Animal.objects.get(id_an=animal_id)
+        except Animal.DoesNotExist:
+            return JsonResponse({'exito': False, 'mensaje': 'Animal no encontrado'})
 
-    anio_actual = date.today().year
-    predicciones = predecir_anio_actual_rl4(animal_id)
+        anio_actual = date.today().year
+        predicciones = predecir_anio_actual_rl4(animal_id)
 
-    agrupado = {anio_actual: {}}
+        agrupado = {anio_actual: {}}
 
-    for mes, resultado in predicciones.items():
-        if resultado['exito']:
-            mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
-            clave = f"{mes_nombre} {anio_actual}"
+        for mes, resultado in predicciones.items():
+            if resultado.get('exito'):
+                mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
+                clave = f"{mes_nombre} {anio_actual}"
 
-            if clave not in agrupado[anio_actual]:
-                agrupado[anio_actual][clave] = []
+                if clave not in agrupado[anio_actual]:
+                    agrupado[anio_actual][clave] = []
 
-            agrupado[anio_actual][clave].append({
-                'fecha': f"01/{mes:02d}/{anio_actual}",
-                'grasa': resultado.get('grasa', 'N/A'),
-                'proteina': resultado.get('proteina', 'N/A'),
-                'ccs': resultado.get('ccs', 'N/A'),
-                'prediccion': resultado['prediccion'],
-                'confianza': f"{resultado.get('probabilidad', 0)}%"
-            })
+                agrupado[anio_actual][clave].append({
+                    'fecha': f"01/{mes:02d}/{anio_actual}",
+                    'grasa': resultado.get('grasa', 'N/A'),
+                    'proteina': resultado.get('proteina', 'N/A'),
+                    'ccs': resultado.get('ccs', 'N/A'),
+                    'ufc': resultado.get('ufc', 'N/A'),   # ---- variable que faltaba ----
+                    'prediccion': resultado['prediccion'],
+                    'confianza': f"{resultado.get('probabilidad', 0)}%"
+                })
 
-    return JsonResponse({'exito': True, 'predicciones': agrupado})
+        return JsonResponse({'exito': True, 'predicciones': agrupado})
+
+    except Exception as e:
+        return JsonResponse({
+            'exito': False,
+            'mensaje': f'Ocurrió un error generando el historial de RL-4: {str(e)}'
+        }, status=200)
