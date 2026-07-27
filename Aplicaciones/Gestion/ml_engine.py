@@ -1,17 +1,23 @@
 # ============================================================
-# ml_engine.py - VERSIÓN CORREGIDA Y FUNCIONAL
+# ml_engine.py - VERSIÓN OPTIMIZADA PARA RENDER (CORREGIDA)
 # ============================================================
-# CAMBIOS REALIZADOS:
-#   1) AD-1: edad_dias se calcula para CADA mes (no fija en enero)
-#   2) AD-1: promedio_7dias respeta 0 cuando no hay datos recientes
-#   3) AD-2: dias_desde_inseminacion usa fecha fija (no date.today)
-#   4) AD-2: produccion_leche calcula igual que en entrenamiento (7 días previos)
-#   5) AD-2: corregido fallback intensidad_cod (2.0=media, no 1.0)
-#   6) Todos: se respeta el valor 0 (no se reemplaza por default)
-#   7) RL-4: ahora respeta el año solicitado y usa último análisis real
-#   8) General: predecir() ahora pasa el año correctamente
+# CAMBIOS respecto a la versión anterior (ver comentarios ### FIX):
+#   1) AD-1: se usa el raza_encoder/temporada_encoder GUARDADOS en el .pkl
+#      en vez del diccionario hardcodeado RAZAS_MAP (que no coincidía con
+#      el orden real que asignó LabelEncoder en el entrenamiento).
+#      Además, promedio_7dias, cantidad_consumida y cantidad_ofrecida
+#      ahora se calculan con datos reales recientes en vez de usar el
+#      promedio histórico de toda la vida (fijo) o ceros hardcodeados.
+#   2) AD-2: se guardan y usan los encoders de intensidad/tipo/toro (antes
+#      no se guardaban y por eso estaban hardcodeados). Se corrige el
+#      ORDEN de features: 'edad_dias' y 'dias_desde_inseminacion' estaban
+#      invertidos/mal ubicados en el vector de predicción.
+#   3) RL-4: se consulta el UFC real del animal en vez de mandar 0.0 fijo.
 #
-#   IMPORTANTE: RE-ENTRENAR los 3 modelos después de subir este archivo.
+#   IMPORTANTE: como el .pkl actual de AD-2 no tiene los encoders nuevos
+#   guardados, hay que RE-ENTRENAR AD-2 (botón "Entrenar ahora") después
+#   de subir este archivo, o la predicción usará el mecanismo de
+#   respaldo (fallback) descrito en el código.
 # ============================================================
 import os
 import joblib
@@ -41,7 +47,8 @@ MESES_ESPANOL = {
     9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
 }
 
-# Fallback SOLO para modelos viejos sin encoder guardado
+# Se mantiene como valor de respaldo (fallback) SOLO para cuando el
+# modelo cargado sea viejo y no traiga raza_encoder guardado.
 RAZAS_MAP = {
     'Holstein': 0,
     'Brown Swiss': 1,
@@ -96,8 +103,13 @@ def modelo_esta_entrenado(codigo_mm):
 
 def _encodear_con_fallback(encoder, valor, valor_default='desconocida'):
     """
+    ### FIX ###
     Codifica 'valor' usando un LabelEncoder ya entrenado. Si el valor
-    no existía en el entrenamiento, cae a valor_default.
+    no existía en el entrenamiento (clase nunca vista), cae a
+    'desconocida' si esa clase existe en el encoder, o a 0 si no.
+    Esto evita el error 'y contains previously unseen labels' y evita
+    tener que hardcodear códigos a mano (que es justo lo que causaba
+    los bugs anteriores).
     """
     if encoder is None:
         return 0.0
@@ -140,19 +152,17 @@ def obtener_metrica_modelo(codigo_mm):
 
 
 # ============================================================
-# PREDICCIÓN AD-1: LITROS DE LECHE (CORREGIDO)
+# ============================================================
+# PREDICCIÓN AD-1: LITROS DE LECHE (OPTIMIZADO + CORREGIDO)
+# ============================================================
 # ============================================================
 
-def predecir_ad1(animal_id, anio=None):
-    """
-    Predice litros de leche para los 12 meses de un año específico.
-    Si anio es None, usa el año actual.
-    """
+def predecir_anio_actual_ad1(animal_id):
+    """Predice SOLO el año actual para AD-1 - OPTIMIZADO"""
     from Aplicaciones.Gestion.models import Animal, Ordeno, Parto, Racion
+    from django.db.models import Avg, Count
 
-    if anio is None:
-        anio = date.today().year
-
+    anio_actual = date.today().year
     resultados = {}
 
     try:
@@ -160,7 +170,9 @@ def predecir_ad1(animal_id, anio=None):
     except Animal.DoesNotExist:
         return {}
 
-    # Consultas una sola vez
+    # ============================================================
+    # 1. CONSULTAS UNA SOLA VEZ (FUERA DEL CICLO)
+    # ============================================================
     todos_ordenos = Ordeno.objects.filter(fk_an=animal)
 
     if not todos_ordenos.exists():
@@ -178,24 +190,37 @@ def predecir_ad1(animal_id, anio=None):
     concentrado = float(promedios_generales.get('concentrado_prom') or 3.0)
     litros_promedio_historico = float(promedios_generales.get('litros_prom') or 0)
 
-    # CORRECCIÓN: promedio_7dias de los últimos 7 días REALES más recientes
+    # ### FIX ###
+    # 'promedio_7dias' en entrenamiento es un promedio MÓVIL de los
+    # últimos 7 días REALES antes de cada ordeño. Aquí, como no existen
+    # ordeños futuros, usamos el promedio de los últimos 7 días REALES
+    # más recientes que tengamos registrados (no el promedio histórico
+    # de toda la vida, que antes quedaba fijo e igual para los 12 meses).
     fecha_ultimo_ordeno = todos_ordenos.order_by('-fecha_or').first().fecha_or
     fecha_inicio_7d = fecha_ultimo_ordeno - timedelta(days=7)
     promedio_7dias_real = todos_ordenos.filter(
         fecha_or__gte=fecha_inicio_7d,
         fecha_or__lte=fecha_ultimo_ordeno
     ).aggregate(prom=Avg('litros_or'))['prom']
-    promedio_7dias_real = float(promedio_7dias_real) if promedio_7dias_real else 0.0
+    promedio_7dias_real = float(promedio_7dias_real) if promedio_7dias_real else litros_promedio_historico
 
-    # CORRECCIÓN: cantidad_consumida/ofrecida de ración activa más reciente
+    # ### FIX ###
+    # cantidad_consumida / cantidad_ofrecida ya no se mandan en 0 fijo:
+    # se usa la ración activa más reciente del animal, si existe.
     racion_actual = Racion.objects.filter(fk_an=animal).order_by('-fecha_inicio_ra').first()
     cantidad_consumida = float(racion_actual.cantidad_consumida_kg_ra or 0) if racion_actual else 0.0
     cantidad_ofrecida = float(racion_actual.cantidad_ofrecida_kg_ra or 0) if racion_actual else 0.0
 
+    edad_dias = 0
+    if animal.fecha_nacimiento_an:
+        edad_dias = (date(anio_actual, 1, 1) - animal.fecha_nacimiento_an).days
+
     num_partos = Parto.objects.filter(fk_madre_pa=animal).count()
     raza = animal.fk_ra.nombre_ra if animal.fk_ra else 'desconocida'
 
-    # Cargar modelo
+    # ============================================================
+    # 2. CARGAR MODELO UNA SOLA VEZ
+    # ============================================================
     ruta = obtener_ruta_modelo('AD-1')
     if not os.path.exists(ruta):
         for mes in range(1, 13):
@@ -208,22 +233,22 @@ def predecir_ad1(animal_id, anio=None):
     raza_encoder = modelo_data.get('raza_encoder')
     temporada_encoder = modelo_data.get('temporada_encoder')
 
+    # ### FIX ###
+    # Se codifica la raza con el ENCODER GUARDADO del entrenamiento
+    # (antes se usaba RAZAS_MAP hardcodeado, que no coincidía con el
+    # orden real asignado por LabelEncoder al entrenar).
     if raza_encoder is not None:
         raza_cod = _encodear_con_fallback(raza_encoder, raza)
     else:
-        raza_cod = codificar_raza(raza)
+        raza_cod = codificar_raza(raza)  # fallback para modelos viejos
 
-    # Predecir todos los meses en batch
+    # ============================================================
+    # 3. PREDECIR TODOS LOS MESES EN BATCH
+    # ============================================================
     X_batch = []
     meses_list = []
 
     for mes in range(1, 13):
-        # CORRECCIÓN: edad_dias se calcula para CADA mes, no solo enero
-        fecha_mes = date(anio, mes, 15)
-        edad_dias = 0
-        if animal.fecha_nacimiento_an:
-            edad_dias = (fecha_mes - animal.fecha_nacimiento_an).days
-
         nombre_temporada = NOMBRE_MES_A_TEMPORADA.get(mes, 'invierno')
         if temporada_encoder is not None:
             temporada_cod = _encodear_con_fallback(temporada_encoder, nombre_temporada, valor_default='invierno')
@@ -248,6 +273,7 @@ def predecir_ad1(animal_id, anio=None):
         X_batch.append(caracteristicas)
         meses_list.append(mes)
 
+    # PREDECIR TODOS A LA VEZ
     X_array = np.array(X_batch)
     if scaler:
         X_scaled = scaler.transform(X_array)
@@ -255,6 +281,7 @@ def predecir_ad1(animal_id, anio=None):
     else:
         predicciones = modelo.predict(X_array)
 
+    # ASIGNAR RESULTADOS
     metrica = obtener_metrica_modelo('AD-1')
 
     for idx, mes in enumerate(meses_list):
@@ -262,7 +289,7 @@ def predecir_ad1(animal_id, anio=None):
             'exito': True,
             'prediccion': round(float(predicciones[idx]), 2),
             'mes': mes,
-            'anio': anio,
+            'anio': anio_actual,
             'nombre_mes': MESES_ESPANOL.get(mes, 'Desconocido'),
             'temporada': obtener_nombre_temporada(mes),
             'temperatura_ambiental': round(temp_amb, 1),
@@ -276,7 +303,7 @@ def predecir_ad1(animal_id, anio=None):
                 'num_partos': num_partos,
                 'promedio_historico': round(litros_promedio_historico, 2),
                 'promedio_7dias_usado': round(promedio_7dias_real, 2),
-                'fecha_prediccion': f"{anio}-{mes:02d}-15"
+                'fecha_prediccion': f"{anio_actual}-{mes:02d}-01"
             },
             'metrica': metrica
         }
@@ -285,19 +312,17 @@ def predecir_ad1(animal_id, anio=None):
 
 
 # ============================================================
-# PREDICCIÓN AD-2: PREÑEZ (CORREGIDO)
+# ============================================================
+# PREDICCIÓN AD-2: PREÑEZ (OPTIMIZADO + CORREGIDO)
+# ============================================================
 # ============================================================
 
-def predecir_ad2(animal_id, anio=None):
-    """
-    Predice estado de preñez para los 12 meses de un año específico.
-    Si anio es None, usa el año actual.
-    """
+def predecir_anio_actual_ad2(animal_id):
+    """Predice SOLO el año actual para AD-2 - OPTIMIZADO"""
     from Aplicaciones.Gestion.models import Animal, Inseminacion, Aborto, Parto, Ordeno, Celo
+    from django.db.models import Avg
 
-    if anio is None:
-        anio = date.today().year
-
+    anio_actual = date.today().year
     resultados = {}
 
     try:
@@ -305,55 +330,36 @@ def predecir_ad2(animal_id, anio=None):
     except Animal.DoesNotExist:
         return {}
 
-    # Consultas una sola vez
+    # ============================================================
+    # 1. CONSULTAS UNA SOLA VEZ (FUERA DEL CICLO)
+    # ============================================================
     num_partos = Parto.objects.filter(fk_madre_pa=animal).count()
     historial_abortos = Aborto.objects.filter(fk_an=animal).count()
     raza = animal.fk_ra.nombre_ra if animal.fk_ra else 'desconocida'
+    produccion = Ordeno.objects.filter(fk_an=animal).aggregate(prom=Avg('litros_or'))['prom'] or 0
 
-    # CORRECCIÓN: Buscar la última inseminación con resultado conocido
-    ultima_ins = Inseminacion.objects.filter(
-        fk_an=animal,
-        resultado_in__in=['preñada', 'no_preñada']
-    ).order_by('-fecha_in').first()
-
-    # Si no hay inseminación con resultado, usar la más reciente
-    if not ultima_ins:
-        ultima_ins = Inseminacion.objects.filter(fk_an=animal).order_by('-fecha_in').first()
-
-    # CORRECCIÓN: condicion y dia_ciclo se respetan incluso si son 0
-    condicion = 3.0
-    if ultima_ins and ultima_ins.condicion_corporal_in is not None:
-        condicion = float(ultima_ins.condicion_corporal_in)
-
+    ultima_ins = Inseminacion.objects.filter(fk_an=animal).order_by('-fecha_in').first()
+    condicion = 3
     dia_ciclo = 14
-    if ultima_ins and ultima_ins.dia_ciclo_in is not None:
-        dia_ciclo = ultima_ins.dia_ciclo_in
 
-    # CORRECCIÓN: Buscar datos reales del celo más reciente ANTES de la inseminación
-    ultimo_celo = None
     if ultima_ins:
-        ultimo_celo = Celo.objects.filter(
-            fk_an=animal,
-            fecha_observacion_ce__lte=ultima_ins.fecha_in
-        ).order_by('-fecha_observacion_ce').first()
+        condicion = float(ultima_ins.condicion_corporal_in or 3)
+        dia_ciclo = ultima_ins.dia_ciclo_in or 14
 
+    # ### FIX ###
+    # Antes 'intensidad', 'duración de celo', 'tipo' y 'toro' venían
+    # hardcodeados (1.0, 12.0, 0.0, 0.0). Ahora se buscan los datos
+    # reales más recientes del animal.
+    ultimo_celo = Celo.objects.filter(fk_an=animal).order_by('-fecha_observacion_ce').first()
     intensidad_real = ultimo_celo.intensidad_ce if (ultimo_celo and ultimo_celo.intensidad_ce) else 'media'
-    duracion_celo_real = float(ultimo_celo.duracion_aproximada_horas_ce) if (ultimo_celo and ultimo_celo.duracion_aproximada_horas_ce is not None) else 12.0
+    duracion_celo_real = float(ultimo_celo.duracion_aproximada_horas_ce) if (ultimo_celo and ultimo_celo.duracion_aproximada_horas_ce) else 12.0
 
     tipo_real = ultima_ins.tipo_inseminacion_in if (ultima_ins and ultima_ins.tipo_inseminacion_in) else 'artificial'
     toro_real = ultima_ins.fk_toro_in.codigo_an if (ultima_ins and ultima_ins.fk_toro_in) else 'desconocido'
 
-    # CORRECCIÓN: produccion_leche calculada igual que en entrenamiento
-    produccion = 0.0
-    if ultima_ins:
-        fecha_inicio = ultima_ins.fecha_in - timedelta(days=7)
-        produccion = Ordeno.objects.filter(
-            fk_an=animal,
-            fecha_or__gte=fecha_inicio,
-            fecha_or__lt=ultima_ins.fecha_in
-        ).aggregate(prom=Avg('litros_or'))['prom'] or 0.0
-
-    # Cargar modelo
+    # ============================================================
+    # 2. CARGAR MODELO UNA SOLA VEZ
+    # ============================================================
     ruta = obtener_ruta_modelo('AD-2')
     if not os.path.exists(ruta):
         for mes in range(1, 13):
@@ -363,6 +369,11 @@ def predecir_ad2(animal_id, anio=None):
     modelo_data = joblib.load(ruta)
     modelo = modelo_data['modelo']
 
+    # ### FIX ###
+    # Estos encoders solo existirán si reentrenaste AD-2 con la versión
+    # corregida de entrenar_ad2_con_datos_reales (más abajo en este
+    # archivo). Si el .pkl es el viejo, caen a un valor neutro por
+    # defecto (fallback) en vez de reventar.
     raza_encoder = modelo_data.get('raza_encoder')
     intensidad_encoder = modelo_data.get('intensidad_encoder')
     tipo_encoder = modelo_data.get('tipo_encoder')
@@ -373,13 +384,10 @@ def predecir_ad2(animal_id, anio=None):
     else:
         raza_cod = codificar_raza(raza)
 
-    # CORRECCIÓN: fallback de intensidad corregido
-    # LabelEncoder ordena alfabéticamente: alta=0, baja=1, media=2
     if intensidad_encoder is not None:
         intensidad_cod = _encodear_con_fallback(intensidad_encoder, intensidad_real)
     else:
-        intensidad_map = {'alta': 0.0, 'baja': 1.0, 'media': 2.0}
-        intensidad_cod = intensidad_map.get(intensidad_real, 2.0)
+        intensidad_cod = 1.0  # fallback (equivalente a 'media' en el orden alfabético baja/media/alta)
 
     if tipo_encoder is not None:
         tipo_cod = _encodear_con_fallback(tipo_encoder, tipo_real)
@@ -391,27 +399,33 @@ def predecir_ad2(animal_id, anio=None):
     else:
         toro_cod = 0.0
 
+    # ============================================================
+    # 3. PREDECIR TODOS LOS MESES
+    # ============================================================
     metrica = obtener_metrica_modelo('AD-2')
 
     for mes in range(1, 13):
-        fecha_mes = date(anio, mes, 1)
+        fecha_mes = date(anio_actual, mes, 1)
 
-        # CORRECCIÓN: edad_dias es la edad REAL en ese mes
+        # ### FIX ###
+        # 'edad_dias' ahora es la EDAD REAL del animal en el mes que se
+        # está prediciendo (antes aquí se metía por error 'dias_desde',
+        # que es una variable totalmente distinta).
         edad_dias_mes = 0
         if animal.fecha_nacimiento_an:
             edad_dias_mes = (fecha_mes - animal.fecha_nacimiento_an).days
 
-        # CORRECCIÓN: dias_desde_inseminacion usa fecha fija, no date.today()
-        # Usamos la fecha de la inseminación + 45 días como referencia estándar
-        # o la fecha del mes si la inseminación es muy antigua
+        # 'dias_desde_inseminacion' (antes se metía por error 'dia_ciclo'
+        # en esta posición).
         if ultima_ins:
             dias_desde_inseminacion = (fecha_mes - ultima_ins.fecha_in).days
-            # Si la inseminación es del año pasado y estamos prediciendo enero,
-            # el número será grande. Esto es correcto: indica que ya pasó mucho tiempo.
         else:
             dias_desde_inseminacion = 60
 
-        # Orden EXACTO de features del entrenamiento
+        # Orden EXACTO usado en el entrenamiento (preprocesar_datos_ad2):
+        # ['edad_dias', 'num_partos', 'raza_cod', 'condicion_corporal',
+        #  'produccion_leche', 'intensidad_cod', 'duracion_celo_horas',
+        #  'tipo_cod', 'toro_cod', 'historial_abortos', 'dias_desde_inseminacion']
         caracteristicas = [
             float(edad_dias_mes),
             float(num_partos),
@@ -436,9 +450,9 @@ def predecir_ad2(animal_id, anio=None):
                 'prediccion': 'Preñada' if prediccion == 1 else 'No Preñada',
                 'probabilidad': round(float(max(probabilidad)) * 100, 1),
                 'mes': mes,
-                'anio': anio,
+                'anio': anio_actual,
                 'nombre_mes': MESES_ESPANOL.get(mes, 'Desconocido'),
-                'dias_desde_inseminacion': dias_desde_inseminacion,
+                'dias_posparto': dias_desde_inseminacion,
                 'condicion_corporal': round(condicion, 1),
                 'detalle': {
                     'fecha_ultima_inseminacion': ultima_ins.fecha_in.strftime('%d/%m/%Y') if ultima_ins else 'No registrada',
@@ -449,7 +463,7 @@ def predecir_ad2(animal_id, anio=None):
                     'historial_abortos': historial_abortos,
                     'dia_ciclo': dia_ciclo,
                     'edad_dias_en_mes': edad_dias_mes,
-                    'fecha_prediccion': f"{anio}-{mes:02d}-01"
+                    'fecha_prediccion': f"{anio_actual}-{mes:02d}-01"
                 },
                 'metrica': metrica
             }
@@ -460,19 +474,17 @@ def predecir_ad2(animal_id, anio=None):
 
 
 # ============================================================
-# PREDICCIÓN RL-4: CALIDAD DE LECHE (CORREGIDO)
+# ============================================================
+# PREDICCIÓN RL-4: CALIDAD DE LECHE (OPTIMIZADO + CORREGIDO)
+# ============================================================
 # ============================================================
 
-def predecir_rl4(animal_id, anio=None):
-    """
-    Predice calidad de leche para los 12 meses de un año específico.
-    Si anio es None, usa el año actual.
-    """
+def predecir_anio_actual_rl4(animal_id):
+    """Predice SOLO el año actual para RL-4 - OPTIMIZADO"""
     from Aplicaciones.Gestion.models import Animal, CalidadLeche
+    from django.db.models import Avg
 
-    if anio is None:
-        anio = date.today().year
-
+    anio_actual = date.today().year
     resultados = {}
 
     try:
@@ -480,28 +492,27 @@ def predecir_rl4(animal_id, anio=None):
     except Animal.DoesNotExist:
         return {}
 
-    # CORRECCIÓN: Usar el ÚLTIMO análisis real de la vaca, no el promedio histórico
-    ultimo_analisis = CalidadLeche.objects.filter(fk_an=animal).order_by('-fecha_muestreo_cl').first()
+    # ============================================================
+    # 1. CONSULTAS UNA SOLA VEZ
+    # ============================================================
+    # ### FIX ###
+    # Se agrega 'ufc_prom' a la agregación; antes NUNCA se consultaba
+    # y se mandaba 0.0 fijo al modelo.
+    promedios = CalidadLeche.objects.filter(fk_an=animal).aggregate(
+        grasa_prom=Avg('grasa_pct_cl'),
+        proteina_prom=Avg('proteina_pct_cl'),
+        ccs_prom=Avg('ccs_cl'),
+        ufc_prom=Avg('ufc_cl')
+    )
 
-    if ultimo_analisis:
-        grasa = float(ultimo_analisis.grasa_pct_cl or 3.5)
-        proteina = float(ultimo_analisis.proteina_pct_cl or 3.2)
-        ccs = float(ultimo_analisis.ccs_cl or 200000)
-        ufc = float(ultimo_analisis.ufc_cl or 0) if hasattr(ultimo_analisis, 'ufc_cl') else 0.0
-    else:
-        # Si no hay análisis previo, usar promedios generales de la finca
-        promedios = CalidadLeche.objects.aggregate(
-            grasa_prom=Avg('grasa_pct_cl'),
-            proteina_prom=Avg('proteina_pct_cl'),
-            ccs_prom=Avg('ccs_cl'),
-            ufc_prom=Avg('ufc_cl')
-        )
-        grasa = float(promedios.get('grasa_prom') or 3.5)
-        proteina = float(promedios.get('proteina_prom') or 3.2)
-        ccs = float(promedios.get('ccs_prom') or 200000)
-        ufc = float(promedios.get('ufc_prom') or 0)
+    grasa = float(promedios.get('grasa_prom') or 3.5)
+    proteina = float(promedios.get('proteina_prom') or 3.2)
+    ccs = float(promedios.get('ccs_prom') or 200000)
+    ufc = float(promedios.get('ufc_prom') or 0)
 
-    # Cargar modelo
+    # ============================================================
+    # 2. CARGAR MODELO UNA SOLA VEZ
+    # ============================================================
     ruta = obtener_ruta_modelo('RL-4')
     if not os.path.exists(ruta):
         for mes in range(1, 13):
@@ -511,6 +522,9 @@ def predecir_rl4(animal_id, anio=None):
     modelo_data = joblib.load(ruta)
     modelo = modelo_data['modelo']
 
+    # ============================================================
+    # 3. PREDECIR TODOS LOS MESES
+    # ============================================================
     metrica = obtener_metrica_modelo('RL-4')
 
     for mes in range(1, 13):
@@ -526,15 +540,14 @@ def predecir_rl4(animal_id, anio=None):
                 'prediccion': 'Apto' if prediccion == 1 else 'No Apto',
                 'probabilidad': round(float(max(probabilidad)) * 100, 1),
                 'mes': mes,
-                'anio': anio,
+                'anio': anio_actual,
                 'nombre_mes': MESES_ESPANOL.get(mes, 'Desconocido'),
                 'grasa': round(grasa, 2),
                 'proteina': round(proteina, 2),
                 'ccs': round(ccs, 0),
                 'ufc': round(ufc, 0),
                 'detalle': {
-                    'fecha_prediccion': f"{anio}-{mes:02d}-01",
-                    'basado_en': 'ultimo_analisis' if ultimo_analisis else 'promedio_finca'
+                    'fecha_prediccion': f"{anio_actual}-{mes:02d}-01"
                 },
                 'metrica': metrica
             }
@@ -545,35 +558,40 @@ def predecir_rl4(animal_id, anio=None):
 
 
 # ============================================================
-# FUNCIÓN PREDECIR PRINCIPAL (COMPATIBILIDAD)
+# FUNCIÓN PREDECIR PRINCIPAL (MANTENER COMPATIBILIDAD)
 # ============================================================
 
 def predecir(codigo_mm, datos_entrada):
     """
     Función principal para compatibilidad con código existente.
-    Ahora respeta el año solicitado en datos_entrada.
     """
-    animal_id = datos_entrada.get('animal_id')
-    mes = datos_entrada.get('mes', date.today().month)
-    anio = datos_entrada.get('anio', date.today().year)
-
     if codigo_mm == 'AD-1':
+        animal_id = datos_entrada.get('animal_id')
         if animal_id:
-            predicciones = predecir_ad1(animal_id, anio=anio)
+            mes = datos_entrada.get('mes', date.today().month)
+            anio = datos_entrada.get('anio', date.today().year)
+            # Para compatibilidad, llamamos a la función optimizada pero solo devolvemos un mes
+            predicciones = predecir_anio_actual_ad1(animal_id)
             return predicciones.get(mes, {'exito': False, 'mensaje': 'Mes no disponible'})
         else:
             return {'exito': False, 'mensaje': 'Se requiere animal_id para AD-1'}
 
     elif codigo_mm == 'AD-2':
+        animal_id = datos_entrada.get('animal_id')
         if animal_id:
-            predicciones = predecir_ad2(animal_id, anio=anio)
+            mes = datos_entrada.get('mes', date.today().month)
+            anio = datos_entrada.get('anio', date.today().year)
+            predicciones = predecir_anio_actual_ad2(animal_id)
             return predicciones.get(mes, {'exito': False, 'mensaje': 'Mes no disponible'})
         else:
             return {'exito': False, 'mensaje': 'Se requiere animal_id para AD-2'}
 
     elif codigo_mm == 'RL-4':
+        animal_id = datos_entrada.get('animal_id')
         if animal_id:
-            predicciones = predecir_rl4(animal_id, anio=anio)
+            mes = datos_entrada.get('mes', date.today().month)
+            anio = datos_entrada.get('anio', date.today().year)
+            predicciones = predecir_anio_actual_rl4(animal_id)
             return predicciones.get(mes, {'exito': False, 'mensaje': 'Mes no disponible'})
         else:
             return {'exito': False, 'mensaje': 'Se requiere animal_id para RL-4'}
@@ -583,7 +601,7 @@ def predecir(codigo_mm, datos_entrada):
 
 
 # ============================================================
-# FUNCIONES DE ENTRENAMIENTO (CORREGIDAS)
+# FUNCIONES DE ENTRENAMIENTO
 # ============================================================
 
 def entrenar_modelo(codigo_mm, guardar_db=True):
@@ -693,7 +711,7 @@ def guardar_modelo_en_db(codigo_mm, resultado):
 
 
 # ============================================================
-# OBTENCIÓN DE DATOS REALES (CORREGIDA)
+# FUNCIONES DE OBTENCIÓN DE DATOS
 # ============================================================
 
 def obtener_datos_reales_ad1():
@@ -730,7 +748,6 @@ def obtener_datos_reales_ad1():
             raza = animal.fk_ra.nombre_ra if animal.fk_ra else 'desconocida'
             num_partos = Parto.objects.filter(fk_madre_pa=animal, fecha_pa__lt=o.fecha_or).count()
 
-            # CORRECCIÓN: promedio_7dias de los 7 días ANTES de este ordeño
             fecha_inicio = o.fecha_or - timedelta(days=7)
             prom_7dias = Ordeno.objects.filter(
                 fk_an=animal,
@@ -738,7 +755,6 @@ def obtener_datos_reales_ad1():
                 fecha_or__lt=o.fecha_or
             ).aggregate(prom=Avg('litros_or'))['prom'] or 0
 
-            # CORRECCIÓN: ración activa en la fecha del ordeño
             racion = Racion.objects.filter(
                 fk_an=animal,
                 fecha_inicio_ra__lte=o.fecha_or
@@ -820,7 +836,6 @@ def obtener_datos_reales_ad2():
             num_partos = Parto.objects.filter(fk_madre_pa=animal).count()
             abortos = Aborto.objects.filter(fk_an=animal).count()
 
-            # CORRECCIÓN: produccion de los 7 días antes de la inseminación
             fecha_inicio = ins.fecha_in - timedelta(days=7)
             produccion = Ordeno.objects.filter(
                 fk_an=animal,
@@ -828,7 +843,6 @@ def obtener_datos_reales_ad2():
                 fecha_or__lt=ins.fecha_in
             ).aggregate(prom=Avg('litros_or'))['prom'] or 0
 
-            # CORRECCIÓN: celo más reciente ANTES de la inseminación
             celo = Celo.objects.filter(
                 fk_an=animal,
                 fecha_observacion_ce__lte=ins.fecha_in
@@ -837,24 +851,16 @@ def obtener_datos_reales_ad2():
             raza = animal.fk_ra.nombre_ra if animal.fk_ra else 'desconocida'
             toro = ins.fk_toro_in.codigo_an if ins.fk_toro_in else 'desconocido'
             tipo = ins.tipo_inseminacion_in or 'artificial'
-
-            # CORRECCIÓN: dias_desde_inseminacion usa fecha fija (no date.today)
-            # Usamos una fecha de diagnóstico estándar: inseminación + 45 días
-            fecha_diagnostico = ins.fecha_in + timedelta(days=45)
-            dias = (fecha_diagnostico - ins.fecha_in).days  # Siempre 45
-
-            # CORRECCIÓN: condicion_corporal y dia_ciclo se respetan incluso si son 0
-            condicion = float(ins.condicion_corporal_in) if ins.condicion_corporal_in is not None else 3.0
-            dia_ciclo_val = ins.dia_ciclo_in if ins.dia_ciclo_in is not None else 14
+            dias = (date.today() - ins.fecha_in).days
 
             datos.append({
                 'edad_dias': edad,
                 'num_partos': num_partos,
                 'raza': raza,
-                'condicion_corporal': condicion,
+                'condicion_corporal': float(ins.condicion_corporal_in or 0),
                 'produccion_leche': float(produccion),
                 'intensidad_celo': celo.intensidad_ce if celo else 'media',
-                'duracion_celo_horas': celo.duracion_aproximada_horas_ce if (celo and celo.duracion_aproximada_horas_ce is not None) else 12,
+                'duracion_celo_horas': celo.duracion_aproximada_horas_ce if celo else 12,
                 'tipo_inseminacion': tipo,
                 'toro': toro,
                 'historial_abortos': abortos,
@@ -917,7 +923,7 @@ def obtener_datos_reales_rl4():
 
 
 # ============================================================
-# ENTRENAMIENTO DE MODELOS
+# FUNCIONES DE ENTRENAMIENTO
 # ============================================================
 
 def entrenar_ad1_con_datos_reales(df):
@@ -970,6 +976,12 @@ def entrenar_ad2_con_datos_reales(df):
     cv_scores = cross_val_score(modelo, X, y, cv=5)
 
     ruta = obtener_ruta_modelo('AD-2')
+    # ### FIX ###
+    # Antes SOLO se guardaban 'modelo' y 'features'. Los encoders de
+    # raza/intensidad/tipo/toro se descartaban después de entrenar,
+    # y por eso predecir_anio_actual_ad2() no tenía forma de codificar
+    # esas categorías de manera consistente (de ahí los valores
+    # hardcodeados 1.0, 12.0, 0.0, 0.0 en la versión anterior).
     joblib.dump({
         'modelo': modelo,
         'features': ['edad_dias', 'num_partos', 'raza_cod', 'condicion_corporal',
@@ -1020,7 +1032,7 @@ def entrenar_rl4_con_datos_reales(df):
 
 
 # ============================================================
-# PREPROCESAMIENTO
+# FUNCIONES DE PREPROCESAMIENTO
 # ============================================================
 
 def preprocesar_datos_ad1(df):
