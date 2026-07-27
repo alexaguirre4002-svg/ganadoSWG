@@ -73,6 +73,23 @@ def modelo_esta_entrenado(codigo_mm):
     return os.path.exists(obtener_ruta_modelo(codigo_mm))
 
 
+def _codificar_con_encoder(encoder, valor, valor_por_defecto='desconocida'):
+    """
+    Codifica un valor usando el LabelEncoder guardado en el .pkl,
+    en vez del diccionario fijo. Si el valor no fue visto en
+    entrenamiento, usa un código de reserva seguro.
+    """
+    if encoder is None:
+        return 0
+    try:
+        return int(encoder.transform([valor])[0])
+    except ValueError:
+        try:
+            return int(encoder.transform([valor_por_defecto])[0])
+        except ValueError:
+            return len(encoder.classes_)
+
+
 def obtener_metrica_modelo(codigo_mm):
     """Obtiene la métrica del modelo desde la base de datos"""
     from Aplicaciones.Gestion.models import ModeloML
@@ -147,7 +164,12 @@ def predecir_anio_actual_ad1(animal_id):
     
     num_partos = Parto.objects.filter(fk_madre_pa=animal).count()
     raza = animal.fk_ra.nombre_ra if animal.fk_ra else 'desconocida'
-    raza_cod = codificar_raza(raza)
+
+    # ---- ración real más reciente, en vez de 0.0 fijo ----
+    from Aplicaciones.Gestion.models import Racion
+    racion_actual = Racion.objects.filter(fk_an=animal).order_by('-fecha_inicio_ra').first()
+    cantidad_consumida = float(racion_actual.cantidad_consumida_kg_ra or 0) if racion_actual else 0.0
+    cantidad_ofrecida = float(racion_actual.cantidad_ofrecida_kg_ra or 0) if racion_actual else 0.0
     
     # ============================================================
     # 2. CARGAR MODELO UNA SOLA VEZ
@@ -161,6 +183,11 @@ def predecir_anio_actual_ad1(animal_id):
     modelo_data = joblib.load(ruta)
     modelo = modelo_data['modelo']
     scaler = modelo_data.get('scaler')
+    raza_encoder = modelo_data.get('raza_encoder')
+    temporada_encoder = modelo_data.get('temporada_encoder')
+
+    # ---- código de raza con el encoder REAL del entrenamiento ----
+    raza_cod = _codificar_con_encoder(raza_encoder, raza)
     
     # ============================================================
     # 3. PREDECIR TODOS LOS MESES EN BATCH
@@ -169,7 +196,16 @@ def predecir_anio_actual_ad1(animal_id):
     meses_list = []
     
     for mes in range(1, 13):
-        temporada_cod = codificar_temporada(mes)
+        if mes in (12, 1, 2):
+            temporada_str = 'invierno'
+        elif mes in (3, 4, 5):
+            temporada_str = 'primavera'
+        elif mes in (6, 7, 8):
+            temporada_str = 'verano'
+        else:
+            temporada_str = 'otoño'
+
+        temporada_cod = _codificar_con_encoder(temporada_encoder, temporada_str, 'invierno')
         
         caracteristicas = [
             float(edad_dias),
@@ -179,7 +215,7 @@ def predecir_anio_actual_ad1(animal_id):
             float(animal.condicion_corporal_an or 0),
             float(num_partos),
             float(litros_promedio),
-            0.0, 0.0,
+            cantidad_consumida, cantidad_ofrecida,
             float(mes),
             float(temporada_cod),
             temp_amb, temp_leche, concentrado
@@ -233,7 +269,7 @@ def predecir_anio_actual_ad1(animal_id):
 
 def predecir_anio_actual_ad2(animal_id):
     """Predice SOLO el año actual para AD-2 - OPTIMIZADO"""
-    from Aplicaciones.Gestion.models import Animal, Inseminacion, Aborto, Parto, Ordeno
+    from Aplicaciones.Gestion.models import Animal, Inseminacion, Aborto, Parto, Ordeno, Celo
     from django.db.models import Avg
     
     anio_actual = date.today().year
@@ -247,19 +283,27 @@ def predecir_anio_actual_ad2(animal_id):
     # ============================================================
     # 1. CONSULTAS UNA SOLA VEZ (FUERA DEL CICLO)
     # ============================================================
+    edad_dias = 0
+    if animal.fecha_nacimiento_an:
+        edad_dias = (date(anio_actual, 1, 1) - animal.fecha_nacimiento_an).days
+
     num_partos = Parto.objects.filter(fk_madre_pa=animal).count()
     historial_abortos = Aborto.objects.filter(fk_an=animal).count()
     raza = animal.fk_ra.nombre_ra if animal.fk_ra else 'desconocida'
-    raza_cod = codificar_raza(raza)
     produccion = Ordeno.objects.filter(fk_an=animal).aggregate(prom=Avg('litros_or'))['prom'] or 0
     
     ultima_ins = Inseminacion.objects.filter(fk_an=animal).order_by('-fecha_in').first()
     condicion = 3
-    dia_ciclo = 14
     
     if ultima_ins:
         condicion = float(ultima_ins.condicion_corporal_in or 3)
-        dia_ciclo = ultima_ins.dia_ciclo_in or 14
+
+    toro_str = ultima_ins.fk_toro_in.codigo_an if (ultima_ins and ultima_ins.fk_toro_in) else 'desconocido'
+    tipo_str = ultima_ins.tipo_inseminacion_in if ultima_ins else 'artificial'
+
+    ultimo_celo = Celo.objects.filter(fk_an=animal).order_by('-fecha_observacion_ce').first()
+    intensidad_str = ultimo_celo.intensidad_ce if ultimo_celo else 'media'
+    duracion_celo = float(ultimo_celo.duracion_aproximada_horas_ce) if (ultimo_celo and ultimo_celo.duracion_aproximada_horas_ce) else 12.0
     
     # ============================================================
     # 2. CARGAR MODELO UNA SOLA VEZ
@@ -272,6 +316,15 @@ def predecir_anio_actual_ad2(animal_id):
     
     modelo_data = joblib.load(ruta)
     modelo = modelo_data['modelo']
+    raza_encoder = modelo_data.get('raza_encoder')
+    intensidad_encoder = modelo_data.get('intensidad_encoder')
+    tipo_encoder = modelo_data.get('tipo_encoder')
+    toro_encoder = modelo_data.get('toro_encoder')
+
+    raza_cod = _codificar_con_encoder(raza_encoder, raza)
+    intensidad_cod = _codificar_con_encoder(intensidad_encoder, intensidad_str, 'media')
+    tipo_cod = _codificar_con_encoder(tipo_encoder, tipo_str, 'artificial')
+    toro_cod = _codificar_con_encoder(toro_encoder, toro_str, 'desconocido')
     
     # ============================================================
     # 3. PREDECIR TODOS LOS MESES
@@ -280,19 +333,26 @@ def predecir_anio_actual_ad2(animal_id):
     
     for mes in range(1, 13):
         if ultima_ins:
-            dias_desde = (date(anio_actual, mes, 1) - ultima_ins.fecha_in).days
+            dias_desde_inseminacion = (date(anio_actual, mes, 1) - ultima_ins.fecha_in).days
         else:
-            dias_desde = 60
+            dias_desde_inseminacion = 60
         
+        # Orden EXACTO esperado por el modelo (ver 'features' en el .pkl):
+        # edad_dias, num_partos, raza_cod, condicion_corporal, produccion_leche,
+        # intensidad_cod, duracion_celo_horas, tipo_cod, toro_cod,
+        # historial_abortos, dias_desde_inseminacion
         caracteristicas = [
-            float(dias_desde),
+            float(edad_dias),
             float(num_partos),
             float(raza_cod),
             condicion,
             float(produccion),
-            1.0, 12.0, 0.0, 0.0,
+            float(intensidad_cod),
+            duracion_celo,
+            float(tipo_cod),
+            float(toro_cod),
             float(historial_abortos),
-            float(dia_ciclo)
+            float(dias_desde_inseminacion)
         ]
         
         try:
@@ -307,16 +367,15 @@ def predecir_anio_actual_ad2(animal_id):
                 'mes': mes,
                 'anio': anio_actual,
                 'nombre_mes': MESES_ESPANOL.get(mes, 'Desconocido'),
-                'dias_posparto': dias_desde,
+                'dias_posparto': dias_desde_inseminacion,
                 'condicion_corporal': round(condicion, 1),
                 'detalle': {
                     'fecha_ultima_inseminacion': ultima_ins.fecha_in.strftime('%d/%m/%Y') if ultima_ins else 'No registrada',
-                    'tipo_inseminacion': ultima_ins.tipo_inseminacion_in if ultima_ins else 'No registrada',
+                    'tipo_inseminacion': tipo_str,
                     'num_partos': num_partos,
                     'raza': raza,
                     'produccion_leche': round(float(produccion), 2),
                     'historial_abortos': historial_abortos,
-                    'dia_ciclo': dia_ciclo,
                     'fecha_prediccion': f"{anio_actual}-{mes:02d}-01"
                 },
                 'metrica': metrica
@@ -352,12 +411,14 @@ def predecir_anio_actual_rl4(animal_id):
     promedios = CalidadLeche.objects.filter(fk_an=animal).aggregate(
         grasa_prom=Avg('grasa_pct_cl'),
         proteina_prom=Avg('proteina_pct_cl'),
-        ccs_prom=Avg('ccs_cl')
+        ccs_prom=Avg('ccs_cl'),
+        ufc_prom=Avg('ufc_cl')
     )
     
     grasa = float(promedios.get('grasa_prom') or 3.5)
     proteina = float(promedios.get('proteina_prom') or 3.2)
     ccs = float(promedios.get('ccs_prom') or 200000)
+    ufc = float(promedios.get('ufc_prom') or 0)
     
     # ============================================================
     # 2. CARGAR MODELO UNA SOLA VEZ
@@ -377,7 +438,7 @@ def predecir_anio_actual_rl4(animal_id):
     metrica = obtener_metrica_modelo('RL-4')
     
     for mes in range(1, 13):
-        caracteristicas = [grasa, proteina, ccs, 0.0]
+        caracteristicas = [grasa, proteina, ccs, ufc]
         
         try:
             X = np.array([caracteristicas])
@@ -394,7 +455,7 @@ def predecir_anio_actual_rl4(animal_id):
                 'grasa': round(grasa, 2),
                 'proteina': round(proteina, 2),
                 'ccs': round(ccs, 0),
-                'ufc': 0,
+                'ufc': round(ufc, 0),
                 'detalle': {
                     'fecha_prediccion': f"{anio_actual}-{mes:02d}-01"
                 },
@@ -829,7 +890,11 @@ def entrenar_ad2_con_datos_reales(df):
         'modelo': modelo,
         'features': ['edad_dias', 'num_partos', 'raza_cod', 'condicion_corporal',
                     'produccion_leche', 'intensidad_cod', 'duracion_celo_horas',
-                    'tipo_cod', 'toro_cod', 'historial_abortos', 'dias_desde_inseminacion']
+                    'tipo_cod', 'toro_cod', 'historial_abortos', 'dias_desde_inseminacion'],
+        'raza_encoder': encoders['raza'],
+        'intensidad_encoder': encoders['intensidad'],
+        'tipo_encoder': encoders['tipo'],
+        'toro_encoder': encoders['toro'],
     }, ruta)
     
     return {
