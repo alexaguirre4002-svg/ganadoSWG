@@ -2,28 +2,34 @@ from django.core.management.base import BaseCommand
 from django.db.models import Count
 from django.db.models.functions import ExtractYear  # ← CORREGIDO
 from Aplicaciones.Gestion.ml_engine import entrenar_modelo, modelo_esta_entrenado
+from Aplicaciones.Gestion.render_sync import sincronizar_metrica_render
 import time
 
 
 class Command(BaseCommand):
-    help = 'Entrena modelos de Machine Learning SOLO CON DATOS REALES'
+    help = 'Entrena modelos de Machine Learning SOLO CON DATOS REALES y sincroniza métricas con Render'
 
     def add_arguments(self, parser):
         parser.add_argument(
-            'codigo', 
-            nargs='?', 
-            type=str, 
+            'codigo',
+            nargs='?',
+            type=str,
             help='Código del modelo (AD-1, AD-2, RL-4)'
         )
         parser.add_argument(
-            '--todos', 
-            action='store_true', 
+            '--todos',
+            action='store_true',
             help='Entrenar todos los modelos'
         )
         parser.add_argument(
             '--force',
             action='store_true',
             help='Forzar reentrenamiento aunque ya esté entrenado'
+        )
+        parser.add_argument(
+            '--sin-render',
+            action='store_true',
+            help='NO sincronizar la métrica con la base de datos de Render'
         )
 
     def handle(self, *args, **options):
@@ -40,6 +46,7 @@ class Command(BaseCommand):
             self.stdout.write('  python manage.py entrenar_ml RL-4')
             self.stdout.write('  python manage.py entrenar_ml --todos')
             self.stdout.write('  python manage.py entrenar_ml AD-1 --force')
+            self.stdout.write('  python manage.py entrenar_ml --todos --sin-render')
             return
 
         for codigo in modelos:
@@ -49,20 +56,20 @@ class Command(BaseCommand):
         """Verifica cuántos datos reales hay disponibles"""
         self.stdout.write('')
         self.stdout.write(f'🔍 Verificando datos reales para {codigo}...')
-        
+
         try:
             if codigo == 'AD-1':
                 from Aplicaciones.Gestion.models import Ordeno
-                
+
                 cantidad = Ordeno.objects.filter(
                     litros_or__isnull=False,
                     temperatura_ambiental_or__isnull=False,
                     temperatura_leche_or__isnull=False,
                     cantidad_concentrado_kg_or__isnull=False
                 ).count()
-                
+
                 self.stdout.write(f'   🐄 Ordeños disponibles: {cantidad}')
-                
+
                 # Mostrar rango de fechas (sin ExtractYear para evitar errores)
                 fechas = Ordeno.objects.filter(
                     litros_or__isnull=False,
@@ -70,28 +77,28 @@ class Command(BaseCommand):
                     temperatura_leche_or__isnull=False,
                     cantidad_concentrado_kg_or__isnull=False
                 ).values_list('fecha_or', flat=True).order_by('fecha_or')
-                
+
                 if fechas:
                     primera = fechas[0]
-                    ultima = fechas[len(fechas)-1] if len(fechas) > 1 else primera
+                    ultima = fechas[len(fechas) - 1] if len(fechas) > 1 else primera
                     self.stdout.write(f'   📅 Rango: {primera} → {ultima}')
-                
+
                 return cantidad
-                
+
             elif codigo == 'AD-2':
                 from Aplicaciones.Gestion.models import Inseminacion
-                
+
                 cantidad = Inseminacion.objects.filter(
                     resultado_in__in=['preñada', 'no_preñada'],
                     condicion_corporal_in__isnull=False
                 ).count()
-                
+
                 self.stdout.write(f'   🐄 Inseminaciones con resultado: {cantidad}')
                 return cantidad
-                
+
             elif codigo == 'RL-4':
                 from Aplicaciones.Gestion.models import CalidadLeche
-                
+
                 cantidad = CalidadLeche.objects.filter(
                     grasa_pct_cl__isnull=False,
                     proteina_pct_cl__isnull=False,
@@ -100,26 +107,26 @@ class Command(BaseCommand):
                 ).exclude(
                     resultado_cl='pendiente'
                 ).count()
-                
+
                 self.stdout.write(f'   🧪 Análisis de calidad disponibles: {cantidad}')
                 return cantidad
-                
+
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'   ❌ Error al verificar: {str(e)}'))
             return 0
-        
+
         return 0
 
     def entrenar_modelo(self, codigo, options):
-        """Entrena un modelo específico"""
+        """Entrena un modelo específico y sincroniza su métrica con Render"""
         self.stdout.write('')
         self.stdout.write('=' * 60)
         self.stdout.write(f'🚀 Entrenando modelo {codigo}...')
         self.stdout.write('=' * 60)
-        
+
         # 1. VERIFICAR DATOS REALES
         cantidad_datos = self.verificar_datos_reales(codigo)
-        
+
         # 2. VALIDAR QUE HAYA SUFICIENTES DATOS
         if cantidad_datos < 10:
             self.stdout.write('')
@@ -127,43 +134,63 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(f'   Encontrados: {cantidad_datos} registros'))
             self.stdout.write(self.style.ERROR(f'   Se necesitan al menos 10 registros para entrenar'))
             return
-        
+
         # 3. VERIFICAR SI YA ESTÁ ENTRENADO
         if modelo_esta_entrenado(codigo) and not options.get('force', False):
             self.stdout.write('')
             self.stdout.write(self.style.WARNING(f'⚠️ El modelo {codigo} ya está entrenado.'))
             self.stdout.write('   Usa --force para reentrenar.')
             return
-        
+
         # 4. EJECUTAR ENTRENAMIENTO
         self.stdout.write('')
         self.stdout.write(f'⏳ Entrenando con {cantidad_datos} registros reales...')
         inicio = time.time()
-        
+
         try:
             resultado = entrenar_modelo(codigo)
             tiempo = time.time() - inicio
-            
+
             self.stdout.write('')
             self.stdout.write('📊 RESULTADOS:')
             self.stdout.write('-' * 40)
-            
+
             if resultado.get('exito'):
                 self.stdout.write(self.style.SUCCESS('✅ Entrenamiento exitoso!'))
                 self.stdout.write(f'   ⏱️ Tiempo: {tiempo:.2f} segundos')
-                
+
+                valor_metrica = None
+
                 if 'r2' in resultado:
+                    valor_metrica = resultado['r2']
                     self.stdout.write(f'   📈 R²: {resultado["r2"]:.4f}')
                 if 'accuracy' in resultado:
+                    valor_metrica = resultado['accuracy']
                     self.stdout.write(f'   📈 Accuracy: {resultado["accuracy"]:.4f}')
                 if 'registros' in resultado:
                     self.stdout.write(f'   📊 Registros usados: {resultado["registros"]}')
                 if 'fuente' in resultado:
                     self.stdout.write(f'   📂 Fuente: {resultado["fuente"]}')
+
+                # 5. SINCRONIZAR CON RENDER
+                if valor_metrica is not None and not options.get('sin_render', False):
+                    self.stdout.write('')
+                    self.stdout.write('🌐 Sincronizando métrica con Render...')
+                    exito_sync, mensaje_sync = sincronizar_metrica_render(codigo, valor_metrica)
+
+                    if exito_sync:
+                        self.stdout.write(self.style.SUCCESS(f'   ✅ {mensaje_sync}'))
+                    else:
+                        self.stdout.write(self.style.WARNING(f'   ⚠️ No se pudo sincronizar: {mensaje_sync}'))
+                        self.stdout.write('   (El entrenamiento local sí se guardó correctamente)')
+                elif options.get('sin_render', False):
+                    self.stdout.write('')
+                    self.stdout.write('⏭️  Sincronización con Render omitida (--sin-render)')
+
             else:
                 self.stdout.write(self.style.ERROR(f'❌ Error: {resultado.get("mensaje", "Error desconocido")}'))
-                
+
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'❌ Excepción: {str(e)}'))
-        
+
         self.stdout.write('=' * 60)
