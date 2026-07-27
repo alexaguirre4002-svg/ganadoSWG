@@ -557,7 +557,7 @@ def entrenar_modelo(codigo_mm, guardar_db=True):
         }
     
     if guardar_db and resultado.get('exito'):
-        guardar_modelo_en_db(codigo_mm, resultado)
+        pass  # ya no hace falta: entrenar_ad1/ad2/rl4_con_datos_reales guardan en BD por sí solas
     
     return resultado
 
@@ -862,13 +862,15 @@ def entrenar_ad1_con_datos_reales(df):
         'temporada_encoder': encoders['temporada_encoder']
     }, ruta)
     
-    return {
+    resultado = {
         'exito': True, 'codigo': 'AD-1', 'ruta_modelo': ruta,
         'r2': round(r2, 4), 'rmse': round(rmse, 4),
         'registros': len(df), 'entrenamiento': len(X_train),
         'prueba': len(X_test), 'fuente': 'datos_reales',
         'variables': encoders['features']
     }
+    guardar_modelo_en_db('AD-1', resultado)  # se guarda SIEMPRE, no depende de quién llame a esta función
+    return resultado
 
 
 def entrenar_ad2_con_datos_reales(df):
@@ -897,13 +899,15 @@ def entrenar_ad2_con_datos_reales(df):
         'toro_encoder': encoders['toro'],
     }, ruta)
     
-    return {
+    resultado = {
         'exito': True, 'codigo': 'AD-2', 'ruta_modelo': ruta,
         'accuracy': round(acc, 4), 'cv_mean': round(cv_scores.mean(), 4),
         'cv_std': round(cv_scores.std(), 4), 'registros': len(df),
         'entrenamiento': len(X_train), 'prueba': len(X_test),
         'fuente': 'datos_reales'
     }
+    guardar_modelo_en_db('AD-2', resultado)  # se guarda SIEMPRE, no depende de quién llame a esta función
+    return resultado
 
 
 def entrenar_rl4_con_datos_reales(df):
@@ -926,13 +930,15 @@ def entrenar_rl4_con_datos_reales(df):
         'features': ['grasa_pct', 'proteina_pct', 'ccs', 'ufc']
     }, ruta)
     
-    return {
+    resultado = {
         'exito': True, 'codigo': 'RL-4', 'ruta_modelo': ruta,
         'accuracy': round(acc, 4), 'cv_mean': round(cv_scores.mean(), 4),
         'cv_std': round(cv_scores.std(), 4), 'registros': len(df),
         'entrenamiento': len(X_train), 'prueba': len(X_test),
         'fuente': 'datos_reales'
     }
+    guardar_modelo_en_db('RL-4', resultado)  # se guarda SIEMPRE, no depende de quién llame a esta función
+    return resultado
 
 
 # ============================================================
