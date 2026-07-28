@@ -2,14 +2,14 @@
 {% load static %}
 
 <!-- ========================================== -->
-<!-- TITULO                                    -->
+<!-- TITULO                                     -->
 <!-- ========================================== -->
 {% block titulo %}
 Listado de ordeños | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
-<!-- BREADCRUMB                                -->
+<!-- BREADCRUMB                                 -->
 <!-- ========================================== -->
 {% block breadcrumb %}
 <li class="breadcrumb-item">
@@ -28,7 +28,7 @@ Listado de ordeños | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
-<!-- CONTENIDO PRINCIPAL                       -->
+<!-- CONTENIDO PRINCIPAL                        -->
 <!-- ========================================== -->
 {% block contenido %}
 
@@ -113,13 +113,13 @@ Listado de ordeños | Hacienda Joseph
                     <div class="col-md-6">
                         <form method="GET" action="" class="d-flex">
                             <input type="text" name="search" class="form-control form-control-sm" 
-                                   placeholder="🔍 Buscar por animal..." 
+                                   placeholder="🔍 Buscar por animal, turno o usuario..." 
                                    value="{{ request.GET.search }}">
                             <button type="submit" class="btn btn-sm btn-hacienda ms-2">
                                 <i class="bi bi-search"></i>
                             </button>
                             {% if request.GET.search %}
-                            <a href="?page=1" class="btn btn-sm btn-hacienda-secondary ms-1">
+                            <a href="?page=1{% if request.GET.orden_por %}&orden_por={{ request.GET.orden_por }}{% endif %}{% if request.GET.orden_dir %}&orden_dir={{ request.GET.orden_dir }}{% endif %}" class="btn btn-sm btn-hacienda-secondary ms-1">
                                 <i class="bi bi-x-circle"></i>
                             </a>
                             {% endif %}
@@ -133,22 +133,124 @@ Listado de ordeños | Hacienda Joseph
                     </div>
                 </div>
 
-                <!-- Tabla -->
+                <!-- Tabla con ordenamiento -->
                 <div class="table-responsive">
                     <table id="tablaOrdeno" class="table table-hacienda align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>Id</th>
-                                <th>Animal</th>
-                                <th>Fecha</th>
-                                <th>Turno</th>
-                                <th>Litros</th>
-                                <th>Temp. leche</th>
-                                <th>Concentrado</th>
-                                <th>Temp. ambiente</th>
-                                <th>Observaciones</th>
-                                <th>Registrado por</th>
-                                <th>Acciones</th>
+                                <!-- ID (ordenable) -->
+                                <th>
+                                    <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}orden_por=id&orden_dir={% if orden_por_actual == 'id' and orden_dir_actual == 'asc' %}desc{% else %}asc{% endif %}" 
+                                       class="text-decoration-none text-dark d-flex align-items-center gap-1" 
+                                       style="font-weight: 600;">
+                                        Id
+                                        {% if orden_por_actual == 'id' %}
+                                            <i class="bi bi-chevron-{% if orden_dir_actual == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                
+                                <!-- Animal (ordenable) -->
+                                <th>
+                                    <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}orden_por=animal&orden_dir={% if orden_por_actual == 'animal' and orden_dir_actual == 'asc' %}desc{% else %}asc{% endif %}" 
+                                       class="text-decoration-none text-dark d-flex align-items-center gap-1" 
+                                       style="font-weight: 600;">
+                                        Animal
+                                        {% if orden_por_actual == 'animal' %}
+                                            <i class="bi bi-chevron-{% if orden_dir_actual == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                
+                                <!-- Fecha (ordenable) -->
+                                <th>
+                                    <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}orden_por=fecha&orden_dir={% if orden_por_actual == 'fecha' and orden_dir_actual == 'asc' %}desc{% else %}asc{% endif %}" 
+                                       class="text-decoration-none text-dark d-flex align-items-center gap-1" 
+                                       style="font-weight: 600;">
+                                        Fecha
+                                        {% if orden_por_actual == 'fecha' %}
+                                            <i class="bi bi-chevron-{% if orden_dir_actual == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                
+                                <!-- Turno (ordenable) -->
+                                <th>
+                                    <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}orden_por=turno&orden_dir={% if orden_por_actual == 'turno' and orden_dir_actual == 'asc' %}desc{% else %}asc{% endif %}" 
+                                       class="text-decoration-none text-dark d-flex align-items-center gap-1" 
+                                       style="font-weight: 600;">
+                                        Turno
+                                        {% if orden_por_actual == 'turno' %}
+                                            <i class="bi bi-chevron-{% if orden_dir_actual == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                
+                                <!-- Litros (ordenable) -->
+                                <th>
+                                    <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}orden_por=litros&orden_dir={% if orden_por_actual == 'litros' and orden_dir_actual == 'asc' %}desc{% else %}asc{% endif %}" 
+                                       class="text-decoration-none text-dark d-flex align-items-center gap-1" 
+                                       style="font-weight: 600;">
+                                        Litros
+                                        {% if orden_por_actual == 'litros' %}
+                                            <i class="bi bi-chevron-{% if orden_dir_actual == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                
+                                <!-- Temp. leche (ordenable) -->
+                                <th>
+                                    <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}orden_por=temp_leche&orden_dir={% if orden_por_actual == 'temp_leche' and orden_dir_actual == 'asc' %}desc{% else %}asc{% endif %}" 
+                                       class="text-decoration-none text-dark d-flex align-items-center gap-1" 
+                                       style="font-weight: 600;">
+                                        Temp. leche
+                                        {% if orden_por_actual == 'temp_leche' %}
+                                            <i class="bi bi-chevron-{% if orden_dir_actual == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                
+                                <!-- Concentrado (ordenable) -->
+                                <th>
+                                    <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}orden_por=concentrado&orden_dir={% if orden_por_actual == 'concentrado' and orden_dir_actual == 'asc' %}desc{% else %}asc{% endif %}" 
+                                       class="text-decoration-none text-dark d-flex align-items-center gap-1" 
+                                       style="font-weight: 600;">
+                                        Concentrado
+                                        {% if orden_por_actual == 'concentrado' %}
+                                            <i class="bi bi-chevron-{% if orden_dir_actual == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                
+                                <!-- Temp. ambiente (ordenable) -->
+                                <th>
+                                    <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}orden_por=temp_ambiente&orden_dir={% if orden_por_actual == 'temp_ambiente' and orden_dir_actual == 'asc' %}desc{% else %}asc{% endif %}" 
+                                       class="text-decoration-none text-dark d-flex align-items-center gap-1" 
+                                       style="font-weight: 600;">
+                                        Temp. ambiente
+                                        {% if orden_por_actual == 'temp_ambiente' %}
+                                            <i class="bi bi-chevron-{% if orden_dir_actual == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                
+                                <!-- Observaciones -->
+                                <th style="font-weight: 600;">Observaciones</th>
+                                
+                                <!-- Registrado por (ordenable) -->
+                                <th>
+                                    <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}orden_por=usuario&orden_dir={% if orden_por_actual == 'usuario' and orden_dir_actual == 'asc' %}desc{% else %}asc{% endif %}" 
+                                       class="text-decoration-none text-dark d-flex align-items-center gap-1" 
+                                       style="font-weight: 600;">
+                                        Registrado por
+                                        {% if orden_por_actual == 'usuario' %}
+                                            <i class="bi bi-chevron-{% if orden_dir_actual == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                
+                                <!-- Acciones -->
+                                <th style="font-weight: 600;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -352,12 +454,12 @@ Listado de ordeños | Hacienda Joseph
                             <ul class="pagination justify-content-end flex-wrap">
                                 {% if ordeno_list.has_previous %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.orden_por %}&orden_por={{ request.GET.orden_por }}{% endif %}{% if request.GET.orden_dir %}&orden_dir={{ request.GET.orden_dir }}{% endif %}">
                                         <i class="bi bi-chevron-double-left"></i>
                                     </a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ ordeno_list.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                    <a class="page-link" href="?page={{ ordeno_list.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.orden_por %}&orden_por={{ request.GET.orden_por }}{% endif %}{% if request.GET.orden_dir %}&orden_dir={{ request.GET.orden_dir }}{% endif %}">
                                         <i class="bi bi-chevron-left"></i>
                                     </a>
                                 </li>
@@ -370,7 +472,7 @@ Listado de ordeños | Hacienda Joseph
                                     </li>
                                     {% elif num > ordeno_list.number|add:'-3' and num < ordeno_list.number|add:'3' %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.orden_por %}&orden_por={{ request.GET.orden_por }}{% endif %}{% if request.GET.orden_dir %}&orden_dir={{ request.GET.orden_dir }}{% endif %}">
                                             {{ num }}
                                         </a>
                                     </li>
@@ -379,12 +481,12 @@ Listado de ordeños | Hacienda Joseph
 
                                 {% if ordeno_list.has_next %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ ordeno_list.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                    <a class="page-link" href="?page={{ ordeno_list.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.orden_por %}&orden_por={{ request.GET.orden_por }}{% endif %}{% if request.GET.orden_dir %}&orden_dir={{ request.GET.orden_dir }}{% endif %}">
                                         <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ ordeno_list.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                    <a class="page-link" href="?page={{ ordeno_list.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.orden_por %}&orden_por={{ request.GET.orden_por }}{% endif %}{% if request.GET.orden_dir %}&orden_dir={{ request.GET.orden_dir }}{% endif %}">
                                         <i class="bi bi-chevron-double-right"></i>
                                     </a>
                                 </li>
@@ -406,7 +508,7 @@ Listado de ordeños | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- Modal detalle ordeño                      -->
+<!-- Modal detalle ordeño                       -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalDetalleOrdeno" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -512,7 +614,7 @@ Listado de ordeños | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- Modal eliminar ordeño                     -->
+<!-- Modal eliminar ordeño                      -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalEliminarOrdeno" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -550,7 +652,7 @@ Listado de ordeños | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- Estilos para paginación                   -->
+<!-- Estilos para paginación y ordenamiento     -->
 <!-- ========================================== -->
 <style>
     .pagination .page-link {
@@ -570,12 +672,27 @@ Listado de ordeños | Hacienda Joseph
         font-size: 0.8rem;
         padding: 0.35rem 0.65rem;
     }
+    /* Estilo para encabezados de tabla ordenables */
+    .table-hacienda thead th a {
+        transition: color 0.2s ease;
+    }
+    .table-hacienda thead th a:hover {
+        color: var(--color-primario) !important;
+    }
+    .table-hacienda thead th a i {
+        font-size: 0.7rem;
+        opacity: 0.6;
+        transition: opacity 0.2s ease;
+    }
+    .table-hacienda thead th a:hover i {
+        opacity: 1;
+    }
 </style>
 
 {% endblock %}
 
 <!-- ========================================== -->
-<!-- Scripts extra                             -->
+<!-- Scripts extra                              -->
 <!-- ========================================== -->
 {% block scripts_extra %}
 <script>
