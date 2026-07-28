@@ -166,11 +166,12 @@ function renderHistorialML(data, animalCodigo) {
                 const chartIdDias = 'chart_ad2_dias_' + anio + '_' + mesIdSeguro;
                 const chartIdCond = 'chart_ad2_cond_' + anio + '_' + mesIdSeguro;
                 html += '<div class="ms-2 mt-2 p-3" style="background:#fffbe6; border:1px dashed #DAA520; border-radius:10px;">'
-                     + '<p class="small mb-3" style="color:#5c450e;"><i class="bi bi-lightbulb me-1"></i><strong>' + mes + ':</strong> "' + (p0.prediccion || 'N/A') + '" con ' + confianzaNum + '% de confianza &nbsp;|&nbsp; ' + diasNum + ' días desde inseminación &nbsp;|&nbsp; cond. corporal ' + condNum + '/5</p>'
+                     + '<p class="small mb-1" style="color:#5c450e;"><i class="bi bi-lightbulb me-1"></i><strong>' + mes + ':</strong> "' + (p0.prediccion || 'N/A') + '" con ' + confianzaNum + '% de confianza &nbsp;|&nbsp; ' + diasNum + ' días desde inseminación &nbsp;|&nbsp; cond. corporal ' + condNum + '/5</p>'
+                     + '<p class="small mb-3" style="color:#5c450e;"><i class="bi bi-info-circle me-1"></i>Solo "días desde inseminación" avanza mes a mes de verdad; raza, partos, producción y abortos son la última info conocida de la vaca.</p>'
                      + '<div class="d-flex flex-wrap justify-content-center gap-4">'
-                     + '<div style="width: 240px;"><canvas id="' + chartIdConf + '" height="240"></canvas></div>'
-                     + '<div style="width: 280px;"><canvas id="' + chartIdDias + '" height="240"></canvas></div>'
-                     + '<div style="width: 240px;"><canvas id="' + chartIdCond + '" height="240"></canvas></div>'
+                     + '<div style="width: 320px;"><canvas id="' + chartIdConf + '" height="340"></canvas></div>'
+                     + '<div style="width: 380px;"><canvas id="' + chartIdDias + '" height="340"></canvas></div>'
+                     + '<div style="width: 320px;"><canvas id="' + chartIdCond + '" height="340"></canvas></div>'
                      + '</div></div>';
                 graficosAD2.push({
                     idConf: chartIdConf, idDias: chartIdDias, idCond: chartIdCond,

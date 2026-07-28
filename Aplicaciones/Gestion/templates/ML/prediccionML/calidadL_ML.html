@@ -169,11 +169,12 @@ function renderHistorialML(data, animalCodigo) {
                 const chartIdUfc = 'chart_rl4_ufc_' + anio + '_' + mesIdSeguro;
                 const chartIdComp = 'chart_rl4_comp_' + anio + '_' + mesIdSeguro;
                 html += '<div class="ms-2 mt-2 p-3" style="background:#fffbe6; border:1px dashed #DAA520; border-radius:10px;">'
-                     + '<p class="small mb-3" style="color:#5c450e;"><i class="bi bi-lightbulb me-1"></i><strong>' + mes + ':</strong> "' + (p0.prediccion || 'N/A') + '" con ' + (p0.confianza || 'N/A') + ' de confianza &nbsp;|&nbsp; CCS ' + ccsNum.toLocaleString() + ' &nbsp;|&nbsp; UFC ' + ufcNum.toLocaleString() + '</p>'
+                     + '<p class="small mb-1" style="color:#5c450e;"><i class="bi bi-lightbulb me-1"></i><strong>' + mes + ':</strong> "' + (p0.prediccion || 'N/A') + '" con ' + (p0.confianza || 'N/A') + ' de confianza &nbsp;|&nbsp; CCS ' + ccsNum.toLocaleString() + ' &nbsp;|&nbsp; UFC ' + ufcNum.toLocaleString() + '</p>'
+                     + '<p class="small mb-3" style="color:#5c450e;"><i class="bi bi-info-circle me-1"></i>CCS y UFC son los que suelen definir el rechazo; grasa y proteína son de composición nutricional.</p>'
                      + '<div class="d-flex flex-wrap justify-content-center gap-4">'
-                     + '<div style="width: 260px;"><canvas id="' + chartIdCcs + '" height="240"></canvas></div>'
-                     + '<div style="width: 260px;"><canvas id="' + chartIdUfc + '" height="240"></canvas></div>'
-                     + '<div style="width: 260px;"><canvas id="' + chartIdComp + '" height="240"></canvas></div>'
+                     + '<div style="width: 320px;"><canvas id="' + chartIdCcs + '" height="340"></canvas></div>'
+                     + '<div style="width: 320px;"><canvas id="' + chartIdUfc + '" height="340"></canvas></div>'
+                     + '<div style="width: 320px;"><canvas id="' + chartIdComp + '" height="340"></canvas></div>'
                      + '</div></div>';
                 graficosRL4.push({
                     idCcs: chartIdCcs, idUfc: chartIdUfc, idComp: chartIdComp,

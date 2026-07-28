@@ -935,7 +935,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="alert mb-4" style="background:#eef7e8; border:2px solid #8dc26f; border-radius:12px;">
                 <h6 class="fw-bold mb-2" style="color:#2c5e1a;"><i class="bi bi-info-circle-fill me-2"></i>Guía rápida — Modelo AD-1</h6>
                 <ul class="mb-0 small" style="color:#3d3d3d;">
-                    <li><strong>Predice:</strong> litros de UN ordeño (no el mes completo).</li>
+                    <li><strong>Predice:</strong> litros de UN ordeño (no el mes completo). Con 2 ordeños/día, multiplica ×2 para el total diario.</li>
                     <li><strong>R²:</strong> qué tan bueno es el modelo en general (fijo, no cambia por mes).</li>
                     <li><strong>Variables:</strong> edad, raza, peso, cond. corporal, nº partos, promedio histórico, ración, mes, temporada, clima y concentrado.</li>
                 </ul>
@@ -1060,18 +1060,23 @@ document.addEventListener('DOMContentLoaded', function () {
                     const prom = parseFloat(p0.promedio_historico) || 0;
                     const pred = parseFloat(p0.prediccion) || 0;
                     const r2 = parseFloat((p0.confianza || '').replace(/[^0-9.]/g, '')) || 0;
+                    const totalDia = (pred * 2).toFixed(2);
                     let flecha = '≈'; if (pred > prom * 1.05) flecha = '↑'; else if (pred < prom * 0.95) flecha = '↓';
 
                     html += `
                         <div class="ms-2 mt-2 p-3" style="background:#fffbe6; border:1px dashed #DAA520; border-radius:10px;">
-                            <p class="small mb-3" style="color:#5c450e;">
+                            <p class="small mb-1" style="color:#5c450e;">
                                 <i class="bi bi-lightbulb me-1"></i>
-                                <strong>${mes}:</strong> ${pred} L/ordeño ${flecha} vs. promedio histórico ${prom} L &nbsp;|&nbsp; R² del modelo: ${r2}%
+                                <strong>${mes}:</strong> ${pred} L en UN ordeño ${flecha} vs. promedio histórico ${prom} L &nbsp;|&nbsp; R² del modelo: ${r2}%
+                            </p>
+                            <p class="small mb-3" style="color:#5c450e;">
+                                <i class="bi bi-droplet-half me-1"></i>
+                                <strong>≈ ${totalDia} L al día</strong> (si ordeñas 2 veces: mañana + tarde, cada una ≈ ${pred} L)
                             </p>
                             <div class="d-flex flex-wrap justify-content-center gap-4">
-                                <div style="width: 300px;"><canvas id="${chartIdProd}" height="260"></canvas></div>
-                                <div style="width: 300px;"><canvas id="${chartIdClima}" height="260"></canvas></div>
-                                <div style="width: 220px;"><canvas id="${chartIdR2}" height="260"></canvas></div>
+                                <div style="width: 380px;"><canvas id="${chartIdProd}" height="340"></canvas></div>
+                                <div style="width: 380px;"><canvas id="${chartIdClima}" height="340"></canvas></div>
+                                <div style="width: 280px;"><canvas id="${chartIdR2}" height="340"></canvas></div>
                             </div>
                         </div>
                     `;
