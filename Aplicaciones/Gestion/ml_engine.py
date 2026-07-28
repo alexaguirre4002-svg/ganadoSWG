@@ -154,10 +154,40 @@ def predecir_anio_actual_ad1(animal_id):
         litros_prom=Avg('litros_or')
     )
     
-    temp_amb = float(promedios_generales.get('temp_amb_prom') or 22.0)
-    temp_leche = float(promedios_generales.get('temp_leche_prom') or 38.0)
-    concentrado = float(promedios_generales.get('concentrado_prom') or 3.0)
+    temp_amb_general = float(promedios_generales.get('temp_amb_prom') or 22.0)
+    temp_leche_general = float(promedios_generales.get('temp_leche_prom') or 38.0)
+    concentrado_general = float(promedios_generales.get('concentrado_prom') or 3.0)
     litros_promedio = float(promedios_generales.get('litros_prom') or 0)
+
+    # ---- NUEVO: promedios históricos POR MES (para que cada mes prediga con
+    # su propio clima/alimentación histórica en vez de repetir el promedio general) ----
+    from collections import defaultdict
+    registros_ordeno = list(todos_ordenos.values(
+        'fecha_or', 'temperatura_ambiental_or', 'temperatura_leche_or', 'cantidad_concentrado_kg_or'
+    ))
+    datos_por_mes = defaultdict(lambda: {'temp_amb': [], 'temp_leche': [], 'concentrado': []})
+    for r in registros_ordeno:
+        if not r['fecha_or']:
+            continue
+        m = r['fecha_or'].month
+        if r['temperatura_ambiental_or'] is not None:
+            datos_por_mes[m]['temp_amb'].append(float(r['temperatura_ambiental_or']))
+        if r['temperatura_leche_or'] is not None:
+            datos_por_mes[m]['temp_leche'].append(float(r['temperatura_leche_or']))
+        if r['cantidad_concentrado_kg_or'] is not None:
+            datos_por_mes[m]['concentrado'].append(float(r['cantidad_concentrado_kg_or']))
+
+    def _prom(lista, default):
+        return sum(lista) / len(lista) if lista else default
+
+    promedios_por_mes = {}
+    for _m in range(1, 13):
+        datos_mes = datos_por_mes.get(_m, {'temp_amb': [], 'temp_leche': [], 'concentrado': []})
+        promedios_por_mes[_m] = {
+            'temp_amb': _prom(datos_mes['temp_amb'], temp_amb_general),
+            'temp_leche': _prom(datos_mes['temp_leche'], temp_leche_general),
+            'concentrado': _prom(datos_mes['concentrado'], concentrado_general),
+        }
     
     edad_dias = 0
     if animal.fecha_nacimiento_an:
@@ -207,7 +237,11 @@ def predecir_anio_actual_ad1(animal_id):
             temporada_str = 'otoño'
 
         temporada_cod = _codificar_con_encoder(temporada_encoder, temporada_str, 'invierno')
-        
+
+        temp_amb_mes = promedios_por_mes[mes]['temp_amb']
+        temp_leche_mes = promedios_por_mes[mes]['temp_leche']
+        concentrado_mes = promedios_por_mes[mes]['concentrado']
+
         caracteristicas = [
             float(edad_dias),
             float(edad_dias / 365),
@@ -219,7 +253,7 @@ def predecir_anio_actual_ad1(animal_id):
             cantidad_consumida, cantidad_ofrecida,
             float(mes),
             float(temporada_cod),
-            temp_amb, temp_leche, concentrado
+            temp_amb_mes, temp_leche_mes, concentrado_mes
         ]
         
         X_batch.append(caracteristicas)
@@ -237,6 +271,10 @@ def predecir_anio_actual_ad1(animal_id):
     metrica = obtener_metrica_modelo('AD-1')
     
     for idx, mes in enumerate(meses_list):
+        temp_amb_mes = promedios_por_mes[mes]['temp_amb']
+        temp_leche_mes = promedios_por_mes[mes]['temp_leche']
+        concentrado_mes = promedios_por_mes[mes]['concentrado']
+
         resultados[mes] = {
             'exito': True,
             'prediccion': round(float(predicciones[idx]), 2),
@@ -244,9 +282,9 @@ def predecir_anio_actual_ad1(animal_id):
             'anio': anio_actual,
             'nombre_mes': MESES_ESPANOL.get(mes, 'Desconocido'),
             'temporada': obtener_nombre_temporada(mes),
-            'temperatura_ambiental': round(temp_amb, 1),
-            'concentrado': round(concentrado, 2),
-            'temp_leche': round(temp_leche, 1),
+            'temperatura_ambiental': round(temp_amb_mes, 1),
+            'concentrado': round(concentrado_mes, 2),
+            'temp_leche': round(temp_leche_mes, 1),
             'detalle': {
                 'edad_anios': round(edad_dias / 365, 1),
                 'raza': raza,
@@ -416,10 +454,43 @@ def predecir_anio_actual_rl4(animal_id):
         ufc_prom=Avg('ufc_cl')
     )
     
-    grasa = float(promedios.get('grasa_prom') or 3.5)
-    proteina = float(promedios.get('proteina_prom') or 3.2)
-    ccs = float(promedios.get('ccs_prom') or 200000)
-    ufc = float(promedios.get('ufc_prom') or 0)
+    grasa_general = float(promedios.get('grasa_prom') or 3.5)
+    proteina_general = float(promedios.get('proteina_prom') or 3.2)
+    ccs_general = float(promedios.get('ccs_prom') or 200000)
+    ufc_general = float(promedios.get('ufc_prom') or 0)
+
+    # ---- NUEVO: promedios de calidad de leche POR MES (la grasa/CCS reales
+    # varían con la estación, así que cada mes usa su propio historial) ----
+    from collections import defaultdict
+    registros_calidad = list(CalidadLeche.objects.filter(fk_an=animal).values(
+        'fecha_muestreo_cl', 'grasa_pct_cl', 'proteina_pct_cl', 'ccs_cl', 'ufc_cl'
+    ))
+    datos_por_mes_cl = defaultdict(lambda: {'grasa': [], 'proteina': [], 'ccs': [], 'ufc': []})
+    for r in registros_calidad:
+        if not r['fecha_muestreo_cl']:
+            continue
+        m = r['fecha_muestreo_cl'].month
+        if r['grasa_pct_cl'] is not None:
+            datos_por_mes_cl[m]['grasa'].append(float(r['grasa_pct_cl']))
+        if r['proteina_pct_cl'] is not None:
+            datos_por_mes_cl[m]['proteina'].append(float(r['proteina_pct_cl']))
+        if r['ccs_cl'] is not None:
+            datos_por_mes_cl[m]['ccs'].append(float(r['ccs_cl']))
+        if r['ufc_cl'] is not None:
+            datos_por_mes_cl[m]['ufc'].append(float(r['ufc_cl']))
+
+    def _prom_cl(lista, default):
+        return sum(lista) / len(lista) if lista else default
+
+    promedios_cl_por_mes = {}
+    for _m in range(1, 13):
+        datos_mes = datos_por_mes_cl.get(_m, {'grasa': [], 'proteina': [], 'ccs': [], 'ufc': []})
+        promedios_cl_por_mes[_m] = {
+            'grasa': _prom_cl(datos_mes['grasa'], grasa_general),
+            'proteina': _prom_cl(datos_mes['proteina'], proteina_general),
+            'ccs': _prom_cl(datos_mes['ccs'], ccs_general),
+            'ufc': _prom_cl(datos_mes['ufc'], ufc_general),
+        }
     
     # ============================================================
     # 2. CARGAR MODELO UNA SOLA VEZ
@@ -439,6 +510,11 @@ def predecir_anio_actual_rl4(animal_id):
     metrica = obtener_metrica_modelo('RL-4')
     
     for mes in range(1, 13):
+        grasa = promedios_cl_por_mes[mes]['grasa']
+        proteina = promedios_cl_por_mes[mes]['proteina']
+        ccs = promedios_cl_por_mes[mes]['ccs']
+        ufc = promedios_cl_por_mes[mes]['ufc']
+
         caracteristicas = [grasa, proteina, ccs, ufc]
         
         try:
