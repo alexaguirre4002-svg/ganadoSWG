@@ -63,6 +63,7 @@ Preñeces ML - Predicciones AD-2 | Hacienda Joseph
 {% block scripts_extra %}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
     .dataTables_filter { margin-bottom: 20px !important; background: linear-gradient(135deg, #eef7e8, #dcefd0); padding: 15px 20px; border-radius: 18px; border: 2px solid #b7d7a8; box-shadow: 0px 4px 12px rgba(44,94,26,0.15); display: flex !important; align-items: center !important; justify-content: end !important; gap: 10px; }
     .dataTables_filter::before { content: "🐄"; font-size: 28px; }
@@ -106,21 +107,69 @@ function abrirHistorialML(animalId, animalCodigo) {
 function renderHistorialML(data, animalCodigo) {
     var bodyEl = document.getElementById('mlHistorialBody'); if (!bodyEl) return;
     if (!data.exito) { bodyEl.innerHTML = '<div class="alert alert-warning m-3"><i class="bi bi-exclamation-triangle-fill me-2"></i>' + (data.mensaje || 'No se encontraron predicciones.') + '</div>'; return; }
-    let html = ''; const predicciones = data.predicciones || {};
+    let html = `
+        <div class="alert mb-4" style="background:#eef7e8; border:2px solid #8dc26f; border-radius:12px;">
+            <h6 class="fw-bold mb-2" style="color:#2c5e1a;"><i class="bi bi-info-circle-fill me-2"></i>¿Cómo interpretar estas predicciones? (Modelo AD-2)</h6>
+            <p class="mb-2 small" style="color:#3d3d3d;"><strong>¿Qué predice?</strong> Si la vaca está probablemente "Preñada" o "No Preñada" ese mes, según su historial reproductivo más reciente.</p>
+            <p class="mb-2 small" style="color:#3d3d3d;"><strong>¿Qué es la Confianza (Accuracy)?</strong> Es la probabilidad que el modelo asigna a su propia predicción para este caso específico — a diferencia del R² de AD-1, este valor SÍ puede variar caso por caso. Referencia general del modelo: menor a 70% débil · 70%-85% aceptable · mayor a 85% bueno (un valor de 100% sostenido en muchos casos puede indicar sobreajuste por pocos datos de entrenamiento).</p>
+            <p class="mb-2 small" style="color:#3d3d3d;"><strong>Variables usadas para entrenar este modelo:</strong> edad, raza, condición corporal, número de partos, producción de leche, intensidad y duración del celo, tipo de inseminación, toro utilizado, abortos previos y días desde la inseminación.</p>
+            <p class="mb-0 small" style="color:#3d3d3d;"><strong>Importante:</strong> de todos los datos en la tabla, solo "Días desde Insem." aumenta realmente mes a mes (es aritmética real); el resto (raza, nº partos, producción, abortos, tipo de inseminación) es la última información conocida de la vaca, no una proyección a futuro.</p>
+        </div>
+    `;
+    const predicciones = data.predicciones || {};
     if (Object.keys(predicciones).length === 0) { bodyEl.innerHTML = '<div class="alert alert-info m-3"><i class="bi bi-info-circle-fill me-2"></i>No hay predicciones registradas para el animal <strong>' + animalCodigo + '</strong>.</div>'; return; }
     const anios = Object.keys(predicciones).sort((a, b) => b - a);
+    const graficosAD2 = [];
     for (const anio of anios) {
         const meses = predicciones[anio]; const mesesKeys = Object.keys(meses).sort((a, b) => { const getMesNum = (key) => { const parts = key.split(' '); return parseInt(parts[0]) || 0; }; return getMesNum(b) - getMesNum(a); });
         html += '<div class="mb-3"><button class="btn w-100 text-start fw-bold py-2 px-3 mb-2" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); color: white; border-radius: 10px; border: none;" type="button" data-bs-toggle="collapse" data-bs-target="#hist_' + anio + '" aria-expanded="false"><i class="bi bi-calendar3 me-2" style="color:#DAA520;"></i>Año ' + anio + '<span class="badge ms-2" style="background:#DAA520; color:#1a1a1a;">' + mesesKeys.length + ' mes' + (mesesKeys.length !== 1 ? 'es' : '') + '</span><i class="bi bi-chevron-down float-end mt-1"></i></button><div class="collapse" id="hist_' + anio + '">';
         for (const mes of mesesKeys) {
             const registros = meses[mes] || []; const totalPreds = registros.length;
-            html += '<div class="ms-3 mb-2"><button class="btn w-100 text-start fw-bold py-2 px-3 mb-1" style="background: #e8f5e9; color: #2c5e1a; border-radius: 8px; border: 1px solid #b7d7a8;" type="button" data-bs-toggle="collapse" data-bs-target="#hist_' + anio + '_' + mes.replace(/\s/g, '_') + '" aria-expanded="false"><i class="bi bi-calendar-month me-2"></i>' + mes + '<span class="badge bg-success ms-2">' + totalPreds + ' prediccion' + (totalPreds !== 1 ? 'es' : '') + '</span><i class="bi bi-chevron-down float-end mt-1"></i></button><div class="collapse" id="hist_' + anio + '_' + mes.replace(/\s/g, '_') + '"><div class="table-responsive ms-2"><table class="table table-hover table-bordered table-sm"><thead class="table-light"><tr><th>Fecha</th><th>Raza</th><th>Nº Partos</th><th>Producción Leche</th><th>Abortos Previos</th><th>Tipo Insem.</th><th>Días desde Insem.</th><th>Cond. Corporal</th><th>Predicción</th><th>Confianza</th></tr></thead><tbody>';
+            const mesIdSeguro = mes.replace(/\s/g, '_');
+            html += '<div class="ms-3 mb-2"><button class="btn w-100 text-start fw-bold py-2 px-3 mb-1" style="background: #e8f5e9; color: #2c5e1a; border-radius: 8px; border: 1px solid #b7d7a8;" type="button" data-bs-toggle="collapse" data-bs-target="#hist_' + anio + '_' + mesIdSeguro + '" aria-expanded="false"><i class="bi bi-calendar-month me-2"></i>' + mes + '<span class="badge bg-success ms-2">' + totalPreds + ' prediccion' + (totalPreds !== 1 ? 'es' : '') + '</span><i class="bi bi-chevron-down float-end mt-1"></i></button><div class="collapse" id="hist_' + anio + '_' + mesIdSeguro + '"><div class="table-responsive ms-2"><table class="table table-hover table-bordered table-sm"><thead class="table-light"><tr><th>Fecha</th><th>Raza</th><th>Nº Partos</th><th>Producción Leche</th><th>Abortos Previos</th><th>Tipo Insem.</th><th>Días desde Insem.</th><th>Cond. Corporal</th><th>Predicción</th><th>Confianza</th></tr></thead><tbody>';
             for (const p of registros) { html += '<tr><td><small>' + (p.fecha || 'N/A') + '</small></td><td>' + (p.raza || 'N/A') + '</td><td>' + (p.num_partos ?? 'N/A') + '</td><td>' + (p.produccion_leche || 'N/A') + ' L</td><td>' + (p.historial_abortos ?? 'N/A') + '</td><td>' + (p.tipo_inseminacion || 'N/A') + '</td><td>' + (p.dias_desde_inseminacion || 'N/A') + '</td><td>' + (p.condicion_corporal || 'N/A') + '</td><td class="fw-bold" style="color: #2c5e1a;">' + (p.prediccion || 'N/A') + '</td><td><span class="badge bg-info text-dark">' + (p.confianza || 'N/A') + '</span></td></tr>'; }
-            html += '</tbody></table></div></div></div>';
+            html += '</tbody></table></div>';
+
+            if (registros.length > 0) {
+                const p0 = registros[0];
+                const confianzaNum = parseFloat(p0.confianza) || 0;
+                const chartId = 'chart_ad2_' + anio + '_' + mesIdSeguro;
+                html += '<div class="ms-2 mt-2 p-3" style="background:#fffbe6; border:1px dashed #DAA520; border-radius:10px;">'
+                     + '<p class="small mb-2" style="color:#5c450e;"><i class="bi bi-lightbulb me-1"></i><strong>Cómo leer esta predicción:</strong> con ' + (p0.dias_desde_inseminacion || 'N/A') + ' días desde la última inseminación y condición corporal ' + (p0.condicion_corporal || 'N/A') + '/5, el modelo predice <strong>"' + (p0.prediccion || 'N/A') + '"</strong> con un <strong>' + confianzaNum + '% de confianza</strong> en esa clasificación (el ' + (100 - confianzaNum).toFixed(1) + '% restante representa la incertidumbre del modelo).</p>'
+                     + '<div style="max-width: 260px;"><canvas id="' + chartId + '" height="200"></canvas></div>'
+                     + '</div>';
+                graficosAD2.push({ id: chartId, confianza: confianzaNum, prediccion: p0.prediccion || 'N/A' });
+            }
+
+            html += '</div></div>';
         }
         html += '</div></div>';
     }
     bodyEl.innerHTML = html;
+
+    const chartsCreadosAD2 = {};
+    function crearGraficoAD2(cfg) {
+        if (chartsCreadosAD2[cfg.id]) return;
+        const canvas = document.getElementById(cfg.id);
+        if (!canvas || typeof Chart === 'undefined') return;
+        const esPositivo = cfg.prediccion.toLowerCase().indexOf('no') === -1;
+        chartsCreadosAD2[cfg.id] = new Chart(canvas.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Confianza en "' + cfg.prediccion + '"', 'Incertidumbre'],
+                datasets: [{
+                    data: [cfg.confianza, Math.max(0, 100 - cfg.confianza)],
+                    backgroundColor: [esPositivo ? '#2c5e1a' : '#c0392b', '#e0e0e0']
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+        });
+    }
+    bodyEl.querySelectorAll('.collapse').forEach(function (col) {
+        col.addEventListener('shown.bs.collapse', function () {
+            graficosAD2.forEach(function (cfg) { if (col.querySelector('#' + cfg.id)) crearGraficoAD2(cfg); });
+        });
+    });
 }
 </script>
 {% endblock %}

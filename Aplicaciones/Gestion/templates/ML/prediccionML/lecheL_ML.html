@@ -547,6 +547,7 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <style>
     .dataTables_filter {
@@ -904,7 +905,30 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
             return;
         }
 
-        let html = '';
+        let html = `
+            <div class="alert mb-4" style="background:#eef7e8; border:2px solid #8dc26f; border-radius:12px;">
+                <h6 class="fw-bold mb-2" style="color:#2c5e1a;">
+                    <i class="bi bi-info-circle-fill me-2"></i>¿Cómo interpretar estas predicciones? (Modelo AD-1)
+                </h6>
+                <p class="mb-2 small" style="color:#3d3d3d;">
+                    <strong>¿Qué predice?</strong> Litros de leche estimados para <u>un solo ordeño</u> (una sesión de ordeño),
+                    no el total de leche del mes. Para estimar la producción mensual, multiplica este valor por el número
+                    de ordeños diarios y por los días del mes.
+                </p>
+                <p class="mb-2 small" style="color:#3d3d3d;">
+                    <strong>¿Qué es el R² (confianza mostrada)?</strong> Mide qué tan bien el modelo explica la variación
+                    real de litros de leche, en una escala de 0% a 100%. Es una propiedad del modelo completo (no cambia
+                    mes a mes ni animal a animal). Referencia: menor a 70% débil · 70%-85% aceptable · 85%-95% bueno ·
+                    mayor a 95% muy alto (con pocos datos de entrenamiento, un R² tan alto puede ser señal de sobreajuste).
+                </p>
+                <p class="mb-0 small" style="color:#3d3d3d;">
+                    <strong>Variables usadas para entrenar este modelo:</strong> edad, raza, peso, condición corporal,
+                    número de partos, promedio histórico de producción, ración consumida/ofrecida, mes, temporada,
+                    temperatura ambiental, temperatura de la leche y concentrado suministrado.
+                </p>
+            </div>
+        `;
+        const graficosAD1 = [];
         const predicciones = data.predicciones || {};
 
         if (Object.keys(predicciones).length === 0) {
@@ -1012,7 +1036,43 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
                                     </tbody>
                                 </table>
                             </div>
+                `;
+
+                if (registros.length > 0) {
+                    const p0 = registros[0];
+                    const mesIdSeguro = mes.replace(/\s/g, '_');
+                    const chartId = `chart_ad1_${anio}_${mesIdSeguro}`;
+                    const prom = parseFloat(p0.promedio_historico) || 0;
+                    const pred = parseFloat(p0.prediccion) || 0;
+                    let comparacionTexto = 'está en línea con';
+                    if (pred > prom * 1.05) comparacionTexto = 'está POR ENCIMA de';
+                    else if (pred < prom * 0.95) comparacionTexto = 'está POR DEBAJO de';
+
+                    html += `
+                        <div class="ms-2 mt-2 p-3" style="background:#fffbe6; border:1px dashed #DAA520; border-radius:10px;">
+                            <p class="small mb-2" style="color:#5c450e;">
+                                <i class="bi bi-lightbulb me-1"></i>
+                                <strong>Cómo leer esta predicción:</strong> con el clima (${p0.temperatura_ambiental || 'N/A'}°C)
+                                y alimentación (${p0.cantidad_concentrado_kg || '0'} kg concentrado) típicos de <strong>${mes}</strong>,
+                                el modelo estima <strong>${pred} L por ordeño</strong>. Ese valor ${comparacionTexto} el promedio
+                                histórico de esta vaca (<strong>${prom} L</strong>).
+                            </p>
+                            <div style="max-width: 420px;">
+                                <canvas id="${chartId}" height="130"></canvas>
+                            </div>
                         </div>
+                    `;
+
+                    graficosAD1.push({
+                        id: chartId,
+                        promedio: prom,
+                        prediccion: pred,
+                        mes: mes
+                    });
+                }
+
+                html += `
+                            </div>
                     </div>
                 `;
             }
@@ -1024,6 +1084,45 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
         }
 
         bodyEl.innerHTML = html;
+
+        // ==========================================
+        // INICIALIZAR GRÁFICOS (diferido: se crean la primera
+        // vez que el usuario despliega el mes, para que el
+        // canvas ya tenga tamaño real y no esté oculto)
+        // ==========================================
+        const chartsCreadosAD1 = {};
+        function crearGraficoAD1(cfg) {
+            if (chartsCreadosAD1[cfg.id]) return;
+            const canvas = document.getElementById(cfg.id);
+            if (!canvas || typeof Chart === 'undefined') return;
+            chartsCreadosAD1[cfg.id] = new Chart(canvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Promedio Histórico', `Predicción ${cfg.mes.split(' ')[0]}`],
+                    datasets: [{
+                        label: 'Litros por ordeño',
+                        data: [cfg.promedio, cfg.prediccion],
+                        backgroundColor: ['#8dc26f', '#2c5e1a'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, title: { display: true, text: 'Litros (L)' } } }
+                }
+            });
+        }
+
+        bodyEl.querySelectorAll('.collapse').forEach(function (col) {
+            col.addEventListener('shown.bs.collapse', function () {
+                graficosAD1.forEach(function (cfg) {
+                    if (col.querySelector('#' + cfg.id)) {
+                        crearGraficoAD1(cfg);
+                    }
+                });
+            });
+        });
     }
 
     // ==========================================
