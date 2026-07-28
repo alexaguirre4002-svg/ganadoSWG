@@ -18,10 +18,23 @@ Preñeces ML - Predicciones AD-2 | Hacienda Joseph
             <h4 class="fw-bold mt-2 mb-0">AD-2</h4>
             <small class="text-muted">Predicción de preñeces</small>
             {% if estado_ad2 %}<div class="mt-2"><span class="badge bg-success">Entrenado</span></div>
-            <small class="text-muted">R²: {{ metrica_ad2|default:"N/A" }}</small>{% else %}<div class="mt-2"><span class="badge bg-danger">No entrenado</span></div>{% endif %}
+            <small class="text-muted">Accuracy: <span id="metricaAD2Valor">{{ metrica_ad2|default:"" }}</span>%</small>{% else %}<div class="mt-2"><span class="badge bg-danger">No entrenado</span></div>{% endif %}
         </div>
     </div>
     <div class="col-md-3"><div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;"><i class="bi bi-cow fs-2 text-success"></i><h4 class="fw-bold mt-2 mb-0">{{ predicciones_por_animal|length }}</h4><small class="text-muted">Animales con predicciones</small></div></div>
+    <div class="col-md-6">
+        <div class="card-hacienda p-3 h-100" style="border-left: 4px solid #DAA520;">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="fw-bold text-muted">¿Qué tan bueno es el Accuracy?</small>
+                <span id="badgeMetricaAD2" class="badge fs-6">--</span>
+            </div>
+            <div class="mt-2 d-flex gap-1 flex-wrap">
+                <span class="badge" style="background:#dc3545;">&lt;70% Débil</span>
+                <span class="badge" style="background:#ffc107; color:#000;">70-85% Aceptable</span>
+                <span class="badge" style="background:#28a745;">&gt;85% Bueno</span>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="row mb-4 animate-fade-in">
@@ -57,6 +70,19 @@ Preñeces ML - Predicciones AD-2 | Hacienda Joseph
 <div class="modal fade" id="modalHistorialML" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 95vw;"><div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;"><div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;"><h5 class="modal-title" style="color: white; font-weight: 700;"><i class="bi bi-clock-history me-2" style="color: #DAA520;"></i>HISTORIAL ML - <span id="mlHistorialTitulo">AD-2</span></h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body" style="background: #fff8e6; max-height: 70vh; overflow-y: auto;" id="mlHistorialBody"><div class="text-center py-5"><div class="spinner-border text-success" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3 text-muted">Cargando historial de predicciones...</p></div></div><div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;"><button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cerrar</button></div></div></div></div>
 
 <div class="modal fade" id="modalDetalleAnimalML" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden; max-height: 90vh;"><div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;"><h5 class="modal-title" style="color: white; font-weight: 700;"><i class="bi bi-eye-fill me-2" style="color: #DAA520;"></i>DETALLE DEL ANIMAL</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-0" style="background: #fff8e6; overflow-y: auto;"><div class="row g-0"><div class="col-md-6" style="background: #f5f0e6; border-right: 2px solid #d4c5a9; min-height: 500px; padding: 0;"><div id="contenedorFotoAnimalML" style="width: 100%; height: 100%; min-height: 500px; display: flex; align-items: center; justify-content: center; overflow: hidden;"><img id="fotoAnimalDetalleML" src="" alt="Foto del animal" style="width: 100%; height: 100%; min-height: 500px; object-fit: cover; border-radius: 12px; border: 3px solid #DAA520; box-shadow: 0 4px 15px rgba(0,0,0,0.2); background-color: #f5f0e6; display: none;"><div id="placeholderFotoML" class="foto-animal-placeholder" style="width: 100%; height: 100%; min-height: 500px; background: linear-gradient(135deg, #eef7e8, #dcefd0); border-radius: 12px; border: 3px dashed #b7d7a8; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #2c5e1a;"><i class="bi bi-image fs-1 mb-2"></i><p class="mb-0 fw-bold">Sin fotografía</p><p class="small text-muted">No se ha registrado imagen</p></div></div></div><div class="col-md-6"><div class="p-4" style="max-height: 600px; overflow-y: auto;"><div class="row mb-3"><div class="col-6"><label class="text-muted small fw-bold">CÓDIGO</label><p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleCodigoML"></p></div><div class="col-6 text-end"><label class="text-muted small fw-bold">ESTADO</label><div id="detalleEstadoML"></div></div></div><hr style="border-color: #d4c5a9;"><div class="row mb-3"><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-diagram-2 me-1"></i>RAZA</label><p class="mb-0" id="detalleRazaML" style="color: #5c450e;"></p></div><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-layers me-1"></i>CATEGORÍA</label><p class="mb-0" id="detalleCategoriaML" style="color: #5c450e;"></p></div></div><div class="row mb-3"><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-speedometer2 me-1"></i>PESO ACTUAL</label><p class="mb-0 fw-bold" id="detallePesoML" style="color: #2c5e1a;"></p></div><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-bar-chart-line me-1"></i>COND. CORPORAL</label><p class="mb-0" id="detalleCondicionML" style="color: #5c450e;"></p></div></div><hr style="border-color: #d4c5a9;"><div class="row mb-3"><div class="col-4"><label class="text-muted small fw-bold"><i class="bi bi-calendar-event me-1"></i>NACIMIENTO</label><p class="mb-0" id="detalleFechaNacimientoML" style="color: #5c450e;"></p></div><div class="col-4"><label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>INGRESO</label><p class="mb-0" id="detalleFechaIngresoML" style="color: #5c450e;"></p></div><div class="col-4"><label class="text-muted small fw-bold"><i class="bi bi-calendar-x me-1"></i>SALIDA</label><p class="mb-0" id="detalleFechaSalidaML" style="color: #5c450e;"></p></div></div><div class="mb-3" id="filaMotivoSalidaML" style="display: none;"><label class="text-muted small fw-bold"><i class="bi bi-question-circle me-1"></i>MOTIVO SALIDA</label><p class="mb-0" id="detalleMotivoML" style="color: #c0392b;"></p></div><hr style="border-color: #d4c5a9;"><div class="row mb-3"><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-map me-1"></i>POTRERO</label><p class="mb-0" id="detallePotreroML" style="color: #5c450e;"></p></div><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-graph-up me-1"></i>PREDICCIONES</label><p class="mb-0 fw-bold" id="totalPrediccionesML" style="color: #2c5e1a;"></p></div></div></div></div></div></div><div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;"><a href="#" id="btnEditarDesdeDetalleML" class="btn btn-hacienda"><i class="bi bi-pencil-square me-1"></i>Editar Animal</a><button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cerrar</button></div></div></div></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const el = document.getElementById('metricaAD2Valor');
+    const badge = document.getElementById('badgeMetricaAD2');
+    if (!el || !badge) return;
+    const val = parseFloat(el.textContent);
+    if (isNaN(val)) { badge.textContent = 'N/A'; badge.style.background = '#6c757d'; return; }
+    if (val < 70) { badge.textContent = 'Débil (' + val + '%)'; badge.style.background = '#dc3545'; }
+    else if (val < 85) { badge.textContent = 'Aceptable (' + val + '%)'; badge.style.background = '#ffc107'; badge.style.color = '#000'; }
+    else { badge.textContent = 'Bueno (' + val + '%)'; badge.style.background = '#28a745'; }
+});
+</script>
 
 {% endblock %}
 
@@ -109,11 +135,12 @@ function renderHistorialML(data, animalCodigo) {
     if (!data.exito) { bodyEl.innerHTML = '<div class="alert alert-warning m-3"><i class="bi bi-exclamation-triangle-fill me-2"></i>' + (data.mensaje || 'No se encontraron predicciones.') + '</div>'; return; }
     let html = `
         <div class="alert mb-4" style="background:#eef7e8; border:2px solid #8dc26f; border-radius:12px;">
-            <h6 class="fw-bold mb-2" style="color:#2c5e1a;"><i class="bi bi-info-circle-fill me-2"></i>¿Cómo interpretar estas predicciones? (Modelo AD-2)</h6>
-            <p class="mb-2 small" style="color:#3d3d3d;"><strong>¿Qué predice?</strong> Si la vaca está probablemente "Preñada" o "No Preñada" ese mes, según su historial reproductivo más reciente.</p>
-            <p class="mb-2 small" style="color:#3d3d3d;"><strong>¿Qué es la Confianza (Accuracy)?</strong> Es la probabilidad que el modelo asigna a su propia predicción para este caso específico — a diferencia del R² de AD-1, este valor SÍ puede variar caso por caso. Referencia general del modelo: menor a 70% débil · 70%-85% aceptable · mayor a 85% bueno (un valor de 100% sostenido en muchos casos puede indicar sobreajuste por pocos datos de entrenamiento).</p>
-            <p class="mb-2 small" style="color:#3d3d3d;"><strong>Variables usadas para entrenar este modelo:</strong> edad, raza, condición corporal, número de partos, producción de leche, intensidad y duración del celo, tipo de inseminación, toro utilizado, abortos previos y días desde la inseminación.</p>
-            <p class="mb-0 small" style="color:#3d3d3d;"><strong>Importante:</strong> de todos los datos en la tabla, solo "Días desde Insem." aumenta realmente mes a mes (es aritmética real); el resto (raza, nº partos, producción, abortos, tipo de inseminación) es la última información conocida de la vaca, no una proyección a futuro.</p>
+            <h6 class="fw-bold mb-2" style="color:#2c5e1a;"><i class="bi bi-info-circle-fill me-2"></i>Guía rápida — Modelo AD-2</h6>
+            <ul class="mb-0 small" style="color:#3d3d3d;">
+                <li><strong>Predice:</strong> "Preñada" o "No Preñada" según el historial reproductivo.</li>
+                <li><strong>Confianza:</strong> probabilidad del modelo en ESE caso puntual (sí puede variar).</li>
+                <li><strong>Solo "Días desde Insem." avanza de verdad mes a mes</strong>; lo demás es la última info conocida.</li>
+            </ul>
         </div>
     `;
     const predicciones = data.predicciones || {};
@@ -133,12 +160,23 @@ function renderHistorialML(data, animalCodigo) {
             if (registros.length > 0) {
                 const p0 = registros[0];
                 const confianzaNum = parseFloat(p0.confianza) || 0;
-                const chartId = 'chart_ad2_' + anio + '_' + mesIdSeguro;
+                const diasNum = parseFloat(p0.dias_desde_inseminacion) || 0;
+                const condNum = parseFloat(p0.condicion_corporal) || 0;
+                const chartIdConf = 'chart_ad2_conf_' + anio + '_' + mesIdSeguro;
+                const chartIdDias = 'chart_ad2_dias_' + anio + '_' + mesIdSeguro;
+                const chartIdCond = 'chart_ad2_cond_' + anio + '_' + mesIdSeguro;
                 html += '<div class="ms-2 mt-2 p-3" style="background:#fffbe6; border:1px dashed #DAA520; border-radius:10px;">'
-                     + '<p class="small mb-2" style="color:#5c450e;"><i class="bi bi-lightbulb me-1"></i><strong>Cómo leer esta predicción:</strong> con ' + (p0.dias_desde_inseminacion || 'N/A') + ' días desde la última inseminación y condición corporal ' + (p0.condicion_corporal || 'N/A') + '/5, el modelo predice <strong>"' + (p0.prediccion || 'N/A') + '"</strong> con un <strong>' + confianzaNum + '% de confianza</strong> en esa clasificación (el ' + (100 - confianzaNum).toFixed(1) + '% restante representa la incertidumbre del modelo).</p>'
-                     + '<div style="max-width: 260px;"><canvas id="' + chartId + '" height="200"></canvas></div>'
-                     + '</div>';
-                graficosAD2.push({ id: chartId, confianza: confianzaNum, prediccion: p0.prediccion || 'N/A' });
+                     + '<p class="small mb-3" style="color:#5c450e;"><i class="bi bi-lightbulb me-1"></i><strong>' + mes + ':</strong> "' + (p0.prediccion || 'N/A') + '" con ' + confianzaNum + '% de confianza &nbsp;|&nbsp; ' + diasNum + ' días desde inseminación &nbsp;|&nbsp; cond. corporal ' + condNum + '/5</p>'
+                     + '<div class="d-flex flex-wrap justify-content-center gap-4">'
+                     + '<div style="width: 240px;"><canvas id="' + chartIdConf + '" height="240"></canvas></div>'
+                     + '<div style="width: 280px;"><canvas id="' + chartIdDias + '" height="240"></canvas></div>'
+                     + '<div style="width: 240px;"><canvas id="' + chartIdCond + '" height="240"></canvas></div>'
+                     + '</div></div>';
+                graficosAD2.push({
+                    idConf: chartIdConf, idDias: chartIdDias, idCond: chartIdCond,
+                    confianza: confianzaNum, prediccion: p0.prediccion || 'N/A',
+                    dias: diasNum, condicion: condNum
+                });
             }
 
             html += '</div></div>';
@@ -149,25 +187,44 @@ function renderHistorialML(data, animalCodigo) {
 
     const chartsCreadosAD2 = {};
     function crearGraficoAD2(cfg) {
-        if (chartsCreadosAD2[cfg.id]) return;
-        const canvas = document.getElementById(cfg.id);
-        if (!canvas || typeof Chart === 'undefined') return;
+        if (chartsCreadosAD2[cfg.idConf]) return;
+        const cConf = document.getElementById(cfg.idConf);
+        const cDias = document.getElementById(cfg.idDias);
+        const cCond = document.getElementById(cfg.idCond);
+        if (!cConf || !cDias || !cCond || typeof Chart === 'undefined') return;
+        chartsCreadosAD2[cfg.idConf] = true;
         const esPositivo = cfg.prediccion.toLowerCase().indexOf('no') === -1;
-        chartsCreadosAD2[cfg.id] = new Chart(canvas.getContext('2d'), {
+
+        new Chart(cConf.getContext('2d'), {
             type: 'doughnut',
             data: {
                 labels: ['Confianza en "' + cfg.prediccion + '"', 'Incertidumbre'],
-                datasets: [{
-                    data: [cfg.confianza, Math.max(0, 100 - cfg.confianza)],
-                    backgroundColor: [esPositivo ? '#2c5e1a' : '#c0392b', '#e0e0e0']
-                }]
+                datasets: [{ data: [cfg.confianza, Math.max(0, 100 - cfg.confianza)], backgroundColor: [esPositivo ? '#2e7d32' : '#c62828', '#e0e0e0'] }]
             },
-            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }, title: { display: true, text: 'Confianza del modelo', font: { size: 13 } } } }
+        });
+
+        new Chart(cDias.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Días desde inseminación', 'Ventana típica gestación (283 d)'],
+                datasets: [{ data: [cfg.dias, 283], backgroundColor: [cfg.dias > 283 ? '#c62828' : '#42a5f5', '#DAA520'], borderRadius: 8 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Línea de tiempo (días)', font: { size: 13 } } }, scales: { y: { beginAtZero: true } } }
+        });
+
+        new Chart(cCond.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Cond. Corporal actual', 'Rango ideal (2-4/5)'],
+                datasets: [{ data: [cfg.condicion, 3], backgroundColor: [(cfg.condicion >= 2 && cfg.condicion <= 4) ? '#2e7d32' : '#c62828', '#8dc26f'], borderRadius: 8 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Condición corporal (0-5)', font: { size: 13 } } }, scales: { y: { beginAtZero: true, max: 5 } } }
         });
     }
     bodyEl.querySelectorAll('.collapse').forEach(function (col) {
         col.addEventListener('shown.bs.collapse', function () {
-            graficosAD2.forEach(function (cfg) { if (col.querySelector('#' + cfg.id)) crearGraficoAD2(cfg); });
+            graficosAD2.forEach(function (cfg) { if (col.querySelector('#' + cfg.idConf)) crearGraficoAD2(cfg); });
         });
     });
 }

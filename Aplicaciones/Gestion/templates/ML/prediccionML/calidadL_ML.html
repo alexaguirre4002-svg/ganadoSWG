@@ -18,10 +18,23 @@ Calidad de leche ML - Predicciones RL-4 | Hacienda Joseph
             <h4 class="fw-bold mt-2 mb-0">RL-4</h4>
             <small class="text-muted">Predicción de calidad</small>
             {% if estado_rl4 %}<div class="mt-2"><span class="badge bg-success">Entrenado</span></div>
-            <small class="text-muted">R²: {{ metrica_rl4|default:"N/A" }}</small>{% else %}<div class="mt-2"><span class="badge bg-danger">No entrenado</span></div>{% endif %}
+            <small class="text-muted">Accuracy: <span id="metricaRL4Valor">{{ metrica_rl4|default:"" }}</span>%</small>{% else %}<div class="mt-2"><span class="badge bg-danger">No entrenado</span></div>{% endif %}
         </div>
     </div>
     <div class="col-md-3"><div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;"><i class="bi bi-cow fs-2 text-success"></i><h4 class="fw-bold mt-2 mb-0">{{ predicciones_por_animal|length }}</h4><small class="text-muted">Animales con predicciones</small></div></div>
+    <div class="col-md-6">
+        <div class="card-hacienda p-3 h-100" style="border-left: 4px solid #DAA520;">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="fw-bold text-muted">¿Qué tan bueno es el Accuracy?</small>
+                <span id="badgeMetricaRL4" class="badge fs-6">--</span>
+            </div>
+            <div class="mt-2 d-flex gap-1 flex-wrap">
+                <span class="badge" style="background:#dc3545;">&lt;70% Débil</span>
+                <span class="badge" style="background:#ffc107; color:#000;">70-85% Aceptable</span>
+                <span class="badge" style="background:#28a745;">&gt;85% Bueno</span>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="row mb-4 animate-fade-in">
@@ -57,6 +70,19 @@ Calidad de leche ML - Predicciones RL-4 | Hacienda Joseph
 <div class="modal fade" id="modalHistorialML" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 95vw;"><div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;"><div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;"><h5 class="modal-title" style="color: white; font-weight: 700;"><i class="bi bi-clock-history me-2" style="color: #DAA520;"></i>HISTORIAL ML - <span id="mlHistorialTitulo">RL-4</span></h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body" style="background: #fff8e6; max-height: 70vh; overflow-y: auto;" id="mlHistorialBody"><div class="text-center py-5"><div class="spinner-border text-success" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3 text-muted">Cargando historial de predicciones...</p></div></div><div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;"><button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cerrar</button></div></div></div></div>
 
 <div class="modal fade" id="modalDetalleAnimalML" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden; max-height: 90vh;"><div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;"><h5 class="modal-title" style="color: white; font-weight: 700;"><i class="bi bi-eye-fill me-2" style="color: #DAA520;"></i>DETALLE DEL ANIMAL</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-0" style="background: #fff8e6; overflow-y: auto;"><div class="row g-0"><div class="col-md-6" style="background: #f5f0e6; border-right: 2px solid #d4c5a9; min-height: 500px; padding: 0;"><div id="contenedorFotoAnimalML" style="width: 100%; height: 100%; min-height: 500px; display: flex; align-items: center; justify-content: center; overflow: hidden;"><img id="fotoAnimalDetalleML" src="" alt="Foto del animal" style="width: 100%; height: 100%; min-height: 500px; object-fit: cover; border-radius: 12px; border: 3px solid #DAA520; box-shadow: 0 4px 15px rgba(0,0,0,0.2); background-color: #f5f0e6; display: none;"><div id="placeholderFotoML" class="foto-animal-placeholder" style="width: 100%; height: 100%; min-height: 500px; background: linear-gradient(135deg, #eef7e8, #dcefd0); border-radius: 12px; border: 3px dashed #b7d7a8; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #2c5e1a;"><i class="bi bi-image fs-1 mb-2"></i><p class="mb-0 fw-bold">Sin fotografía</p><p class="small text-muted">No se ha registrado imagen</p></div></div></div><div class="col-md-6"><div class="p-4" style="max-height: 600px; overflow-y: auto;"><div class="row mb-3"><div class="col-6"><label class="text-muted small fw-bold">CÓDIGO</label><p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleCodigoML"></p></div><div class="col-6 text-end"><label class="text-muted small fw-bold">ESTADO</label><div id="detalleEstadoML"></div></div></div><hr style="border-color: #d4c5a9;"><div class="row mb-3"><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-diagram-2 me-1"></i>RAZA</label><p class="mb-0" id="detalleRazaML" style="color: #5c450e;"></p></div><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-layers me-1"></i>CATEGORÍA</label><p class="mb-0" id="detalleCategoriaML" style="color: #5c450e;"></p></div></div><div class="row mb-3"><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-speedometer2 me-1"></i>PESO ACTUAL</label><p class="mb-0 fw-bold" id="detallePesoML" style="color: #2c5e1a;"></p></div><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-bar-chart-line me-1"></i>COND. CORPORAL</label><p class="mb-0" id="detalleCondicionML" style="color: #5c450e;"></p></div></div><hr style="border-color: #d4c5a9;"><div class="row mb-3"><div class="col-4"><label class="text-muted small fw-bold"><i class="bi bi-calendar-event me-1"></i>NACIMIENTO</label><p class="mb-0" id="detalleFechaNacimientoML" style="color: #5c450e;"></p></div><div class="col-4"><label class="text-muted small fw-bold"><i class="bi bi-calendar-check me-1"></i>INGRESO</label><p class="mb-0" id="detalleFechaIngresoML" style="color: #5c450e;"></p></div><div class="col-4"><label class="text-muted small fw-bold"><i class="bi bi-calendar-x me-1"></i>SALIDA</label><p class="mb-0" id="detalleFechaSalidaML" style="color: #5c450e;"></p></div></div><div class="mb-3" id="filaMotivoSalidaML" style="display: none;"><label class="text-muted small fw-bold"><i class="bi bi-question-circle me-1"></i>MOTIVO SALIDA</label><p class="mb-0" id="detalleMotivoML" style="color: #c0392b;"></p></div><hr style="border-color: #d4c5a9;"><div class="row mb-3"><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-map me-1"></i>POTRERO</label><p class="mb-0" id="detallePotreroML" style="color: #5c450e;"></p></div><div class="col-6"><label class="text-muted small fw-bold"><i class="bi bi-graph-up me-1"></i>PREDICCIONES</label><p class="mb-0 fw-bold" id="totalPrediccionesML" style="color: #2c5e1a;"></p></div></div></div></div></div></div><div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;"><a href="#" id="btnEditarDesdeDetalleML" class="btn btn-hacienda"><i class="bi bi-pencil-square me-1"></i>Editar Animal</a><button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cerrar</button></div></div></div></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const el = document.getElementById('metricaRL4Valor');
+    const badge = document.getElementById('badgeMetricaRL4');
+    if (!el || !badge) return;
+    const val = parseFloat(el.textContent);
+    if (isNaN(val)) { badge.textContent = 'N/A'; badge.style.background = '#6c757d'; return; }
+    if (val < 70) { badge.textContent = 'Débil (' + val + '%)'; badge.style.background = '#dc3545'; }
+    else if (val < 85) { badge.textContent = 'Aceptable (' + val + '%)'; badge.style.background = '#ffc107'; badge.style.color = '#000'; }
+    else { badge.textContent = 'Bueno (' + val + '%)'; badge.style.background = '#28a745'; }
+});
+</script>
 
 {% endblock %}
 
@@ -109,11 +135,12 @@ function renderHistorialML(data, animalCodigo) {
     if (!data.exito) { bodyEl.innerHTML = '<div class="alert alert-warning m-3"><i class="bi bi-exclamation-triangle-fill me-2"></i>' + (data.mensaje || 'No se encontraron predicciones.') + '</div>'; return; }
     let html = `
         <div class="alert mb-4" style="background:#eef7e8; border:2px solid #8dc26f; border-radius:12px;">
-            <h6 class="fw-bold mb-2" style="color:#2c5e1a;"><i class="bi bi-info-circle-fill me-2"></i>¿Cómo interpretar estas predicciones? (Modelo RL-4)</h6>
-            <p class="mb-2 small" style="color:#3d3d3d;"><strong>¿Qué predice?</strong> Si la leche de la vaca sería "Apta" o "No Apta" para venta/consumo, según grasa %, proteína %, células somáticas (CCS) y bacterias (UFC).</p>
-            <p class="mb-2 small" style="color:#3d3d3d;"><strong>¿Qué es la Confianza (Accuracy)?</strong> Es la probabilidad que el modelo asigna a su propia predicción para este caso específico. Referencia general del modelo: menor a 70% débil · 70%-85% aceptable · mayor a 85% bueno (100% sostenido en casi todos los casos puede indicar sobreajuste, algo típico cuando hay pocos ejemplos de la clase "No Apto" en el entrenamiento).</p>
-            <p class="mb-2 small" style="color:#3d3d3d;"><strong>Variables usadas para entrenar este modelo:</strong> únicamente grasa %, proteína %, CCS y UFC — no usa raza, edad ni ningún otro dato del animal.</p>
-            <p class="mb-0 small" style="color:#3d3d3d;"><strong>Nota sobre grasa y proteína:</strong> son indicadores de composición/calidad nutricional, no suelen ser motivo de rechazo por sí solos. <strong>CCS y UFC</strong> son los indicadores sanitarios que normalmente determinan si la leche se rechaza; en el gráfico se comparan contra límites de referencia orientativos (verifica siempre la normativa vigente en tu país para los límites exactos).</p>
+            <h6 class="fw-bold mb-2" style="color:#2c5e1a;"><i class="bi bi-info-circle-fill me-2"></i>Guía rápida — Modelo RL-4</h6>
+            <ul class="mb-0 small" style="color:#3d3d3d;">
+                <li><strong>Predice:</strong> "Apta" o "No Apta" según grasa, proteína, CCS y UFC.</li>
+                <li><strong>Variables:</strong> únicamente esas 4 — no usa raza, edad ni otros datos.</li>
+                <li><strong>CCS y UFC</strong> suelen ser los que definen el rechazo; grasa/proteína son de composición nutricional.</li>
+            </ul>
         </div>
     `;
     const predicciones = data.predicciones || {};
@@ -136,14 +163,22 @@ function renderHistorialML(data, animalCodigo) {
                 const p0 = registros[0];
                 const ccsNum = parseFloat(p0.ccs) || 0;
                 const ufcNum = parseFloat(p0.ufc) || 0;
-                const chartId = 'chart_rl4_' + anio + '_' + mesIdSeguro;
-                const ccsEstado = ccsNum > LIMITE_CCS ? 'POR ENCIMA del' : 'dentro del';
-                const ufcEstado = ufcNum > LIMITE_UFC ? 'POR ENCIMA del' : 'dentro del';
+                const grasaNum = parseFloat(p0.grasa) || 0;
+                const proteinaNum = parseFloat(p0.proteina) || 0;
+                const chartIdCcs = 'chart_rl4_ccs_' + anio + '_' + mesIdSeguro;
+                const chartIdUfc = 'chart_rl4_ufc_' + anio + '_' + mesIdSeguro;
+                const chartIdComp = 'chart_rl4_comp_' + anio + '_' + mesIdSeguro;
                 html += '<div class="ms-2 mt-2 p-3" style="background:#fffbe6; border:1px dashed #DAA520; border-radius:10px;">'
-                     + '<p class="small mb-2" style="color:#5c450e;"><i class="bi bi-lightbulb me-1"></i><strong>Cómo leer esta predicción:</strong> el CCS (' + ccsNum.toLocaleString() + ') está ' + ccsEstado + ' límite de referencia, y el UFC (' + ufcNum.toLocaleString() + ') está ' + ufcEstado + ' límite de referencia. El modelo concluye <strong>"' + (p0.prediccion || 'N/A') + '"</strong> con ' + (p0.confianza || 'N/A') + ' de confianza.</p>'
-                     + '<div style="max-width: 480px;"><canvas id="' + chartId + '" height="160"></canvas></div>'
-                     + '</div>';
-                graficosRL4.push({ id: chartId, ccs: ccsNum, ufc: ufcNum });
+                     + '<p class="small mb-3" style="color:#5c450e;"><i class="bi bi-lightbulb me-1"></i><strong>' + mes + ':</strong> "' + (p0.prediccion || 'N/A') + '" con ' + (p0.confianza || 'N/A') + ' de confianza &nbsp;|&nbsp; CCS ' + ccsNum.toLocaleString() + ' &nbsp;|&nbsp; UFC ' + ufcNum.toLocaleString() + '</p>'
+                     + '<div class="d-flex flex-wrap justify-content-center gap-4">'
+                     + '<div style="width: 260px;"><canvas id="' + chartIdCcs + '" height="240"></canvas></div>'
+                     + '<div style="width: 260px;"><canvas id="' + chartIdUfc + '" height="240"></canvas></div>'
+                     + '<div style="width: 260px;"><canvas id="' + chartIdComp + '" height="240"></canvas></div>'
+                     + '</div></div>';
+                graficosRL4.push({
+                    idCcs: chartIdCcs, idUfc: chartIdUfc, idComp: chartIdComp,
+                    ccs: ccsNum, ufc: ufcNum, grasa: grasaNum, proteina: proteinaNum
+                });
             }
 
             html += '</div></div>';
@@ -154,24 +189,43 @@ function renderHistorialML(data, animalCodigo) {
 
     const chartsCreadosRL4 = {};
     function crearGraficoRL4(cfg) {
-        if (chartsCreadosRL4[cfg.id]) return;
-        const canvas = document.getElementById(cfg.id);
-        if (!canvas || typeof Chart === 'undefined') return;
-        chartsCreadosRL4[cfg.id] = new Chart(canvas.getContext('2d'), {
+        if (chartsCreadosRL4[cfg.idCcs]) return;
+        const cCcs = document.getElementById(cfg.idCcs);
+        const cUfc = document.getElementById(cfg.idUfc);
+        const cComp = document.getElementById(cfg.idComp);
+        if (!cCcs || !cUfc || !cComp || typeof Chart === 'undefined') return;
+        chartsCreadosRL4[cfg.idCcs] = true;
+
+        new Chart(cCcs.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: ['CCS (cél/mL)', 'UFC (UFC/mL)'],
-                datasets: [
-                    { label: 'Valor de esta vaca', data: [cfg.ccs, cfg.ufc], backgroundColor: '#2c5e1a', borderRadius: 6 },
-                    { label: 'Límite de referencia', data: [LIMITE_CCS, LIMITE_UFC], backgroundColor: '#DAA520', borderRadius: 6 }
-                ]
+                labels: ['Esta vaca', 'Límite referencia'],
+                datasets: [{ data: [cfg.ccs, LIMITE_CCS], backgroundColor: [cfg.ccs > LIMITE_CCS ? '#c62828' : '#2e7d32', '#DAA520'], borderRadius: 8 }]
             },
-            options: { responsive: true, indexAxis: 'y', plugins: { legend: { position: 'bottom' } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'CCS (cél/mL)', font: { size: 13 } } }, scales: { y: { beginAtZero: true } } }
+        });
+
+        new Chart(cUfc.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Esta vaca', 'Límite referencia'],
+                datasets: [{ data: [cfg.ufc, LIMITE_UFC], backgroundColor: [cfg.ufc > LIMITE_UFC ? '#c62828' : '#2e7d32', '#DAA520'], borderRadius: 8 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'UFC (UFC/mL)', font: { size: 13 } } }, scales: { y: { beginAtZero: true } } }
+        });
+
+        new Chart(cComp.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Grasa %', 'Proteína %'],
+                datasets: [{ data: [cfg.grasa, cfg.proteina], backgroundColor: ['#ffb300', '#42a5f5'], borderRadius: 8 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Composición (%)', font: { size: 13 } } }, scales: { y: { beginAtZero: true } } }
         });
     }
     bodyEl.querySelectorAll('.collapse').forEach(function (col) {
         col.addEventListener('shown.bs.collapse', function () {
-            graficosRL4.forEach(function (cfg) { if (col.querySelector('#' + cfg.id)) crearGraficoRL4(cfg); });
+            graficosRL4.forEach(function (cfg) { if (col.querySelector('#' + cfg.idCcs)) crearGraficoRL4(cfg); });
         });
     });
 }
