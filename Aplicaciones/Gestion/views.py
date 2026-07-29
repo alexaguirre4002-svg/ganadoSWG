@@ -1786,77 +1786,20 @@ def procesareditarusuario(request):
     messages.success(request, "Usuario editado exitosamente")
     return redirect('/listadousuarios/')
 
+
 # ==========================================
-# AUDITORÍA - HISTORIAL (VERSIÓN MEJORADA)
+# AUDITORÍA - HISTORIAL
 # ==========================================
 def historialauditoria(request):
-    """
-    Muestra el listado completo del historial de auditoría con estadísticas.
-    Incluye conteos por tipo de acción, usuarios, modelos, etc.
-    USANDO PAGINACIÓN SERVER-SIDE para evitar sobrecarga.
-    """
     # Solo administradores pueden ver
     if request.session.get('usuario_rol') != 'administrador':
         messages.error(request, "No tienes permisos.")
         return redirect('/inicio/')
     
-    # ==========================================
-    # ESTADÍSTICAS (consultas agregadas)
-    # ==========================================
-    logs_query = LogAuditoria.objects.select_related('fk_us_la').all()
-    
-    total_logs = logs_query.count()
-    total_creaciones = logs_query.filter(accion_la='crear').count()
-    total_ediciones = logs_query.filter(accion_la='editar').count()
-    total_eliminaciones = logs_query.filter(accion_la='eliminar').count()
-    total_logins = logs_query.filter(accion_la='login').count()
-    total_logouts = logs_query.filter(accion_la='logout').count()
-    
-    # Usuarios más activos (top 5)
-    usuarios_activos = logs_query.values('fk_us_la__username_us').annotate(
-        total=Count('id_la')
-    ).order_by('-total')[:5]
-    
-    # Modelos más afectados
-    modelos_afectados = logs_query.values('modelo_afectado_la').annotate(
-        total=Count('id_la')
-    ).order_by('-total')[:5]
-    
-    # ==========================================
-    # BÚSQUEDA
-    # ==========================================
-    search = request.GET.get('search', '')
-    if search:
-        logs_query = logs_query.filter(
-            Q(fk_us_la__username_us__icontains=search) |
-            Q(fk_us_la__nombre_us__icontains=search) |
-            Q(fk_us_la__apellido_us__icontains=search) |
-            Q(accion_la__icontains=search) |
-            Q(modelo_afectado_la__icontains=search) |
-            Q(descripcion_la__icontains=search) |
-            Q(ip_address_la__icontains=search)
-        )
-    
-    # ==========================================
-    # PAGINACIÓN
-    # ==========================================
-    paginator = Paginator(logs_query.order_by('-fecha_hora_la'), 20)  # 20 registros por página
-    page_number = request.GET.get('page', 1)
-    logs = paginator.get_page(page_number)
-    
-    contexto = {
-        'logs': logs,
-        'total_logs': total_logs,
-        'total_creaciones': total_creaciones,
-        'total_ediciones': total_ediciones,
-        'total_eliminaciones': total_eliminaciones,
-        'total_logins': total_logins,
-        'total_logouts': total_logouts,
-        'usuarios_activos': usuarios_activos,
-        'modelos_afectados': modelos_afectados,
-    }
-    
-    return render(request, 'catalogos/usuario/historial/historial_auditoria.html', contexto)
+    # Trae todos los logs con info del usuario
+    logs = LogAuditoria.objects.select_related('fk_us_la').all()
+    return render(request, 'catalogos/usuario/historial/historial_auditoria.html', {'logs': logs})
+
 
 # ==========================================
 # AUDITORÍA - VER DETALLE
@@ -10896,17 +10839,11 @@ def dashboard_grafico(request):
     ).order_by('-total')[:5]
 
     # === MACHINE LEARNING (GLOBAL) ===
-    from .models import ModeloML
     ml_estado = {
         'ad1': modelo_esta_entrenado('AD-1'),
         'ad2': modelo_esta_entrenado('AD-2'),
         'rl4': modelo_esta_entrenado('RL-4'),
     }
-    for codigo, prefijo in [('AD-1', 'ad1'), ('AD-2', 'ad2'), ('RL-4', 'rl4')]:
-        m = ModeloML.objects.filter(codigo_mm=codigo).first()
-        if m:
-            ml_estado[f'{prefijo}_metrica'] = float(m.valor_metrica_mm or 0)
-            ml_estado[f'{prefijo}_fecha'] = m.fecha_entrenamiento_mm
 
     # === RECOMENDACIONES GLOBALES ===
     recomendaciones = []
@@ -11499,6 +11436,384 @@ def dashboard_grafico(request):
             'recomendaciones': recs,
         }
 
+    # ==========================================================
+    # RESUMEN ANUAL (mismas métricas que por mes, agrupadas SOLO
+    # por año) — se muestra al desplegar el año, antes de los meses
+    # ==========================================================
+    prod_anio_raw = Ordeno.objects.annotate(
+        anio=ExtractYear('fecha_or')
+    ).values('anio').annotate(
+        total_litros=Sum('litros_or'), promedio_litros=Avg('litros_or'), num_ordenos=Count('pk')
+    )
+    prod_por_anio = {r['anio']: r for r in prod_anio_raw}
+
+    top_animal_anio_raw = Ordeno.objects.annotate(
+        anio=ExtractYear('fecha_or')
+    ).values('anio', 'fk_an__codigo_an').annotate(total=Sum('litros_or'))
+    top_animal_por_anio = {}
+    for r in top_animal_anio_raw:
+        a = r['anio']
+        if a not in top_animal_por_anio or r['total'] > top_animal_por_anio[a]['total']:
+            top_animal_por_anio[a] = r
+
+    turno_anio_raw = Ordeno.objects.annotate(
+        anio=ExtractYear('fecha_or')
+    ).values('anio', 'turno_or').annotate(total=Sum('litros_or'))
+    turno_por_anio = defaultdict(list)
+    for r in turno_anio_raw:
+        turno_por_anio[r['anio']].append(r)
+
+    raza_anio_raw = Ordeno.objects.annotate(
+        anio=ExtractYear('fecha_or')
+    ).values('anio', 'fk_an__fk_ra__nombre_ra').annotate(total=Sum('litros_or'))
+    raza_por_anio = defaultdict(list)
+    for r in raza_anio_raw:
+        raza_por_anio[r['anio']].append(r)
+
+    calidad_anio_raw = CalidadLeche.objects.annotate(
+        anio=ExtractYear('fecha_muestreo_cl')
+    ).values('anio').annotate(
+        total=Count('pk'),
+        aptos=Count('pk', filter=Q(resultado_cl='apto')),
+        no_aptos=Count('pk', filter=Q(resultado_cl='no_apto'))
+    )
+    calidad_por_anio = {r['anio']: r for r in calidad_anio_raw}
+
+    composicion_anio_raw = CalidadLeche.objects.annotate(
+        anio=ExtractYear('fecha_muestreo_cl')
+    ).exclude(grasa_pct_cl__isnull=True).values('anio').annotate(
+        grasa_prom=Avg('grasa_pct_cl'), proteina_prom=Avg('proteina_pct_cl')
+    )
+    composicion_por_anio = {r['anio']: r for r in composicion_anio_raw}
+
+    costos_anio_raw = Costo.objects.annotate(
+        anio=ExtractYear('fecha_co')
+    ).values('anio').annotate(total=Sum('monto_co'))
+    costos_por_anio = {r['anio']: r['total'] for r in costos_anio_raw}
+
+    costos_cat_anio_raw = Costo.objects.annotate(
+        anio=ExtractYear('fecha_co')
+    ).values('anio', 'categoria_co').annotate(total=Sum('monto_co'))
+    costos_cat_por_anio = defaultdict(list)
+    for r in costos_cat_anio_raw:
+        costos_cat_por_anio[r['anio']].append(r)
+
+    ingresos_anio_raw = Ingreso.objects.annotate(
+        anio=ExtractYear('fecha_ig')
+    ).values('anio').annotate(total=Sum('monto_total_ig'))
+    ingresos_por_anio = {r['anio']: r['total'] for r in ingresos_anio_raw}
+
+    animal_anio_raw = Animal.objects.exclude(fecha_ingreso_an__isnull=True).annotate(
+        anio=ExtractYear('fecha_ingreso_an')
+    ).values('anio').annotate(total=Count('pk'))
+    nuevos_animales_por_anio = {r['anio']: r['total'] for r in animal_anio_raw}
+
+    parto_anio_raw = Parto.objects.annotate(
+        anio=ExtractYear('fecha_pa')
+    ).values('anio').annotate(total=Count('pk'))
+    partos_por_anio = {r['anio']: r['total'] for r in parto_anio_raw}
+
+    aborto_anio_raw = Aborto.objects.annotate(
+        anio=ExtractYear('fecha_ab')
+    ).values('anio').annotate(total=Count('pk'))
+    abortos_por_anio = {r['anio']: r['total'] for r in aborto_anio_raw}
+
+    inseminacion_anio_raw = Inseminacion.objects.annotate(
+        anio=ExtractYear('fecha_in')
+    ).values('anio').annotate(
+        total=Count('pk'),
+        con_resultado=Count('pk', filter=~Q(resultado_in='pendiente')),
+        prenadas=Count('pk', filter=Q(resultado_in='preñada'))
+    )
+    inseminacion_por_anio = {r['anio']: r for r in inseminacion_anio_raw}
+
+    insem_detalle_anio_raw = Inseminacion.objects.annotate(
+        anio=ExtractYear('fecha_in')
+    ).values('anio', 'resultado_in').annotate(total=Count('pk'))
+    insem_detalle_por_anio = defaultdict(list)
+    for r in insem_detalle_anio_raw:
+        insem_detalle_por_anio[r['anio']].append(r)
+
+    prenez_anio_raw = Prenez.objects.exclude(fecha_confirmacion_pr__isnull=True).annotate(
+        anio=ExtractYear('fecha_confirmacion_pr')
+    ).values('anio').annotate(total=Count('pk'))
+    prenez_por_anio = {r['anio']: r['total'] for r in prenez_anio_raw}
+
+    evento_anio_raw = EventoSanitario.objects.annotate(
+        anio=ExtractYear('fecha_programada_es')
+    ).values('anio').annotate(
+        total=Count('pk'),
+        pendientes=Count('pk', filter=Q(estado_es='pendiente')),
+        costo=Sum('costo_es')
+    )
+    eventos_por_anio = {r['anio']: r for r in evento_anio_raw}
+
+    eventos_tipo_anio_raw = EventoSanitario.objects.annotate(
+        anio=ExtractYear('fecha_programada_es')
+    ).values('anio', 'tipo_evento_es').annotate(total=Count('pk'))
+    eventos_tipo_por_anio = defaultdict(list)
+    for r in eventos_tipo_anio_raw:
+        eventos_tipo_por_anio[r['anio']].append(r)
+
+    registro_anio_raw = RegistroClinico.objects.annotate(
+        anio=ExtractYear('fecha_rc')
+    ).values('anio').annotate(total=Count('pk'), costo=Sum('costo_tratamiento_rc'))
+    registros_por_anio = {r['anio']: r for r in registro_anio_raw}
+
+    pesaje_cat_anio_raw = Pesaje.objects.annotate(
+        anio=ExtractYear('fecha_pe')
+    ).values('anio', 'fk_an__categoria_an').annotate(promedio=Avg('peso_kg_pe'))
+    pesaje_cat_por_anio = defaultdict(list)
+    for r in pesaje_cat_anio_raw:
+        pesaje_cat_por_anio[r['anio']].append(r)
+
+    celo_anio_raw = Celo.objects.annotate(
+        anio=ExtractYear('fecha_observacion_ce')
+    ).values('anio', 'intensidad_ce').annotate(total=Count('pk'))
+    celo_por_anio = defaultdict(list)
+    for r in celo_anio_raw:
+        celo_por_anio[r['anio']].append(r)
+
+    celo_total_anio_raw = Celo.objects.annotate(
+        anio=ExtractYear('fecha_observacion_ce')
+    ).values('anio').annotate(total=Count('pk'))
+    celo_total_por_anio = {r['anio']: r['total'] for r in celo_total_anio_raw}
+
+    movimiento_anio_raw = MovimientoAnimal.objects.annotate(
+        anio=ExtractYear('fecha_ma')
+    ).values('anio', 'tipo_movimiento_ma').annotate(total=Count('pk'))
+    movimiento_por_anio = defaultdict(list)
+    for r in movimiento_anio_raw:
+        movimiento_por_anio[r['anio']].append(r)
+
+    compras_monto_anio_raw = MovimientoAnimal.objects.filter(tipo_movimiento_ma='compra').annotate(
+        anio=ExtractYear('fecha_ma')
+    ).values('anio').annotate(total=Sum('precio_ma'))
+    compras_monto_por_anio = {r['anio']: float(r['total'] or 0) for r in compras_monto_anio_raw}
+
+    ventas_monto_anio_raw = MovimientoAnimal.objects.filter(tipo_movimiento_ma='venta').annotate(
+        anio=ExtractYear('fecha_ma')
+    ).values('anio').annotate(total=Sum('precio_ma'))
+    ventas_monto_por_anio = {r['anio']: float(r['total'] or 0) for r in ventas_monto_anio_raw}
+
+    muertes_anio_raw = MovimientoAnimal.objects.filter(tipo_movimiento_ma='muerte').annotate(
+        anio=ExtractYear('fecha_ma')
+    ).values('anio').annotate(total=Count('pk'))
+    muertes_por_anio = {r['anio']: r['total'] for r in muertes_anio_raw}
+
+    racion_anio_raw = Racion.objects.annotate(
+        anio=ExtractYear('fecha_inicio_ra')
+    ).values('anio').annotate(
+        ofrecido=Sum('cantidad_ofrecida_kg_ra'),
+        consumido=Sum('cantidad_consumida_kg_ra'),
+        desperdicio=Sum('desperdicio_kg_ra')
+    )
+    racion_por_anio = {r['anio']: r for r in racion_anio_raw}
+
+    secado_anio_raw = Secado.objects.annotate(
+        anio=ExtractYear('fecha_ultimo_ordeno_se')
+    ).values('anio').annotate(total=Count('pk'))
+    secado_por_anio = {r['anio']: r['total'] for r in secado_anio_raw}
+
+    secado_causa_anio_raw = Secado.objects.annotate(
+        anio=ExtractYear('fecha_ultimo_ordeno_se')
+    ).values('anio', 'causa_se').annotate(total=Count('pk'))
+    secado_causa_por_anio = defaultdict(list)
+    for r in secado_causa_anio_raw:
+        secado_causa_por_anio[r['anio']].append(r)
+
+    entrega_anio_raw = EntregaLeche.objects.annotate(
+        anio=ExtractYear('fecha_el')
+    ).values('anio').annotate(
+        litros=Sum('litros_totales_el'), monto=Sum('monto_total_el'), cantidad=Count('pk')
+    )
+    entrega_por_anio = {r['anio']: r for r in entrega_anio_raw}
+
+    todos_los_anios = set()
+    for d in [prod_por_anio, calidad_por_anio, costos_por_anio, ingresos_por_anio,
+              nuevos_animales_por_anio, partos_por_anio, abortos_por_anio,
+              inseminacion_por_anio, prenez_por_anio, eventos_por_anio, registros_por_anio,
+              celo_total_por_anio, movimiento_por_anio, racion_por_anio,
+              secado_por_anio, entrega_por_anio]:
+        todos_los_anios.update(d.keys())
+
+    resumen_anual = {}
+    for anio in todos_los_anios:
+        if anio is None:
+            continue
+
+        prod = prod_por_anio.get(anio, {})
+        total_litros = float(prod.get('total_litros') or 0)
+        promedio_litros = float(prod.get('promedio_litros') or 0)
+        num_ordenos = prod.get('num_ordenos', 0)
+        top_animal = top_animal_por_anio.get(anio)
+        litros_turno_p = turno_por_anio.get(anio, [])
+        raza_p = raza_por_anio.get(anio, [])
+
+        calidad = calidad_por_anio.get(anio, {})
+        total_calidad = calidad.get('total', 0)
+        aptos = calidad.get('aptos', 0)
+        no_aptos = calidad.get('no_aptos', 0)
+        pct_aptos = round(aptos / total_calidad * 100, 1) if total_calidad else None
+        comp_p = composicion_por_anio.get(anio, {})
+
+        total_costos_p = float(costos_por_anio.get(anio) or 0)
+        total_ingresos_p = float(ingresos_por_anio.get(anio) or 0)
+        balance_p = total_ingresos_p - total_costos_p
+        costos_categoria_p = sorted(
+            costos_cat_por_anio.get(anio, []), key=lambda x: x['total'] or 0, reverse=True
+        )[:5]
+
+        nuevos_animales = nuevos_animales_por_anio.get(anio, 0)
+        num_partos = partos_por_anio.get(anio, 0)
+        num_abortos = abortos_por_anio.get(anio, 0)
+
+        insem = inseminacion_por_anio.get(anio, {})
+        num_inseminaciones = insem.get('total', 0)
+        con_resultado = insem.get('con_resultado', 0)
+        prenadas = insem.get('prenadas', 0)
+        tasa_prenez = round(prenadas / con_resultado * 100, 1) if con_resultado else None
+        prenezes_confirmadas = prenez_por_anio.get(anio, 0)
+        insem_detalle_p = insem_detalle_por_anio.get(anio, [])
+
+        evento = eventos_por_anio.get(anio, {})
+        num_eventos = evento.get('total', 0)
+        eventos_pendientes = evento.get('pendientes', 0)
+        costo_eventos = float(evento.get('costo') or 0)
+        eventos_tipo_p = eventos_tipo_por_anio.get(anio, [])
+
+        registro = registros_por_anio.get(anio, {})
+        registros_clinicos_p = registro.get('total', 0)
+        costo_registros = float(registro.get('costo') or 0)
+        costo_sanitario = costo_eventos + costo_registros
+
+        peso_cat_p = pesaje_cat_por_anio.get(anio, [])
+
+        celo_p = celo_por_anio.get(anio, [])
+        num_celos = celo_total_por_anio.get(anio, 0)
+
+        movimiento_p = movimiento_por_anio.get(anio, [])
+        monto_compras = compras_monto_por_anio.get(anio, 0)
+        monto_ventas = ventas_monto_por_anio.get(anio, 0)
+        num_muertes = muertes_por_anio.get(anio, 0)
+
+        racion = racion_por_anio.get(anio, {})
+        kg_ofrecido = float(racion.get('ofrecido') or 0)
+        kg_consumido = float(racion.get('consumido') or 0)
+        kg_desperdicio = float(racion.get('desperdicio') or 0)
+        eficiencia_racion_pct = round(kg_consumido / kg_ofrecido * 100, 1) if kg_ofrecido else None
+
+        num_secados = secado_por_anio.get(anio, 0)
+        secado_causa_p = secado_causa_por_anio.get(anio, [])
+
+        entrega = entrega_por_anio.get(anio, {})
+        entrega_litros = float(entrega.get('litros') or 0)
+        entrega_monto = float(entrega.get('monto') or 0)
+        entrega_cantidad = entrega.get('cantidad', 0)
+
+        # --- Recomendaciones del año (mismas reglas que por mes) ---
+        recs = []
+        if pct_aptos is not None:
+            if pct_aptos < 70:
+                recs.append({'tipo': 'danger', 'icono': 'bi-exclamation-triangle',
+                    'titulo': 'Calidad de leche crítica',
+                    'texto': f'Solo el {pct_aptos}% de las muestras fueron aptas en todo el año. Revisar higiene de ordeño y cadena de frío.'})
+            elif pct_aptos < 90:
+                recs.append({'tipo': 'warning', 'icono': 'bi-droplet-half',
+                    'titulo': 'Calidad de leche por mejorar',
+                    'texto': f'{pct_aptos}% de aptitud en el año. Reforzar protocolos de limpieza.'})
+            else:
+                recs.append({'tipo': 'success', 'icono': 'bi-check-circle',
+                    'titulo': 'Excelente calidad de leche',
+                    'texto': f'{pct_aptos}% de las muestras aptas en el año. Mantener el manejo actual.'})
+
+        if balance_p < 0:
+            recs.append({'tipo': 'danger', 'icono': 'bi-cash-stack',
+                'titulo': 'Balance anual negativo',
+                'texto': f'Los costos superaron los ingresos en ${abs(balance_p):.2f} durante el año.'})
+
+        if tasa_prenez is not None and tasa_prenez < 50:
+            recs.append({'tipo': 'warning', 'icono': 'bi-heart-pulse',
+                'titulo': 'Baja tasa de preñez anual',
+                'texto': f'Solo el {tasa_prenez}% de las inseminaciones del año resultaron en preñez.'})
+
+        if num_abortos > 0:
+            recs.append({'tipo': 'danger', 'icono': 'bi-exclamation-octagon',
+                'titulo': 'Abortos en el año',
+                'texto': f'Se registraron {num_abortos} aborto(s) durante el año.'})
+
+        if num_muertes > 0:
+            recs.append({'tipo': 'danger', 'icono': 'bi-emoji-frown',
+                'titulo': 'Mortalidad en el año',
+                'texto': f'Se registraron {num_muertes} muerte(s) de animales durante el año.'})
+
+        if not recs:
+            recs.append({'tipo': 'info', 'icono': 'bi-info-circle',
+                'titulo': 'Sin alertas relevantes',
+                'texto': 'No se detectaron indicadores críticos para este año.'})
+
+        resumen_anual[anio] = {
+            'anio_nombre': f'Año {anio}',
+            'total_litros': total_litros,
+            'promedio_litros': promedio_litros,
+            'num_ordenos': num_ordenos,
+            'top_animal': top_animal,
+            'turno_labels': [t['turno_or'] for t in litros_turno_p],
+            'turno_values': [float(t['total'] or 0) for t in litros_turno_p],
+            'raza_labels': [r['fk_an__fk_ra__nombre_ra'] or 'Sin raza' for r in raza_p],
+            'raza_values': [float(r['total'] or 0) for r in raza_p],
+            'total_calidad': total_calidad,
+            'aptos': aptos,
+            'no_aptos': no_aptos,
+            'pct_aptos': pct_aptos,
+            'composicion_labels': ['Grasa %', 'Proteína %'],
+            'composicion_values': [
+                round(float(comp_p.get('grasa_prom') or 0), 2),
+                round(float(comp_p.get('proteina_prom') or 0), 2)
+            ],
+            'total_costos': total_costos_p,
+            'total_ingresos': total_ingresos_p,
+            'balance': balance_p,
+            'costos_labels': [c['categoria_co'] for c in costos_categoria_p],
+            'costos_values': [float(c['total'] or 0) for c in costos_categoria_p],
+            'finanzas_bar_labels': ['Ingresos', 'Costos'],
+            'finanzas_bar_values': [round(total_ingresos_p, 2), round(total_costos_p, 2)],
+            'nuevos_animales': nuevos_animales,
+            'num_partos': num_partos,
+            'abortos': num_abortos,
+            'num_inseminaciones': num_inseminaciones,
+            'prenezes_confirmadas': prenezes_confirmadas,
+            'tasa_prenez': tasa_prenez,
+            'insem_pie_labels': [RESULTADO_INSEM_LABELS.get(i['resultado_in'], i['resultado_in'] or 'Sin dato') for i in insem_detalle_p],
+            'insem_pie_values': [i['total'] for i in insem_detalle_p],
+            'num_eventos_sanitarios': num_eventos,
+            'eventos_pendientes': eventos_pendientes,
+            'eventos_tipo_labels': [e['tipo_evento_es'] for e in eventos_tipo_p],
+            'eventos_tipo_values': [e['total'] for e in eventos_tipo_p],
+            'registros_clinicos': registros_clinicos_p,
+            'costo_sanitario': costo_sanitario,
+            'peso_cat_labels': [p['fk_an__categoria_an'] for p in peso_cat_p],
+            'peso_cat_values': [round(float(p['promedio'] or 0), 1) for p in peso_cat_p],
+            'celo_labels': [CELO_LABELS.get(c['intensidad_ce'], c['intensidad_ce'] or 'Sin dato') for c in celo_p],
+            'celo_values': [c['total'] for c in celo_p],
+            'num_celos': num_celos,
+            'movimientos_labels': [MOVIMIENTO_LABELS.get(m['tipo_movimiento_ma'], m['tipo_movimiento_ma']) for m in movimiento_p],
+            'movimientos_values': [m['total'] for m in movimiento_p],
+            'monto_compras': monto_compras,
+            'monto_ventas': monto_ventas,
+            'num_muertes': num_muertes,
+            'racion_labels': ['Ofrecido', 'Consumido', 'Desperdicio'],
+            'racion_values': [round(kg_ofrecido, 1), round(kg_consumido, 1), round(kg_desperdicio, 1)],
+            'eficiencia_racion_pct': eficiencia_racion_pct,
+            'num_secados': num_secados,
+            'secado_causa_labels': [SECADO_LABELS.get(s['causa_se'], s['causa_se'] or 'Sin dato') for s in secado_causa_p],
+            'secado_causa_values': [s['total'] for s in secado_causa_p],
+            'entrega_litros': entrega_litros,
+            'entrega_monto': entrega_monto,
+            'entrega_cantidad': entrega_cantidad,
+            'recomendaciones': recs,
+        }
+
     # 🔥 FILTRO DE AÑO MÍNIMO (elimina basura, pero conserva 2021-2026)
     ANIO_MINIMO_HISTORIAL = 2021
     dashboard_periodos = {
@@ -11509,6 +11824,16 @@ def dashboard_grafico(request):
     dashboard_periodos = dict(sorted(dashboard_periodos.items(), reverse=True))
     for anio in dashboard_periodos:
         dashboard_periodos[anio] = dict(sorted(dashboard_periodos[anio].items(), reverse=True))
+
+    # Anidar el resumen anual junto con los meses de cada año:
+    # dashboard_periodos[anio] = {'resumen': {...}, 'meses': {mes: {...}, ...}}
+    dashboard_periodos = {
+        anio: {
+            'resumen': resumen_anual.get(anio, {}),
+            'meses': meses,
+        }
+        for anio, meses in dashboard_periodos.items()
+    }
 
     contexto = {
         'total_ingresos': float(total_ingresos),
@@ -11632,7 +11957,7 @@ def leche_ml(request):
                 
                 predicciones_por_animal.append({
                     'animal': animal,
-                    'total_predicciones': sum(1 for p in predicciones_futuras.values() if p.get('exito')),
+                    'total_predicciones': len(predicciones_futuras),
                     'ultima_fecha': ultima_fecha,
                     'predicciones': predicciones_futuras
                 })
@@ -11716,7 +12041,7 @@ def preneces_ml(request):
                 
                 predicciones_por_animal.append({
                     'animal': animal,
-                    'total_predicciones': sum(1 for p in predicciones_futuras.values() if p.get('exito')),
+                    'total_predicciones': len(predicciones_futuras),
                     'ultima_fecha': ultima_fecha,
                     'predicciones': predicciones_futuras
                 })
@@ -11800,7 +12125,7 @@ def calidad_leche_ml(request):
                 
                 predicciones_por_animal.append({
                     'animal': animal,
-                    'total_predicciones': sum(1 for p in predicciones_futuras.values() if p.get('exito')),
+                    'total_predicciones': len(predicciones_futuras),
                     'ultima_fecha': ultima_fecha,
                     'predicciones': predicciones_futuras
                 })
@@ -11844,12 +12169,13 @@ def api_historial_ad1_animal(request, animal_id):
         agrupado = {anio_actual: {}}
 
         for mes, resultado in predicciones.items():
-            mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
-            clave = f"{mes_nombre} {anio_actual}"
-            if clave not in agrupado[anio_actual]:
-                agrupado[anio_actual][clave] = []
-
             if resultado.get('exito'):
+                mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
+                clave = f"{mes_nombre} {anio_actual}"
+
+                if clave not in agrupado[anio_actual]:
+                    agrupado[anio_actual][clave] = []
+
                 detalle = resultado.get('detalle', {})
 
                 agrupado[anio_actual][clave].append({
@@ -11867,12 +12193,6 @@ def api_historial_ad1_animal(request, animal_id):
                     # ---------------------------------
                     'prediccion': resultado['prediccion'],
                     'confianza': f"R²: {resultado.get('metrica', {}).get('porcentaje', 0)}%"
-                })
-            elif resultado.get('sin_prediccion'):
-                agrupado[anio_actual][clave].append({
-                    'fecha': f"01/{mes:02d}/{anio_actual}",
-                    'sin_prediccion': True,
-                    'mensaje': resultado.get('mensaje', 'No aplica predicción este mes')
                 })
 
         return JsonResponse({'exito': True, 'predicciones': agrupado})
@@ -11903,12 +12223,13 @@ def api_historial_ad2_animal(request, animal_id):
         agrupado = {anio_actual: {}}
 
         for mes, resultado in predicciones.items():
-            mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
-            clave = f"{mes_nombre} {anio_actual}"
-            if clave not in agrupado[anio_actual]:
-                agrupado[anio_actual][clave] = []
-
             if resultado.get('exito'):
+                mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
+                clave = f"{mes_nombre} {anio_actual}"
+
+                if clave not in agrupado[anio_actual]:
+                    agrupado[anio_actual][clave] = []
+
                 detalle = resultado.get('detalle', {})
 
                 agrupado[anio_actual][clave].append({
@@ -11925,12 +12246,6 @@ def api_historial_ad2_animal(request, animal_id):
                     # ---------------------------------
                     'prediccion': resultado['prediccion'],
                     'confianza': f"{resultado.get('probabilidad', 0)}%"
-                })
-            elif resultado.get('sin_prediccion'):
-                agrupado[anio_actual][clave].append({
-                    'fecha': f"01/{mes:02d}/{anio_actual}",
-                    'sin_prediccion': True,
-                    'mensaje': resultado.get('mensaje', 'No aplica predicción este mes')
                 })
 
         return JsonResponse({'exito': True, 'predicciones': agrupado})
@@ -11958,12 +12273,13 @@ def api_historial_rl4_animal(request, animal_id):
         agrupado = {anio_actual: {}}
 
         for mes, resultado in predicciones.items():
-            mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
-            clave = f"{mes_nombre} {anio_actual}"
-            if clave not in agrupado[anio_actual]:
-                agrupado[anio_actual][clave] = []
-
             if resultado.get('exito'):
+                mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
+                clave = f"{mes_nombre} {anio_actual}"
+
+                if clave not in agrupado[anio_actual]:
+                    agrupado[anio_actual][clave] = []
+
                 agrupado[anio_actual][clave].append({
                     'fecha': f"01/{mes:02d}/{anio_actual}",
                     'grasa': resultado.get('grasa', 'N/A'),
@@ -11972,12 +12288,6 @@ def api_historial_rl4_animal(request, animal_id):
                     'ufc': resultado.get('ufc', 'N/A'),   # ---- variable que faltaba ----
                     'prediccion': resultado['prediccion'],
                     'confianza': f"{resultado.get('probabilidad', 0)}%"
-                })
-            elif resultado.get('sin_prediccion'):
-                agrupado[anio_actual][clave].append({
-                    'fecha': f"01/{mes:02d}/{anio_actual}",
-                    'sin_prediccion': True,
-                    'mensaje': resultado.get('mensaje', 'No aplica predicción este mes')
                 })
 
         return JsonResponse({'exito': True, 'predicciones': agrupado})
