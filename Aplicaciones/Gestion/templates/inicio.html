@@ -97,34 +97,130 @@
 
     <div class="row justify-content-center mb-5 animate-fade-in">
         <div class="col-11 col-md-10 col-lg-8">
-            <div class="card-hacienda p-3 p-md-4">
-                <h4 class="text-center mb-4" style="color: var(--color-primario);">
-                    <i class="bi bi-lightning-charge me-2"></i>Accesos rápidos
-                </h4>
-                <div class="row g-3 text-center justify-content-center">
-                    <div class="col-6 col-md-5">
-                        <a href="/lecheml/" class="text-decoration-none d-block">
-                            <div class="p-3 rounded-3 h-100" style="background: rgba(220,53,69,0.1); border: 2px solid #dc3545; transition: all 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                                <i class="bi bi-cup-straw fs-1" style="color: #dc3545;"></i>
-                                <p class="mt-2 mb-0 fw-bold" style="color: #dc3545; font-size: 0.9rem;">AD-1</p>
+            <!-- ==========================================================
+     MACHINE LEARNING Y PREDICCIONES
+     ========================================================== -->
+            <div class="row mb-4 animate-fade-in">
+                <div class="col-12">
+                    <div class="card-hacienda">
+                        <div class="card-header-hacienda">
+                            <i class="bi bi-cpu me-2"></i>Machine Learning y Predicciones
+                        </div>
+                        <div class="p-3">
+                            <p class="text-muted small mb-3">
+                                Tres modelos entrenados con el historial real de tu hacienda. Cada uno predice algo distinto y te dice qué tan confiable es su predicción antes de que decidas algo con ella.
+                            </p>
+                            <div class="row g-3">
+
+                                <!-- AD-1: LITROS DE LECHE -->
+                                <div class="col-md-4">
+                                    <div class="card-hacienda h-100 p-3" style="border-left: 4px solid #dc3545;">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <i class="bi bi-cup-straw fs-3" style="color: #dc3545;"></i>
+                                                <h6 class="fw-bold mt-2 mb-0">AD-1 · Litros de leche</h6>
+                                            </div>
+                                            {% if ml_estado.ad1 %}
+                                            <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Entrenado</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary"><i class="bi bi-hourglass me-1"></i>Sin entrenar</span>
+                                            {% endif %}
+                                        </div>
+                                        <p class="text-muted small mb-2">Predice cuántos litros producirá cada vaca en los próximos 12 meses, según su historial, raza, dieta y clima.</p>
+                                        {% if ml_estado.ad1 and ml_estado.ad1_metrica %}
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span class="fw-bold">R² = {{ ml_estado.ad1_metrica|floatformat:2 }}</span>
+                                            {% if ml_estado.ad1_metrica >= 0.85 %}
+                                            <span class="badge" style="background:#28a745;">Bueno</span>
+                                            {% elif ml_estado.ad1_metrica >= 0.70 %}
+                                            <span class="badge" style="background:#ffc107;color:#1a1a1a;">Aceptable</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">Débil</span>
+                                            {% endif %}
+                                        </div>
+                                        {% if ml_estado.ad1_fecha %}
+                                        <small class="text-muted d-block mb-2">Entrenado el {{ ml_estado.ad1_fecha|date:"d/m/Y" }}</small>
+                                        {% endif %}
+                                        {% endif %}
+                                        <a href="{% url 'leche_ml' %}" class="btn btn-sm btn-hacienda-secondary w-100 mt-2">
+                                            <i class="bi bi-graph-up me-1"></i>Ver predicciones
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- AD-2: PREÑEZ -->
+                                <div class="col-md-4">
+                                    <div class="card-hacienda h-100 p-3" style="border-left: 4px solid #dc3545;">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <i class="bi bi-heart-pulse fs-3" style="color: #dc3545;"></i>
+                                                <h6 class="fw-bold mt-2 mb-0">AD-2 · Preñez</h6>
+                                            </div>
+                                            {% if ml_estado.ad2 %}
+                                            <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Entrenado</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary"><i class="bi bi-hourglass me-1"></i>Sin entrenar</span>
+                                            {% endif %}
+                                        </div>
+                                        <p class="text-muted small mb-2">Estima la probabilidad de que una inseminación resulte en preñez, según celo, condición corporal e historial reproductivo.</p>
+                                        {% if ml_estado.ad2 and ml_estado.ad2_metrica %}
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span class="fw-bold">Accuracy = {{ ml_estado.ad2_metrica|floatformat:2 }}</span>
+                                            {% if ml_estado.ad2_metrica >= 0.85 %}
+                                            <span class="badge" style="background:#28a745;">Bueno</span>
+                                            {% elif ml_estado.ad2_metrica >= 0.70 %}
+                                            <span class="badge" style="background:#ffc107;color:#1a1a1a;">Aceptable</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">Débil</span>
+                                            {% endif %}
+                                        </div>
+                                        {% if ml_estado.ad2_fecha %}
+                                        <small class="text-muted d-block mb-2">Entrenado el {{ ml_estado.ad2_fecha|date:"d/m/Y" }}</small>
+                                        {% endif %}
+                                        {% endif %}
+                                        <a href="{% url 'preneces_ml' %}" class="btn btn-sm btn-hacienda-secondary w-100 mt-2">
+                                            <i class="bi bi-graph-up me-1"></i>Ver predicciones
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- RL-4: CALIDAD DE LECHE -->
+                                <div class="col-md-4">
+                                    <div class="card-hacienda h-100 p-3" style="border-left: 4px solid #dc3545;">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <i class="bi bi-award fs-3" style="color: #dc3545;"></i>
+                                                <h6 class="fw-bold mt-2 mb-0">RL-4 · Calidad de leche</h6>
+                                            </div>
+                                            {% if ml_estado.rl4 %}
+                                            <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Entrenado</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary"><i class="bi bi-hourglass me-1"></i>Sin entrenar</span>
+                                            {% endif %}
+                                        </div>
+                                        <p class="text-muted small mb-2">Clasifica si un lote de leche será "apto" o "no apto" según grasa, proteína, CCS y UFC, antes de enviarlo a planta.</p>
+                                        {% if ml_estado.rl4 and ml_estado.rl4_metrica %}
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span class="fw-bold">Accuracy = {{ ml_estado.rl4_metrica|floatformat:2 }}</span>
+                                            {% if ml_estado.rl4_metrica >= 0.85 %}
+                                            <span class="badge" style="background:#28a745;">Bueno</span>
+                                            {% elif ml_estado.rl4_metrica >= 0.70 %}
+                                            <span class="badge" style="background:#ffc107;color:#1a1a1a;">Aceptable</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">Débil</span>
+                                            {% endif %}
+                                        </div>
+                                        {% if ml_estado.rl4_fecha %}
+                                        <small class="text-muted d-block mb-2">Entrenado el {{ ml_estado.rl4_fecha|date:"d/m/Y" }}</small>
+                                        {% endif %}
+                                        {% endif %}
+                                        <a href="{% url 'calidad_leche_ml' %}" class="btn btn-sm btn-hacienda-secondary w-100 mt-2">
+                                            <i class="bi bi-graph-up me-1"></i>Ver predicciones
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
-                        </a>
-                    </div>
-                    <div class="col-6 col-md-5">
-                        <a href="/prenecesml/" class="text-decoration-none d-block">
-                            <div class="p-3 rounded-3 h-100" style="background: rgba(220,53,69,0.1); border: 2px solid #dc3545; transition: all 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                                <i class="bi bi-heart-pulse fs-1" style="color: #dc3545;"></i>
-                                <p class="mt-2 mb-0 fw-bold" style="color: #dc3545; font-size: 0.9rem;">AD-2</p>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-6 col-md-5">
-                        <a href="/calidadlml/" class="text-decoration-none d-block">
-                            <div class="p-3 rounded-3 h-100" style="background: rgba(220,53,69,0.1); border: 2px solid #dc3545; transition: all 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                                <i class="bi bi-award fs-1" style="color: #dc3545;"></i>
-                                <p class="mt-2 mb-0 fw-bold" style="color: #dc3545; font-size: 0.9rem;">RL-4</p>
-                            </div>
-                        </a>
+                        </div>
                     </div>
                 </div>
             </div>
