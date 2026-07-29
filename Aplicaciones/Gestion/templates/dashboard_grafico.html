@@ -94,12 +94,70 @@ Dashboard estadístico | Hacienda Joseph
     </div>
 </div>
 
+<!-- GRÁFICAS: TURNO, COSTOS Y ESTADO DEL HATO -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-4">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-sunrise me-2"></i>Producción por turno
+            </div>
+            <div class="p-3">
+                <p class="text-muted small mb-2">Litros acumulados en todo el historial según el turno de ordeño (mañana o tarde). Ayuda a detectar si un turno rinde consistentemente menos.</p>
+                {% if turno_values %}
+                <div style="position: relative; height: 200px;">
+                    <canvas id="graficaTurnoGlobal"></canvas>
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0 py-4"><i class="bi bi-inbox me-1"></i>Sin datos de turno</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-cash-coin me-2"></i>Costos por categoría (histórico)
+            </div>
+            <div class="p-3">
+                <p class="text-muted small mb-2">En qué se ha ido el dinero desde que usas el sistema: alimentación, sanidad, reproducción, mano de obra u otros.</p>
+                {% if cost_values %}
+                <div style="position: relative; height: 200px;">
+                    <canvas id="graficaCostosGlobal"></canvas>
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0 py-4"><i class="bi bi-inbox me-1"></i>Sin costos registrados</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-clipboard-check me-2"></i>Estado del hato
+            </div>
+            <div class="p-3">
+                <p class="text-muted small mb-2">Cuántos animales están activos, vendidos o han muerto en todo el historial. Es la salud general de tu inventario ganadero.</p>
+                {% if animales_estado %}
+                <div style="position: relative; height: 200px;">
+                    <canvas id="graficaEstadoHato"></canvas>
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0 py-4"><i class="bi bi-inbox me-1"></i>Sin animales registrados</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- RECOMENDACIONES -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-12">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
-                <i class="bi bi-lightbulb me-2"></i>Recomendaciones del sistema (machine learning)
+                <i class="bi bi-lightbulb me-2"></i>Alertas y recomendaciones del sistema
+            </div>
+            <div class="px-3 pt-2">
+                <p class="text-muted small mb-0">Reglas automáticas basadas en tus umbrales (calidad, balance, tasa de preñez, etc.). Para predicciones reales con Machine Learning, ve a la sección de abajo.</p>
             </div>
             <div class="p-3">
                 <div class="row">
@@ -119,6 +177,142 @@ Dashboard estadístico | Hacienda Joseph
         </div>
     </div>
 </div>
+
+<!-- ==========================================================
+     MACHINE LEARNING Y PREDICCIONES
+     ========================================================== -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-cpu me-2"></i>Machine Learning y Predicciones
+            </div>
+            <div class="p-3">
+                <p class="text-muted small mb-3">
+                    Tres modelos entrenados con el historial real de tu hacienda. Cada uno predice algo distinto y te dice qué tan confiable es su predicción antes de que decidas algo con ella.
+                </p>
+                <div class="row g-3">
+
+                    <!-- AD-1: LITROS DE LECHE -->
+                    <div class="col-md-4">
+                        <div class="card-hacienda h-100 p-3" style="border-left: 4px solid #dc3545;">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <i class="bi bi-cup-straw fs-3" style="color: #dc3545;"></i>
+                                    <h6 class="fw-bold mt-2 mb-0">AD-1 · Litros de leche</h6>
+                                </div>
+                                {% if ml_estado.ad1 %}
+                                <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Entrenado</span>
+                                {% else %}
+                                <span class="badge bg-secondary"><i class="bi bi-hourglass me-1"></i>Sin entrenar</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-muted small mb-2">Predice cuántos litros producirá cada vaca en los próximos 12 meses, según su historial, raza, dieta y clima.</p>
+                            {% if ml_estado.ad1 and ml_estado.ad1_metrica %}
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="fw-bold">R² = {{ ml_estado.ad1_metrica|floatformat:2 }}</span>
+                                {% if ml_estado.ad1_metrica >= 0.85 %}
+                                <span class="badge" style="background:#28a745;">Bueno</span>
+                                {% elif ml_estado.ad1_metrica >= 0.70 %}
+                                <span class="badge" style="background:#ffc107;color:#1a1a1a;">Aceptable</span>
+                                {% else %}
+                                <span class="badge bg-danger">Débil</span>
+                                {% endif %}
+                            </div>
+                            {% if ml_estado.ad1_fecha %}
+                            <small class="text-muted d-block mb-2">Entrenado el {{ ml_estado.ad1_fecha|date:"d/m/Y" }}</small>
+                            {% endif %}
+                            {% endif %}
+                            <a href="{% url 'leche_ml' %}" class="btn btn-sm btn-hacienda-secondary w-100 mt-2">
+                                <i class="bi bi-graph-up me-1"></i>Ver predicciones
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- AD-2: PREÑEZ -->
+                    <div class="col-md-4">
+                        <div class="card-hacienda h-100 p-3" style="border-left: 4px solid #dc3545;">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <i class="bi bi-heart-pulse fs-3" style="color: #dc3545;"></i>
+                                    <h6 class="fw-bold mt-2 mb-0">AD-2 · Preñez</h6>
+                                </div>
+                                {% if ml_estado.ad2 %}
+                                <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Entrenado</span>
+                                {% else %}
+                                <span class="badge bg-secondary"><i class="bi bi-hourglass me-1"></i>Sin entrenar</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-muted small mb-2">Estima la probabilidad de que una inseminación resulte en preñez, según celo, condición corporal e historial reproductivo.</p>
+                            {% if ml_estado.ad2 and ml_estado.ad2_metrica %}
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="fw-bold">Accuracy = {{ ml_estado.ad2_metrica|floatformat:2 }}</span>
+                                {% if ml_estado.ad2_metrica >= 0.85 %}
+                                <span class="badge" style="background:#28a745;">Bueno</span>
+                                {% elif ml_estado.ad2_metrica >= 0.70 %}
+                                <span class="badge" style="background:#ffc107;color:#1a1a1a;">Aceptable</span>
+                                {% else %}
+                                <span class="badge bg-danger">Débil</span>
+                                {% endif %}
+                            </div>
+                            {% if ml_estado.ad2_fecha %}
+                            <small class="text-muted d-block mb-2">Entrenado el {{ ml_estado.ad2_fecha|date:"d/m/Y" }}</small>
+                            {% endif %}
+                            {% endif %}
+                            <a href="{% url 'preneces_ml' %}" class="btn btn-sm btn-hacienda-secondary w-100 mt-2">
+                                <i class="bi bi-graph-up me-1"></i>Ver predicciones
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- RL-4: CALIDAD DE LECHE -->
+                    <div class="col-md-4">
+                        <div class="card-hacienda h-100 p-3" style="border-left: 4px solid #dc3545;">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <i class="bi bi-award fs-3" style="color: #dc3545;"></i>
+                                    <h6 class="fw-bold mt-2 mb-0">RL-4 · Calidad de leche</h6>
+                                </div>
+                                {% if ml_estado.rl4 %}
+                                <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Entrenado</span>
+                                {% else %}
+                                <span class="badge bg-secondary"><i class="bi bi-hourglass me-1"></i>Sin entrenar</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-muted small mb-2">Clasifica si un lote de leche será "apto" o "no apto" según grasa, proteína, CCS y UFC, antes de enviarlo a planta.</p>
+                            {% if ml_estado.rl4 and ml_estado.rl4_metrica %}
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="fw-bold">Accuracy = {{ ml_estado.rl4_metrica|floatformat:2 }}</span>
+                                {% if ml_estado.rl4_metrica >= 0.85 %}
+                                <span class="badge" style="background:#28a745;">Bueno</span>
+                                {% elif ml_estado.rl4_metrica >= 0.70 %}
+                                <span class="badge" style="background:#ffc107;color:#1a1a1a;">Aceptable</span>
+                                {% else %}
+                                <span class="badge bg-danger">Débil</span>
+                                {% endif %}
+                            </div>
+                            {% if ml_estado.rl4_fecha %}
+                            <small class="text-muted d-block mb-2">Entrenado el {{ ml_estado.rl4_fecha|date:"d/m/Y" }}</small>
+                            {% endif %}
+                            {% endif %}
+                            <a href="{% url 'calidad_leche_ml' %}" class="btn btn-sm btn-hacienda-secondary w-100 mt-2">
+                                <i class="bi bi-graph-up me-1"></i>Ver predicciones
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="{% url 'dashboardml' %}" class="btn btn-hacienda">
+                        <i class="bi bi-robot me-2"></i>Abrir dashboard de predicciones automáticas
+                    </a>
+                    <p class="text-muted small mt-2 mb-0">Predicciones mes a mes por animal, recalculadas con datos reales cada vez que entrenas los modelos.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ==========================================================
      HISTORIAL DETALLADO POR AÑO → MES
      Cada mes trae TODAS sus gráficas de módulo: producción,
@@ -562,7 +756,7 @@ const ctxProd = document.getElementById('graficaProduccion').getContext('2d');
 new Chart(ctxProd, {
     type: 'line',
     data: {
-        labels: {{ prod_labels|safe|default:"[]" }},
+        labels: [{% for l in prod_labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
         datasets: [{
             label: 'Litros producción',
             data: {{ prod_values|safe|default:"[]" }},
@@ -601,7 +795,7 @@ const ctxCalidad = document.getElementById('graficaCalidad').getContext('2d');
 new Chart(ctxCalidad, {
     type: 'bar',
     data: {
-        labels: {{ cal_labels|safe|default:"[]" }},
+        labels: [{% for l in cal_labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
         datasets: [
             {
                 label: 'Aptos',
@@ -629,7 +823,7 @@ const ctxAnimales = document.getElementById('graficaAnimales').getContext('2d');
 new Chart(ctxAnimales, {
     type: 'bar',
     data: {
-        labels: {{ cat_labels|safe|default:"[]" }},
+        labels: [{% for l in cat_labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
         datasets: [{
             label: 'Cantidad',
             data: {{ cat_values|safe|default:"[]" }},
@@ -646,6 +840,75 @@ new Chart(ctxAnimales, {
     }
 });
 
+// Gráfica de Turno (histórico global)
+const elTurnoGlobal = document.getElementById('graficaTurnoGlobal');
+if (elTurnoGlobal) {
+    new Chart(elTurnoGlobal.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: [{% for l in turno_labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                data: {{ turno_values|safe|default:"[]" }},
+                backgroundColor: ['#4a7c22', '#fd7e14', '#17a2b8'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: { callbacks: { label: function(c){ return c.label + ': ' + c.parsed.toFixed(1) + ' L'; } } }
+            }
+        }
+    });
+}
+
+// Gráfica de Costos por categoría (histórico global)
+const elCostosGlobal = document.getElementById('graficaCostosGlobal');
+if (elCostosGlobal) {
+    new Chart(elCostosGlobal.getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels: [{% for l in cost_labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                data: {{ cost_values|safe|default:"[]" }},
+                backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#17a2b8', '#6f42c1'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right' },
+                tooltip: { callbacks: { label: function(c){ return c.label + ': $' + c.parsed.toFixed(2); } } }
+            }
+        }
+    });
+}
+
+// Gráfica de Estado del hato (histórico global)
+const elEstadoHato = document.getElementById('graficaEstadoHato');
+if (elEstadoHato) {
+    new Chart(elEstadoHato.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: [{% for e in animales_estado %}"{{ e.estado_an|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                data: [{% for e in animales_estado %}{{ e.cantidad }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                backgroundColor: ['#28a745', '#6c757d', '#dc3545', '#fd7e14'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: { callbacks: { label: function(c){ return c.label + ': ' + c.parsed + ' animal(es)'; } } }
+            }
+        }
+    });
+}
+
 // ==========================================================
 // GRÁFICAS DE MÓDULO POR CADA PERÍODO (AÑO / MES) DEL ACORDEÓN
 // ==========================================================
@@ -657,7 +920,7 @@ new Chart(ctxAnimales, {
         new Chart(elTurno.getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: {{ datos.turno_labels|safe|default:"[]" }},
+                labels: [{% for l in datos.turno_labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
                 datasets: [{
                     data: {{ datos.turno_values|safe|default:"[]" }},
                     backgroundColor: ['#4a7c22', '#fd7e14', '#17a2b8'],
@@ -679,7 +942,7 @@ new Chart(ctxAnimales, {
         new Chart(elRaza.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: {{ datos.raza_labels|safe|default:"[]" }},
+                labels: [{% for l in datos.raza_labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
                 datasets: [{
                     label: 'Litros',
                     data: {{ datos.raza_values|safe|default:"[]" }},
@@ -702,7 +965,7 @@ new Chart(ctxAnimales, {
         new Chart(elInsem.getContext('2d'), {
             type: 'pie',
             data: {
-                labels: {{ datos.insem_pie_labels|safe|default:"[]" }},
+                labels: [{% for l in datos.insem_pie_labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
                 datasets: [{
                     data: {{ datos.insem_pie_values|safe|default:"[]" }},
                     backgroundColor: ['#28a745', '#dc3545', '#ffc107'],
@@ -724,7 +987,7 @@ new Chart(ctxAnimales, {
         new Chart(elEventos.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: {{ datos.eventos_tipo_labels|safe|default:"[]" }},
+                labels: [{% for l in datos.eventos_tipo_labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
                 datasets: [{
                     label: 'Cantidad',
                     data: {{ datos.eventos_tipo_values|safe|default:"[]" }},
@@ -747,7 +1010,7 @@ new Chart(ctxAnimales, {
         new Chart(elPeso.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: {{ datos.peso_cat_labels|safe|default:"[]" }},
+                labels: [{% for l in datos.peso_cat_labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
                 datasets: [{
                     label: 'Peso promedio (kg)',
                     data: {{ datos.peso_cat_values|safe|default:"[]" }},
@@ -770,7 +1033,7 @@ new Chart(ctxAnimales, {
         new Chart(elComposicion.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: {{ datos.composicion_labels|safe|default:"[]" }},
+                labels: [{% for l in datos.composicion_labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
                 datasets: [{
                     label: '%',
                     data: {{ datos.composicion_values|safe|default:"[]" }},
@@ -793,7 +1056,7 @@ new Chart(ctxAnimales, {
         new Chart(elCostosPeriodo.getContext('2d'), {
             type: 'pie',
             data: {
-                labels: {{ datos.costos_labels|safe|default:"[]" }},
+                labels: [{% for l in datos.costos_labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
                 datasets: [{
                     data: {{ datos.costos_values|safe|default:"[]" }},
                     backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#17a2b8', '#6f42c1'],
@@ -815,7 +1078,7 @@ new Chart(ctxAnimales, {
         new Chart(elFinanzas.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: {{ datos.finanzas_bar_labels|safe|default:"[]" }},
+                labels: [{% for l in datos.finanzas_bar_labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
                 datasets: [{
                     label: '$',
                     data: {{ datos.finanzas_bar_values|safe|default:"[]" }},
@@ -838,7 +1101,7 @@ new Chart(ctxAnimales, {
         new Chart(elCelo.getContext('2d'), {
             type: 'pie',
             data: {
-                labels: {{ datos.celo_labels|safe|default:"[]" }},
+                labels: [{% for l in datos.celo_labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
                 datasets: [{
                     data: {{ datos.celo_values|safe|default:"[]" }},
                     backgroundColor: ['#dc3545', '#ffc107', '#17a2b8'],
@@ -860,7 +1123,7 @@ new Chart(ctxAnimales, {
         new Chart(elMovimientos.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: {{ datos.movimientos_labels|safe|default:"[]" }},
+                labels: [{% for l in datos.movimientos_labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
                 datasets: [{
                     label: 'Cantidad',
                     data: {{ datos.movimientos_values|safe|default:"[]" }},
@@ -883,7 +1146,7 @@ new Chart(ctxAnimales, {
         new Chart(elRacion.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: {{ datos.racion_labels|safe|default:"[]" }},
+                labels: [{% for l in datos.racion_labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
                 datasets: [{
                     label: 'kg',
                     data: {{ datos.racion_values|safe|default:"[]" }},

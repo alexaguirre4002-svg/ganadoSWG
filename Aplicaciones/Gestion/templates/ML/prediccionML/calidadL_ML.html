@@ -156,10 +156,10 @@ function renderHistorialML(data, animalCodigo) {
             const registros = meses[mes] || []; const totalPreds = registros.length;
             const mesIdSeguro = mes.replace(/\s/g, '_');
             html += '<div class="ms-3 mb-2"><button class="btn w-100 text-start fw-bold py-2 px-3 mb-1" style="background: #e8f5e9; color: #2c5e1a; border-radius: 8px; border: 1px solid #b7d7a8;" type="button" data-bs-toggle="collapse" data-bs-target="#hist_' + anio + '_' + mesIdSeguro + '" aria-expanded="false"><i class="bi bi-calendar-month me-2"></i>' + mes + '<span class="badge bg-success ms-2">' + totalPreds + ' prediccion' + (totalPreds !== 1 ? 'es' : '') + '</span><i class="bi bi-chevron-down float-end mt-1"></i></button><div class="collapse" id="hist_' + anio + '_' + mesIdSeguro + '"><div class="table-responsive ms-2"><table class="table table-hover table-bordered table-sm"><thead class="table-light"><tr><th>Fecha</th><th>Grasa %</th><th>Proteína %</th><th>CCS</th><th>UFC</th><th>Predicción</th><th>Confianza</th></tr></thead><tbody>';
-            for (const p of registros) { html += '<tr><td><small>' + (p.fecha || 'N/A') + '</small></td><td>' + (p.grasa || 'N/A') + '%</td><td>' + (p.proteina || 'N/A') + '%</td><td>' + (p.ccs || 'N/A') + '</td><td>' + (p.ufc || 'N/A') + '</td><td class="fw-bold" style="color: #2c5e1a;">' + (p.prediccion || 'N/A') + '</td><td><span class="badge bg-info text-dark">' + (p.confianza || 'N/A') + '</span></td></tr>'; }
+            for (const p of registros) { if (p.sin_prediccion) { html += '<tr><td colspan="7" class="text-center text-muted small py-2"><i class="bi bi-slash-circle me-1"></i>' + p.mensaje + '</td></tr>'; continue; } html += '<tr><td><small>' + (p.fecha || 'N/A') + '</small></td><td>' + (p.grasa || 'N/A') + '%</td><td>' + (p.proteina || 'N/A') + '%</td><td>' + (p.ccs || 'N/A') + '</td><td>' + (p.ufc || 'N/A') + '</td><td class="fw-bold" style="color: #2c5e1a;">' + (p.prediccion || 'N/A') + '</td><td><span class="badge bg-info text-dark">' + (p.confianza || 'N/A') + '</span></td></tr>'; }
             html += '</tbody></table></div>';
 
-            if (registros.length > 0) {
+            if (registros.length > 0 && !registros[0].sin_prediccion) {
                 const p0 = registros[0];
                 const ccsNum = parseFloat(p0.ccs) || 0;
                 const ufcNum = parseFloat(p0.ufc) || 0;

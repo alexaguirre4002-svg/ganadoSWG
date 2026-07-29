@@ -196,6 +196,15 @@ def predecir_anio_actual_ad1(animal_id):
     num_partos = Parto.objects.filter(fk_madre_pa=animal).count()
     raza = animal.fk_ra.nombre_ra if animal.fk_ra else 'desconocida'
 
+    # ---- NUEVO: si la vaca está en periodo seco (secada y aún sin parto
+    # nuevo), no tiene sentido predecir producción de leche: no se ordeña ----
+    from Aplicaciones.Gestion.models import Secado
+    ultimo_secado = Secado.objects.filter(fk_an=animal).order_by('-fecha_ultimo_ordeno_se').first()
+    ultimo_parto_fecha = Parto.objects.filter(fk_madre_pa=animal).order_by('-fecha_pa').values_list('fecha_pa', flat=True).first()
+    fecha_inicio_seco = None
+    if ultimo_secado and (not ultimo_parto_fecha or ultimo_secado.fecha_ultimo_ordeno_se > ultimo_parto_fecha):
+        fecha_inicio_seco = ultimo_secado.fecha_ultimo_ordeno_se
+
     # ---- ración real más reciente, en vez de 0.0 fijo ----
     from Aplicaciones.Gestion.models import Racion
     racion_actual = Racion.objects.filter(fk_an=animal).order_by('-fecha_inicio_ra').first()
@@ -296,6 +305,16 @@ def predecir_anio_actual_ad1(animal_id):
             },
             'metrica': metrica
         }
+
+        # ---- si ese mes cae dentro del periodo seco, no aplica predicción ----
+        if fecha_inicio_seco and date(anio_actual, mes, 1) >= fecha_inicio_seco:
+            resultados[mes] = {
+                'exito': False,
+                'sin_prediccion': True,
+                'mensaje': f'La vaca está en periodo seco desde el {fecha_inicio_seco.strftime("%d/%m/%Y")} (no se ordeña); no aplica predicción de producción hasta el próximo parto',
+                'nombre_mes': MESES_ESPANOL.get(mes, 'Desconocido'),
+                'anio': anio_actual
+            }
     
     return resultados
 
@@ -369,12 +388,50 @@ def predecir_anio_actual_ad2(animal_id):
     # 3. PREDECIR TODOS LOS MESES
     # ============================================================
     metrica = obtener_metrica_modelo('AD-2')
-    
+
+    # Ventana biológicamente razonable para evaluar una inseminación:
+    # desde el día de la inseminación hasta ~300 días después
+    # (gestación de ~283 días + margen de confirmación).
+    VENTANA_MAX_DIAS = 300
+
     for mes in range(1, 13):
         if ultima_ins:
             dias_desde_inseminacion = (date(anio_actual, mes, 1) - ultima_ins.fecha_in).days
         else:
-            dias_desde_inseminacion = 60
+            dias_desde_inseminacion = None
+
+        # ---- NUEVO: si el mes es ANTERIOR a la inseminación real, o si ya
+        # pasó ampliamente la ventana de gestación sin nueva inseminación
+        # registrada, no tiene sentido biológico predecir preñez ahí ----
+        if not ultima_ins:
+            resultados[mes] = {
+                'exito': False,
+                'sin_prediccion': True,
+                'mensaje': 'Sin inseminación registrada para este animal',
+                'nombre_mes': MESES_ESPANOL.get(mes, 'Desconocido'),
+                'anio': anio_actual
+            }
+            continue
+
+        if dias_desde_inseminacion < 0:
+            resultados[mes] = {
+                'exito': False,
+                'sin_prediccion': True,
+                'mensaje': f'Aún no se había realizado la inseminación en {MESES_ESPANOL.get(mes, "este mes")} (fue el {ultima_ins.fecha_in.strftime("%d/%m/%Y")})',
+                'nombre_mes': MESES_ESPANOL.get(mes, 'Desconocido'),
+                'anio': anio_actual
+            }
+            continue
+
+        if dias_desde_inseminacion > VENTANA_MAX_DIAS:
+            resultados[mes] = {
+                'exito': False,
+                'sin_prediccion': True,
+                'mensaje': f'Ya pasaron {dias_desde_inseminacion} días desde la última inseminación ({ultima_ins.fecha_in.strftime("%d/%m/%Y")}) — se recomienda registrar una nueva inseminación, parto o aborto para seguir evaluando a este animal',
+                'nombre_mes': MESES_ESPANOL.get(mes, 'Desconocido'),
+                'anio': anio_actual
+            }
+            continue
         
         # Orden EXACTO esperado por el modelo (ver 'features' en el .pkl):
         # edad_dias, num_partos, raza_cod, condicion_corporal, produccion_leche,
@@ -443,6 +500,15 @@ def predecir_anio_actual_rl4(animal_id):
         animal = Animal.objects.get(id_an=animal_id)
     except Animal.DoesNotExist:
         return {}
+
+    # ---- NUEVO: si la vaca está en periodo seco (secada y aún sin parto
+    # nuevo), no hay leche que muestrear, así que no aplica predicción ----
+    from Aplicaciones.Gestion.models import Secado, Parto
+    ultimo_secado = Secado.objects.filter(fk_an=animal).order_by('-fecha_ultimo_ordeno_se').first()
+    ultimo_parto_fecha = Parto.objects.filter(fk_madre_pa=animal).order_by('-fecha_pa').values_list('fecha_pa', flat=True).first()
+    fecha_inicio_seco = None
+    if ultimo_secado and (not ultimo_parto_fecha or ultimo_secado.fecha_ultimo_ordeno_se > ultimo_parto_fecha):
+        fecha_inicio_seco = ultimo_secado.fecha_ultimo_ordeno_se
     
     # ============================================================
     # 1. CONSULTAS UNA SOLA VEZ
@@ -510,6 +576,17 @@ def predecir_anio_actual_rl4(animal_id):
     metrica = obtener_metrica_modelo('RL-4')
     
     for mes in range(1, 13):
+        # ---- si ese mes cae dentro del periodo seco, no hay leche que analizar ----
+        if fecha_inicio_seco and date(anio_actual, mes, 1) >= fecha_inicio_seco:
+            resultados[mes] = {
+                'exito': False,
+                'sin_prediccion': True,
+                'mensaje': f'La vaca está en periodo seco desde el {fecha_inicio_seco.strftime("%d/%m/%Y")} (no se ordeña); no hay leche que analizar hasta el próximo parto',
+                'nombre_mes': MESES_ESPANOL.get(mes, 'Desconocido'),
+                'anio': anio_actual
+            }
+            continue
+
         grasa = promedios_cl_por_mes[mes]['grasa']
         proteina = promedios_cl_por_mes[mes]['proteina']
         ccs = promedios_cl_por_mes[mes]['ccs']

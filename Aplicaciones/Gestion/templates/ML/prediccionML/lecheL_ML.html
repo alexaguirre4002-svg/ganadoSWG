@@ -1027,6 +1027,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 `;
 
                 for (const p of registros) {
+                    if (p.sin_prediccion) {
+                        html += `
+                        <tr>
+                            <td colspan="12" class="text-center text-muted small py-2">
+                                <i class="bi bi-slash-circle me-1"></i>${p.mensaje}
+                            </td>
+                        </tr>
+                        `;
+                        continue;
+                    }
                     html += `
                         <tr>
                             <td><small>${p.fecha || 'N/A'}</small></td>
@@ -1051,7 +1061,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             </div>
                 `;
 
-                if (registros.length > 0) {
+                if (registros.length > 0 && !registros[0].sin_prediccion) {
                     const p0 = registros[0];
                     const mesIdSeguro = mes.replace(/\s/g, '_');
                     const chartIdProd = `chart_ad1_prod_${anio}_${mesIdSeguro}`;

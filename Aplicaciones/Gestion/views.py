@@ -10896,11 +10896,17 @@ def dashboard_grafico(request):
     ).order_by('-total')[:5]
 
     # === MACHINE LEARNING (GLOBAL) ===
+    from .models import ModeloML
     ml_estado = {
         'ad1': modelo_esta_entrenado('AD-1'),
         'ad2': modelo_esta_entrenado('AD-2'),
         'rl4': modelo_esta_entrenado('RL-4'),
     }
+    for codigo, prefijo in [('AD-1', 'ad1'), ('AD-2', 'ad2'), ('RL-4', 'rl4')]:
+        m = ModeloML.objects.filter(codigo_mm=codigo).first()
+        if m:
+            ml_estado[f'{prefijo}_metrica'] = float(m.valor_metrica_mm or 0)
+            ml_estado[f'{prefijo}_fecha'] = m.fecha_entrenamiento_mm
 
     # === RECOMENDACIONES GLOBALES ===
     recomendaciones = []
@@ -11626,7 +11632,7 @@ def leche_ml(request):
                 
                 predicciones_por_animal.append({
                     'animal': animal,
-                    'total_predicciones': len(predicciones_futuras),
+                    'total_predicciones': sum(1 for p in predicciones_futuras.values() if p.get('exito')),
                     'ultima_fecha': ultima_fecha,
                     'predicciones': predicciones_futuras
                 })
@@ -11710,7 +11716,7 @@ def preneces_ml(request):
                 
                 predicciones_por_animal.append({
                     'animal': animal,
-                    'total_predicciones': len(predicciones_futuras),
+                    'total_predicciones': sum(1 for p in predicciones_futuras.values() if p.get('exito')),
                     'ultima_fecha': ultima_fecha,
                     'predicciones': predicciones_futuras
                 })
@@ -11794,7 +11800,7 @@ def calidad_leche_ml(request):
                 
                 predicciones_por_animal.append({
                     'animal': animal,
-                    'total_predicciones': len(predicciones_futuras),
+                    'total_predicciones': sum(1 for p in predicciones_futuras.values() if p.get('exito')),
                     'ultima_fecha': ultima_fecha,
                     'predicciones': predicciones_futuras
                 })
@@ -11838,13 +11844,12 @@ def api_historial_ad1_animal(request, animal_id):
         agrupado = {anio_actual: {}}
 
         for mes, resultado in predicciones.items():
+            mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
+            clave = f"{mes_nombre} {anio_actual}"
+            if clave not in agrupado[anio_actual]:
+                agrupado[anio_actual][clave] = []
+
             if resultado.get('exito'):
-                mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
-                clave = f"{mes_nombre} {anio_actual}"
-
-                if clave not in agrupado[anio_actual]:
-                    agrupado[anio_actual][clave] = []
-
                 detalle = resultado.get('detalle', {})
 
                 agrupado[anio_actual][clave].append({
@@ -11862,6 +11867,12 @@ def api_historial_ad1_animal(request, animal_id):
                     # ---------------------------------
                     'prediccion': resultado['prediccion'],
                     'confianza': f"R²: {resultado.get('metrica', {}).get('porcentaje', 0)}%"
+                })
+            elif resultado.get('sin_prediccion'):
+                agrupado[anio_actual][clave].append({
+                    'fecha': f"01/{mes:02d}/{anio_actual}",
+                    'sin_prediccion': True,
+                    'mensaje': resultado.get('mensaje', 'No aplica predicción este mes')
                 })
 
         return JsonResponse({'exito': True, 'predicciones': agrupado})
@@ -11892,13 +11903,12 @@ def api_historial_ad2_animal(request, animal_id):
         agrupado = {anio_actual: {}}
 
         for mes, resultado in predicciones.items():
+            mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
+            clave = f"{mes_nombre} {anio_actual}"
+            if clave not in agrupado[anio_actual]:
+                agrupado[anio_actual][clave] = []
+
             if resultado.get('exito'):
-                mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
-                clave = f"{mes_nombre} {anio_actual}"
-
-                if clave not in agrupado[anio_actual]:
-                    agrupado[anio_actual][clave] = []
-
                 detalle = resultado.get('detalle', {})
 
                 agrupado[anio_actual][clave].append({
@@ -11915,6 +11925,12 @@ def api_historial_ad2_animal(request, animal_id):
                     # ---------------------------------
                     'prediccion': resultado['prediccion'],
                     'confianza': f"{resultado.get('probabilidad', 0)}%"
+                })
+            elif resultado.get('sin_prediccion'):
+                agrupado[anio_actual][clave].append({
+                    'fecha': f"01/{mes:02d}/{anio_actual}",
+                    'sin_prediccion': True,
+                    'mensaje': resultado.get('mensaje', 'No aplica predicción este mes')
                 })
 
         return JsonResponse({'exito': True, 'predicciones': agrupado})
@@ -11942,13 +11958,12 @@ def api_historial_rl4_animal(request, animal_id):
         agrupado = {anio_actual: {}}
 
         for mes, resultado in predicciones.items():
+            mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
+            clave = f"{mes_nombre} {anio_actual}"
+            if clave not in agrupado[anio_actual]:
+                agrupado[anio_actual][clave] = []
+
             if resultado.get('exito'):
-                mes_nombre = MESES_ESPANOL_API.get(mes, 'Desconocido')
-                clave = f"{mes_nombre} {anio_actual}"
-
-                if clave not in agrupado[anio_actual]:
-                    agrupado[anio_actual][clave] = []
-
                 agrupado[anio_actual][clave].append({
                     'fecha': f"01/{mes:02d}/{anio_actual}",
                     'grasa': resultado.get('grasa', 'N/A'),
@@ -11957,6 +11972,12 @@ def api_historial_rl4_animal(request, animal_id):
                     'ufc': resultado.get('ufc', 'N/A'),   # ---- variable que faltaba ----
                     'prediccion': resultado['prediccion'],
                     'confianza': f"{resultado.get('probabilidad', 0)}%"
+                })
+            elif resultado.get('sin_prediccion'):
+                agrupado[anio_actual][clave].append({
+                    'fecha': f"01/{mes:02d}/{anio_actual}",
+                    'sin_prediccion': True,
+                    'mensaje': resultado.get('mensaje', 'No aplica predicción este mes')
                 })
 
         return JsonResponse({'exito': True, 'predicciones': agrupado})
