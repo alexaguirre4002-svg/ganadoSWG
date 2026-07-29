@@ -143,44 +143,6 @@
                                 </select>
                             </div>
                         </div>
-
-                        <!-- ========================================== -->
-                        <!-- FILA 4: COORDENADAS GPS                    -->
-                        <!-- ========================================== -->
-                        <div class="row">
-                            <!-- CAMPO: LATITUD -->
-                            <div class="col-md-6 mb-3">
-                                <label for="txt_latitud_po">
-                                    <i class="bi bi-geo me-1"></i>Latitud
-                                </label>
-                                <input type="number" 
-                                       name="txt_latitud_po" 
-                                       id="txt_latitud_po" 
-                                       class="form-control" 
-                                       placeholder="Ej: -0.9316" 
-                                       step="any"
-                                       min="-90"
-                                       max="90">
-                                <small class="text-muted">Entre -90 y 90. Opcional.</small>
-                            </div>
-
-                            <!-- CAMPO: LONGITUD -->
-                            <div class="col-md-6 mb-3">
-                                <label for="txt_longitud_po">
-                                    <i class="bi bi-geo me-1"></i>Longitud
-                                </label>
-                                <input type="number" 
-                                       name="txt_longitud_po" 
-                                       id="txt_longitud_po" 
-                                       class="form-control" 
-                                       placeholder="Ej: -78.6125" 
-                                       step="any"
-                                       min="-180"
-                                       max="180">
-                                <small class="text-muted">Entre -180 y 180. Opcional.</small>
-                            </div>
-                        </div>
-
                         <!-- ========================================== -->
                         <!-- FILA 5: OBSERVACIONES                      -->
                         <!-- ========================================== -->
@@ -353,14 +315,6 @@
                     sel_estado_po: {
                         required: true
                     },
-                    txt_latitud_po: {
-                        latitudValida: true,
-                        number: true
-                    },
-                    txt_longitud_po: {
-                        longitudValida: true,
-                        number: true
-                    },
                     txt_observaciones_po: {
                         maxlength: 1000
                     }
@@ -390,14 +344,6 @@
                     },
                     sel_estado_po: {
                         required: "Seleccione un estado"
-                    },
-                    txt_latitud_po: {
-                        latitudValida: "Debe estar entre -90 y 90",
-                        number: "Ingrese un número válido"
-                    },
-                    txt_longitud_po: {
-                        longitudValida: "Debe estar entre -180 y 180",
-                        number: "Ingrese un número válido"
                     },
                     txt_observaciones_po: {
                         maxlength: "Máximo 1000 caracteres"
@@ -463,10 +409,6 @@
                 // Limitar a 2 decimales
                 if (partes.length === 2 && partes[1].length > 2) {
                     filtrado = partes[0] + '.' + partes[1].substring(0, 2);
-                }
-                // Limitar longitud total (6 enteros + 1 punto + 2 decimales = 9)
-                if (filtrado.length > 9) {
-                    filtrado = filtrado.substring(0, 9);
                 }
                 // Validar máximo 9999.99
                 let numVal = parseFloat(filtrado);
@@ -548,28 +490,6 @@
                     alertaAdvertencia('Texto filtrado', 'Se han eliminado caracteres no permitidos.');
                 }
             });
-
-            // ==========================================
-            // VALIDACION NUMERICOS AL PERDER FOCO
-            // ==========================================
-            $('#txt_latitud_po').on('blur', function() {
-                let valor = parseFloat($(this).val());
-                if (valor && (valor < -90 || valor > 90)) {
-                    $(this).val('');
-                    alertaError('Latitud inválida', 'Debe estar entre -90 y 90.');
-                    $(this).focus();
-                }
-            });
-
-            $('#txt_longitud_po').on('blur', function() {
-                let valor = parseFloat($(this).val());
-                if (valor && (valor < -180 || valor > 180)) {
-                    $(this).val('');
-                    alertaError('Longitud inválida', 'Debe estar entre -180 y 180.');
-                    $(this).focus();
-                }
-            });
-
         });
     </script>
 {% endblock %}
