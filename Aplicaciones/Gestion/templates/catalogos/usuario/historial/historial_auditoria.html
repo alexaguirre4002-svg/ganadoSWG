@@ -30,28 +30,28 @@ Historial de auditoría | Hacienda Joseph
     <div class="col-md-3">
         <div class="card-hacienda text-center p-3">
             <i class="bi bi-journal-text fs-2" style="color: var(--color-primario);"></i>
-            <h4 class="fw-bold mt-2 mb-0">{{ total_logs }}</h4>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_logs|default:"0" }}</h4>
             <small class="text-muted">Total registros</small>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
             <i class="bi bi-plus-circle fs-2 text-success"></i>
-            <h4 class="fw-bold mt-2 mb-0">{{ total_creaciones }}</h4>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_creaciones|default:"0" }}</h4>
             <small class="text-muted">Creaciones</small>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #ffc107;">
             <i class="bi bi-pencil-square fs-2 text-warning"></i>
-            <h4 class="fw-bold mt-2 mb-0">{{ total_ediciones }}</h4>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_ediciones|default:"0" }}</h4>
             <small class="text-muted">Ediciones</small>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
             <i class="bi bi-trash fs-2 text-danger"></i>
-            <h4 class="fw-bold mt-2 mb-0">{{ total_eliminaciones }}</h4>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_eliminaciones|default:"0" }}</h4>
             <small class="text-muted">Eliminaciones</small>
         </div>
     </div>
@@ -68,7 +68,7 @@ Historial de auditoría | Hacienda Joseph
         </p>
     </div>
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
-        <a href="{% url 'exportar_logs' %}" class="btn btn-hacienda-secondary">
+        <a href="#" class="btn btn-hacienda-secondary" onclick="window.print();">
             <i class="bi bi-download me-2"></i>Exportar
         </a>
     </div>
@@ -140,7 +140,7 @@ Historial de auditoría | Hacienda Joseph
                                         {{ log.fk_us_la.username_us }}
                                     </span>
                                     <br><small class="text-muted">
-                                        <i class="bi bi-clock me-1"></i>{{ log.fk_us_la.nombre_us }} {{ log.fk_us_la.apellido_us }}
+                                        <i class="bi bi-person me-1"></i>{{ log.fk_us_la.nombre_us }} {{ log.fk_us_la.apellido_us }}
                                     </small>
                                 </td>
 
@@ -169,6 +169,14 @@ Historial de auditoría | Hacienda Joseph
                                     {% elif log.accion_la == 'exportar' %}
                                     <span class="badge rounded-pill p-2" style="background:#6f42c1; color:white; border: 1px solid #6f42c1;">
                                         <i class="bi bi-download me-1"></i>Exportar
+                                    </span>
+                                    {% elif log.accion_la == 'bloqueo' %}
+                                    <span class="badge rounded-pill p-2" style="background:#fd7e14; color:white; border: 1px solid #fd7e14;">
+                                        <i class="bi bi-lock-fill me-1"></i>Bloqueo
+                                    </span>
+                                    {% elif log.accion_la == 'login_fallido' %}
+                                    <span class="badge rounded-pill p-2" style="background:#dc3545; color:white; border: 1px solid #dc3545;">
+                                        <i class="bi bi-x-octagon me-1"></i>Login Fallido
                                     </span>
                                     {% else %}
                                     <span class="badge rounded-pill bg-secondary p-2">
@@ -248,7 +256,6 @@ Historial de auditoría | Hacienda Joseph
                                             data-ip="{% if log.ip_address_la %}{{ log.ip_address_la }}{% else %}---{% endif %}"
                                             data-fecha="{{ log.fecha_hora_la|date:'d/m/Y' }}"
                                             data-hora="{{ log.fecha_hora_la|time:'H:i:s' }}"
-                                            data-user-agent="{% if log.user_agent_la %}{{ log.user_agent_la }}{% else %}---{% endif %}"
                                             title="Ver detalle">
                                         <i class="bi bi-eye"></i>
                                     </button>
@@ -424,10 +431,6 @@ Historial de auditoría | Hacienda Joseph
                                     <label class="text-muted small fw-bold"><i class="bi bi-globe me-1"></i>Dirección IP</label>
                                     <p class="mb-0" id="detalleIp" style="color: #5c450e;"></p>
                                 </div>
-                                <div class="col-6">
-                                    <label class="text-muted small fw-bold"><i class="bi bi-browser me-1"></i>User Agent</label>
-                                    <p class="mb-0" id="detalleUserAgent" style="color: #5c450e; font-size: 12px; word-break: break-all;"></p>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -527,9 +530,7 @@ Historial de auditoría | Hacienda Joseph
         var ip = button.getAttribute('data-ip');
         var fecha = button.getAttribute('data-fecha');
         var hora = button.getAttribute('data-hora');
-        var userAgent = button.getAttribute('data-user-agent');
         
-        // Asignar valores
         document.getElementById('detalleId').textContent = id;
         document.getElementById('detalleUsuario').textContent = usuario;
         document.getElementById('detalleNombreCompleto').textContent = nombreCompleto;
@@ -541,7 +542,6 @@ Historial de auditoría | Hacienda Joseph
         document.getElementById('detalleDescripcion').textContent = descripcion;
         document.getElementById('detalleIp').textContent = ip;
         document.getElementById('detalleFechaHora').textContent = fecha + ' ' + hora;
-        document.getElementById('detalleUserAgent').textContent = userAgent;
         
         // Acción Badge
         var accionBadge = '';
@@ -563,6 +563,12 @@ Historial de auditoría | Hacienda Joseph
                 break;
             case 'exportar': 
                 accionBadge = '<span class="badge rounded-pill p-2" style="background:#6f42c1; color:white; font-size: 14px; border: 1px solid #6f42c1;"><i class="bi bi-download me-1"></i> Exportar</span>';
+                break;
+            case 'bloqueo': 
+                accionBadge = '<span class="badge rounded-pill p-2" style="background:#fd7e14; color:white; font-size: 14px; border: 1px solid #fd7e14;"><i class="bi bi-lock-fill me-1"></i> Bloqueo</span>';
+                break;
+            case 'login_fallido': 
+                accionBadge = '<span class="badge rounded-pill p-2" style="background:#dc3545; color:white; font-size: 14px; border: 1px solid #dc3545;"><i class="bi bi-x-octagon me-1"></i> Login Fallido</span>';
                 break;
             default: 
                 accionBadge = '<span class="badge rounded-pill bg-secondary p-2" style="font-size: 14px;"><i class="bi bi-activity me-1"></i> ' + accion.toUpperCase() + '</span>';

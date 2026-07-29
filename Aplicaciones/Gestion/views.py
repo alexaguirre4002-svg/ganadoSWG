@@ -1786,20 +1786,77 @@ def procesareditarusuario(request):
     messages.success(request, "Usuario editado exitosamente")
     return redirect('/listadousuarios/')
 
-
 # ==========================================
-# AUDITORÍA - HISTORIAL
+# AUDITORÍA - HISTORIAL (VERSIÓN MEJORADA)
 # ==========================================
 def historialauditoria(request):
+    """
+    Muestra el listado completo del historial de auditoría con estadísticas.
+    Incluye conteos por tipo de acción, usuarios, modelos, etc.
+    USANDO PAGINACIÓN SERVER-SIDE para evitar sobrecarga.
+    """
     # Solo administradores pueden ver
     if request.session.get('usuario_rol') != 'administrador':
         messages.error(request, "No tienes permisos.")
         return redirect('/inicio/')
     
-    # Trae todos los logs con info del usuario
-    logs = LogAuditoria.objects.select_related('fk_us_la').all()
-    return render(request, 'catalogos/usuario/historial/historial_auditoria.html', {'logs': logs})
-
+    # ==========================================
+    # ESTADÍSTICAS (consultas agregadas)
+    # ==========================================
+    logs_query = LogAuditoria.objects.select_related('fk_us_la').all()
+    
+    total_logs = logs_query.count()
+    total_creaciones = logs_query.filter(accion_la='crear').count()
+    total_ediciones = logs_query.filter(accion_la='editar').count()
+    total_eliminaciones = logs_query.filter(accion_la='eliminar').count()
+    total_logins = logs_query.filter(accion_la='login').count()
+    total_logouts = logs_query.filter(accion_la='logout').count()
+    
+    # Usuarios más activos (top 5)
+    usuarios_activos = logs_query.values('fk_us_la__username_us').annotate(
+        total=Count('id_la')
+    ).order_by('-total')[:5]
+    
+    # Modelos más afectados
+    modelos_afectados = logs_query.values('modelo_afectado_la').annotate(
+        total=Count('id_la')
+    ).order_by('-total')[:5]
+    
+    # ==========================================
+    # BÚSQUEDA
+    # ==========================================
+    search = request.GET.get('search', '')
+    if search:
+        logs_query = logs_query.filter(
+            Q(fk_us_la__username_us__icontains=search) |
+            Q(fk_us_la__nombre_us__icontains=search) |
+            Q(fk_us_la__apellido_us__icontains=search) |
+            Q(accion_la__icontains=search) |
+            Q(modelo_afectado_la__icontains=search) |
+            Q(descripcion_la__icontains=search) |
+            Q(ip_address_la__icontains=search)
+        )
+    
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(logs_query.order_by('-fecha_hora_la'), 20)  # 20 registros por página
+    page_number = request.GET.get('page', 1)
+    logs = paginator.get_page(page_number)
+    
+    contexto = {
+        'logs': logs,
+        'total_logs': total_logs,
+        'total_creaciones': total_creaciones,
+        'total_ediciones': total_ediciones,
+        'total_eliminaciones': total_eliminaciones,
+        'total_logins': total_logins,
+        'total_logouts': total_logouts,
+        'usuarios_activos': usuarios_activos,
+        'modelos_afectados': modelos_afectados,
+    }
+    
+    return render(request, 'catalogos/usuario/historial/historial_auditoria.html', contexto)
 
 # ==========================================
 # AUDITORÍA - VER DETALLE
