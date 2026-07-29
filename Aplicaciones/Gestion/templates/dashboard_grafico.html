@@ -25,6 +25,159 @@ Dashboard estadístico | Hacienda Joseph
         </p>
     </div>
 </div>
+<!-- GRÁFICAS: PRODUCCIÓN Y ANIMALES -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-8">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-graph-up me-2"></i>Producción de leche por período
+            </div>
+            <div class="p-3">
+                <p class="text-muted small mb-2">Evolución de los litros totales producidos mes a mes en los últimos 12 meses con datos. Te permite ver si la producción del hato está subiendo o bajando con el tiempo.</p>
+                <canvas id="graficaProduccion" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-cow me-2"></i>Animales por categoría
+            </div>
+            <div class="p-3">
+                <p class="text-muted small mb-2">Cuántos animales tienes actualmente en cada categoría (ternero, novilla, vaca de leche, vaca seca, toro, etc.). Es una "foto" de la composición actual de tu hato.</p>
+                <canvas id="graficaAnimales" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- GRÁFICAS: CALIDAD Y TOP PRODUCTORES -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-8">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-check-circle me-2"></i>Calidad de leche por período
+            </div>
+            <div class="p-3">
+                <p class="text-muted small mb-2">Cuántas muestras de leche analizadas resultaron "aptas" vs "no aptas" cada mes, en los últimos 12 meses con datos. Un aumento sostenido de "no aptos" es señal de alerta sanitaria.</p>
+                <canvas id="graficaCalidad" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-trophy me-2"></i>Top 5 animales productores
+            </div>
+            <div class="p-3">
+                <p class="text-muted small mb-2">Los 5 animales con mayor producción acumulada de leche en todo el historial, con su promedio por ordeño.</p>
+                <table class="table table-sm table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Animal</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-end">Prom.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in produccion_animal %}
+                        <tr>
+                            <td><i class="bi bi-cow me-1"></i>{{ a.fk_an__codigo_an }}</td>
+                            <td class="text-end fw-bold">{{ a.total_litros|floatformat:1 }} L</td>
+                            <td class="text-end text-muted">{{ a.promedio|floatformat:1 }} L</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- GRÁFICAS: TURNO, COSTOS Y ESTADO DEL HATO -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-4">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-sunrise me-2"></i>Producción por turno
+            </div>
+            <div class="p-3">
+                <p class="text-muted small mb-2">Litros acumulados en todo el historial según el turno de ordeño (mañana o tarde). Ayuda a detectar si un turno rinde consistentemente menos.</p>
+                {% if turno_values %}
+                <div style="position: relative; height: 200px;">
+                    <canvas id="graficaTurnoGlobal"></canvas>
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0 py-4"><i class="bi bi-inbox me-1"></i>Sin datos de turno</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-cash-coin me-2"></i>Costos por categoría (histórico)
+            </div>
+            <div class="p-3">
+                <p class="text-muted small mb-2">En qué se ha ido el dinero desde que usas el sistema: alimentación, sanidad, reproducción, mano de obra u otros.</p>
+                {% if cost_values %}
+                <div style="position: relative; height: 200px;">
+                    <canvas id="graficaCostosGlobal"></canvas>
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0 py-4"><i class="bi bi-inbox me-1"></i>Sin costos registrados</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-clipboard-check me-2"></i>Estado del hato
+            </div>
+            <div class="p-3">
+                <p class="text-muted small mb-2">Cuántos animales están activos, vendidos o han muerto en todo el historial. Es la salud general de tu inventario ganadero.</p>
+                {% if animales_estado %}
+                <div style="position: relative; height: 200px;">
+                    <canvas id="graficaEstadoHato"></canvas>
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0 py-4"><i class="bi bi-inbox me-1"></i>Sin animales registrados</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RECOMENDACIONES -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda">
+                <i class="bi bi-lightbulb me-2"></i>Alertas y recomendaciones del sistema
+            </div>
+            <div class="px-3 pt-2">
+                <p class="text-muted small mb-0">Reglas automáticas basadas en tus umbrales (calidad, balance, tasa de preñez, etc.). Para predicciones reales con Machine Learning, ve a la sección de abajo.</p>
+            </div>
+            <div class="p-3">
+                <div class="row">
+                    {% for rec in recomendaciones %}
+                    <div class="col-md-6 mb-3">
+                        <div class="alert alert-{{ rec.tipo }} d-flex align-items-start mb-0">
+                            <i class="bi {{ rec.icono }} fs-4 me-3"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">{{ rec.titulo }}</h6>
+                                <p class="mb-0 small">{{ rec.texto }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ==========================================================
      MACHINE LEARNING Y PREDICCIONES
      ========================================================== -->
