@@ -25,6 +25,40 @@ Listado de usuarios | Hacienda Joseph
 <!-- ========================================== -->
 {% block contenido %}
 
+<!-- ========================================== -->
+<!-- TARJETAS ESTADÍSTICAS                     -->
+<!-- ========================================== -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-3">
+        <div class="card-hacienda text-center p-3">
+            <i class="bi bi-people fs-2" style="color: var(--color-primario);"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_usuarios }}</h4>
+            <small class="text-muted">Total usuarios</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
+            <i class="bi bi-check-circle fs-2 text-success"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ usuarios_activos }}</h4>
+            <small class="text-muted">Usuarios activos</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
+            <i class="bi bi-shield-fill fs-2 text-danger"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ administradores }}</h4>
+            <small class="text-muted">Administradores</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #fd7e14;">
+            <i class="bi bi-clock-history fs-2 text-warning"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ usuarios_conectados }}</h4>
+            <small class="text-muted">Conectados hoy</small>
+        </div>
+    </div>
+</div>
+
 <!-- Titulo -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8">
@@ -110,8 +144,11 @@ Listado de usuarios | Hacienda Joseph
                                 </td>
 
                                 <!-- Usuario -->
-                                <td class="fw-bold" style="color: var(--color-primario); font-size:16px;">
-                                    {{ usuario.username_us }}
+                                <td>
+                                    <span class="badge rounded-pill p-2" style="background: #e8f5e9; color: #2c5e1a; border: 1px solid #2c5e1a;">
+                                        <i class="bi bi-person me-1"></i>
+                                        {{ usuario.username_us }}
+                                    </span>
                                     <br><small class="text-muted"><i class="bi bi-envelope me-1"></i>{{ usuario.email_us }}</small>
                                 </td>
 
@@ -127,27 +164,27 @@ Listado de usuarios | Hacienda Joseph
                                 <td>
                                     {% if usuario.rol_us == 'administrador' %}
                                     <span class="badge rounded-pill p-2"
-                                          style="background:#dc3545; color:white;">
+                                          style="background:#dc3545; color:white; border: 1px solid #dc3545;">
                                         <i class="bi bi-shield-fill me-1"></i>Administrador
                                     </span>
                                     {% elif usuario.rol_us == 'veterinario' %}
                                     <span class="badge rounded-pill p-2"
-                                          style="background:#3498db; color:white;">
+                                          style="background:#3498db; color:white; border: 1px solid #3498db;">
                                         <i class="bi bi-heart-pulse me-1"></i>Veterinario
                                     </span>
                                     {% elif usuario.rol_us == 'capataz' %}
                                     <span class="badge rounded-pill p-2"
-                                          style="background:#27ae60; color:white;">
+                                          style="background:#27ae60; color:white; border: 1px solid #27ae60;">
                                         <i class="bi bi-emoji-laughing me-1"></i>Capataz
                                     </span>
                                     {% elif usuario.rol_us == 'contador' %}
                                     <span class="badge rounded-pill p-2"
-                                          style="background:#f39c12; color:white;">
+                                          style="background:#f39c12; color:white; border: 1px solid #f39c12;">
                                         <i class="bi bi-tools me-1"></i>Contador
                                     </span>
                                     {% elif usuario.rol_us == 'dueño' %}
                                     <span class="badge rounded-pill p-2"
-                                          style="background:#95a5a6; color:white;">
+                                          style="background:#95a5a6; color:white; border: 1px solid #95a5a6;">
                                         <i class="bi bi-eye me-1"></i>Dueño
                                     </span>
                                     {% else %}
@@ -174,22 +211,43 @@ Listado de usuarios | Hacienda Joseph
                                 <!-- Estado -->
                                 <td>
                                     {% if usuario.bloqueado_hasta_us and usuario.bloqueado_hasta_us > now %}
-                                    <span class="badge rounded-pill bg-dark p-2">
-                                        <i class="bi bi-lock-fill"></i>Bloqueado
+                                    <span class="badge rounded-pill p-2" style="background:#6c757d; color:white; border: 1px solid #6c757d;">
+                                        <i class="bi bi-lock-fill me-1"></i>Bloqueado
                                     </span>
                                     {% elif usuario.activo_us %}
-                                    <span class="badge rounded-pill bg-success p-2">
-                                        <i class="bi bi-check-circle"></i>Activo
+                                    <span class="badge rounded-pill p-2" style="background:#28a745; color:white; border: 1px solid #28a745;">
+                                        <i class="bi bi-check-circle me-1"></i>Activo
                                     </span>
                                     {% else %}
-                                    <span class="badge rounded-pill bg-danger p-2">
-                                        <i class="bi bi-x-circle"></i>Inactivo
+                                    <span class="badge rounded-pill p-2" style="background:#dc3545; color:white; border: 1px solid #dc3545;">
+                                        <i class="bi bi-x-circle me-1"></i>Inactivo
                                     </span>
                                     {% endif %}
                                 </td>
 
                                 <!-- Acciones -->
                                 <td>
+                                    <!-- Ver detalle (modal) -->
+                                    <button type="button" class="btn btn-sm btn-info" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalDetalleUsuario"
+                                            data-id="{{ usuario.id_us }}"
+                                            data-username="{{ usuario.username_us }}"
+                                            data-nombre="{{ usuario.nombre_us }}"
+                                            data-apellido="{{ usuario.apellido_us }}"
+                                            data-email="{{ usuario.email_us }}"
+                                            data-telefono="{% if usuario.telefono_us %}{{ usuario.telefono_us }}{% else %}---{% endif %}"
+                                            data-rol="{{ usuario.rol_us }}"
+                                            data-activo="{{ usuario.activo_us }}"
+                                            data-bloqueado-hasta="{% if usuario.bloqueado_hasta_us %}{{ usuario.bloqueado_hasta_us|date:'d/m/Y H:i' }}{% else %}No bloqueado{% endif %}"
+                                            data-intentos="{{ usuario.intentos_fallidos_us }}"
+                                            data-ultimo-acceso="{% if usuario.ultimo_acceso_us %}{{ usuario.ultimo_acceso_us|date:'d/m/Y H:i' }}{% else %}Nunca{% endif %}"
+                                            data-created="{{ usuario.created_at_us|date:'d/m/Y H:i' }}"
+                                            data-updated="{{ usuario.updated_at_us|date:'d/m/Y H:i' }}"
+                                            title="Ver detalle">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+
                                     <!-- Editar -->
                                     <a href="/editarusuario/{{ usuario.id_us }}"
                                        class="btn btn-sm btn-hacienda-secondary">
@@ -307,7 +365,105 @@ Listado de usuarios | Hacienda Joseph
 </div>
 
 <!-- ========================================== -->
-<!-- Modal de confirmación estilo ganadero     -->
+<!-- MODAL DETALLE USUARIO                     -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalDetalleUsuario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-person-fill me-2" style="color: #DAA520;"></i>
+                    Detalle del usuario
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="background: #fff8e6;">
+                <div class="row g-0">
+                    <div class="col-md-5" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
+                        <div class="p-4 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="bi bi-person-circle fs-1" style="color: #2c5e1a;"></i>
+                            <p class="mt-3 mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleUsername"></p>
+                            <p class="text-muted mb-0" style="font-size: 14px;" id="detalleNombreCompleto"></p>
+                            <div class="mt-3 w-100 text-center">
+                                <span id="detalleRolBadge"></span>
+                            </div>
+                            <div class="mt-2 w-100 text-center">
+                                <span id="detalleEstadoBadge"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="p-4">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">Id usuario</label>
+                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<span id="detalleId"></span></p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <label class="text-muted small fw-bold">Estado</label>
+                                    <p class="mb-0 fw-bold" id="detalleEstado" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-envelope me-1"></i>Email</label>
+                                    <p class="mb-0" id="detalleEmail" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-telephone me-1"></i>Teléfono</label>
+                                    <p class="mb-0" id="detalleTelefono" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-shield me-1"></i>Rol</label>
+                                    <p class="mb-0" id="detalleRol" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-lock me-1"></i>Bloqueado hasta</label>
+                                    <p class="mb-0" id="detalleBloqueado" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-exclamation-triangle me-1"></i>Intentos fallidos</label>
+                                    <p class="mb-0" id="detalleIntentos" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-clock-history me-1"></i>Último acceso</label>
+                                    <p class="mb-0" id="detalleUltimoAcceso" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-0">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-calendar-plus me-1"></i>Fecha registro</label>
+                                    <p class="mb-0" id="detalleCreated" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-arrow-clockwise me-1"></i>Última modificación</label>
+                                    <p class="mb-0" id="detalleUpdated" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <a href="#" id="btnEditarDesdeDetalle" class="btn btn-hacienda">
+                    <i class="bi bi-pencil-square me-1"></i>Editar usuario
+                </a>
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL ELIMINAR USUARIO                    -->
 <!-- ========================================== -->
 <div class="modal fade" id="modalEliminarUsuario" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -378,6 +534,90 @@ Listado de usuarios | Hacienda Joseph
 <!-- SCRIPTS EXTRA                             -->
 <!-- ========================================== -->
 {% block scripts_extra %}
+
+<!-- Script modal detalle -->
+<script>
+    var modalDetalleUsuario = document.getElementById('modalDetalleUsuario');
+    modalDetalleUsuario.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        
+        var id = button.getAttribute('data-id');
+        var username = button.getAttribute('data-username');
+        var nombre = button.getAttribute('data-nombre');
+        var apellido = button.getAttribute('data-apellido');
+        var email = button.getAttribute('data-email');
+        var telefono = button.getAttribute('data-telefono');
+        var rol = button.getAttribute('data-rol');
+        var activo = button.getAttribute('data-activo') === 'True';
+        var bloqueadoHasta = button.getAttribute('data-bloqueado-hasta');
+        var intentos = button.getAttribute('data-intentos');
+        var ultimoAcceso = button.getAttribute('data-ultimo-acceso');
+        var created = button.getAttribute('data-created');
+        var updated = button.getAttribute('data-updated');
+        
+        // Asignar valores
+        document.getElementById('detalleId').textContent = id;
+        document.getElementById('detalleUsername').textContent = username;
+        document.getElementById('detalleNombreCompleto').textContent = nombre + ' ' + apellido;
+        document.getElementById('detalleEmail').textContent = email;
+        document.getElementById('detalleTelefono').textContent = telefono;
+        document.getElementById('detalleBloqueado').textContent = bloqueadoHasta;
+        document.getElementById('detalleIntentos').textContent = intentos;
+        document.getElementById('detalleUltimoAcceso').textContent = ultimoAcceso;
+        document.getElementById('detalleCreated').textContent = created;
+        document.getElementById('detalleUpdated').textContent = updated;
+        
+        // Estado
+        var estadoHtml = '';
+        var estadoBadge = '';
+        if (bloqueadoHasta !== 'No bloqueado') {
+            estadoHtml = '<span class="text-danger fw-bold">Bloqueado</span>';
+            estadoBadge = '<span class="badge rounded-pill p-2" style="background:#6c757d; color:white; font-size: 14px; border: 1px solid #6c757d;"><i class="bi bi-lock-fill me-1"></i> Bloqueado</span>';
+        } else if (activo) {
+            estadoHtml = '<span class="text-success fw-bold">Activo</span>';
+            estadoBadge = '<span class="badge rounded-pill p-2" style="background:#28a745; color:white; font-size: 14px; border: 1px solid #28a745;"><i class="bi bi-check-circle me-1"></i> Activo</span>';
+        } else {
+            estadoHtml = '<span class="text-danger fw-bold">Inactivo</span>';
+            estadoBadge = '<span class="badge rounded-pill p-2" style="background:#dc3545; color:white; font-size: 14px; border: 1px solid #dc3545;"><i class="bi bi-x-circle me-1"></i> Inactivo</span>';
+        }
+        document.getElementById('detalleEstado').innerHTML = estadoHtml;
+        document.getElementById('detalleEstadoBadge').innerHTML = estadoBadge;
+        
+        // Rol
+        var rolHtml = '';
+        var rolBadge = '';
+        switch(rol) {
+            case 'administrador': 
+                rolHtml = '<span class="text-danger fw-bold">Administrador</span>';
+                rolBadge = '<span class="badge rounded-pill p-2" style="background:#dc3545; color:white; font-size: 14px; border: 1px solid #dc3545;"><i class="bi bi-shield-fill me-1"></i> Administrador</span>';
+                break;
+            case 'veterinario': 
+                rolHtml = '<span class="text-primary fw-bold">Veterinario</span>';
+                rolBadge = '<span class="badge rounded-pill p-2" style="background:#3498db; color:white; font-size: 14px; border: 1px solid #3498db;"><i class="bi bi-heart-pulse me-1"></i> Veterinario</span>';
+                break;
+            case 'capataz': 
+                rolHtml = '<span class="text-success fw-bold">Capataz</span>';
+                rolBadge = '<span class="badge rounded-pill p-2" style="background:#27ae60; color:white; font-size: 14px; border: 1px solid #27ae60;"><i class="bi bi-emoji-laughing me-1"></i> Capataz</span>';
+                break;
+            case 'contador': 
+                rolHtml = '<span class="text-warning fw-bold">Contador</span>';
+                rolBadge = '<span class="badge rounded-pill p-2" style="background:#f39c12; color:white; font-size: 14px; border: 1px solid #f39c12;"><i class="bi bi-tools me-1"></i> Contador</span>';
+                break;
+            case 'dueño': 
+                rolHtml = '<span class="text-secondary fw-bold">Dueño</span>';
+                rolBadge = '<span class="badge rounded-pill p-2" style="background:#95a5a6; color:white; font-size: 14px; border: 1px solid #95a5a6;"><i class="bi bi-eye me-1"></i> Dueño</span>';
+                break;
+            default: 
+                rolHtml = '<span class="text-muted">' + rol + '</span>';
+                rolBadge = '<span class="badge rounded-pill bg-secondary p-2" style="font-size: 14px;">' + rol + '</span>';
+        }
+        document.getElementById('detalleRol').innerHTML = rolHtml;
+        document.getElementById('detalleRolBadge').innerHTML = rolBadge;
+        
+        // Botón editar
+        document.getElementById('btnEditarDesdeDetalle').href = '/editarusuario/' + id;
+    });
+</script>
 
 <!-- Script modal eliminar -->
 <script>

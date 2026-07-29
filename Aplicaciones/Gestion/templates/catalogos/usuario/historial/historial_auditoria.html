@@ -1,10 +1,16 @@
 {% extends "plantilla.html" %}
 {% load static %}
 
+<!-- ========================================== -->
+<!-- TITULO                                    -->
+<!-- ========================================== -->
 {% block titulo %}
 Historial de auditoría | Hacienda Joseph
 {% endblock %}
 
+<!-- ========================================== -->
+<!-- BREADCRUMB                                -->
+<!-- ========================================== -->
 {% block breadcrumb %}
 <li class="breadcrumb-item">
     <a href="{% url 'inicio' %}" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a>
@@ -12,41 +18,111 @@ Historial de auditoría | Hacienda Joseph
 <li class="breadcrumb-item active" aria-current="page">Auditoría</li>
 {% endblock %}
 
+<!-- ========================================== -->
+<!-- CONTENIDO PRINCIPAL                       -->
+<!-- ========================================== -->
 {% block contenido %}
 
+<!-- ========================================== -->
+<!-- TARJETAS ESTADÍSTICAS                     -->
+<!-- ========================================== -->
+<div class="row mb-4 animate-fade-in">
+    <div class="col-md-3">
+        <div class="card-hacienda text-center p-3">
+            <i class="bi bi-journal-text fs-2" style="color: var(--color-primario);"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_logs }}</h4>
+            <small class="text-muted">Total registros</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #28a745;">
+            <i class="bi bi-plus-circle fs-2 text-success"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_creaciones }}</h4>
+            <small class="text-muted">Creaciones</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #ffc107;">
+            <i class="bi bi-pencil-square fs-2 text-warning"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_ediciones }}</h4>
+            <small class="text-muted">Ediciones</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card-hacienda text-center p-3" style="border-left: 4px solid #dc3545;">
+            <i class="bi bi-trash fs-2 text-danger"></i>
+            <h4 class="fw-bold mt-2 mb-0">{{ total_eliminaciones }}</h4>
+            <small class="text-muted">Eliminaciones</small>
+        </div>
+    </div>
+</div>
+
+<!-- Titulo -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8">
         <h2 class="fw-bold" style="color: var(--color-primario);">
             <i class="bi bi-journal-text me-2"></i>Historial de auditoría
         </h2>
         <p class="text-muted mb-0">
-            <i class="bi bi-info-circle me-1"></i>Registro de todas las acciones
+            <i class="bi bi-info-circle me-1"></i>Registro de todas las acciones del sistema
         </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="{% url 'exportar_logs' %}" class="btn btn-hacienda-secondary">
+            <i class="bi bi-download me-2"></i>Exportar
+        </a>
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- Tarjeta principal                         -->
+<!-- ========================================== -->
 <div class="row animate-fade-in">
     <div class="col-12">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
                 <i class="bi bi-clock-history"></i>Registros de auditoría
+                <span class="badge bg-secondary ms-2">{{ logs.paginator.count }}</span>
             </div>
 
             <div class="p-4">
-                <div class="table-responsive">
-                    <table id="tablaAuditoria" class="table table-hacienda align-middle mb-0">
+                <!-- Filtro de búsqueda -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="GET" action="" class="d-flex">
+                            <input type="text" name="search" class="form-control form-control-sm" 
+                                   placeholder="🔍 Buscar por usuario, acción o modelo..." 
+                                   value="{{ request.GET.search }}">
+                            <button type="submit" class="btn btn-sm btn-hacienda ms-2">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            {% if request.GET.search %}
+                            <a href="?page=1" class="btn btn-sm btn-hacienda-secondary ms-1">
+                                <i class="bi bi-x-circle"></i>
+                            </a>
+                            {% endif %}
+                        </form>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <small class="text-muted">
+                            Mostrando {{ logs.start_index }} a {{ logs.end_index }} 
+                            de {{ logs.paginator.count }} registros
+                        </small>
+                    </div>
+                </div>
 
-                        <!-- 9 COLUMNAS -->
+                <div class="table-responsive">
+                    <table class="table table-hacienda align-middle mb-0">
                         <thead>
                             <tr>
                                 <th>Id</th>
                                 <th>Usuario</th>
                                 <th>Acción</th>
                                 <th>Modelo</th>
-                                <th>Objeto id</th>
+                                <th>Objeto</th>
                                 <th>Descripción</th>
-                                <th>Ip</th>
-                                <th>Fecha / hora</th>
+                                <th>IP</th>
+                                <th>Fecha / Hora</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -54,34 +130,44 @@ Historial de auditoría | Hacienda Joseph
                         <tbody>
                             {% for log in logs %}
                             <tr>
+                                <!-- Id -->
                                 <td class="fw-bold text-muted">#{{ log.id_la }}</td>
 
-                                <!-- USUARIO (ahora muestra el nombre real) -->
-                                <td class="fw-bold" style="color: var(--color-primario);">
-                                    <i class="bi bi-person-circle me-1"></i>
-                                    {{ log.fk_us_la.username_us }}
+                                <!-- Usuario -->
+                                <td>
+                                    <span class="badge rounded-pill p-2" style="background: #e8f5e9; color: #2c5e1a; border: 1px solid #2c5e1a;">
+                                        <i class="bi bi-person-circle me-1"></i>
+                                        {{ log.fk_us_la.username_us }}
+                                    </span>
+                                    <br><small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>{{ log.fk_us_la.nombre_us }} {{ log.fk_us_la.apellido_us }}
+                                    </small>
                                 </td>
 
-                                <!-- ACCIÓN - MINÚSCULAS (como PostgreSQL) -->
+                                <!-- Acción -->
                                 <td>
                                     {% if log.accion_la == 'crear' %}
-                                    <span class="badge rounded-pill p-2" style="background: #28a745; color: white;">
+                                    <span class="badge rounded-pill p-2" style="background:#28a745; color:white; border: 1px solid #28a745;">
                                         <i class="bi bi-plus-circle me-1"></i>Crear
                                     </span>
                                     {% elif log.accion_la == 'editar' %}
-                                    <span class="badge rounded-pill p-2" style="background: #ffc107; color: #1a1a1a;">
+                                    <span class="badge rounded-pill p-2" style="background:#ffc107; color:#1a1a1a; border: 1px solid #ffc107;">
                                         <i class="bi bi-pencil-square me-1"></i>Editar
                                     </span>
                                     {% elif log.accion_la == 'eliminar' %}
-                                    <span class="badge rounded-pill p-2" style="background: #dc3545; color: white;">
+                                    <span class="badge rounded-pill p-2" style="background:#dc3545; color:white; border: 1px solid #dc3545;">
                                         <i class="bi bi-trash me-1"></i>Eliminar
                                     </span>
-                                    {% elif log.accion_la == 'login' or log.accion_la == 'logout' %}
-                                    <span class="badge rounded-pill p-2" style="background: #17a2b8; color: white;">
-                                        <i class="bi bi-box-arrow-in-right me-1"></i>{{ log.accion_la|upper }}
+                                    {% elif log.accion_la == 'login' %}
+                                    <span class="badge rounded-pill p-2" style="background:#17a2b8; color:white; border: 1px solid #17a2b8;">
+                                        <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                                    </span>
+                                    {% elif log.accion_la == 'logout' %}
+                                    <span class="badge rounded-pill p-2" style="background:#6c757d; color:white; border: 1px solid #6c757d;">
+                                        <i class="bi bi-box-arrow-right me-1"></i>Logout
                                     </span>
                                     {% elif log.accion_la == 'exportar' %}
-                                    <span class="badge rounded-pill p-2" style="background: #6f42c1; color: white;">
+                                    <span class="badge rounded-pill p-2" style="background:#6f42c1; color:white; border: 1px solid #6f42c1;">
                                         <i class="bi bi-download me-1"></i>Exportar
                                     </span>
                                     {% else %}
@@ -91,84 +177,274 @@ Historial de auditoría | Hacienda Joseph
                                     {% endif %}
                                 </td>
 
-                                <td><i class="bi bi-table me-1 text-muted"></i>{{ log.modelo_afectado_la }}</td>
+                                <!-- Modelo -->
+                                <td>
+                                    <span class="text-muted">
+                                        <i class="bi bi-table me-1"></i>
+                                        {{ log.modelo_afectado_la }}
+                                    </span>
+                                </td>
 
-                                <td class="text-center">
+                                <!-- Objeto ID -->
+                                <td>
                                     {% if log.objeto_id_la %}
-                                    <span class="badge bg-light text-dark border">#{{ log.objeto_id_la }}</span>
+                                    <span class="badge rounded-pill p-2" style="background:#f8f9fa; color:#2c5e1a; border: 1px solid #d4c5a9;">
+                                        <i class="bi bi-hash me-1"></i>{{ log.objeto_id_la }}
+                                    </span>
                                     {% else %}
-                                    <span class="text-muted fst-italic">N/A</span>
+                                    <span class="text-muted fst-italic">---</span>
                                     {% endif %}
                                 </td>
 
-                                <!-- DESCRIPCIÓN (nueva columna) -->
+                                <!-- Descripción -->
                                 <td>
                                     {% if log.descripcion_la %}
-                                    <small class="text-muted" title="{{ log.descripcion_la }}">
-                                        {{ log.descripcion_la|truncatechars:30 }}
-                                    </small>
+                                    <span class="text-muted" style="font-size: 13px;">
+                                        <i class="bi bi-journal-text me-1 text-primary"></i>
+                                        {{ log.descripcion_la|truncatechars:40 }}
+                                    </span>
                                     {% else %}
-                                    <span class="text-muted fst-italic">-</span>
+                                    <span class="text-muted fst-italic">---</span>
                                     {% endif %}
                                 </td>
 
+                                <!-- IP -->
                                 <td>
                                     {% if log.ip_address_la %}
-                                    <i class="bi bi-globe me-1 text-muted"></i>{{ log.ip_address_la }}
+                                    <span class="text-muted">
+                                        <i class="bi bi-globe me-1"></i>
+                                        {{ log.ip_address_la }}
+                                    </span>
                                     {% else %}
-                                    <span class="text-muted fst-italic">-</span>
+                                    <span class="text-muted fst-italic">---</span>
                                     {% endif %}
                                 </td>
 
+                                <!-- Fecha / Hora -->
                                 <td>
-                                    <i class="bi bi-calendar-event me-1 text-muted"></i>{{ log.fecha_hora_la|date:"d/m/Y" }}
-                                    <br>
-                                    <small class="text-muted">
-                                        <i class="bi bi-clock me-1"></i>{{ log.fecha_hora_la|time:"H:i:s" }}
+                                    <span class="fw-bold" style="color: #5c450e;">
+                                        <i class="bi bi-calendar-check me-1"></i>
+                                        {{ log.fecha_hora_la|date:'d/m/Y' }}
+                                    </span>
+                                    <br><small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>
+                                        {{ log.fecha_hora_la|time:'H:i:s' }}
                                     </small>
                                 </td>
 
+                                <!-- Acciones -->
                                 <td>
-                                    <a href="{% url 'verdetallelog' log.id_la %}" class="btn btn-sm btn-hacienda-secondary">
+                                    <!-- Ver detalle (modal) -->
+                                    <button type="button" class="btn btn-sm btn-info" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalDetalleLog"
+                                            data-id="{{ log.id_la }}"
+                                            data-usuario="{{ log.fk_us_la.username_us }}"
+                                            data-nombre-completo="{{ log.fk_us_la.nombre_us }} {{ log.fk_us_la.apellido_us }}"
+                                            data-accion="{{ log.accion_la }}"
+                                            data-modelo="{{ log.modelo_afectado_la }}"
+                                            data-objeto-id="{% if log.objeto_id_la %}{{ log.objeto_id_la }}{% else %}---{% endif %}"
+                                            data-descripcion="{% if log.descripcion_la %}{{ log.descripcion_la }}{% else %}Sin descripción{% endif %}"
+                                            data-ip="{% if log.ip_address_la %}{{ log.ip_address_la }}{% else %}---{% endif %}"
+                                            data-fecha="{{ log.fecha_hora_la|date:'d/m/Y' }}"
+                                            data-hora="{{ log.fecha_hora_la|time:'H:i:s' }}"
+                                            data-user-agent="{% if log.user_agent_la %}{{ log.user_agent_la }}{% else %}---{% endif %}"
+                                            title="Ver detalle">
                                         <i class="bi bi-eye"></i>
-                                    </a>
+                                    </button>
+
+                                    <!-- Eliminar -->
                                     <button type="button" class="btn btn-sm btn-danger"
                                             data-bs-toggle="modal"
                                             data-bs-target="#modalEliminarLog"
                                             data-accion="{{ log.accion_la|upper }}"
                                             data-modelo="{{ log.modelo_afectado_la }}"
-                                            data-url="{% url 'eliminarlog' log.id_la %}">
+                                            data-id="{{ log.id_la }}"
+                                            data-url="{% url 'eliminarlog' log.id_la %}"
+                                            title="Eliminar">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </td>
                             </tr>
 
                             {% empty %}
-                            <!-- colspan=9 (porque son 9 columnas) -->
+                            <!-- Sin registros -->
                             <tr>
                                 <td colspan="9" class="text-center py-5">
                                     <i class="bi bi-journal-x fs-1 text-muted"></i>
-                                    <p class="mt-3 text-muted">No hay registros</p>
+                                    <p class="mt-3 text-muted">No hay registros de auditoría</p>
+                                    <p class="text-muted small">Los registros aparecerán cuando los usuarios realicen acciones en el sistema</p>
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Paginación de Django -->
+                {% if logs.has_other_pages %}
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            Mostrando {{ logs.start_index }} a {{ logs.end_index }} 
+                            de {{ logs.paginator.count }} registros
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <nav aria-label="Paginación de auditoría">
+                            <ul class="pagination justify-content-end flex-wrap">
+                                {% if logs.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ logs.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+
+                                {% for num in logs.paginator.page_range %}
+                                    {% if logs.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                    {% elif num > logs.number|add:'-3' and num < logs.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                            {{ num }}
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if logs.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ logs.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ logs.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
+            <!-- Footer -->
             <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
                 <small class="text-muted">
                     <i class="bi bi-bar-chart-line me-1"></i>
-                    Total: <strong>{{ logs|length }}</strong>
+                    Total de registros: <strong>{{ logs.paginator.count }}</strong>
                 </small>
             </div>
         </div>
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- MODAL DETALLE LOG                         -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalDetalleLog" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: 3px solid #DAA520; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
+                <h5 class="modal-title" style="color: white; font-weight: 700;">
+                    <i class="bi bi-journal-text me-2" style="color: #DAA520;"></i>
+                    Detalle del registro
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="background: #fff8e6;">
+                <div class="row g-0">
+                    <div class="col-md-5" style="background: #f5f0e6; border-right: 2px solid #d4c5a9;">
+                        <div class="p-4 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="bi bi-clock-history fs-1" style="color: #2c5e1a;"></i>
+                            <p class="mt-3 mb-0 fw-bold" style="color: #2c5e1a; font-size: 18px;" id="detalleAccion"></p>
+                            <p class="text-muted mb-0" style="font-size: 14px;" id="detalleModelo"></p>
+                            <div class="mt-3 w-100 text-center">
+                                <span id="detalleAccionBadge"></span>
+                            </div>
+                            <div class="mt-2 w-100 text-center">
+                                <span class="badge rounded-pill p-2" style="background: #f8f9fa; color: #2c5e1a; border: 1px solid #d4c5a9; font-size: 14px;">
+                                    <i class="bi bi-hash me-1"></i>ID: <span id="detalleObjetoId"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="p-4">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold">Id registro</label>
+                                    <p class="mb-0 fw-bold" style="color: #2c5e1a; font-size: 16px;">#<span id="detalleId"></span></p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <label class="text-muted small fw-bold">Fecha / Hora</label>
+                                    <p class="mb-0 fw-bold" style="color: #5c450e;" id="detalleFechaHora"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person me-1"></i>Usuario</label>
+                                    <p class="mb-0" id="detalleUsuario" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-person-badge me-1"></i>Nombre completo</label>
+                                    <p class="mb-0" id="detalleNombreCompleto" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-table me-1"></i>Modelo afectado</label>
+                                    <p class="mb-0" id="detalleModeloAfectado" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-hash me-1"></i>ID del objeto</label>
+                                    <p class="mb-0" id="detalleObjetoIdDetalle" style="color: #5c450e;"></p>
+                                </div>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i>Descripción</label>
+                                <p class="mb-0" id="detalleDescripcion" style="color: #5c450e; font-style: italic;"></p>
+                            </div>
+                            <hr style="border-color: #d4c5a9;">
+                            <div class="row mb-0">
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-globe me-1"></i>Dirección IP</label>
+                                    <p class="mb-0" id="detalleIp" style="color: #5c450e;"></p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold"><i class="bi bi-browser me-1"></i>User Agent</label>
+                                    <p class="mb-0" id="detalleUserAgent" style="color: #5c450e; font-size: 12px; word-break: break-all;"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
+                <button type="button" class="btn btn-hacienda-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
-<!-- MODAL (dentro del contenido, NO en scripts_extra) -->
+<!-- ========================================== -->
+<!-- MODAL ELIMINAR LOG                        -->
+<!-- ========================================== -->
 <div class="modal fade" id="modalEliminarLog" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 12px; border: 2px solid #DAA520; overflow: hidden;">
@@ -181,11 +457,16 @@ Historial de auditoría | Hacienda Joseph
             </div>
             <div class="modal-body" style="background: #fff8e6; padding: 25px;">
                 <p style="color: #5c450e; font-size: 16px; margin-bottom: 0;">
-                    ¿Eliminar registro de <strong id="accionLogModal" style="color: #2c5e1a;"></strong> 
-                    sobre <strong id="modeloLogModal" style="color: #2c5e1a;"></strong>?
+                    ¿Está seguro de eliminar el registro de auditoría?
                 </p>
                 <p class="mt-2 mb-0" style="color: #8B6914; font-size: 14px;">
-                    <i class="bi bi-info-circle me-1"></i>No se puede deshacer.
+                    <i class="bi bi-info-circle me-1"></i>
+                    Acción: <strong id="accionLogModal" style="color: #2c5e1a;"></strong> | 
+                    Modelo: <strong id="modeloLogModal" style="color: #2c5e1a;"></strong>
+                </p>
+                <p class="mt-2 mb-0" style="color: #c0392b; font-size: 13px;">
+                    <i class="bi bi-exclamation-diamond me-1"></i>
+                    Esta acción no se puede deshacer. Se perderá el registro histórico.
                 </p>
             </div>
             <div class="modal-footer" style="background: #f5f0e6; border-top: 1px solid #d4c5a9;">
@@ -200,71 +481,109 @@ Historial de auditoría | Hacienda Joseph
     </div>
 </div>
 
-{% endblock %}
-
-
-{% block scripts_extra %}
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-
+<!-- ========================================== -->
+<!-- Estilos para paginación                   -->
+<!-- ========================================== -->
 <style>
-    /* Tus estilos de DataTable (igual que los tenías) */
-    .dataTables_filter {
-        margin-bottom: 20px !important;
-        background: linear-gradient(135deg, #eef7e8, #dcefd0);
-        padding: 15px 20px;
-        border-radius: 18px;
-        border: 2px solid #b7d7a8;
-        box-shadow: 0px 4px 12px rgba(44,94,26,0.15);
-        display: flex !important;
-        align-items: center !important;
-        justify-content: end !important;
-        gap: 10px;
+    .pagination .page-link {
+        color: var(--color-primario);
+        border-color: #d4c5a9;
     }
-    .dataTables_filter::before { content: "📋"; font-size: 28px; }
-    .dataTables_filter label { font-weight: bold; color: var(--color-primario); font-size: 17px; }
-    .dataTables_filter input {
-        border-radius: 50px !important; border: 3px solid var(--color-primario) !important;
-        padding: 10px 18px !important; background-color: #ffffff !important;
-        width: 280px !important; margin-left: 10px !important;
+    .pagination .page-item.active .page-link {
+        background-color: var(--color-primario);
+        border-color: var(--color-primario);
+        color: white;
     }
-    .dataTables_paginate { width: 100% !important; display: flex !important; justify-content: center !important; margin-top: 25px !important; }
-    .paginate_button {
-        width: 36px !important; height: 36px !important; border-radius: 4px !important;
-        background: #dfeedd !important; color: var(--color-primario) !important;
-        font-weight: bold !important; margin: 0 3px !important;
+    .pagination .page-link:hover {
+        background-color: #e8f5e9;
+        border-color: var(--color-primario);
     }
-    .paginate_button.current { background: var(--color-primario) !important; color: white !important; }
-    .paginate_button:hover { background: #3d7a24 !important; color: white !important; }
+    .card-header-hacienda .badge {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.65rem;
+    }
 </style>
 
+{% endblock %}
+
+<!-- ========================================== -->
+<!-- SCRIPTS EXTRA                             -->
+<!-- ========================================== -->
+{% block scripts_extra %}
+
+<!-- Script modal detalle -->
 <script>
-    $(document).ready(function () {
-        $('#tablaAuditoria').DataTable({
-            "language": {
-                "lengthMenu": "Mostrar _MENU_ registros",
-                "zeroRecords": "No se encontraron resultados",
-                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                "infoEmpty": "No existen registros",
-                "infoFiltered": "(filtrado de _MAX_ registros)",
-                "search": "Buscar:",
-                "paginate": { "first": "", "last": "", "next": "›", "previous": "‹" }
-            },
-            "pageLength": 10,
-            "lengthMenu": [5, 10, 25, 50, 100],
-            "order": [[0, "desc"]],
-            "pagingType": "simple_numbers"
-        });
+    var modalDetalleLog = document.getElementById('modalDetalleLog');
+    modalDetalleLog.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        
+        var id = button.getAttribute('data-id');
+        var usuario = button.getAttribute('data-usuario');
+        var nombreCompleto = button.getAttribute('data-nombre-completo');
+        var accion = button.getAttribute('data-accion');
+        var modelo = button.getAttribute('data-modelo');
+        var objetoId = button.getAttribute('data-objeto-id');
+        var descripcion = button.getAttribute('data-descripcion');
+        var ip = button.getAttribute('data-ip');
+        var fecha = button.getAttribute('data-fecha');
+        var hora = button.getAttribute('data-hora');
+        var userAgent = button.getAttribute('data-user-agent');
+        
+        // Asignar valores
+        document.getElementById('detalleId').textContent = id;
+        document.getElementById('detalleUsuario').textContent = usuario;
+        document.getElementById('detalleNombreCompleto').textContent = nombreCompleto;
+        document.getElementById('detalleAccion').textContent = accion.charAt(0).toUpperCase() + accion.slice(1);
+        document.getElementById('detalleModelo').textContent = modelo;
+        document.getElementById('detalleModeloAfectado').textContent = modelo;
+        document.getElementById('detalleObjetoId').textContent = objetoId;
+        document.getElementById('detalleObjetoIdDetalle').textContent = objetoId;
+        document.getElementById('detalleDescripcion').textContent = descripcion;
+        document.getElementById('detalleIp').textContent = ip;
+        document.getElementById('detalleFechaHora').textContent = fecha + ' ' + hora;
+        document.getElementById('detalleUserAgent').textContent = userAgent;
+        
+        // Acción Badge
+        var accionBadge = '';
+        switch(accion) {
+            case 'crear': 
+                accionBadge = '<span class="badge rounded-pill p-2" style="background:#28a745; color:white; font-size: 14px; border: 1px solid #28a745;"><i class="bi bi-plus-circle me-1"></i> Crear</span>';
+                break;
+            case 'editar': 
+                accionBadge = '<span class="badge rounded-pill p-2" style="background:#ffc107; color:#1a1a1a; font-size: 14px; border: 1px solid #ffc107;"><i class="bi bi-pencil-square me-1"></i> Editar</span>';
+                break;
+            case 'eliminar': 
+                accionBadge = '<span class="badge rounded-pill p-2" style="background:#dc3545; color:white; font-size: 14px; border: 1px solid #dc3545;"><i class="bi bi-trash me-1"></i> Eliminar</span>';
+                break;
+            case 'login': 
+                accionBadge = '<span class="badge rounded-pill p-2" style="background:#17a2b8; color:white; font-size: 14px; border: 1px solid #17a2b8;"><i class="bi bi-box-arrow-in-right me-1"></i> Login</span>';
+                break;
+            case 'logout': 
+                accionBadge = '<span class="badge rounded-pill p-2" style="background:#6c757d; color:white; font-size: 14px; border: 1px solid #6c757d;"><i class="bi bi-box-arrow-right me-1"></i> Logout</span>';
+                break;
+            case 'exportar': 
+                accionBadge = '<span class="badge rounded-pill p-2" style="background:#6f42c1; color:white; font-size: 14px; border: 1px solid #6f42c1;"><i class="bi bi-download me-1"></i> Exportar</span>';
+                break;
+            default: 
+                accionBadge = '<span class="badge rounded-pill bg-secondary p-2" style="font-size: 14px;"><i class="bi bi-activity me-1"></i> ' + accion.toUpperCase() + '</span>';
+        }
+        document.getElementById('detalleAccionBadge').innerHTML = accionBadge;
     });
 </script>
 
+<!-- Script modal eliminar -->
 <script>
     var modalEliminarLog = document.getElementById('modalEliminarLog');
     modalEliminarLog.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
-        document.getElementById('accionLogModal').textContent = button.getAttribute('data-accion');
-        document.getElementById('modeloLogModal').textContent = button.getAttribute('data-modelo');
-        document.getElementById('btnConfirmarEliminarLog').setAttribute('href', button.getAttribute('data-url'));
+        var accion = button.getAttribute('data-accion');
+        var modelo = button.getAttribute('data-modelo');
+        var url = button.getAttribute('data-url');
+
+        document.getElementById('accionLogModal').textContent = accion;
+        document.getElementById('modeloLogModal').textContent = modelo;
+        document.getElementById('btnConfirmarEliminarLog').setAttribute('href', url);
     });
 </script>
+
 {% endblock %}
