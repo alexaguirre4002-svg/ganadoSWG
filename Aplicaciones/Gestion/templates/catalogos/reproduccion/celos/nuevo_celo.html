@@ -1,13 +1,13 @@
 {% extends "plantilla.html" %}
 
 {% block titulo %}
-    Nuevo Celo | Hacienda Joseph
+    Nuevo celo | Hacienda Joseph
 {% endblock %}
 
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listacelo/" class="text-decoration-none" style="color: var(--color-primario);">Celos</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Nuevo Celo</li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo celo</li>
 {% endblock %}
 
 {% block contenido %}
@@ -15,7 +15,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-plus-circle me-2"></i>Registrar Nuevo Celo
+                <i class="bi bi-plus-circle me-2"></i>Registrar nuevo celo
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Registre la observación de celo en hembras del hato
@@ -28,7 +28,7 @@
             <div class="card-hacienda">
                 
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-plus"></i>Datos del Celo
+                    <i class="bi bi-clipboard-plus"></i>Datos del celo
                 </div>
 
                 <div class="p-4">
@@ -39,7 +39,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_observacion_ce">
-                                    <i class="bi bi-calendar-event me-1"></i>Fecha de Observación <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha de observación <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_observacion_ce" 
@@ -51,7 +51,7 @@
 
                             <div class="col-md-6 mb-3">
                                 <label for="sel_animal_ce">
-                                    <i class="bi bi-emoji-smile me-1"></i>Animal (Hembra) <span class="text-danger">*</span>
+                                    <i class="bi bi-emoji-smile me-1"></i>Animal (hembra) <span class="text-danger">*</span>
                                 </label>
                                 <select name="sel_animal_ce" 
                                         id="sel_animal_ce" 
@@ -70,7 +70,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="sel_intensidad_ce">
-                                    <i class="bi bi-activity me-1"></i>Intensidad del Celo
+                                    <i class="bi bi-activity me-1"></i>Intensidad del celo
                                 </label>
                                 <select name="sel_intensidad_ce" 
                                         id="sel_intensidad_ce" 
@@ -85,7 +85,7 @@
 
                             <div class="col-md-6 mb-3">
                                 <label for="txt_duracion_horas_ce">
-                                    <i class="bi bi-clock-history me-1"></i>Duración Aproximada (horas)
+                                    <i class="bi bi-clock-history me-1"></i>Duración aproximada (horas)
                                 </label>
                                 <input type="number" 
                                        name="txt_duracion_horas_ce" 
@@ -117,7 +117,7 @@
                         <!-- BOTONES DE ACCION -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Celo
+                                <i class="bi bi-save me-2"></i>Guardar celo
                             </button>
                             <a href="/listacelo/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Editar Ración | Hacienda Joseph
+    Editar ración | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -13,7 +13,7 @@
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listaracion/" class="text-decoration-none" style="color: var(--color-primario);">Raciones</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Ración</li>
+    <li class="breadcrumb-item active" aria-current="page">Editar ración</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,10 +27,10 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Ración
+                <i class="bi bi-pencil-square me-2"></i>Editar ración
             </h2>
             <p class="text-muted mb-0">
-                <i class="bi bi-info-circle me-1"></i>Modifique los datos de la ración #<<strong>{{ racion.id_ra }}</strong> - {{ racion.fk_an.codigo_an }}
+                <i class="bi bi-info-circle me-1"></i>Modifique los datos de la ración #<strong>{{ racion.id_ra }}</strong> - {{ racion.fk_an.codigo_an }}
             </p>
         </div>
     </div>
@@ -67,7 +67,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos de la Ración
+                    <i class="bi bi-clipboard-check"></i>Datos de la ración
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -127,7 +127,7 @@
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <label for="sel_insumo_ra">
-                                    <i class="bi bi-box-seam me-1"></i>Insumo Alimenticio
+                                    <i class="bi bi-box-seam me-1"></i>Insumo alimenticio
                                 </label>
                                 <select name="sel_insumo_ra" 
                                         id="sel_insumo_ra" 
@@ -180,7 +180,7 @@
                             <!-- CAMPO: FECHA INICIO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_inicio_ra">
-                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Inicio <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de inicio <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_inicio_ra" 
@@ -194,7 +194,7 @@
                             <!-- CAMPO: FECHA FIN -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_fin_ra">
-                                    <i class="bi bi-calendar-x me-1"></i>Fecha de Fin
+                                    <i class="bi bi-calendar-x me-1"></i>Fecha de fin
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_fin_ra" 
@@ -212,7 +212,7 @@
                             <!-- CAMPO: CANTIDAD OFRECIDA -->
                             <div class="col-md-4 mb-3">
                                 <label for="txt_cantidad_ofrecida_kg_ra">
-                                    <i class="bi bi-arrow-up-circle me-1"></i>Cantidad Ofrecida (kg) <span class="text-danger">*</span>
+                                    <i class="bi bi-arrow-up-circle me-1"></i>Cantidad ofrecida (kg) <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
                                        name="txt_cantidad_ofrecida_kg_ra" 
@@ -228,7 +228,7 @@
                             <!-- CAMPO: CANTIDAD CONSUMIDA -->
                             <div class="col-md-4 mb-3">
                                 <label for="txt_cantidad_consumida_kg_ra">
-                                    <i class="bi bi-arrow-down-circle me-1"></i>Cantidad Consumida (kg)
+                                    <i class="bi bi-arrow-down-circle me-1"></i>Cantidad consumida (kg)
                                 </label>
                                 <input type="text" 
                                        name="txt_cantidad_consumida_kg_ra" 
@@ -286,7 +286,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="txt_dias_en_potrero_ra">
-                                    <i class="bi bi-clock-history me-1"></i>Días en Potrero
+                                    <i class="bi bi-clock-history me-1"></i>Días en potrero
                                 </label>
                                 <input type="number" 
                                        name="txt_dias_en_potrero_ra" 
@@ -320,7 +320,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listaracion/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

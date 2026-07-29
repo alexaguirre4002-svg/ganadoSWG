@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Nuevo Potrero | Hacienda Joseph
+    Nuevo potrero | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -13,7 +13,7 @@
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listapotrero/" class="text-decoration-none" style="color: var(--color-primario);">Potreros</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Nuevo Potrero</li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo potrero</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,7 +27,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-plus-circle me-2"></i>Registrar Nuevo Potrero
+                <i class="bi bi-plus-circle me-2"></i>Registrar nuevo potrero
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Complete los datos del potrero o pastura
@@ -44,7 +44,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-plus"></i>Datos del Potrero
+                    <i class="bi bi-clipboard-plus"></i>Datos del potrero
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -59,7 +59,7 @@
                             <!-- CAMPO: CODIGO DEL POTRERO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_codigo_po">
-                                    <i class="bi bi-upc-scan me-1"></i>Código del Potrero <span class="text-danger">*</span>
+                                    <i class="bi bi-upc-scan me-1"></i>Código del potrero <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
                                        name="txt_codigo_po" 
@@ -74,7 +74,7 @@
                             <!-- CAMPO: NOMBRE DEL POTRERO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_nombre_po">
-                                    <i class="bi bi-tag me-1"></i>Nombre del Potrero <span class="text-danger">*</span>
+                                    <i class="bi bi-tag me-1"></i>Nombre del potrero <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
                                        name="txt_nombre_po" 
@@ -109,7 +109,7 @@
                             <!-- CAMPO: CAPACIDAD MAXIMA -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_capacidad_maxima_po">
-                                    <i class="bi bi-people me-1"></i>Capacidad Máxima (animales) <span class="text-danger">*</span>
+                                    <i class="bi bi-people me-1"></i>Capacidad máxima (animales) <span class="text-danger">*</span>
                                 </label>
                                 <input type="number" 
                                        name="txt_capacidad_maxima_po" 
@@ -138,7 +138,7 @@
                                     <option value="" selected disabled>Seleccione estado...</option>
                                     <option value="disponible">Disponible</option>
                                     <option value="ocupado">Ocupado</option>
-                                    <option value="en_descanso">En Descanso</option>
+                                    <option value="en_descanso">En descanso</option>
                                     <option value="inactivo">Inactivo</option>
                                 </select>
                             </div>
@@ -202,7 +202,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Potrero
+                                <i class="bi bi-save me-2"></i>Guardar potrero
                             </button>
                             <a href="/listapotrero/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

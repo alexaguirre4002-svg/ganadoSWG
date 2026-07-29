@@ -99,7 +99,7 @@ Dashboard estadístico | Hacienda Joseph
     <div class="col-12">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
-                <i class="bi bi-lightbulb me-2"></i>recomendaciones del sistema (Machine Learning)
+                <i class="bi bi-lightbulb me-2"></i>Recomendaciones del sistema (machine learning)
             </div>
             <div class="p-3">
                 <div class="row">
@@ -385,12 +385,12 @@ Dashboard estadístico | Hacienda Joseph
                                                 </div>
 
                                                 <!-- === NUTRICIÓN DEL MES === -->
-                                                <h6 class="fw-bold mt-3 mb-2"><i class="bi bi-basket-fill me-1"></i>Nutrición y Alimentación</h6>
+                                                <h6 class="fw-bold mt-3 mb-2"><i class="bi bi-basket-fill me-1"></i>Nutrición y alimentación</h6>
                                                 <div class="row mb-3">
                                                     <div class="col-md-6">
                                                         <div class="card-hacienda">
                                                             <div class="card-header-hacienda">
-                                                                <i class="bi bi-bar-chart me-2"></i>Raciones: Ofrecido vs Consumido vs Desperdicio
+                                                                <i class="bi bi-bar-chart me-2"></i>Raciones: ofrecido vs consumido vs desperdicio
                                                             </div>
                                                             <div class="p-3">
                                                                 <p class="text-muted small mb-2">Compara cuántos kg de alimento se ofrecieron este mes, cuántos realmente comió el ganado, y cuántos se desperdiciaron. Un desperdicio alto indica ineficiencia en la alimentación.</p>
@@ -408,7 +408,7 @@ Dashboard estadístico | Hacienda Joseph
                                                     <div class="col-md-6">
                                                         <div class="card-hacienda">
                                                             <div class="card-header-hacienda">
-                                                                <i class="bi bi-droplet-half me-2"></i>Secados y Entregas de Leche
+                                                                <i class="bi bi-droplet-half me-2"></i>Secados y entregas de leche
                                                             </div>
                                                             <div class="p-3">
                                                                 <p class="text-muted small mb-2">A la izquierda, cuántas vacas dejaron de producir leche este mes por secado (previo al parto). A la derecha, cuántos litros se entregaron a la planta o cliente comprador.</p>
@@ -442,7 +442,7 @@ Dashboard estadístico | Hacienda Joseph
                                                     <div class="col-md-6">
                                                         <div class="card-hacienda">
                                                             <div class="card-header-hacienda">
-                                                                <i class="bi bi-bar-chart-steps me-2"></i>Peso Promedio por Categoría
+                                                                <i class="bi bi-bar-chart-steps me-2"></i>Peso promedio por categoría
                                                             </div>
                                                             <div class="p-3">
                                                                 <p class="text-muted small mb-2">Peso promedio registrado en los pesajes de este mes, agrupado por categoría de animal (ternero, novilla, vaca, toro, etc.). Ayuda a detectar categorías con bajo desarrollo.</p>
@@ -499,7 +499,7 @@ Dashboard estadístico | Hacienda Joseph
                                                     <div class="col-md-6">
                                                         <div class="card-hacienda">
                                                             <div class="card-header-hacienda">
-                                                                <i class="bi bi-bar-chart me-2"></i>Ingresos vs Costos del Mes
+                                                                <i class="bi bi-bar-chart me-2"></i>Ingresos vs costos del mes
                                                             </div>
                                                             <div class="p-3">
                                                                 <p class="text-muted small mb-2">Compara cuánto dinero entró (ventas de leche, animales, etc.) contra cuánto se gastó este mes. La diferencia entre ambas barras es tu balance/utilidad del período.</p>
@@ -564,7 +564,7 @@ new Chart(ctxProd, {
     data: {
         labels: {{ prod_labels|safe|default:"[]" }},
         datasets: [{
-            label: 'Litros Producción',
+            label: 'Litros producción',
             data: {{ prod_values|safe|default:"[]" }},
             backgroundColor: 'rgba(74, 124, 34, 0.2)',
             borderColor: '#4a7c22',
@@ -609,7 +609,7 @@ new Chart(ctxCalidad, {
                 backgroundColor: '#28a745'
             },
             {
-                label: 'No Aptos',
+                label: 'No aptos',
                 data: {{ cal_no_aptos|safe|default:"[]" }},
                 backgroundColor: '#dc3545'
             }
@@ -749,7 +749,7 @@ new Chart(ctxAnimales, {
             data: {
                 labels: {{ datos.peso_cat_labels|safe|default:"[]" }},
                 datasets: [{
-                    label: 'Peso Promedio (kg)',
+                    label: 'Peso promedio (kg)',
                     data: {{ datos.peso_cat_values|safe|default:"[]" }},
                     backgroundColor: ['#4a7c22', '#17a2b8', '#fd7e14', '#6f42c1', '#dc3545']
                 }]

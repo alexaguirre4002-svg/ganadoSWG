@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Editar Inseminación | Hacienda Joseph
+    Editar inseminación | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -13,7 +13,7 @@
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listainseminacion/" class="text-decoration-none" style="color: var(--color-primario);">Inseminaciones</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Inseminación</li>
+    <li class="breadcrumb-item active" aria-current="page">Editar inseminación</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,7 +27,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Inseminación
+                <i class="bi bi-pencil-square me-2"></i>Editar inseminación
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Modifique los datos de la inseminación #<strong>{{ inseminacion.id_in }}</strong> - {{ inseminacion.fk_an.codigo_an }}
@@ -62,7 +62,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos de la Inseminación
+                    <i class="bi bi-clipboard-check"></i>Datos de la inseminación
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -83,7 +83,7 @@
                             <!-- CAMPO: TIPO INSEMINACIÓN (SOLO LECTURA) -->
                             <div class="col-md-6 mb-3">
                                 <label for="sel_tipo_inseminacion_in">
-                                    <i class="bi bi-eyedropper me-1"></i>Tipo de Inseminación
+                                    <i class="bi bi-eyedropper me-1"></i>Tipo de inseminación
                                 </label>
                                 <select name="sel_tipo_inseminacion_in" 
                                         id="sel_tipo_inseminacion_in" 
@@ -98,7 +98,7 @@
                             <!-- CAMPO: FECHA INSEMINACIÓN -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_in">
-                                    <i class="bi bi-calendar-event me-1"></i>Fecha de Inseminación <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha de inseminación <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_in" 
@@ -143,7 +143,7 @@
                             <!-- CAMPO: DÍA DEL CICLO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_dia_ciclo_in">
-                                    <i class="bi bi-calendar-week me-1"></i>Día del Ciclo
+                                    <i class="bi bi-calendar-week me-1"></i>Día del ciclo
                                 </label>
                                 <input type="number" 
                                        name="txt_dia_ciclo_in" 
@@ -161,7 +161,7 @@
                             <!-- CAMPO: CONDICIÓN CORPORAL -->
                             <div class="col-md-6 mb-3">
                                 <label for="sel_condicion_corporal_in">
-                                    <i class="bi bi-heart-pulse me-1"></i>Condición Corporal
+                                    <i class="bi bi-heart-pulse me-1"></i>Condición corporal
                                 </label>
                                 <select name="sel_condicion_corporal_in" 
                                         id="sel_condicion_corporal_in" 
@@ -207,7 +207,7 @@
                             <div class="col-md-6 mb-3" id="campo_lote" 
                                  {% if inseminacion.tipo_inseminacion_in != 'artificial' %}style="display: none;"{% endif %}>
                                 <label for="txt_lote_semen_in">
-                                    <i class="bi bi-box-seam me-1"></i>Lote de Semen <span class="text-danger" id="required_lote"
+                                    <i class="bi bi-box-seam me-1"></i>Lote de semen <span class="text-danger" id="required_lote"
                                         {% if inseminacion.tipo_inseminacion_in != 'artificial' %}style="display: none;"{% endif %}>*</span>
                                 </label>
                                 <input type="text" 
@@ -236,7 +236,7 @@
                                         class="form-select">
                                     <option value="" {% if not inseminacion.resultado_in %}selected{% endif %}>Pendiente</option>
                                     <option value="preñada" {% if inseminacion.resultado_in == 'preñada' %}selected{% endif %}>Preñada</option>
-                                    <option value="no_preñada" {% if inseminacion.resultado_in == 'no_preñada' %}selected{% endif %}>No Preñada</option>
+                                    <option value="no_preñada" {% if inseminacion.resultado_in == 'no_preñada' %}selected{% endif %}>No preñada</option>
                                 </select>
                                 <small class="text-muted">Resultado de la inseminación.</small>
                             </div>
@@ -245,7 +245,7 @@
                             <div class="col-md-6 mb-3" id="campo_fecha_resultado"
                                  {% if inseminacion.resultado_in != 'preñada' and inseminacion.resultado_in != 'no_preñada' %}style="display: none;"{% endif %}>
                                 <label for="txt_fecha_resultado_in">
-                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Resultado <span class="text-danger" id="required_fecha_resultado"
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de resultado <span class="text-danger" id="required_fecha_resultado"
                                         {% if inseminacion.resultado_in != 'preñada' and inseminacion.resultado_in != 'no_preñada' %}style="display: none;"{% endif %}>*</span>
                                 </label>
                                 <input type="date" 
@@ -267,7 +267,7 @@
                             <!-- CAMPO: VETERINARIO RESPONSABLE -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_veterinario_in">
-                                    <i class="bi bi-person-badge me-1"></i>Veterinario Responsable
+                                    <i class="bi bi-person-badge me-1"></i>Veterinario responsable
                                 </label>
                                 <input type="text" 
                                        name="txt_veterinario_in" 
@@ -317,7 +317,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listainseminacion/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

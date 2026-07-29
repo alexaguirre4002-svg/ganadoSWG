@@ -1,13 +1,13 @@
 {% extends "plantilla.html" %}
 
 {% block titulo %}
-    Editar Producto Veterinario | Hacienda Joseph
+    Editar producto veterinario | Hacienda Joseph
 {% endblock %}
 
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
-    <li class="breadcrumb-item"><a href="/listadoprodvet/" class="text-decoration-none" style="color: var(--color-primario);">Productos Veterinarios</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Producto</li>
+    <li class="breadcrumb-item"><a href="/listadoprodvet/" class="text-decoration-none" style="color: var(--color-primario);">Productos veterinarios</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Editar producto</li>
 {% endblock %}
 
 {% block contenido %}
@@ -15,7 +15,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Producto Veterinario
+                <i class="bi bi-pencil-square me-2"></i>Editar producto veterinario
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Modifique los datos del producto <strong>{{ prodvet.nombre_pv }}</strong>
@@ -27,7 +27,7 @@
         <div class="col-md-10 col-lg-8">
             <div class="card-hacienda">
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos del Producto
+                    <i class="bi bi-clipboard-check"></i>Datos del producto
                 </div>
                 <div class="p-4">
                     <form action="/procesareditarprodvet/" id="frm_editar_prodvet" method="post" class="form-hacienda">
@@ -46,7 +46,7 @@
                                     <label for="txt_nombre_pv">
                                         <i class="bi bi-capsule me-1"></i>Nombre <span class="text-danger">*</span>
                                     </label>
-                                    <input type="text" name="txt_nombre_pv" id="txt_nombre_pv" class="form-control" value="{{ prodvet.nombre_pv|default_if_none:'' }}" placeholder="Ej: Vacuna Aftosa, Penicilina..." maxlength="100" required>
+                                    <input type="text" name="txt_nombre_pv" id="txt_nombre_pv" class="form-control" value="{{ prodvet.nombre_pv|default_if_none:'' }}" placeholder="Ej: Vacuna aftosa, Penicilina..." maxlength="100" required>
                                     <small class="text-muted">Letras y espacios. Máx 100.</small>
                                 </div>
                                 <div class="mb-3">
@@ -81,21 +81,21 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="txt_stock_minimo_pv">
-                                        <i class="bi bi-bell me-1"></i>Stock Mínimo
+                                        <i class="bi bi-bell me-1"></i>Stock mínimo
                                     </label>
                                     <input type="number" name="txt_stock_minimo_pv" id="txt_stock_minimo_pv" class="form-control" value="{{ prodvet.stock_minimo_pv|stringformat:'s' }}" placeholder="Ej: 10" step="0.01" min="0">
                                     <small class="text-muted">Número decimal positivo.</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="txt_unidad_medida_pv">
-                                        <i class="bi bi-rulers me-1"></i>Unidad de Medida <span class="text-danger">*</span>
+                                        <i class="bi bi-rulers me-1"></i>Unidad de medida <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" name="txt_unidad_medida_pv" id="txt_unidad_medida_pv" class="form-control" value="{{ prodvet.unidad_medida_pv|default_if_none:'' }}" placeholder="Ej: ml, mg, unidades..." maxlength="50" required>
                                     <small class="text-muted">Letras. Máx 50.</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="txt_fecha_vencimiento_pv">
-                                        <i class="bi bi-calendar-x me-1"></i>Fecha Vencimiento
+                                        <i class="bi bi-calendar-x me-1"></i>Fecha vencimiento
                                     </label>
                                     <input type="date" name="txt_fecha_vencimiento_pv" id="txt_fecha_vencimiento_pv" class="form-control" value="{{ prodvet.fecha_vencimiento_pv|date:'Y-m-d' }}">
                                     <small class="text-muted">Debe ser una fecha futura.</small>
@@ -109,7 +109,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="txt_costo_unitario_pv">
-                                        <i class="bi bi-currency-dollar me-1"></i>Costo Unitario
+                                        <i class="bi bi-currency-dollar me-1"></i>Costo unitario
                                     </label>
                                     <input type="number" name="txt_costo_unitario_pv" id="txt_costo_unitario_pv" class="form-control" value="{{ prodvet.costo_unitario_pv|stringformat:'s' }}" placeholder="Ej: 15.50" step="0.01" min="0">
                                     <small class="text-muted">Número decimal positivo.</small>
@@ -126,7 +126,7 @@
                         </div>
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listadoprodvet/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

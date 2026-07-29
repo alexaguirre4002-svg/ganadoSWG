@@ -1,13 +1,13 @@
 {% extends "plantilla.html" %}
 
 {% block titulo %}
-    Editar Insumo | Hacienda El Roble
+    Editar insumo | Hacienda El Roble
 {% endblock %}
 
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listadoinsumos/" class="text-decoration-none" style="color: var(--color-primario);">Insumos</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Insumo</li>
+    <li class="breadcrumb-item active" aria-current="page">Editar insumo</li>
 {% endblock %}
 
 {% block contenido %}
@@ -15,7 +15,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Insumo
+                <i class="bi bi-pencil-square me-2"></i>Editar insumo
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Modifique los datos de <strong>{{ insumo.nombre_ia }}</strong>
@@ -28,7 +28,7 @@
             <div class="card-hacienda">
                 
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos del Insumo
+                    <i class="bi bi-clipboard-check"></i>Datos del insumo
                 </div>
 
                 <div class="p-4">
@@ -112,7 +112,7 @@
                             <!-- STOCK ACTUAL -->
                             <div class="col-md-4 mb-3">
                                 <label for="txt_stock_kg_ia">
-                                    <i class="bi bi-box me-1"></i>Stock Actual (kg) <span class="text-danger">*</span>
+                                    <i class="bi bi-box me-1"></i>Stock actual (kg) <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
                                        name="txt_stock_kg_ia" 
@@ -126,7 +126,7 @@
                             <!-- STOCK MÍNIMO -->
                             <div class="col-md-4 mb-3">
                                 <label for="txt_stock_minimo_kg_ia">
-                                    <i class="bi bi-exclamation-triangle me-1"></i>Stock Mínimo (kg) <span class="text-danger">*</span>
+                                    <i class="bi bi-exclamation-triangle me-1"></i>Stock mínimo (kg) <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
                                        name="txt_stock_minimo_kg_ia" 
@@ -171,7 +171,7 @@
                             <!-- FECHA COMPRA -->
                             <div class="col-md-6 mb-3">
                                 <label for="dt_fecha_compra_ia">
-                                    <i class="bi bi-calendar-event me-1"></i>Fecha de Compra
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha de compra
                                 </label>
                                 <input type="date" 
                                        name="dt_fecha_compra_ia" 
@@ -199,7 +199,7 @@
                         <!-- BOTONES -->
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listadoinsumos/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

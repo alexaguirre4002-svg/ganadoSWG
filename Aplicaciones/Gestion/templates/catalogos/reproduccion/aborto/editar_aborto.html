@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Editar Aborto | Hacienda Joseph
+    Editar aborto | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -13,7 +13,7 @@
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listaabortos/" class="text-decoration-none" style="color: var(--color-primario);">Abortos</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Aborto</li>
+    <li class="breadcrumb-item active" aria-current="page">Editar aborto</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,10 +27,10 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Aborto
+                <i class="bi bi-pencil-square me-2"></i>Editar aborto
             </h2>
             <p class="text-muted mb-0">
-                <i class="bi bi-info-circle me-1"></i>Modifique los datos del aborto #<<strong>{{ aborto.id_ab }}</strong> - {{ aborto.fk_an.codigo_an }}
+                <i class="bi bi-info-circle me-1"></i>Modifique los datos del aborto #<strong>{{ aborto.id_ab }}</strong> - {{ aborto.fk_an.codigo_an }}
             </p>
         </div>
     </div>
@@ -62,7 +62,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos del Aborto
+                    <i class="bi bi-clipboard-check"></i>Datos del aborto
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -99,7 +99,7 @@
                             <!-- CAMPO: FECHA ABORTO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_ab">
-                                    <i class="bi bi-calendar-x me-1"></i>Fecha del Aborto <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-x me-1"></i>Fecha del aborto <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_ab" 
@@ -117,7 +117,7 @@
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <label for="txt_causa_probable_ab">
-                                    <i class="bi bi-clipboard-pulse me-1"></i>Causa Probable
+                                    <i class="bi bi-clipboard-pulse me-1"></i>Causa probable
                                 </label>
                                 <textarea name="txt_causa_probable_ab" 
                                           id="txt_causa_probable_ab" 
@@ -135,7 +135,7 @@
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <label for="txt_tratamiento_ab">
-                                    <i class="bi bi-capsule me-1"></i>Tratamiento Aplicado
+                                    <i class="bi bi-capsule me-1"></i>Tratamiento aplicado
                                 </label>
                                 <textarea name="txt_tratamiento_ab" 
                                           id="txt_tratamiento_ab" 
@@ -153,7 +153,7 @@
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <label for="sel_destino_madre_ab">
-                                    <i class="bi bi-signpost-split me-1"></i>Destino de la Madre <span class="text-danger">*</span>
+                                    <i class="bi bi-signpost-split me-1"></i>Destino de la madre <span class="text-danger">*</span>
                                 </label>
                                 <select name="sel_destino_madre_ab" 
                                         id="sel_destino_madre_ab" 
@@ -195,7 +195,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listaabortos/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

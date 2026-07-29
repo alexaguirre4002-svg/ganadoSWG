@@ -1,13 +1,13 @@
 {% extends "plantilla.html" %}
 
 {% block titulo %}
-    Detalle de Auditoría | Hacienda Joseph
+    Detalle de auditoría | Hacienda Joseph
 {% endblock %}
 
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="{% url 'historialauditoria' %}" style="color: var(--color-primario);">Auditoría</a></li>
-    <li class="breadcrumb-item active">Detalle Log #{{ log.id_la }}</li>
+    <li class="breadcrumb-item active">Detalle log #{{ log.id_la }}</li>
 {% endblock %}
 
 {% block contenido %}
@@ -15,7 +15,7 @@
 <div class="row mb-4 animate-fade-in">
     <div class="col-12">
         <h2 class="fw-bold" style="color: var(--color-primario);">
-            <i class="bi bi-journal-text me-2"></i>Detalle de Registro
+            <i class="bi bi-journal-text me-2"></i>Detalle de registro
         </h2>
         <p class="text-muted mb-0">
             <i class="bi bi-info-circle me-1"></i>Log <strong>#{{ log.id_la }}</strong>
@@ -27,14 +27,14 @@
     <div class="col-md-8 col-lg-6">
         <div class="card-hacienda">
             <div class="card-header-hacienda">
-                <i class="bi bi-clipboard-data"></i>Datos del Registro
+                <i class="bi bi-clipboard-data"></i>Datos del registro
             </div>
 
             <div class="p-4">
 
                 <!-- ID -->
                 <div class="mb-3">
-                    <label class="fw-bold text-muted"><i class="bi bi-hash me-1"></i>ID</label>
+                    <label class="fw-bold text-muted"><i class="bi bi-hash me-1"></i>Id</label>
                     <div class="form-control bg-light">#{{ log.id_la }}</div>
                 </div>
 
@@ -54,15 +54,15 @@
                     <div class="form-control bg-light">
                         {% if log.accion_la == 'crear' %}
                         <span class="badge rounded-pill p-2" style="background: #28a745; color: white;">
-                            <i class="bi bi-plus-circle me-1"></i>CREAR
+                            <i class="bi bi-plus-circle me-1"></i>Crear
                         </span>
                         {% elif log.accion_la == 'editar' %}
                         <span class="badge rounded-pill p-2" style="background: #ffc107; color: #1a1a1a;">
-                            <i class="bi bi-pencil-square me-1"></i>EDITAR
+                            <i class="bi bi-pencil-square me-1"></i>Editar
                         </span>
                         {% elif log.accion_la == 'eliminar' %}
                         <span class="badge rounded-pill p-2" style="background: #dc3545; color: white;">
-                            <i class="bi bi-trash me-1"></i>ELIMINAR
+                            <i class="bi bi-trash me-1"></i>Eliminar
                         </span>
                         {% elif log.accion_la == 'login' or log.accion_la == 'logout' %}
                         <span class="badge rounded-pill p-2" style="background: #17a2b8; color: white;">
@@ -70,7 +70,7 @@
                         </span>
                         {% elif log.accion_la == 'exportar' %}
                         <span class="badge rounded-pill p-2" style="background: #6f42c1; color: white;">
-                            <i class="bi bi-download me-1"></i>EXPORTAR
+                            <i class="bi bi-download me-1"></i>Exportar
                         </span>
                         {% else %}
                         <span class="badge rounded-pill bg-secondary p-2">
@@ -88,7 +88,7 @@
 
                 <!-- OBJETO ID -->
                 <div class="mb-3">
-                    <label class="fw-bold text-muted"><i class="bi bi-fingerprint me-1"></i>Objeto ID</label>
+                    <label class="fw-bold text-muted"><i class="bi bi-fingerprint me-1"></i>Objeto id</label>
                     <div class="form-control bg-light">
                         {% if log.objeto_id_la %}
                         <span class="badge bg-light text-dark border">#{{ log.objeto_id_la }}</span>
@@ -112,7 +112,7 @@
 
                 <!-- IP -->
                 <div class="mb-3">
-                    <label class="fw-bold text-muted"><i class="bi bi-globe me-1"></i>IP</label>
+                    <label class="fw-bold text-muted"><i class="bi bi-globe me-1"></i>Ip</label>
                     <div class="form-control bg-light">
                         {% if log.ip_address_la %}{{ log.ip_address_la }}{% else %}<span class="text-muted fst-italic">No registrada</span>{% endif %}
                     </div>
@@ -120,7 +120,7 @@
 
                 <!-- FECHA -->
                 <div class="mb-3">
-                    <label class="fw-bold text-muted"><i class="bi bi-calendar-event me-1"></i>Fecha/Hora</label>
+                    <label class="fw-bold text-muted"><i class="bi bi-calendar-event me-1"></i>Fecha / hora</label>
                     <div class="form-control bg-light">
                         {{ log.fecha_hora_la|date:"d/m/Y" }} | {{ log.fecha_hora_la|time:"H:i:s" }}
                     </div>
@@ -154,7 +154,7 @@
             <div class="modal-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); border-bottom: 3px solid #DAA520;">
                 <h5 class="modal-title" style="color: white; font-weight: 700;">
                     <i class="bi bi-exclamation-triangle-fill me-2" style="color: #DAA520;"></i>
-                    CONFIRMAR ELIMINACIÓN
+                    Confirmar eliminación
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>

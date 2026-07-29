@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Editar Ingreso | Hacienda Joseph
+    Editar ingreso | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -13,7 +13,7 @@
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listaingreso/" class="text-decoration-none" style="color: var(--color-primario);">Ingresos</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Ingreso</li>
+    <li class="breadcrumb-item active" aria-current="page">Editar ingreso</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,7 +27,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Ingreso
+                <i class="bi bi-pencil-square me-2"></i>Editar ingreso
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Modifique los datos del ingreso #<strong>{{ ingreso.id_ig }}</strong> - {{ ingreso.get_categoria_ig_display }}
@@ -61,7 +61,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos del Ingreso
+                    <i class="bi bi-clipboard-check"></i>Datos del ingreso
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -87,10 +87,10 @@
                                         id="sel_categoria_ig" 
                                         class="form-select" 
                                         required>
-                                    <option value="venta_leche" {% if ingreso.categoria_ig == 'venta_leche' %}selected{% endif %}>🥛 Venta de Leche</option>
-                                    <option value="venta_animales" {% if ingreso.categoria_ig == 'venta_animales' %}selected{% endif %}>🐄 Venta de Animales</option>
-                                    <option value="venta_subproductos" {% if ingreso.categoria_ig == 'venta_subproductos' %}selected{% endif %}>📦 Venta de Subproductos</option>
-                                    <option value="servicios_inseminacion" {% if ingreso.categoria_ig == 'servicios_inseminacion' %}selected{% endif %}>🧬 Servicios de Inseminación</option>
+                                    <option value="venta_leche" {% if ingreso.categoria_ig == 'venta_leche' %}selected{% endif %}>🥛 Venta de leche</option>
+                                    <option value="venta_animales" {% if ingreso.categoria_ig == 'venta_animales' %}selected{% endif %}>🐄 Venta de animales</option>
+                                    <option value="venta_subproductos" {% if ingreso.categoria_ig == 'venta_subproductos' %}selected{% endif %}>📦 Venta de subproductos</option>
+                                    <option value="servicios_inseminacion" {% if ingreso.categoria_ig == 'servicios_inseminacion' %}selected{% endif %}>🧬 Servicios de inseminación</option>
                                     <option value="otros" {% if ingreso.categoria_ig == 'otros' %}selected{% endif %}>❓ Otros</option>
                                 </select>
                                 <small class="text-muted">Categoría del ingreso según el CHECK de la base de datos.</small>
@@ -167,7 +167,7 @@
                             <!-- CAMPO: PRECIO UNITARIO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_precio_unitario_ig">
-                                    <i class="bi bi-tag me-1"></i>Precio Unitario
+                                    <i class="bi bi-tag me-1"></i>Precio unitario
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
@@ -188,7 +188,7 @@
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <label for="txt_monto_total_ig">
-                                    <i class="bi bi-currency-dollar me-1"></i>Monto Total <span class="text-danger">*</span>
+                                    <i class="bi bi-currency-dollar me-1"></i>Monto total <span class="text-danger">*</span>
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
@@ -250,7 +250,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listaingreso/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

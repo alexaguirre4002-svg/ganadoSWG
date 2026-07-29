@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Editar Evento Sanitario | Hacienda Joseph
+    Editar evento sanitario | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -12,8 +12,8 @@
 <!-- ========================================== -->
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
-    <li class="breadcrumb-item"><a href="/listaeventosanitario/" class="text-decoration-none" style="color: var(--color-primario);">Eventos Sanitarios</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Evento Sanitario</li>
+    <li class="breadcrumb-item"><a href="/listaeventosanitario/" class="text-decoration-none" style="color: var(--color-primario);">Eventos sanitarios</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Editar evento sanitario</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,10 +27,10 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Evento Sanitario
+                <i class="bi bi-pencil-square me-2"></i>Editar evento sanitario
             </h2>
             <p class="text-muted mb-0">
-                <i class="bi bi-info-circle me-1"></i>Modifique los datos del evento #<<strong>{{ evento.id_es }}</strong> - {{ evento.fk_an.codigo_an }}
+                <i class="bi bi-info-circle me-1"></i>Modifique los datos del evento #<strong>{{ evento.id_es }}</strong> - {{ evento.fk_an.codigo_an }}
             </p>
         </div>
     </div>
@@ -50,9 +50,9 @@
                 {% elif evento.tipo_evento_es == 'vitaminacion' %}
                     <span class="badge" style="background:#fd7e14; color:white;"><i class="bi bi-capsule me-1"></i>Vitaminación</span>
                 {% elif evento.tipo_evento_es == 'prueba_tuberculosis' %}
-                    <span class="badge" style="background:#17a2b8; color:white;"><i class="bi bi-clipboard-pulse me-1"></i>Prueba Tuberculosis</span>
+                    <span class="badge" style="background:#17a2b8; color:white;"><i class="bi bi-clipboard-pulse me-1"></i>Prueba tuberculosis</span>
                 {% elif evento.tipo_evento_es == 'prueba_brucelosis' %}
-                    <span class="badge" style="background:#dc3545; color:white;"><i class="bi bi-clipboard-pulse me-1"></i>Prueba Brucelosis</span>
+                    <span class="badge" style="background:#dc3545; color:white;"><i class="bi bi-clipboard-pulse me-1"></i>Prueba brucelosis</span>
                 {% else %}
                     <span class="badge" style="background:#6c757d; color:white;"><i class="bi bi-activity me-1"></i>Otro</span>
                 {% endif %}
@@ -70,7 +70,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos del Evento Sanitario
+                    <i class="bi bi-clipboard-check"></i>Datos del evento sanitario
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -91,7 +91,7 @@
                             <!-- CAMPO: TIPO DE EVENTO (SOLO LECTURA) -->
                             <div class="col-md-6 mb-3">
                                 <label for="sel_tipo_evento_es">
-                                    <i class="bi bi-shield-plus me-1"></i>Tipo de Evento
+                                    <i class="bi bi-shield-plus me-1"></i>Tipo de evento
                                 </label>
                                 <select name="sel_tipo_evento_es" 
                                         id="sel_tipo_evento_es" 
@@ -100,8 +100,8 @@
                                     <option value="vacunacion" {% if evento.tipo_evento_es == 'vacunacion' %}selected{% endif %}>Vacunación</option>
                                     <option value="desparasitacion" {% if evento.tipo_evento_es == 'desparasitacion' %}selected{% endif %}>Desparasitación</option>
                                     <option value="vitaminacion" {% if evento.tipo_evento_es == 'vitaminacion' %}selected{% endif %}>Vitaminación</option>
-                                    <option value="prueba_tuberculosis" {% if evento.tipo_evento_es == 'prueba_tuberculosis' %}selected{% endif %}>Prueba Tuberculosis</option>
-                                    <option value="prueba_brucelosis" {% if evento.tipo_evento_es == 'prueba_brucelosis' %}selected{% endif %}>Prueba Brucelosis</option>
+                                    <option value="prueba_tuberculosis" {% if evento.tipo_evento_es == 'prueba_tuberculosis' %}selected{% endif %}>Prueba tuberculosis</option>
+                                    <option value="prueba_brucelosis" {% if evento.tipo_evento_es == 'prueba_brucelosis' %}selected{% endif %}>Prueba brucelosis</option>
                                     <option value="otro" {% if evento.tipo_evento_es == 'otro' %}selected{% endif %}>Otro</option>
                                 </select>
                                 <small class="text-muted">El tipo no se puede modificar.</small>
@@ -110,7 +110,7 @@
                             <!-- CAMPO: FECHA PROGRAMADA -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_programada_es">
-                                    <i class="bi bi-calendar-event me-1"></i>Fecha Programada <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha programada <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_programada_es" 
@@ -169,7 +169,7 @@
                             <!-- CAMPO: FECHA EJECUTADA (condicional) -->
                             <div class="col-md-6 mb-3" id="campo_fecha_ejecutada">
                                 <label for="txt_fecha_ejecutada_es">
-                                    <i class="bi bi-calendar-check me-1"></i>Fecha Ejecutada <span class="text-danger" id="required_fecha_ejec" style="display: none;">*</span>
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha ejecutada <span class="text-danger" id="required_fecha_ejec" style="display: none;">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_ejecutada_es" 
@@ -189,7 +189,7 @@
                             <!-- CAMPO: PRODUCTO VETERINARIO -->
                             <div class="col-md-6 mb-3">
                                 <label for="sel_producto_es">
-                                    <i class="bi bi-box-seam me-1"></i>Producto Veterinario
+                                    <i class="bi bi-box-seam me-1"></i>Producto veterinario
                                 </label>
                                 <select name="sel_producto_es" 
                                         id="sel_producto_es" 
@@ -235,7 +235,7 @@
                             <!-- CAMPO: VÍA ADMINISTRACIÓN -->
                             <div class="col-md-6 mb-3">
                                 <label for="sel_via_administracion_es">
-                                    <i class="bi bi-activity me-1"></i>Vía de Administración
+                                    <i class="bi bi-activity me-1"></i>Vía de administración
                                 </label>
                                 <select name="sel_via_administracion_es" 
                                         id="sel_via_administracion_es" 
@@ -253,7 +253,7 @@
                             <!-- CAMPO: VETERINARIO RESPONSABLE -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_veterinario_responsable_es">
-                                    <i class="bi bi-person-badge me-1"></i>Veterinario Responsable
+                                    <i class="bi bi-person-badge me-1"></i>Veterinario responsable
                                 </label>
                                 <input type="text" 
                                        name="txt_veterinario_responsable_es" 
@@ -273,7 +273,7 @@
                             <!-- CAMPO: RESULTADO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_resultado_es">
-                                    <i class="bi bi-journal-text me-1"></i>Resultado/Observaciones
+                                    <i class="bi bi-journal-text me-1"></i>Resultado/observaciones
                                 </label>
                                 <textarea name="txt_resultado_es" 
                                           id="txt_resultado_es" 
@@ -322,7 +322,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listaeventosanitario/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

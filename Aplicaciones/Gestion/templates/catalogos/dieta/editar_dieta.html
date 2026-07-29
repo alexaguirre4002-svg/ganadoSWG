@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Editar Dieta | Hacienda El Roble
+    Editar dieta | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -13,7 +13,7 @@
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listadodietas/" class="text-decoration-none" style="color: var(--color-primario);">Dietas</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Dieta</li>
+    <li class="breadcrumb-item active" aria-current="page">Editar dieta</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,7 +27,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Dieta
+                <i class="bi bi-pencil-square me-2"></i>Editar dieta
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Modifique los datos de <strong>{{ dieta.nombre_di }}</strong>
@@ -44,7 +44,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos de la Dieta
+                    <i class="bi bi-clipboard-check"></i>Datos de la dieta
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -100,15 +100,15 @@
                         <!-- ========================================== -->
                         <div class="mb-3">
                             <label for="sel_categoria_objetivo_di">
-                                <i class="bi bi-bullseye me-1"></i>Categoría Objetivo <span class="text-danger">*</span>
+                                <i class="bi bi-bullseye me-1"></i>Categoría objetivo <span class="text-danger">*</span>
                             </label>
                             <select name="sel_categoria_objetivo_di" 
                                     id="sel_categoria_objetivo_di" 
                                     class="form-select" 
                                     required>
                                 <option value="" disabled>Seleccione una categoría...</option>
-                                <option value="vaca_lechera" {% if dieta.categoria_objetivo_di == 'vaca_lechera' %}selected{% endif %}>Vaca Lechera</option>
-                                <option value="vaca_seca" {% if dieta.categoria_objetivo_di == 'vaca_seca' %}selected{% endif %}>Vaca Seca</option>
+                                <option value="vaca_lechera" {% if dieta.categoria_objetivo_di == 'vaca_lechera' %}selected{% endif %}>Vaca lechera</option>
+                                <option value="vaca_seca" {% if dieta.categoria_objetivo_di == 'vaca_seca' %}selected{% endif %}>Vaca seca</option>
                                 <option value="ternero" {% if dieta.categoria_objetivo_di == 'ternero' %}selected{% endif %}>Ternero</option>
                                 <option value="novillo" {% if dieta.categoria_objetivo_di == 'novillo' %}selected{% endif %}>Novillo</option>
                                 <option value="toro" {% if dieta.categoria_objetivo_di == 'toro' %}selected{% endif %}>Toro</option>
@@ -122,14 +122,14 @@
                         <!-- ========================================== -->
                         <div class="card mb-3" style="border: 1px solid #b7d7a8; background: #f8fff5;">
                             <div class="card-header" style="background: linear-gradient(135deg, #2c5e1a, #3d7a24); color: white; font-weight: 600;">
-                                <i class="bi bi-graph-up me-2"></i>Composición Nutricional (Opcional)
+                                <i class="bi bi-graph-up me-2"></i>Composición nutricional (opcional)
                             </div>
                             <div class="card-body">
                                 <div class="row">
                                     <!-- MATERIA SECA -->
                                     <div class="col-md-4 mb-3">
                                         <label for="txt_materia_seca_kg_di">
-                                            <i class="bi bi-droplet me-1"></i>Materia Seca (kg)
+                                            <i class="bi bi-droplet me-1"></i>Materia seca (kg)
                                         </label>
                                         <input type="text" 
                                                name="txt_materia_seca_kg_di" 
@@ -157,7 +157,7 @@
                                     <!-- PROTEÍNA CRUDA -->
                                     <div class="col-md-4 mb-3">
                                         <label for="txt_proteina_cruda_pct_di">
-                                            <i class="bi bi-egg me-1"></i>Proteína Cruda (%)
+                                            <i class="bi bi-egg me-1"></i>Proteína cruda (%)
                                         </label>
                                         <input type="text" 
                                                name="txt_proteina_cruda_pct_di" 
@@ -173,7 +173,7 @@
                                     <!-- FIBRA CRUDA -->
                                     <div class="col-md-4 mb-3">
                                         <label for="txt_fibra_cruda_pct_di">
-                                            <i class="bi bi-tree me-1"></i>Fibra Cruda (%)
+                                            <i class="bi bi-tree me-1"></i>Fibra cruda (%)
                                         </label>
                                         <input type="text" 
                                                name="txt_fibra_cruda_pct_di" 
@@ -220,7 +220,7 @@
                         <!-- ========================================== -->
                         <div class="mb-3">
                             <label for="txt_costo_diario_estimado_di">
-                                <i class="bi bi-cash-coin me-1"></i>Costo Diario Estimado
+                                <i class="bi bi-cash-coin me-1"></i>Costo diario estimado
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text" style="background: var(--color-primario); color: white; border: none;">$</span>
@@ -256,7 +256,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listadodietas/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

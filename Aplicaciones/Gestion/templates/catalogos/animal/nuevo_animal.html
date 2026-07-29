@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Nuevo Animal | Hacienda Joseph
+    Nuevo animal | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -13,7 +13,7 @@
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listaanimal/" class="text-decoration-none" style="color: var(--color-primario);">Animales</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Nuevo Animal</li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo animal</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,7 +27,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-plus-circle me-2"></i>Registrar Nuevo Animal
+                <i class="bi bi-plus-circle me-2"></i>Registrar nuevo animal
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Complete los datos del animal ganadero
@@ -44,7 +44,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-plus"></i>Datos del Animal
+                    <i class="bi bi-clipboard-plus"></i>Datos del animal
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -59,7 +59,7 @@
                             <!-- CAMPO: CODIGO DEL ANIMAL -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_codigo_an">
-                                    <i class="bi bi-upc-scan me-1"></i>Código del Animal <span class="text-danger">*</span>
+                                    <i class="bi bi-upc-scan me-1"></i>Código del animal <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
                                        name="txt_codigo_an" 
@@ -74,13 +74,13 @@
                             <!-- CAMPO: NOMBRE DEL ANIMAL -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_nombre_an">
-                                    <i class="bi bi-tag me-1"></i>Nombre del Animal
+                                    <i class="bi bi-tag me-1"></i>Nombre del animal
                                 </label>
                                 <input type="text" 
                                        name="txt_nombre_an" 
                                        id="txt_nombre_an" 
                                        class="form-control" 
-                                       placeholder="Ej: Luna, Toro Negro..." 
+                                       placeholder="Ej: Luna, Toro negro..." 
                                        maxlength="100">
                                 <small class="text-muted">Máximo 100 letras. Solo mayúsculas y minúsculas.</small>
                             </div>
@@ -129,7 +129,7 @@
                             <!-- CAMPO: FECHA DE NACIMIENTO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_nacimiento_an">
-                                    <i class="bi bi-calendar-event me-1"></i>Fecha de Nacimiento <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha de nacimiento <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_nacimiento_an" 
@@ -147,7 +147,7 @@
                                        name="txt_color_an" 
                                        id="txt_color_an" 
                                        class="form-control" 
-                                       placeholder="Ej: Negro, Pinto, Caramelo..." 
+                                       placeholder="Ej: Negro, pinto, caramelo..." 
                                        maxlength="50">
                                 <small class="text-muted">Máximo 50 letras.</small>
                             </div>
@@ -160,7 +160,7 @@
                             <!-- CAMPO: PESO AL NACIMIENTO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_peso_nacimiento_an">
-                                    <i class="bi bi-speedometer me-1"></i>Peso al Nacimiento (kg)
+                                    <i class="bi bi-speedometer me-1"></i>Peso al nacimiento (kg)
                                 </label>
                                 <input type="number" 
                                        name="txt_peso_nacimiento_an" 
@@ -176,7 +176,7 @@
                             <!-- CAMPO: PESO ACTUAL -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_peso_actual_an">
-                                    <i class="bi bi-speedometer2 me-1"></i>Peso Actual (kg)
+                                    <i class="bi bi-speedometer2 me-1"></i>Peso actual (kg)
                                 </label>
                                 <input type="number" 
                                        name="txt_peso_actual_an" 
@@ -256,8 +256,8 @@
                                     <option value="" selected disabled>Seleccione categoría...</option>
                                     <option value="ternero">Ternero</option>
                                     <option value="novilla">Novilla</option>
-                                    <option value="vaca_leche">Vaca de Leche</option>
-                                    <option value="vaca_seca">Vaca Seca</option>
+                                    <option value="vaca_leche">Vaca de leche</option>
+                                    <option value="vaca_seca">Vaca seca</option>
                                     <option value="toro">Toro</option>
                                     <option value="torito">Torito</option>
                                     <option value="ceba">Ceba</option>
@@ -289,7 +289,7 @@
                             <!-- CAMPO: CONDICION CORPORAL -->
                             <div class="col-md-6 mb-3">
                                 <label for="sel_condicion_corporal_an">
-                                    <i class="bi bi-bar-chart-line me-1"></i>Condición Corporal (1-5)
+                                    <i class="bi bi-bar-chart-line me-1"></i>Condición corporal (1-5)
                                 </label>
                                 <select name="sel_condicion_corporal_an" 
                                         id="sel_condicion_corporal_an" 
@@ -311,7 +311,7 @@
                             <!-- CAMPO: FECHA DE INGRESO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_ingreso_an">
-                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Ingreso <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de ingreso <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_ingreso_an" 
@@ -323,7 +323,7 @@
                             <!-- CAMPO: FECHA DE SALIDA -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_salida_an">
-                                    <i class="bi bi-calendar-x me-1"></i>Fecha de Salida
+                                    <i class="bi bi-calendar-x me-1"></i>Fecha de salida
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_salida_an" 
@@ -340,13 +340,13 @@
                             <!-- CAMPO: MOTIVO DE SALIDA -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_motivo_salida_an">
-                                    <i class="bi bi-question-circle me-1"></i>Motivo de Salida
+                                    <i class="bi bi-question-circle me-1"></i>Motivo de salida
                                 </label>
                                 <input type="text" 
                                        name="txt_motivo_salida_an" 
                                        id="txt_motivo_salida_an" 
                                        class="form-control" 
-                                       placeholder="Ej: Venta, Faena, Muerte natural..." 
+                                       placeholder="Ej: Venta, faena, muerte natural..." 
                                        maxlength="200">
                                 <small class="text-muted">Máximo 200 caracteres.</small>
                             </div>
@@ -354,7 +354,7 @@
                             <!-- CAMPO: SEÑAS PARTICULARES -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_senas_particulares_an">
-                                    <i class="bi bi-eye me-1"></i>Señas Particulares
+                                    <i class="bi bi-eye me-1"></i>Señas particulares
                                 </label>
                                 <textarea name="txt_senas_particulares_an" 
                                           id="txt_senas_particulares_an" 
@@ -371,7 +371,7 @@
                         <!-- ========================================== -->
                         <div class="mb-3">
                             <label for="file_foto_an">
-                                <i class="bi bi-camera me-1"></i>Fotografía del Animal
+                                <i class="bi bi-camera me-1"></i>Fotografía del animal
                             </label>
                             <input type="file" 
                                    name="file_foto_an" 
@@ -392,7 +392,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Animal
+                                <i class="bi bi-save me-2"></i>Guardar animal
                             </button>
                             <a href="/listaanimal/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

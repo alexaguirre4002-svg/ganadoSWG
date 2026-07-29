@@ -1,13 +1,13 @@
 {% extends "plantilla.html" %}
 
 {% block titulo %}
-    Editar Registro Clínico | Hacienda Joseph
+    Editar registro clínico | Hacienda Joseph
 {% endblock %}
 
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
-    <li class="breadcrumb-item"><a href="/listaregistroclinico/" class="text-decoration-none" style="color: var(--color-primario);">Registros Clínicos</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Registro Clínico</li>
+    <li class="breadcrumb-item"><a href="/listaregistroclinico/" class="text-decoration-none" style="color: var(--color-primario);">Registros clínicos</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Editar registro clínico</li>
 {% endblock %}
 
 {% block contenido %}
@@ -15,10 +15,10 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Registro Clínico
+                <i class="bi bi-pencil-square me-2"></i>Editar registro clínico
             </h2>
             <p class="text-muted mb-0">
-                <i class="bi bi-info-circle me-1"></i>Modifique los datos del registro #<<strong>{{ registro.id_rc }}</strong> - {{ registro.fk_an.codigo_an }}
+                <i class="bi bi-info-circle me-1"></i>Modifique los datos del registro #<strong>{{ registro.id_rc }}</strong> - {{ registro.fk_an.codigo_an }}
             </p>
         </div>
     </div>
@@ -43,7 +43,7 @@
             <div class="card-hacienda">
                 
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos del Registro Clínico
+                    <i class="bi bi-clipboard-check"></i>Datos del registro clínico
                 </div>
 
                 <div class="p-4">
@@ -56,7 +56,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_rc">
-                                    <i class="bi bi-calendar-event me-1"></i>Fecha de Atención <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha de atención <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_rc" 
@@ -133,7 +133,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="txt_dias_tratamiento_rc">
-                                    <i class="bi bi-clock-history me-1"></i>Días de Tratamiento
+                                    <i class="bi bi-clock-history me-1"></i>Días de tratamiento
                                 </label>
                                 <input type="number" 
                                        name="txt_dias_tratamiento_rc" 
@@ -157,7 +157,7 @@
                                         class="form-select">
                                     <option value="" {% if not registro.resultado_rc %}selected{% endif %}>Sin resultado aún...</option>
                                     <option value="curado" {% if registro.resultado_rc == 'curado' %}selected{% endif %}>Curado</option>
-                                    <option value="en_tratamiento" {% if registro.resultado_rc == 'en_tratamiento' %}selected{% endif %}>En Tratamiento</option>
+                                    <option value="en_tratamiento" {% if registro.resultado_rc == 'en_tratamiento' %}selected{% endif %}>En tratamiento</option>
                                     <option value="cronico" {% if registro.resultado_rc == 'cronico' %}selected{% endif %}>Crónico</option>
                                     <option value="fallecido" {% if registro.resultado_rc == 'fallecido' %}selected{% endif %}>Fallecido</option>
                                 </select>
@@ -169,7 +169,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="txt_veterinario_rc">
-                                    <i class="bi bi-person-badge me-1"></i>Veterinario Responsable
+                                    <i class="bi bi-person-badge me-1"></i>Veterinario responsable
                                 </label>
                                 <input type="text" 
                                        name="txt_veterinario_rc" 
@@ -183,7 +183,7 @@
 
                             <div class="col-md-6 mb-3">
                                 <label for="txt_costo_tratamiento_rc">
-                                    <i class="bi bi-currency-dollar me-1"></i>Costo del Tratamiento
+                                    <i class="bi bi-currency-dollar me-1"></i>Costo del tratamiento
                                 </label>
                                 <input type="text" 
                                        name="txt_costo_tratamiento_rc" 
@@ -214,7 +214,7 @@
                         <!-- BOTONES DE ACCION -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listaregistroclinico/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

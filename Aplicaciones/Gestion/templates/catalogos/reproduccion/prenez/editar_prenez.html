@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Editar Preñez | Hacienda Joseph
+    Editar preñez | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -13,7 +13,7 @@
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listaprenez/" class="text-decoration-none" style="color: var(--color-primario);">Preñeces</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Preñez</li>
+    <li class="breadcrumb-item active" aria-current="page">Editar preñez</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,7 +27,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Preñez
+                <i class="bi bi-pencil-square me-2"></i>Editar preñez
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Modifique los datos de la preñez #<strong>{{ prenez.id_pr }}</strong> - {{ prenez.fk_an.codigo_an }}
@@ -62,7 +62,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos de la Preñez
+                    <i class="bi bi-clipboard-check"></i>Datos de la preñez
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -99,7 +99,7 @@
                             <!-- CAMPO: FECHA CONFIRMACIÓN -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_confirmacion_pr">
-                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Confirmación <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de confirmación <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_confirmacion_pr" 
@@ -117,7 +117,7 @@
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <label for="sel_inseminacion_pr">
-                                    <i class="bi bi-droplet me-1"></i>Inseminación Asociada
+                                    <i class="bi bi-droplet me-1"></i>Inseminación asociada
                                 </label>
                                 <select name="sel_inseminacion_pr" 
                                         id="sel_inseminacion_pr" 
@@ -175,7 +175,7 @@
                             <!-- CAMPO: MÉTODO DIAGNÓSTICO -->
                             <div class="col-md-6 mb-3">
                                 <label for="sel_metodo_diagnostico_pr">
-                                    <i class="bi bi-activity me-1"></i>Método de Diagnóstico
+                                    <i class="bi bi-activity me-1"></i>Método de diagnóstico
                                 </label>
                                 <select name="sel_metodo_diagnostico_pr" 
                                         id="sel_metodo_diagnostico_pr" 
@@ -192,7 +192,7 @@
                             <!-- CAMPO: FECHA PROBABLE PARTO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_probable_parto_pr">
-                                    <i class="bi bi-calendar-heart me-1"></i>Fecha Probable de Parto <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-heart me-1"></i>Fecha probable de parto <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_probable_parto_pr" 
@@ -250,7 +250,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listaprenez/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

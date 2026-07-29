@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Editar Potrero | Hacienda Joseph
+    Editar potrero | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -13,7 +13,7 @@
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listapotrero/" class="text-decoration-none" style="color: var(--color-primario);">Potreros</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Potrero</li>
+    <li class="breadcrumb-item active" aria-current="page">Editar potrero</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,7 +27,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Potrero
+                <i class="bi bi-pencil-square me-2"></i>Editar potrero
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Modifique los datos del potrero <strong>{{ potrero.codigo_po }}</strong>
@@ -59,7 +59,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos del Potrero
+                    <i class="bi bi-clipboard-check"></i>Datos del potrero
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -79,7 +79,7 @@
                             <!-- CAMPO: CODIGO DEL POTRERO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_codigo_po">
-                                    <i class="bi bi-upc-scan me-1"></i>Código del Potrero <span class="text-danger">*</span>
+                                    <i class="bi bi-upc-scan me-1"></i>Código del potrero <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
                                        name="txt_codigo_po" 
@@ -95,7 +95,7 @@
                             <!-- CAMPO: NOMBRE DEL POTRERO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_nombre_po">
-                                    <i class="bi bi-tag me-1"></i>Nombre del Potrero <span class="text-danger">*</span>
+                                    <i class="bi bi-tag me-1"></i>Nombre del potrero <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
                                        name="txt_nombre_po" 
@@ -132,7 +132,7 @@
                             <!-- CAMPO: CAPACIDAD MAXIMA -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_capacidad_maxima_po">
-                                    <i class="bi bi-people me-1"></i>Capacidad Máxima (animales) <span class="text-danger">*</span>
+                                    <i class="bi bi-people me-1"></i>Capacidad máxima (animales) <span class="text-danger">*</span>
                                 </label>
                                 <input type="number" 
                                        name="txt_capacidad_maxima_po" 
@@ -172,7 +172,7 @@
                                         Ocupado
                                     </option>
                                     <option value="en_descanso" {% if potrero.estado_po == 'en_descanso' %}selected{% endif %}>
-                                        En Descanso
+                                        En descanso
                                     </option>
                                     <option value="inactivo" {% if potrero.estado_po == 'inactivo' %}selected{% endif %}
                                             {% if animales_activos > 0 %}disabled{% endif %}>
@@ -262,7 +262,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listapotrero/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

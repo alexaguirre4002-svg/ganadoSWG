@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Editar Calidad de Leche | Hacienda Joseph
+    Editar calidad de leche | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -12,8 +12,8 @@
 <!-- ========================================== -->
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
-    <li class="breadcrumb-item"><a href="/listacalidadl/" class="text-decoration-none" style="color: var(--color-primario);">Calidad de Leche</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Análisis</li>
+    <li class="breadcrumb-item"><a href="/listacalidadl/" class="text-decoration-none" style="color: var(--color-primario);">Calidad de leche</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Editar análisis</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,10 +27,10 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Análisis
+                <i class="bi bi-pencil-square me-2"></i>Editar análisis
             </h2>
             <p class="text-muted mb-0">
-                <i class="bi bi-info-circle me-1"></i>Modifique los datos del análisis #<<strong>{{ analisis.id_cl }}</strong> - {{ analisis.fk_an.codigo_an }}
+                <i class="bi bi-info-circle me-1"></i>Modifique los datos del análisis #<strong>{{ analisis.id_cl }}</strong> - {{ analisis.fk_an.codigo_an }}
             </p>
         </div>
     </div>
@@ -62,7 +62,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos del Análisis
+                    <i class="bi bi-clipboard-check"></i>Datos del análisis
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -99,7 +99,7 @@
                             <!-- CAMPO: FECHA MUESTREO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_muestreo_cl">
-                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Muestreo <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de muestreo <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_muestreo_cl" 
@@ -151,7 +151,7 @@
                             <!-- CAMPO: CCS -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_ccs_cl">
-                                    <i class="bi bi-activity me-1"></i>CCS (Células Somáticas)
+                                    <i class="bi bi-activity me-1"></i>CCS (células somáticas)
                                 </label>
                                 <input type="text" 
                                        name="txt_ccs_cl" 
@@ -163,7 +163,7 @@
                                 {% if analisis.alerta_ccs %}
                                 <div class="mt-1">
                                     <span class="badge rounded-pill p-1" style="background:#dc3545; color:white; font-size: 12px;">
-                                        <i class="bi bi-exclamation-triangle me-1"></i>CCS Alto (>200,000)
+                                        <i class="bi bi-exclamation-triangle me-1"></i>CCS alto (>200,000)
                                     </span>
                                 </div>
                                 {% endif %}
@@ -172,7 +172,7 @@
                             <!-- CAMPO: UFC -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_ufc_cl">
-                                    <i class="bi bi-bacteria me-1"></i>UFC (Unidades Formadoras de Colonias)
+                                    <i class="bi bi-bacteria me-1"></i>UFC (unidades formadoras de colonias)
                                 </label>
                                 <input type="text" 
                                        name="txt_ufc_cl" 
@@ -184,7 +184,7 @@
                                 {% if analisis.alerta_ufc %}
                                 <div class="mt-1">
                                     <span class="badge rounded-pill p-1" style="background:#dc3545; color:white; font-size: 12px;">
-                                        <i class="bi bi-exclamation-triangle me-1"></i>UFC Alto (>100,000)
+                                        <i class="bi bi-exclamation-triangle me-1"></i>UFC alto (>100,000)
                                     </span>
                                 </div>
                                 {% endif %}
@@ -205,7 +205,7 @@
                                         class="form-select">
                                     <option value="" {% if not analisis.resultado_cl %}selected{% endif %}>Seleccione resultado...</option>
                                     <option value="apto" {% if analisis.resultado_cl == 'apto' %}selected{% endif %}>Apto</option>
-                                    <option value="no_apto" {% if analisis.resultado_cl == 'no_apto' %}selected{% endif %}>No Apto</option>
+                                    <option value="no_apto" {% if analisis.resultado_cl == 'no_apto' %}selected{% endif %}>No apto</option>
                                     <option value="pendiente" {% if analisis.resultado_cl == 'pendiente' %}selected{% endif %}>Pendiente</option>
                                 </select>
                                 <small class="text-muted">Resultado del análisis de calidad.</small>
@@ -233,7 +233,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="txt_costo_analisis_cl">
-                                    <i class="bi bi-currency-dollar me-1"></i>Costo del Análisis
+                                    <i class="bi bi-currency-dollar me-1"></i>Costo del análisis
                                 </label>
                                 <input type="text" 
                                        name="txt_costo_analisis_cl" 
@@ -283,7 +283,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listacalidadl/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

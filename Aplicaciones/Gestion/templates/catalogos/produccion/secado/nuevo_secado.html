@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Nuevo Secado | Hacienda Joseph
+    Nuevo secado | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -13,7 +13,7 @@
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listasecado/" class="text-decoration-none" style="color: var(--color-primario);">Secados</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Nuevo Secado</li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo secado</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,7 +27,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pause-circle me-2"></i>Registrar Nuevo Secado
+                <i class="bi bi-pause-circle me-2"></i>Registrar nuevo secado
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Registre el secado de una vaca productora
@@ -44,7 +44,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-plus"></i>Datos del Secado
+                    <i class="bi bi-clipboard-plus"></i>Datos del secado
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -76,7 +76,7 @@
                             <!-- CAMPO: FECHA ÚLTIMO ORDEÑO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_ultimo_ordeno_se">
-                                    <i class="bi bi-calendar-x me-1"></i>Fecha Último Ordeño <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-x me-1"></i>Fecha último ordeño <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_ultimo_ordeno_se" 
@@ -93,14 +93,14 @@
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <label for="sel_causa_se">
-                                    <i class="bi bi-question-circle me-1"></i>Causa del Secado
+                                    <i class="bi bi-question-circle me-1"></i>Causa del secado
                                 </label>
                                 <select name="sel_causa_se" 
                                         id="sel_causa_se" 
                                         class="form-select">
                                     <option value="" selected>Seleccione causa...</option>
-                                    <option value="preñez_avanzada">Preñez Avanzada</option>
-                                    <option value="baja_produccion">Baja Producción</option>
+                                    <option value="preñez_avanzada">Preñez avanzada</option>
+                                    <option value="baja_produccion">Baja producción</option>
                                     <option value="enfermedad">Enfermedad</option>
                                     <option value="programado">Programado</option>
                                     <option value="otro">Otro</option>
@@ -132,7 +132,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Secado
+                                <i class="bi bi-save me-2"></i>Guardar secado
                             </button>
                             <a href="/listasecado/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

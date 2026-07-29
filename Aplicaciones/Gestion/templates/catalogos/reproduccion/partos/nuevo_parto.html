@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Nuevo Parto | Hacienda Joseph
+    Nuevo parto | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -13,7 +13,7 @@
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listapartos/" class="text-decoration-none" style="color: var(--color-primario);">Partos</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Nuevo Parto</li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo parto</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,7 +27,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-heart-pulse me-2"></i>Registrar Nuevo Parto
+                <i class="bi bi-heart-pulse me-2"></i>Registrar nuevo parto
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Registre el parto de una vaca y la información de la cría
@@ -44,7 +44,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-plus"></i>Datos del Parto
+                    <i class="bi bi-clipboard-plus"></i>Datos del parto
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -80,7 +80,7 @@
                             <!-- CAMPO: PREÑEZ VINCULADA (FK) -->
                             <div class="col-md-6 mb-3">
                                 <label for="sel_prenez_pa">
-                                    <i class="bi bi-heart me-1"></i>Preñez Asociada
+                                    <i class="bi bi-heart me-1"></i>Preñez asociada
                                 </label>
                                 <select name="sel_prenez_pa" 
                                         id="sel_prenez_pa" 
@@ -105,7 +105,7 @@
                             <!-- CAMPO: FECHA PARTO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_pa">
-                                    <i class="bi bi-calendar-check me-1"></i>Fecha del Parto <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha del parto <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_pa" 
@@ -124,7 +124,7 @@
                             <!-- CAMPO: TIPO DE PARTO -->
                             <div class="col-md-6 mb-3">
                                 <label for="sel_tipo_parto_pa">
-                                    <i class="bi bi-activity me-1"></i>Tipo de Parto
+                                    <i class="bi bi-activity me-1"></i>Tipo de parto
                                 </label>
                                 <select name="sel_tipo_parto_pa" 
                                         id="sel_tipo_parto_pa" 
@@ -163,7 +163,7 @@
                         <div class="row mt-3">
                             <div class="col-12">
                                 <h5 class="fw-bold mb-3" style="color: var(--color-primario);">
-                                    <i class="bi bi-baby me-2"></i>Datos de la Cría
+                                    <i class="bi bi-baby me-2"></i>Datos de la cría
                                 </h5>
                                 <hr style="border-color: #d4c5a9;">
                             </div>
@@ -176,7 +176,7 @@
                             <!-- CAMPO: SEXO CRÍA -->
                             <div class="col-md-6 mb-3">
                                 <label for="sel_cria_sexo_pa">
-                                    <i class="bi bi-gender-ambiguous me-1"></i>Sexo de la Cría
+                                    <i class="bi bi-gender-ambiguous me-1"></i>Sexo de la cría
                                 </label>
                                 <select name="sel_cria_sexo_pa" 
                                         id="sel_cria_sexo_pa" 
@@ -191,7 +191,7 @@
                             <!-- CAMPO: PESO CRÍA -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_cria_peso_kg_pa">
-                                    <i class="bi bi-speedometer me-1"></i>Peso de la Cría (kg)
+                                    <i class="bi bi-speedometer me-1"></i>Peso de la cría (kg)
                                 </label>
                                 <input type="number" 
                                        name="txt_cria_peso_kg_pa" 
@@ -211,7 +211,7 @@
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <label for="sel_cria_pa">
-                                    <i class="bi bi-link-45deg me-1"></i>Cría Registrada como Animal
+                                    <i class="bi bi-link-45deg me-1"></i>Cría registrada como animal
                                 </label>
                                 <select name="sel_cria_pa" 
                                         id="sel_cria_pa" 
@@ -251,7 +251,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Parto
+                                <i class="bi bi-save me-2"></i>Guardar parto
                             </button>
                             <a href="/listapartos/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Editar Movimiento | Hacienda Joseph
+    Editar movimiento | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -13,7 +13,7 @@
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listamovimiento/" class="text-decoration-none" style="color: var(--color-primario);">Movimientos</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Movimiento</li>
+    <li class="breadcrumb-item active" aria-current="page">Editar movimiento</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,7 +27,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Movimiento
+                <i class="bi bi-pencil-square me-2"></i>Editar movimiento
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Modifique los datos del movimiento de <strong>{{ movimiento.fk_an.codigo_an }}</strong>
@@ -70,7 +70,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos del Movimiento
+                    <i class="bi bi-clipboard-check"></i>Datos del movimiento
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -91,7 +91,7 @@
                             <!-- CAMPO: TIPO DE MOVIMIENTO (SOLO LECTURA) -->
                             <div class="col-md-6 mb-3">
                                 <label for="sel_tipo_movimiento_ma">
-                                    <i class="bi bi-arrow-left-right me-1"></i>Tipo de Movimiento
+                                    <i class="bi bi-arrow-left-right me-1"></i>Tipo de movimiento
                                 </label>
                                 <select name="sel_tipo_movimiento_ma" 
                                         id="sel_tipo_movimiento_ma" 
@@ -110,7 +110,7 @@
                             <!-- CAMPO: FECHA -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_ma">
-                                    <i class="bi bi-calendar-event me-1"></i>Fecha del Movimiento <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-event me-1"></i>Fecha del movimiento <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_ma" 
@@ -152,7 +152,7 @@
                             <!-- CAMPO: POTRERO ORIGEN -->
                             <div class="col-md-6 mb-3" id="campo_origen">
                                 <label for="sel_potrero_origen_ma">
-                                    <i class="bi bi-geo-alt me-1"></i>Potrero Origen
+                                    <i class="bi bi-geo-alt me-1"></i>Potrero origen
                                 </label>
                                 <select name="sel_potrero_origen_ma" 
                                         id="sel_potrero_origen_ma" 
@@ -169,7 +169,7 @@
                             <!-- CAMPO: POTRERO DESTINO -->
                             <div class="col-md-6 mb-3" id="campo_destino">
                                 <label for="sel_potrero_destino_ma">
-                                    <i class="bi bi-geo-alt-fill me-1"></i>Potrero Destino
+                                    <i class="bi bi-geo-alt-fill me-1"></i>Potrero destino
                                 </label>
                                 <select name="sel_potrero_destino_ma" 
                                         id="sel_potrero_destino_ma" 
@@ -207,7 +207,7 @@
                             <!-- CAMPO: COMPRADOR/VENDEDOR -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_comprador_vendedor_ma">
-                                    <i class="bi bi-person me-1"></i>Comprador/Vendedor
+                                    <i class="bi bi-person me-1"></i>Comprador/vendedor
                                 </label>
                                 <input type="text" 
                                        name="txt_comprador_vendedor_ma" 
@@ -226,7 +226,7 @@
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <label for="txt_documento_soporte_ma">
-                                    <i class="bi bi-file-earmark me-1"></i>Documento Soporte
+                                    <i class="bi bi-file-earmark me-1"></i>Documento soporte
                                 </label>
                                 <input type="text" 
                                        name="txt_documento_soporte_ma" 
@@ -244,7 +244,7 @@
                         <!-- ========================================== -->
                         <div class="mb-3">
                             <label for="txt_motivo_ma">
-                                <i class="bi bi-journal-text me-1"></i>Motivo/Observaciones
+                                <i class="bi bi-journal-text me-1"></i>Motivo/observaciones
                             </label>
                             <textarea name="txt_motivo_ma" 
                                       id="txt_motivo_ma" 
@@ -275,7 +275,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listamovimiento/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar
@@ -407,9 +407,9 @@
                 
                 // Lógica de potreros según tipo
                 if (tipo === 'traslado') {
-                    $('#campo_origen label').html('<i class="bi bi-geo-alt me-1"></i>Potrero Origen <span class="text-danger">*</span>');
+                    $('#campo_origen label').html('<i class="bi bi-geo-alt me-1"></i>Potrero origen <span class="text-danger">*</span>');
                     $('#sel_potrero_origen_ma').prop('required', true);
-                    $('#campo_destino label').html('<i class="bi bi-geo-alt-fill me-1"></i>Potrero Destino <span class="text-danger">*</span>');
+                    $('#campo_destino label').html('<i class="bi bi-geo-alt-fill me-1"></i>Potrero destino <span class="text-danger">*</span>');
                     $('#sel_potrero_destino_ma').prop('required', true);
                     $('#campo_origen').show();
                     $('#campo_destino').show();
@@ -417,19 +417,19 @@
                     $('#campo_origen').hide();
                     $('#sel_potrero_origen_ma').prop('required', false);
                     $('#campo_destino').show();
-                    $('#campo_destino label').html('<i class="bi bi-geo-alt-fill me-1"></i>Potrero Destino <span class="text-danger">*</span>');
+                    $('#campo_destino label').html('<i class="bi bi-geo-alt-fill me-1"></i>Potrero destino <span class="text-danger">*</span>');
                     $('#sel_potrero_destino_ma').prop('required', true);
                 } else if (tipo === 'venta' || tipo === 'muerte' || tipo === 'faena') {
                     $('#campo_destino').hide();
                     $('#sel_potrero_destino_ma').prop('required', false);
                     $('#campo_origen').show();
-                    $('#campo_origen label').html('<i class="bi bi-geo-alt me-1"></i>Potrero Origen <span class="text-danger">*</span>');
+                    $('#campo_origen label').html('<i class="bi bi-geo-alt me-1"></i>Potrero origen <span class="text-danger">*</span>');
                     $('#sel_potrero_origen_ma').prop('required', true);
                 } else {
                     $('#campo_origen').show();
                     $('#campo_destino').show();
-                    $('#campo_origen label').html('<i class="bi bi-geo-alt me-1"></i>Potrero Origen');
-                    $('#campo_destino label').html('<i class="bi bi-geo-alt-fill me-1"></i>Potrero Destino');
+                    $('#campo_origen label').html('<i class="bi bi-geo-alt me-1"></i>Potrero origen');
+                    $('#campo_destino label').html('<i class="bi bi-geo-alt-fill me-1"></i>Potrero destino');
                     $('#sel_potrero_origen_ma').prop('required', false);
                     $('#sel_potrero_destino_ma').prop('required', false);
                 }

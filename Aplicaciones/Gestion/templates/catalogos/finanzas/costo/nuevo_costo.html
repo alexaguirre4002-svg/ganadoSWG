@@ -1,11 +1,10 @@
-nuevo_costo.html
 {% extends "plantilla.html" %}
 
 <!-- ========================================== -->
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Nuevo Costo | Hacienda Joseph
+    Nuevo costo | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -14,7 +13,7 @@ nuevo_costo.html
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listacosto/" class="text-decoration-none" style="color: var(--color-primario);">Costos</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Nuevo Costo</li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo costo</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -28,7 +27,7 @@ nuevo_costo.html
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-cash-stack me-2"></i>Registrar Nuevo Costo
+                <i class="bi bi-cash-stack me-2"></i>Registrar nuevo costo
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Registre un gasto de la hacienda con su categoría y período de referencia
@@ -45,7 +44,7 @@ nuevo_costo.html
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-plus"></i>Datos del Costo
+                    <i class="bi bi-clipboard-plus"></i>Datos del costo
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -70,9 +69,9 @@ nuevo_costo.html
                                     <option value="alimentacion">🌾 Alimentación</option>
                                     <option value="sanidad">💉 Sanidad</option>
                                     <option value="reproduccion">❤️ Reproducción</option>
-                                    <option value="mano_obra">👷 Mano de Obra</option>
-                                    <option value="mantenimiento_infraestructura">🔧 Mantenimiento Infraestructura</option>
-                                    <option value="compra_animales">🐄 Compra de Animales</option>
+                                    <option value="mano_obra">👷 Mano de obra</option>
+                                    <option value="mantenimiento_infraestructura">🔧 Mantenimiento infraestructura</option>
+                                    <option value="compra_animales">🐄 Compra de animales</option>
                                     <option value="impuestos">📄 Impuestos</option>
                                     <option value="otros">📦 Otros</option>
                                 </select>
@@ -133,7 +132,7 @@ nuevo_costo.html
                             <!-- CAMPO: MES REFERENCIA -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_mes_referencia_co">
-                                    <i class="bi bi-calendar-month me-1"></i>Mes de Referencia <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-month me-1"></i>Mes de referencia <span class="text-danger">*</span>
                                 </label>
                                 <select name="txt_mes_referencia_co" 
                                         id="txt_mes_referencia_co" 
@@ -159,7 +158,7 @@ nuevo_costo.html
                             <!-- CAMPO: AÑO REFERENCIA -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_anio_referencia_co">
-                                    <i class="bi bi-calendar-year me-1"></i>Año de Referencia <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-year me-1"></i>Año de referencia <span class="text-danger">*</span>
                                 </label>
                                 <input type="number" 
                                        name="txt_anio_referencia_co" 
@@ -196,7 +195,7 @@ nuevo_costo.html
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Costo
+                                <i class="bi bi-save me-2"></i>Guardar costo
                             </button>
                             <a href="/listacosto/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

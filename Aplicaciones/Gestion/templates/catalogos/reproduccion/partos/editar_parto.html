@@ -1,13 +1,13 @@
 {% extends "plantilla.html" %}
 
 {% block titulo %}
-    Editar Parto | Hacienda Joseph
+    Editar parto | Hacienda Joseph
 {% endblock %}
 
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listaparto/" class="text-decoration-none" style="color: var(--color-primario);">Partos</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Parto</li>
+    <li class="breadcrumb-item active" aria-current="page">Editar parto</li>
 {% endblock %}
 
 {% block contenido %}
@@ -15,7 +15,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Parto
+                <i class="bi bi-pencil-square me-2"></i>Editar parto
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Modifique los datos del parto #<strong>{{ parto.id_pa }}</strong> - {{ parto.fk_madre_pa.codigo_an }}
@@ -42,7 +42,7 @@
         <div class="col-md-10 col-lg-8">
             <div class="card-hacienda">
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos del Parto
+                    <i class="bi bi-clipboard-check"></i>Datos del parto
                 </div>
                 <div class="p-4">
                     <form action="/procesareditarparto/" id="frm_editar_parto" method="post" class="form-hacienda">
@@ -65,7 +65,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_pa">
-                                    <i class="bi bi-calendar-heart me-1"></i>Fecha del Parto <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-heart me-1"></i>Fecha del parto <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" name="txt_fecha_pa" id="txt_fecha_pa" class="form-control" value="{{ parto.fecha_pa|date:'Y-m-d' }}" required>
                                 <small class="text-muted">Fecha en que ocurrió el parto. No puede ser futura.</small>
@@ -75,7 +75,7 @@
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <label for="sel_prenez_pa">
-                                    <i class="bi bi-heart me-1"></i>Preñez Asociada
+                                    <i class="bi bi-heart me-1"></i>Preñez asociada
                                 </label>
                                 <select name="sel_prenez_pa" id="sel_prenez_pa" class="form-select">
                                     <option value="" {% if not parto.fk_pr_id %}selected{% endif %} data-madre-id="">
@@ -105,7 +105,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="sel_tipo_parto_pa">
-                                    <i class="bi bi-activity me-1"></i>Tipo de Parto
+                                    <i class="bi bi-activity me-1"></i>Tipo de parto
                                 </label>
                                 <select name="sel_tipo_parto_pa" id="sel_tipo_parto_pa" class="form-select">
                                     <option value="" {% if not parto.tipo_parto_pa %}selected{% endif %}>Seleccione tipo...</option>
@@ -117,7 +117,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="sel_cria_sexo_pa">
-                                    <i class="bi bi-gender-ambiguous me-1"></i>Sexo de la Cría
+                                    <i class="bi bi-gender-ambiguous me-1"></i>Sexo de la cría
                                 </label>
                                 <select name="sel_cria_sexo_pa" id="sel_cria_sexo_pa" class="form-select">
                                     <option value="" {% if not parto.cria_sexo_pa %}selected{% endif %}>Seleccione sexo...</option>
@@ -131,14 +131,14 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="txt_cria_peso_kg_pa">
-                                    <i class="bi bi-speedometer me-1"></i>Peso de la Cría (kg)
+                                    <i class="bi bi-speedometer me-1"></i>Peso de la cría (kg)
                                 </label>
                                 <input type="number" name="txt_cria_peso_kg_pa" id="txt_cria_peso_kg_pa" class="form-control" step="0.01" min="0.1" max="80" value="{{ parto.cria_peso_kg_pa|default:'' }}" placeholder="Ej: 32.50">
                                 <small class="text-muted">Peso al nacer en kilogramos. Máximo 80 kg.</small>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="sel_cria_pa">
-                                    <i class="bi bi-link-45deg me-1"></i>Cría Vinculada
+                                    <i class="bi bi-link-45deg me-1"></i>Cría vinculada
                                 </label>
                                 <select name="sel_cria_pa" id="sel_cria_pa" class="form-select">
                                     <option value="" {% if not parto.fk_cria_pa_id %}selected{% endif %} data-sexo="">Sin cría vinculada...</option>
@@ -195,7 +195,7 @@
 
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listaparto/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

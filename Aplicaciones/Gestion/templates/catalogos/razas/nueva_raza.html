@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Nueva Raza | Hacienda Joseph
+    Nueva raza | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -13,7 +13,7 @@
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listaraza/" class="text-decoration-none" style="color: var(--color-primario);">Razas</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Nueva Raza</li>
+    <li class="breadcrumb-item active" aria-current="page">Nueva raza</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,7 +27,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-tag me-2"></i>Registrar Nueva Raza
+                <i class="bi bi-tag me-2"></i>Registrar nueva raza
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Registre una nueva raza ganadera en el catálogo de la hacienda
@@ -44,7 +44,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-plus"></i>Datos de la Raza
+                    <i class="bi bi-clipboard-plus"></i>Datos de la raza
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -59,7 +59,7 @@
                             <!-- NOMBRE -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_nombre_ra">
-                                    <i class="bi bi-tag me-1"></i>Nombre de la Raza <span class="text-danger">*</span>
+                                    <i class="bi bi-tag me-1"></i>Nombre de la raza <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
                                     name="txt_nombre_ra" 
@@ -119,7 +119,7 @@
                                            value="1"
                                            checked>
                                     <label class="form-check-label" for="chk_activo_ra">
-                                        <i class="bi bi-check-circle me-1"></i>Raza Activa
+                                        <i class="bi bi-check-circle me-1"></i>Raza activa
                                     </label>
                                 </div>
                                 <small class="text-muted">Si está desactivada, no aparecerá en los selectores de animales.</small>
@@ -131,7 +131,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Raza
+                                <i class="bi bi-save me-2"></i>Guardar raza
                             </button>
                             <a href="/listaraza/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

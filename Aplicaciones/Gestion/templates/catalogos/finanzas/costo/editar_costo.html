@@ -1,11 +1,10 @@
-editar_costo.html
 {% extends "plantilla.html" %}
 
 <!-- ========================================== -->
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Editar Costo | Hacienda Joseph
+    Editar costo | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -14,7 +13,7 @@ editar_costo.html
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listacosto/" class="text-decoration-none" style="color: var(--color-primario);">Costos</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Costo</li>
+    <li class="breadcrumb-item active" aria-current="page">Editar costo</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -28,7 +27,7 @@ editar_costo.html
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Costo
+                <i class="bi bi-pencil-square me-2"></i>Editar costo
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Modifique los datos del costo #<strong>{{ costo.id_co }}</strong> - {{ costo.get_categoria_co_display }}
@@ -61,7 +60,7 @@ editar_costo.html
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos del Costo
+                    <i class="bi bi-clipboard-check"></i>Datos del costo
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -90,9 +89,9 @@ editar_costo.html
                                     <option value="alimentacion" {% if costo.categoria_co == 'alimentacion' %}selected{% endif %}>🌾 Alimentación</option>
                                     <option value="sanidad" {% if costo.categoria_co == 'sanidad' %}selected{% endif %}>💉 Sanidad</option>
                                     <option value="reproduccion" {% if costo.categoria_co == 'reproduccion' %}selected{% endif %}>❤️ Reproducción</option>
-                                    <option value="mano_obra" {% if costo.categoria_co == 'mano_obra' %}selected{% endif %}>👷 Mano de Obra</option>
-                                    <option value="mantenimiento_infraestructura" {% if costo.categoria_co == 'mantenimiento_infraestructura' %}selected{% endif %}>🔧 Mantenimiento Infraestructura</option>
-                                    <option value="compra_animales" {% if costo.categoria_co == 'compra_animales' %}selected{% endif %}>🐄 Compra de Animales</option>
+                                    <option value="mano_obra" {% if costo.categoria_co == 'mano_obra' %}selected{% endif %}>👷 Mano de obra</option>
+                                    <option value="mantenimiento_infraestructura" {% if costo.categoria_co == 'mantenimiento_infraestructura' %}selected{% endif %}>🔧 Mantenimiento infraestructura</option>
+                                    <option value="compra_animales" {% if costo.categoria_co == 'compra_animales' %}selected{% endif %}>🐄 Compra de animales</option>
                                     <option value="impuestos" {% if costo.categoria_co == 'impuestos' %}selected{% endif %}>📄 Impuestos</option>
                                     <option value="otros" {% if costo.categoria_co == 'otros' %}selected{% endif %}>📦 Otros</option>
                                 </select>
@@ -156,7 +155,7 @@ editar_costo.html
                             <!-- CAMPO: MES REFERENCIA -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_mes_referencia_co">
-                                    <i class="bi bi-calendar-month me-1"></i>Mes de Referencia <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-month me-1"></i>Mes de referencia <span class="text-danger">*</span>
                                 </label>
                                 <select name="txt_mes_referencia_co" 
                                         id="txt_mes_referencia_co" 
@@ -181,7 +180,7 @@ editar_costo.html
                             <!-- CAMPO: AÑO REFERENCIA -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_anio_referencia_co">
-                                    <i class="bi bi-calendar-year me-1"></i>Año de Referencia <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-year me-1"></i>Año de referencia <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
                                        name="txt_anio_referencia_co" 
@@ -232,7 +231,7 @@ editar_costo.html
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listacosto/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

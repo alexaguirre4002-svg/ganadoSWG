@@ -1,11 +1,10 @@
-editar_pesaje.html
 {% extends "plantilla.html" %}
 
 <!-- ========================================== -->
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Editar Pesaje | Hacienda Joseph
+    Editar pesaje | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -14,7 +13,7 @@ editar_pesaje.html
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listapesaje/" class="text-decoration-none" style="color: var(--color-primario);">Pesajes</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Pesaje</li>
+    <li class="breadcrumb-item active" aria-current="page">Editar pesaje</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -28,7 +27,7 @@ editar_pesaje.html
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Pesaje
+                <i class="bi bi-pencil-square me-2"></i>Editar pesaje
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Modifique los datos del pesaje #<strong>{{ pesaje.id_pe }}</strong> - {{ pesaje.fk_an.codigo_an }}
@@ -63,7 +62,7 @@ editar_pesaje.html
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos del Pesaje
+                    <i class="bi bi-clipboard-check"></i>Datos del pesaje
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -100,7 +99,7 @@ editar_pesaje.html
                             <!-- CAMPO: FECHA DE PESAJE -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_pe">
-                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Pesaje <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de pesaje <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_pe" 
@@ -134,7 +133,7 @@ editar_pesaje.html
                             <!-- CAMPO: CONDICION CORPORAL -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_condicion_corporal_pe">
-                                    <i class="bi bi-activity me-1"></i>Condición Corporal
+                                    <i class="bi bi-activity me-1"></i>Condición corporal
                                 </label>
                                 <select name="txt_condicion_corporal_pe" 
                                         id="txt_condicion_corporal_pe" 
@@ -156,15 +155,15 @@ editar_pesaje.html
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <label for="sel_metodo_pe">
-                                    <i class="bi bi-tools me-1"></i>Método de Pesaje
+                                    <i class="bi bi-tools me-1"></i>Método de pesaje
                                 </label>
                                 <select name="sel_metodo_pe" 
                                         id="sel_metodo_pe" 
                                         class="form-select">
                                     <option value="" {% if not pesaje.metodo_pe %}selected{% endif %}>Seleccione método...</option>
                                     <option value="bascula" {% if pesaje.metodo_pe == 'bascula' %}selected{% endif %}>Báscula</option>
-                                    <option value="cinta_metrica" {% if pesaje.metodo_pe == 'cinta_metrica' %}selected{% endif %}>Cinta Métrica</option>
-                                    <option value="estimacion_visual" {% if pesaje.metodo_pe == 'estimacion_visual' %}selected{% endif %}>Estimación Visual</option>
+                                    <option value="cinta_metrica" {% if pesaje.metodo_pe == 'cinta_metrica' %}selected{% endif %}>Cinta métrica</option>
+                                    <option value="estimacion_visual" {% if pesaje.metodo_pe == 'estimacion_visual' %}selected{% endif %}>Estimación visual</option>
                                 </select>
                                 <small class="text-muted">Método utilizado para obtener el peso. Opcional.</small>
                             </div>
@@ -208,7 +207,7 @@ editar_pesaje.html
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listapesaje/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

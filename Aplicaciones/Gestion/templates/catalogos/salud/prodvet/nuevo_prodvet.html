@@ -1,13 +1,13 @@
 {% extends "plantilla.html" %}
 
 {% block titulo %}
-    Nuevo Producto Veterinario | Hacienda Joseph
+    Nuevo producto veterinario | Hacienda Joseph
 {% endblock %}
 
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
-    <li class="breadcrumb-item"><a href="/listadoprodvet/" class="text-decoration-none" style="color: var(--color-primario);">Productos Veterinarios</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Nuevo Producto</li>
+    <li class="breadcrumb-item"><a href="/listadoprodvet/" class="text-decoration-none" style="color: var(--color-primario);">Productos veterinarios</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo producto</li>
 {% endblock %}
 
 {% block contenido %}
@@ -15,7 +15,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-plus-circle me-2"></i>Registrar Nuevo Producto Veterinario
+                <i class="bi bi-plus-circle me-2"></i>Registrar nuevo producto veterinario
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Complete los datos del producto veterinario
@@ -27,7 +27,7 @@
         <div class="col-md-10 col-lg-8">
             <div class="card-hacienda">
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-plus"></i>Datos del Producto
+                    <i class="bi bi-clipboard-plus"></i>Datos del producto
                 </div>
                 <div class="p-4">
                     <form action="/guardarprodvet/" id="frm_nuevo_prodvet" method="post" class="form-hacienda">
@@ -80,21 +80,21 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="txt_stock_minimo_pv">
-                                        <i class="bi bi-bell me-1"></i>Stock Mínimo
+                                        <i class="bi bi-bell me-1"></i>Stock mínimo
                                     </label>
                                     <input type="number" name="txt_stock_minimo_pv" id="txt_stock_minimo_pv" class="form-control" placeholder="Ej: 10" step="0.01" min="0" value="10">
                                     <small class="text-muted">Número decimal positivo.</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="txt_unidad_medida_pv">
-                                        <i class="bi bi-rulers me-1"></i>Unidad de Medida <span class="text-danger">*</span>
+                                        <i class="bi bi-rulers me-1"></i>Unidad de medida <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" name="txt_unidad_medida_pv" id="txt_unidad_medida_pv" class="form-control" placeholder="Ej: ml, kg, unidades..." maxlength="50" required>
                                     <small class="text-muted">Letras. Máx 50.</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="txt_fecha_vencimiento_pv">
-                                        <i class="bi bi-calendar-x me-1"></i>Fecha Vencimiento
+                                        <i class="bi bi-calendar-x me-1"></i>Fecha vencimiento
                                     </label>
                                     <input type="date" name="txt_fecha_vencimiento_pv" id="txt_fecha_vencimiento_pv" class="form-control">
                                     <small class="text-muted">Debe ser una fecha futura.</small>
@@ -108,7 +108,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="txt_costo_unitario_pv">
-                                        <i class="bi bi-currency-dollar me-1"></i>Costo Unitario
+                                        <i class="bi bi-currency-dollar me-1"></i>Costo unitario
                                     </label>
                                     <input type="number" name="txt_costo_unitario_pv" id="txt_costo_unitario_pv" class="form-control" placeholder="Ej: 15.50" step="0.01" min="0">
                                     <small class="text-muted">Número decimal positivo.</small>
@@ -125,7 +125,7 @@
                         </div>
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Producto
+                                <i class="bi bi-save me-2"></i>Guardar producto
                             </button>
                             <a href="/listadoprodvet/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar

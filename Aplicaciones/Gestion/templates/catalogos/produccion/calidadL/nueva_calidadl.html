@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Nueva Calidad de Leche | Hacienda Joseph
+    Nueva calidad de leche | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -12,8 +12,8 @@
 <!-- ========================================== -->
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
-    <li class="breadcrumb-item"><a href="/listacalidadl/" class="text-decoration-none" style="color: var(--color-primario);">Calidad de Leche</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Nuevo Análisis</li>
+    <li class="breadcrumb-item"><a href="/listacalidadl/" class="text-decoration-none" style="color: var(--color-primario);">Calidad de leche</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Nuevo análisis</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,7 +27,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-droplet-half me-2"></i>Registrar Nuevo Análisis
+                <i class="bi bi-droplet-half me-2"></i>Registrar nuevo análisis
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Registre el análisis de calidad de leche de una vaca productora
@@ -44,7 +44,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-plus"></i>Datos del Análisis
+                    <i class="bi bi-clipboard-plus"></i>Datos del análisis
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -76,7 +76,7 @@
                             <!-- CAMPO: FECHA MUESTREO -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_fecha_muestreo_cl">
-                                    <i class="bi bi-calendar-check me-1"></i>Fecha de Muestreo <span class="text-danger">*</span>
+                                    <i class="bi bi-calendar-check me-1"></i>Fecha de muestreo <span class="text-danger">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_muestreo_cl" 
@@ -131,7 +131,7 @@
                             <!-- CAMPO: CCS -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_ccs_cl">
-                                    <i class="bi bi-activity me-1"></i>CCS (Células Somáticas)
+                                    <i class="bi bi-activity me-1"></i>CCS (células somáticas)
                                 </label>
                                 <input type="number" 
                                        name="txt_ccs_cl" 
@@ -145,7 +145,7 @@
                             <!-- CAMPO: UFC -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_ufc_cl">
-                                    <i class="bi bi-bacteria me-1"></i>UFC (Unidades Formadoras de Colonias)
+                                    <i class="bi bi-bacteria me-1"></i>UFC (unidades formadoras de colonias)
                                 </label>
                                 <input type="number" 
                                        name="txt_ufc_cl" 
@@ -171,7 +171,7 @@
                                         class="form-select">
                                     <option value="" selected>Determinar automáticamente...</option>
                                     <option value="apto">Apto</option>
-                                    <option value="no_apto">No Apto</option>
+                                    <option value="no_apto">No apto</option>
                                     <option value="pendiente">Pendiente</option>
                                 </select>
                                 <small class="text-muted">Si no selecciona, se determinará automáticamente según CCS/UFC.</small>
@@ -198,7 +198,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="txt_costo_analisis_cl">
-                                    <i class="bi bi-currency-dollar me-1"></i>Costo del Análisis
+                                    <i class="bi bi-currency-dollar me-1"></i>Costo del análisis
                                 </label>
                                 <input type="number" 
                                        name="txt_costo_analisis_cl" 
@@ -242,7 +242,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Análisis
+                                <i class="bi bi-save me-2"></i>Guardar análisis
                             </button>
                             <a href="/listacalidadl/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar
@@ -454,11 +454,11 @@
             if (resultado === 'no_apto') {
                 colorFondo = '#fde8e8';
                 colorTexto = '#8B0000';
-                mensaje = '⚠️ Resultado automático: NO APTO (valores fuera de rango)';
+                mensaje = '⚠️ Resultado automático: no apto (valores fuera de rango)';
             } else {
                 colorFondo = '#d4edda';
                 colorTexto = '#155724';
-                mensaje = '✅ Resultado automático: APTO';
+                mensaje = '✅ Resultado automático: apto';
             }
             
             $indicador

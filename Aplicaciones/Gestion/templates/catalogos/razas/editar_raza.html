@@ -4,7 +4,7 @@
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
 <!-- ========================================== -->
 {% block titulo %}
-    Editar Raza | Hacienda Joseph
+    Editar raza | Hacienda Joseph
 {% endblock %}
 
 <!-- ========================================== -->
@@ -13,7 +13,7 @@
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="/inicio/" class="text-decoration-none" style="color: var(--color-primario);">Inicio</a></li>
     <li class="breadcrumb-item"><a href="/listaraza/" class="text-decoration-none" style="color: var(--color-primario);">Razas</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Editar Raza</li>
+    <li class="breadcrumb-item active" aria-current="page">Editar raza</li>
 {% endblock %}
 
 <!-- ========================================== -->
@@ -27,7 +27,7 @@
     <div class="row mb-4 animate-fade-in">
         <div class="col-12">
             <h2 class="fw-bold" style="color: var(--color-primario);">
-                <i class="bi bi-pencil-square me-2"></i>Editar Raza
+                <i class="bi bi-pencil-square me-2"></i>Editar raza
             </h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>Modifique los datos de la raza <strong>{{ raza.nombre_ra }}</strong>
@@ -59,7 +59,7 @@
                 
                 <!-- Header de la card -->
                 <div class="card-header-hacienda">
-                    <i class="bi bi-clipboard-check"></i>Datos de la Raza
+                    <i class="bi bi-clipboard-check"></i>Datos de la raza
                 </div>
 
                 <!-- Cuerpo del formulario -->
@@ -78,7 +78,7 @@
                             <!-- NOMBRE -->
                             <div class="col-md-6 mb-3">
                                 <label for="txt_nombre_ra">
-                                    <i class="bi bi-tag me-1"></i>Nombre de la Raza <span class="text-danger">*</span>
+                                    <i class="bi bi-tag me-1"></i>Nombre de la raza <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
                                     name="txt_nombre_ra" 
@@ -137,7 +137,7 @@
                                            value="1"
                                            {% if raza.activo_ra %}checked{% endif %}>
                                     <label class="form-check-label" for="chk_activo_ra">
-                                        <i class="bi bi-check-circle me-1"></i>Raza Activa
+                                        <i class="bi bi-check-circle me-1"></i>Raza activa
                                     </label>
                                 </div>
                                 <small class="text-muted">
@@ -166,7 +166,7 @@
                         <!-- ========================================== -->
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-hacienda flex-fill">
-                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                                <i class="bi bi-save me-2"></i>Guardar cambios
                             </button>
                             <a href="/listaraza/" class="btn btn-hacienda-secondary flex-fill text-center text-decoration-none">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar
