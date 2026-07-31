@@ -64,6 +64,105 @@ Leche ML - Predicciones AD-1 | Hacienda Joseph
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- MÉTRICAS DETALLADAS DEL MODELO (AD-1) - REGRESIÓN -->
+<!-- MAE, RMSE, R² -> métricas estándar recomendadas   -->
+<!-- para evaluar modelos de regresión (válidas p/tesis) -->
+<!-- ========================================== -->
+{{ metricas_extra_ad1|json_script:"metricasAD1Data" }}
+<div class="row mb-4 animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span><i class="bi bi-clipboard-data me-2"></i>Métricas Detalladas del Modelo — Regresión (AD-1)</span>
+                <span class="badge" style="background:#DAA520; color:#1a1a1a;">Gradient Boosting Regressor</span>
+            </div>
+            <div class="p-4">
+                <div id="metricasAD1Contenido">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <div class="p-3 text-center h-100" style="background:#f5f0e6; border-radius:12px; border:1px solid #d4c5a9;">
+                                <div class="text-muted small fw-bold">R² · COEFICIENTE DE DETERMINACIÓN</div>
+                                <div class="fs-2 fw-bold" id="valR2AD1" style="color:#2c5e1a;">--</div>
+                                <div class="small text-muted">Qué tan bien explica el modelo la variación de los litros producidos</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 text-center h-100" style="background:#f5f0e6; border-radius:12px; border:1px solid #d4c5a9;">
+                                <div class="text-muted small fw-bold">RMSE · ERROR CUADRÁTICO MEDIO</div>
+                                <div class="fs-2 fw-bold" id="valRMSEAD1" style="color:#1565C0;">--</div>
+                                <div class="small text-muted">Error típico de predicción, penaliza más los errores grandes</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 text-center h-100" style="background:#f5f0e6; border-radius:12px; border:1px solid #d4c5a9;">
+                                <div class="text-muted small fw-bold">MAE · ERROR ABSOLUTO MEDIO</div>
+                                <div class="fs-2 fw-bold" id="valMAEAD1" style="color:#8e24aa;">--</div>
+                                <div class="small text-muted">Promedio del error absoluto, en litros</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="max-width:460px; margin:0 auto;">
+                        <canvas id="chartMetricasAD1" height="220"></canvas>
+                    </div>
+                    <div class="alert alert-success mt-3 mb-0 small">
+                        <i class="bi bi-check-circle me-1"></i>
+                        <strong>MAE, RMSE y R²</strong> son las métricas más importantes para evaluar un modelo de regresión y son suficientes para sustentar un trabajo de tesis.
+                    </div>
+                </div>
+                <div id="metricasAD1Vacio" class="text-center text-muted py-4" style="display:none;">
+                    <i class="bi bi-info-circle fs-3"></i>
+                    <p class="mb-0 mt-2">Aún no hay métricas detalladas guardadas para AD-1. Vuelve a entrenar el modelo para generarlas.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const dataEl = document.getElementById('metricasAD1Data');
+    const vacioEl = document.getElementById('metricasAD1Vacio');
+    const contenidoEl = document.getElementById('metricasAD1Contenido');
+    if (!dataEl) return;
+    let m = null;
+    try { m = JSON.parse(dataEl.textContent); } catch (e) { m = null; }
+
+    if (!m || (m.r2 === undefined && m.rmse === undefined && m.mae === undefined)) {
+        if (contenidoEl) contenidoEl.style.display = 'none';
+        if (vacioEl) vacioEl.style.display = 'block';
+        return;
+    }
+
+    const elR2 = document.getElementById('valR2AD1');
+    const elRMSE = document.getElementById('valRMSEAD1');
+    const elMAE = document.getElementById('valMAEAD1');
+    if (elR2) elR2.textContent = (m.r2 !== null && m.r2 !== undefined) ? (m.r2 * 100).toFixed(2) + '%' : 'N/A';
+    if (elRMSE) elRMSE.textContent = (m.rmse !== null && m.rmse !== undefined) ? m.rmse + ' L' : 'N/A';
+    if (elMAE) elMAE.textContent = (m.mae !== null && m.mae !== undefined) ? m.mae + ' L' : 'N/A';
+
+    const ctx = document.getElementById('chartMetricasAD1');
+    if (ctx && typeof Chart !== 'undefined') {
+        new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['MAE', 'RMSE'],
+                datasets: [{
+                    label: 'Error (litros)',
+                    data: [m.mae || 0, m.rmse || 0],
+                    backgroundColor: ['#8e24aa', '#1565C0'],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, title: { display: true, text: 'Comparación de error del modelo (litros)', font: { size: 13 } } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    }
+});
+</script>
+
 <!-- BOTONES DE ACCION -->
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8">

@@ -37,6 +37,138 @@ Preñeces ML - Predicciones AD-2 | Hacienda Joseph
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- MÉTRICAS DETALLADAS DEL MODELO (AD-2) - CLASIFICACIÓN -->
+<!-- Matriz de confusión, Accuracy, Precision, Recall, F1, ROC/AUC -->
+<!-- ========================================== -->
+{{ metricas_extra_ad2|json_script:"metricasAD2Data" }}
+<div class="row mb-4 animate-fade-in">
+    <div class="col-12">
+        <div class="card-hacienda">
+            <div class="card-header-hacienda d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span><i class="bi bi-clipboard-data me-2"></i>Métricas Detalladas del Modelo — Clasificación (AD-2)</span>
+                <span class="badge" style="background:#DAA520; color:#1a1a1a;">Árbol de Decisión (Decision Tree Classifier)</span>
+            </div>
+            <div class="p-4">
+                <div id="metricasAD2Contenido">
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 text-center h-100" style="background:#f5f0e6; border-radius:12px; border:1px solid #d4c5a9;">
+                                <div class="text-muted small fw-bold">ACCURACY</div>
+                                <div class="fs-3 fw-bold" id="valAccAD2" style="color:#2c5e1a;">--</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 text-center h-100" style="background:#f5f0e6; border-radius:12px; border:1px solid #d4c5a9;">
+                                <div class="text-muted small fw-bold">PRECISION</div>
+                                <div class="fs-3 fw-bold" id="valPrecAD2" style="color:#1565C0;">--</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 text-center h-100" style="background:#f5f0e6; border-radius:12px; border:1px solid #d4c5a9;">
+                                <div class="text-muted small fw-bold">RECALL</div>
+                                <div class="fs-3 fw-bold" id="valRecAD2" style="color:#8e24aa;">--</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 text-center h-100" style="background:#f5f0e6; border-radius:12px; border:1px solid #d4c5a9;">
+                                <div class="text-muted small fw-bold">F1-SCORE</div>
+                                <div class="fs-3 fw-bold" id="valF1AD2" style="color:#E65100;">--</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-muted mb-2"><i class="bi bi-grid-3x3 me-1"></i>Matriz de Confusión</h6>
+                            <table class="table table-bordered text-center mb-2" style="max-width:420px;">
+                                <thead>
+                                    <tr><th></th><th colspan="2" class="bg-light">Predicción</th></tr>
+                                    <tr><th></th><th id="claseNegAD2">No</th><th id="clasePosAD2">Sí</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><th class="bg-light" id="claseNegRealAD2">Real: No</th><td id="cmTN" class="fw-bold" style="background:#e8f5e9;">--</td><td id="cmFP" class="fw-bold" style="background:#ffebee;">--</td></tr>
+                                    <tr><th class="bg-light" id="clasePosRealAD2">Real: Sí</th><td id="cmFN" class="fw-bold" style="background:#ffebee;">--</td><td id="cmTP" class="fw-bold" style="background:#e8f5e9;">--</td></tr>
+                                </tbody>
+                            </table>
+                            <small class="text-muted">TN/TP en verde (aciertos), FP/FN en rojo (errores)</small>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-muted mb-2"><i class="bi bi-graph-up-arrow me-1"></i>Curva ROC <span class="badge bg-secondary" id="badgeAUC_AD2">AUC: --</span></h6>
+                            <canvas id="chartROC_AD2" height="220"></canvas>
+                        </div>
+                    </div>
+                    <div class="alert alert-success mt-3 mb-0 small">
+                        <i class="bi bi-check-circle me-1"></i>
+                        <strong>Matriz de confusión, Accuracy, Precision, Recall, F1-Score y curva ROC/AUC</strong> son las métricas estándar para evaluar un modelo de clasificación y son suficientes para sustentar un trabajo de tesis.
+                    </div>
+                </div>
+                <div id="metricasAD2Vacio" class="text-center text-muted py-4" style="display:none;">
+                    <i class="bi bi-info-circle fs-3"></i>
+                    <p class="mb-0 mt-2">Aún no hay métricas detalladas guardadas para AD-2. Vuelve a entrenar el modelo para generarlas.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const dataEl = document.getElementById('metricasAD2Data');
+    const vacioEl = document.getElementById('metricasAD2Vacio');
+    const contenidoEl = document.getElementById('metricasAD2Contenido');
+    if (!dataEl) return;
+    let m = null;
+    try { m = JSON.parse(dataEl.textContent); } catch (e) { m = null; }
+    if (!m || !m.matriz_confusion) {
+        if (contenidoEl) contenidoEl.style.display = 'none';
+        if (vacioEl) vacioEl.style.display = 'block';
+        return;
+    }
+    const pct = (v) => (v === null || v === undefined) ? 'N/A' : (v * 100).toFixed(2) + '%';
+    document.getElementById('valAccAD2').textContent = pct(m.accuracy);
+    document.getElementById('valPrecAD2').textContent = pct(m.precision);
+    document.getElementById('valRecAD2').textContent = pct(m.recall);
+    document.getElementById('valF1AD2').textContent = pct(m.f1_score);
+
+    const clases = m.clases || ['No', 'Sí'];
+    document.getElementById('claseNegAD2').textContent = clases[0];
+    document.getElementById('clasePosAD2').textContent = clases[1];
+    document.getElementById('claseNegRealAD2').textContent = 'Real: ' + clases[0];
+    document.getElementById('clasePosRealAD2').textContent = 'Real: ' + clases[1];
+
+    const cm = m.matriz_confusion;
+    if (cm && cm.length === 2) {
+        document.getElementById('cmTN').textContent = cm[0][0];
+        document.getElementById('cmFP').textContent = cm[0][1];
+        document.getElementById('cmFN').textContent = cm[1][0];
+        document.getElementById('cmTP').textContent = cm[1][1];
+    }
+
+    document.getElementById('badgeAUC_AD2').textContent = 'AUC: ' + ((m.auc !== null && m.auc !== undefined) ? m.auc.toFixed(3) : 'N/A');
+
+    const ctx = document.getElementById('chartROC_AD2');
+    if (ctx && typeof Chart !== 'undefined' && m.roc_fpr && m.roc_tpr) {
+        const puntosROC = m.roc_fpr.map((f, i) => ({ x: f, y: m.roc_tpr[i] }));
+        new Chart(ctx.getContext('2d'), {
+            type: 'line',
+            data: {
+                datasets: [
+                    { label: 'Curva ROC del modelo', data: puntosROC, borderColor: '#2c5e1a', backgroundColor: 'rgba(44,94,26,0.1)', fill: true, tension: 0.1, pointRadius: 0 },
+                    { label: 'Clasificador aleatorio', data: [{ x: 0, y: 0 }, { x: 1, y: 1 }], borderColor: '#c62828', borderDash: [5, 5], pointRadius: 0, fill: false }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    x: { type: 'linear', min: 0, max: 1, title: { display: true, text: 'Tasa de Falsos Positivos (FPR)' } },
+                    y: { min: 0, max: 1, title: { display: true, text: 'Tasa de Verdaderos Positivos (TPR)' } }
+                },
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+});
+</script>
+
 <div class="row mb-4 animate-fade-in">
     <div class="col-md-8"><h2 class="fw-bold" style="color: var(--color-primario);"><i class="bi bi-egg me-2"></i>Preñeces ML - AD-2</h2><p class="text-muted mb-0"><i class="bi bi-info-circle me-1"></i>Predicciones de preñeces por animal</p></div>
 </div>

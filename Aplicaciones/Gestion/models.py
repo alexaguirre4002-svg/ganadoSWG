@@ -1767,6 +1767,24 @@ class ModeloML(models.Model):
         verbose_name='Valor de Métrica'
     )
 
+    # ============================================================
+    # NUEVO: métricas extendidas para reportes / tesis.
+    # Se guarda un JSON distinto según el tipo de algoritmo:
+    #   - Regresión (AD-1):        {"r2":.., "rmse":.., "mae":..}
+    #   - Clasificación (AD-2/RL-4): {"accuracy":.., "precision":..,
+    #        "recall":.., "f1_score":.., "auc":..,
+    #        "matriz_confusion": [[tn,fp],[fn,tp]],
+    #        "roc_fpr": [...], "roc_tpr": [...],
+    #        "clases": ["No", "Sí"]}
+    # No reemplaza a valor_metrica_mm (que sigue siendo la métrica
+    # principal usada en el resto del sistema); solo la complementa.
+    # ============================================================
+    metricas_extra_mm = models.JSONField(
+        null=True,
+        blank=True,
+        verbose_name='Métricas Extendidas (ML)'
+    )
+
     fecha_entrenamiento_mm = models.DateTimeField(
         null=True,
         blank=True,
@@ -1940,5 +1958,3 @@ class PrediccionML(models.Model):
         if self.datos_entrada_pm:
             return json.dumps(self.datos_entrada_pm, indent=2, ensure_ascii=False)
         return "No hay datos de entrada"
-    
-

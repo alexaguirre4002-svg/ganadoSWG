@@ -14,7 +14,11 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.metrics import accuracy_score, mean_squared_error, r2_score
+from sklearn.metrics import (
+    accuracy_score, mean_squared_error, r2_score,
+    mean_absolute_error, confusion_matrix, precision_score,
+    recall_score, f1_score, roc_curve, roc_auc_score
+)
 
 from django.conf import settings
 from django.db.models import Avg, Q, Sum, Count
@@ -763,6 +767,11 @@ def guardar_modelo_en_db(codigo_mm, resultado):
         modelo_db.archivo_modelo_mm = resultado.get('ruta_modelo')
         modelo_db.fecha_entrenamiento_mm = timezone.now()
         modelo_db.valor_metrica_mm = cfg['valor']
+        # NUEVO: guarda el paquete completo de métricas (matriz de
+        # confusión, precision, recall, f1, ROC/AUC o MAE/RMSE/R²
+        # según el algoritmo) para mostrarlas en el detalle del ML.
+        if resultado.get('metricas_extra'):
+            modelo_db.metricas_extra_mm = resultado['metricas_extra']
         modelo_db.save()
         
         resultado['guardado_db'] = True
@@ -990,6 +999,66 @@ def obtener_datos_reales_rl4():
 # FUNCIONES DE ENTRENAMIENTO
 # ============================================================
 
+def _metricas_clasificacion_binaria(modelo, X, X_test, y_test, y_pred, clases=('No', 'Sí')):
+    """
+    Calcula el paquete completo de métricas recomendadas para un
+    clasificador binario (Árbol de Decisión / Regresión Logística):
+    matriz de confusión, accuracy, precision, recall, f1-score,
+    curva ROC (fpr/tpr) y AUC.
+
+    Se usa igual para AD-2 (DecisionTreeClassifier) y RL-4
+    (LogisticRegression), ya que ambos exponen predict_proba().
+
+    Nunca lanza excepción: si algo no se puede calcular (por ejemplo,
+    el set de prueba tiene una sola clase y el AUC no está definido),
+    ese valor queda en None y el resto de métricas se calculan igual.
+    """
+    metricas = {
+        'accuracy': None, 'precision': None, 'recall': None,
+        'f1_score': None, 'auc': None,
+        'matriz_confusion': None, 'roc_fpr': None, 'roc_tpr': None,
+        'clases': list(clases),
+    }
+
+    try:
+        metricas['accuracy'] = round(float(accuracy_score(y_test, y_pred)), 4)
+    except Exception:
+        pass
+
+    try:
+        metricas['precision'] = round(float(precision_score(y_test, y_pred, zero_division=0)), 4)
+    except Exception:
+        pass
+
+    try:
+        metricas['recall'] = round(float(recall_score(y_test, y_pred, zero_division=0)), 4)
+    except Exception:
+        pass
+
+    try:
+        metricas['f1_score'] = round(float(f1_score(y_test, y_pred, zero_division=0)), 4)
+    except Exception:
+        pass
+
+    try:
+        cm = confusion_matrix(y_test, y_pred, labels=[0, 1])
+        metricas['matriz_confusion'] = cm.tolist()  # [[TN, FP], [FN, TP]]
+    except Exception:
+        pass
+
+    try:
+        if hasattr(modelo, 'predict_proba') and len(set(y_test)) > 1:
+            y_proba = modelo.predict_proba(X_test)[:, 1]
+            fpr, tpr, _ = roc_curve(y_test, y_proba)
+            metricas['roc_fpr'] = [round(float(v), 4) for v in fpr]
+            metricas['roc_tpr'] = [round(float(v), 4) for v in tpr]
+            metricas['auc'] = round(float(roc_auc_score(y_test, y_proba)), 4)
+    except Exception:
+        pass
+
+    return metricas
+
+
 def entrenar_ad1_con_datos_reales(df):
     """Entrena AD-1 con datos reales."""
     X, y, encoders = preprocesar_datos_ad1(df)
@@ -1006,7 +1075,14 @@ def entrenar_ad1_con_datos_reales(df):
     y_pred = modelo.predict(X_test)
     r2 = r2_score(y_test, y_pred)
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-    
+    mae = mean_absolute_error(y_test, y_pred)
+
+    metricas_extra = {
+        'r2': round(float(r2), 4),
+        'rmse': round(float(rmse), 4),
+        'mae': round(float(mae), 4),
+    }
+
     ruta = obtener_ruta_modelo('AD-1')
     joblib.dump({
         'modelo': modelo,
@@ -1018,10 +1094,11 @@ def entrenar_ad1_con_datos_reales(df):
     
     resultado = {
         'exito': True, 'codigo': 'AD-1', 'ruta_modelo': ruta,
-        'r2': round(r2, 4), 'rmse': round(rmse, 4),
+        'r2': round(r2, 4), 'rmse': round(rmse, 4), 'mae': round(mae, 4),
         'registros': len(df), 'entrenamiento': len(X_train),
         'prueba': len(X_test), 'fuente': 'datos_reales',
-        'variables': encoders['features']
+        'variables': encoders['features'],
+        'metricas_extra': metricas_extra,
     }
     guardar_modelo_en_db('AD-1', resultado)  # se guarda SIEMPRE, no depende de quién llame a esta función
     return resultado
@@ -1040,7 +1117,11 @@ def entrenar_ad2_con_datos_reales(df):
     y_pred = modelo.predict(X_test)
     acc = accuracy_score(y_test, y_pred)
     cv_scores = cross_val_score(modelo, X, y, cv=5)
-    
+
+    metricas_extra = _metricas_clasificacion_binaria(
+        modelo, X, X_test, y_test, y_pred, clases=('No preñada', 'Preñada')
+    )
+
     ruta = obtener_ruta_modelo('AD-2')
     joblib.dump({
         'modelo': modelo,
@@ -1058,7 +1139,8 @@ def entrenar_ad2_con_datos_reales(df):
         'accuracy': round(acc, 4), 'cv_mean': round(cv_scores.mean(), 4),
         'cv_std': round(cv_scores.std(), 4), 'registros': len(df),
         'entrenamiento': len(X_train), 'prueba': len(X_test),
-        'fuente': 'datos_reales'
+        'fuente': 'datos_reales',
+        'metricas_extra': metricas_extra,
     }
     guardar_modelo_en_db('AD-2', resultado)  # se guarda SIEMPRE, no depende de quién llame a esta función
     return resultado
@@ -1077,7 +1159,11 @@ def entrenar_rl4_con_datos_reales(df):
     y_pred = modelo.predict(X_test)
     acc = accuracy_score(y_test, y_pred)
     cv_scores = cross_val_score(modelo, X, y, cv=5)
-    
+
+    metricas_extra = _metricas_clasificacion_binaria(
+        modelo, X, X_test, y_test, y_pred, clases=('No apto', 'Apto')
+    )
+
     ruta = obtener_ruta_modelo('RL-4')
     joblib.dump({
         'modelo': modelo,
@@ -1089,7 +1175,8 @@ def entrenar_rl4_con_datos_reales(df):
         'accuracy': round(acc, 4), 'cv_mean': round(cv_scores.mean(), 4),
         'cv_std': round(cv_scores.std(), 4), 'registros': len(df),
         'entrenamiento': len(X_train), 'prueba': len(X_test),
-        'fuente': 'datos_reales'
+        'fuente': 'datos_reales',
+        'metricas_extra': metricas_extra,
     }
     guardar_modelo_en_db('RL-4', resultado)  # se guarda SIEMPRE, no depende de quién llame a esta función
     return resultado
