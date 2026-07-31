@@ -144,7 +144,7 @@
                                        step="0.01"
                                        min="0.01"
                                        max="99.99"
-                                       value="{{ ordeno.litros_or }}"
+                                       value="{{ ordeno.litros_or|stringformat:'s' }}"
                                        placeholder="Ej: 15.50"
                                        required>
                                 <small class="text-muted">Cantidad de leche en litros. Máximo 99.99 L.</small>
@@ -175,7 +175,7 @@
                                        step="0.1"
                                        min="0"
                                        max="50"
-                                       value="{% if ordeno.temperatura_leche_or %}{{ ordeno.temperatura_leche_or }}{% endif %}"
+                                       value="{% if ordeno.temperatura_leche_or %}{{ ordeno.temperatura_leche_or|stringformat:'s' }}{% endif %}"
                                        placeholder="Ej: 5.5">
                                 <small class="text-muted">Rango óptimo: 4°C - 7°C. Fuera de rango genera alerta.</small>
                             </div>
@@ -192,7 +192,7 @@
                                        step="0.1"
                                        min="-10"
                                        max="50"
-                                       value="{% if ordeno.temperatura_ambiental_or %}{{ ordeno.temperatura_ambiental_or }}{% endif %}"
+                                       value="{% if ordeno.temperatura_ambiental_or %}{{ ordeno.temperatura_ambiental_or|stringformat:'s' }}{% endif %}"
                                        placeholder="Ej: 22.0">
                                 <small class="text-muted">Temperatura ambiental durante el ordeño.</small>
                             </div>
@@ -213,7 +213,7 @@
                                        step="0.01"
                                        min="0"
                                        max="99.99"
-                                       value="{% if ordeno.cantidad_concentrado_kg_or %}{{ ordeno.cantidad_concentrado_kg_or }}{% endif %}"
+                                       value="{% if ordeno.cantidad_concentrado_kg_or %}{{ ordeno.cantidad_concentrado_kg_or|stringformat:'s' }}{% endif %}"
                                        placeholder="Ej: 3.50">
                                 <small class="text-muted">Cantidad de concentrado ofrecida en kg.</small>
                             </div>
@@ -617,7 +617,7 @@
             $('#txt_litros_or').on('blur', function() {
                 let litros = parseFloat($(this).val());
                 if (litros && litros <= 0) {
-                    $(this).val('{{ ordeno.litros_or }}');
+                    $(this).val('{{ ordeno.litros_or|stringformat:"s" }}');
                     alertaError('Litros inválidos', 'Los litros deben ser mayores a 0. Se ha restaurado el valor original.');
                 }
             });
