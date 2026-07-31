@@ -254,7 +254,7 @@ Listado de ingresos | Hacienda Joseph
                                             data-categoria="{% if ingreso.categoria_ig == 'venta_leche' %}Venta leche{% elif ingreso.categoria_ig == 'venta_animales' %}Venta animales{% elif ingreso.categoria_ig == 'venta_subproductos' %}Subproductos{% elif ingreso.categoria_ig == 'servicios_inseminacion' %}Serv. inseminación{% else %}Otros{% endif %}"
                                             data-fecha="{{ ingreso.fecha_ig|date:'d/m/Y' }}"
                                             data-monto="{{ ingreso.monto_total_ig|stringformat:'s' }}"
-                                            data-url="/eliminaringreso/{{ ingreso.id_ig }}"
+                                            data-url="/eliminaingreso/{{ ingreso.id_ig }}"
                                             title="Eliminar">
                                         <i class="bi bi-trash"></i>
                                     </button>
