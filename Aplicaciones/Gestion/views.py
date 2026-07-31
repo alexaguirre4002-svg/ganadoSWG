@@ -11897,13 +11897,11 @@ def leche_ml(request):
     
     estado_ad1 = modelo_esta_entrenado('AD-1')
     metrica_ad1 = None
-    metricas_extra_ad1 = None
     
     try:
         modelo = ModeloML.objects.get(codigo_mm='AD-1')
         if modelo.valor_metrica_mm:
             metrica_ad1 = round(float(modelo.valor_metrica_mm) * 100, 1)
-        metricas_extra_ad1 = modelo.metricas_extra_mm
     except ModeloML.DoesNotExist:
         pass
     
@@ -11973,7 +11971,6 @@ def leche_ml(request):
     contexto = {
         'estado_ad1': estado_ad1,
         'metrica_ad1': metrica_ad1,
-        'metricas_extra_ad1': metricas_extra_ad1,
         'predicciones_por_animal': predicciones_por_animal,
     }
     
@@ -11988,13 +11985,11 @@ def preneces_ml(request):
     
     estado_ad2 = modelo_esta_entrenado('AD-2')
     metrica_ad2 = None
-    metricas_extra_ad2 = None
     
     try:
         modelo = ModeloML.objects.get(codigo_mm='AD-2')
         if modelo.valor_metrica_mm:
             metrica_ad2 = round(float(modelo.valor_metrica_mm) * 100, 1)
-        metricas_extra_ad2 = modelo.metricas_extra_mm
     except ModeloML.DoesNotExist:
         pass
     
@@ -12059,7 +12054,6 @@ def preneces_ml(request):
     contexto = {
         'estado_ad2': estado_ad2,
         'metrica_ad2': metrica_ad2,
-        'metricas_extra_ad2': metricas_extra_ad2,
         'predicciones_por_animal': predicciones_por_animal,
     }
     
@@ -12074,13 +12068,11 @@ def calidad_leche_ml(request):
     
     estado_rl4 = modelo_esta_entrenado('RL-4')
     metrica_rl4 = None
-    metricas_extra_rl4 = None
     
     try:
         modelo = ModeloML.objects.get(codigo_mm='RL-4')
         if modelo.valor_metrica_mm:
             metrica_rl4 = round(float(modelo.valor_metrica_mm) * 100, 1)
-        metricas_extra_rl4 = modelo.metricas_extra_mm
     except ModeloML.DoesNotExist:
         pass
     
@@ -12146,7 +12138,6 @@ def calidad_leche_ml(request):
     contexto = {
         'estado_rl4': estado_rl4,
         'metrica_rl4': metrica_rl4,
-        'metricas_extra_rl4': metricas_extra_rl4,
         'predicciones_por_animal': predicciones_por_animal,
     }
     
