@@ -3047,16 +3047,17 @@ def guardareventosanitario(request):
             messages.error(request, "Seleccione un estado válido")
             return redirect('/nuevoeventosanitario/')
         
-        # Fecha ejecutada (condicional)
+        # Fecha ejecutada (condicional: obligatoria para ejecutado, cancelado y pospuesto)
         fecha_ejecutada_es = None
-        if estado_es == 'ejecutado':
+        if estado_es in ('ejecutado', 'cancelado', 'pospuesto'):
             fecha_ejecutada_str = request.POST.get('txt_fecha_ejecutada_es', '').strip()
             if not fecha_ejecutada_str:
-                messages.error(request, "La fecha ejecutada es obligatoria cuando el estado es 'Ejecutado'")
+                messages.error(request, f"La fecha es obligatoria cuando el estado es '{estado_es.capitalize()}'")
                 return redirect('/nuevoeventosanitario/')
             fecha_ejecutada_es = fecha_ejecutada_str
-            # Validar que fecha ejecutada >= fecha programada
-            if fecha_ejecutada_es < fecha_programada_es:
+            # El orden cronológico (fecha >= programada) solo aplica a "ejecutado":
+            # un evento cancelado o pospuesto puede registrarse antes de la fecha programada.
+            if estado_es == 'ejecutado' and fecha_ejecutada_es < fecha_programada_es:
                 messages.error(request, "La fecha ejecutada no puede ser anterior a la fecha programada")
                 return redirect('/nuevoeventosanitario/')
         
@@ -3280,15 +3281,17 @@ def procesareditareventosanitario(request):
             messages.error(request, "Seleccione un estado válido")
             return redirect(f'/editareventosanitario/{id_es}')
         
-        # Fecha ejecutada (condicional)
+        # Fecha ejecutada (condicional: obligatoria para ejecutado, cancelado y pospuesto)
         fecha_ejecutada_es = None
-        if estado_es == 'ejecutado':
+        if estado_es in ('ejecutado', 'cancelado', 'pospuesto'):
             fecha_ejecutada_str = request.POST.get('txt_fecha_ejecutada_es', '').strip()
             if not fecha_ejecutada_str:
-                messages.error(request, "La fecha ejecutada es obligatoria cuando el estado es 'Ejecutado'")
+                messages.error(request, f"La fecha es obligatoria cuando el estado es '{estado_es.capitalize()}'")
                 return redirect(f'/editareventosanitario/{id_es}')
             fecha_ejecutada_es = fecha_ejecutada_str
-            if fecha_ejecutada_es < fecha_programada_es:
+            # El orden cronológico (fecha >= programada) solo aplica a "ejecutado":
+            # un evento cancelado o pospuesto puede registrarse antes de la fecha programada.
+            if estado_es == 'ejecutado' and fecha_ejecutada_es < fecha_programada_es:
                 messages.error(request, "La fecha ejecutada no puede ser anterior a la fecha programada")
                 return redirect(f'/editareventosanitario/{id_es}')
         

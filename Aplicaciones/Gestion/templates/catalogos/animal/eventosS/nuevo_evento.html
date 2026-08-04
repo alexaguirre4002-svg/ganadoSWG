@@ -131,16 +131,16 @@
                                 <small class="text-muted">Estado inicial del evento.</small>
                             </div>
 
-                            <!-- CAMPO: FECHA EJECUTADA (condicional) -->
+                            <!-- CAMPO: FECHA EJECUTADA (condicional, etiqueta cambia según estado) -->
                             <div class="col-md-6 mb-3" id="campo_fecha_ejecutada" style="display: none;">
                                 <label for="txt_fecha_ejecutada_es">
-                                    <i class="bi bi-calendar-check me-1"></i>Fecha ejecutada <span class="text-danger" id="required_fecha_ejec" style="display: none;">*</span>
+                                    <i class="bi bi-calendar-check me-1"></i><span id="texto_label_fecha_ejecutada">Fecha ejecutada</span> <span class="text-danger" id="required_fecha_ejec" style="display: none;">*</span>
                                 </label>
                                 <input type="date" 
                                        name="txt_fecha_ejecutada_es" 
                                        id="txt_fecha_ejecutada_es" 
                                        class="form-control">
-                                <small class="text-muted">Fecha real de ejecución. Obligatoria si estado es "Ejecutado".</small>
+                                <small class="text-muted" id="ayuda_fecha_ejecutada">Fecha real de ejecución. Obligatoria si estado es "Ejecutado".</small>
                             </div>
                         </div>
 
@@ -365,12 +365,19 @@
 
         jQuery.validator.addMethod("fechaEjecutadaValida", function(value, element) {
             let estado = $('#sel_estado_es').val();
-            if (estado === 'ejecutado' && !value) return false;
+            let requiereFecha = (estado === 'ejecutado' || estado === 'cancelado' || estado === 'pospuesto');
+            if (requiereFecha && !value) return false;
             if (!value) return true;
-            let fechaProg = $('#txt_fecha_programada_es').val();
-            if (!fechaProg) return true;
-            return new Date(value) >= new Date(fechaProg);
-        }, "La fecha ejecutada debe ser igual o posterior a la programada");
+            // El orden cronológico (fecha >= programada) solo tiene sentido
+            // cuando el evento se EJECUTÓ. Cancelar o posponer puede registrarse
+            // antes de la fecha programada.
+            if (estado === 'ejecutado') {
+                let fechaProg = $('#txt_fecha_programada_es').val();
+                if (!fechaProg) return true;
+                return new Date(value) >= new Date(fechaProg);
+            }
+            return true;
+        }, "Esta fecha es obligatoria para el estado seleccionado, y si el evento fue ejecutado debe ser igual o posterior a la programada");
 
         jQuery.validator.addMethod("productoRequerido", function(value, element) {
             let tipo = $('#sel_tipo_evento_es').val();
@@ -383,10 +390,15 @@
 
         jQuery.validator.addMethod("fechaNoPasada", function(value, element) {
             if (!value) return true;
+            // Esta restricción solo aplica cuando el evento sigue "Pendiente".
+            // Si ya está Ejecutado, Cancelado o Pospuesto, la fecha programada
+            // sí puede ser pasada (es normal registrar eventos históricos).
+            let estado = $('#sel_estado_es').val();
+            if (estado !== 'pendiente') return true;
             let hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
             return new Date(value) >= hoy;
-        }, "La fecha programada no puede ser pasada (use 'Ejecutado' si ya se realizó)");
+        }, "La fecha programada no puede ser pasada mientras el estado sea 'Pendiente'");
 
         $(document).ready(function() {
             
@@ -396,12 +408,20 @@
             // ==========================================
             // LOGICA CONDICIONAL SEGUN ESTADO
             // ==========================================
+            let textosFechaEstado = {
+                ejecutado: { label: 'Fecha ejecutada', ayuda: 'Fecha real de ejecución. Obligatoria si estado es "Ejecutado".' },
+                cancelado: { label: 'Fecha de cancelación', ayuda: 'Fecha en que se canceló el evento. Obligatoria si estado es "Cancelado".' },
+                pospuesto: { label: 'Fecha de posposición', ayuda: 'Fecha en que se pospuso el evento. Obligatoria si estado es "Pospuesto".' }
+            };
+
             $('#sel_estado_es').on('change', function() {
                 let estado = $(this).val();
-                if (estado === 'ejecutado') {
+                if (estado === 'ejecutado' || estado === 'cancelado' || estado === 'pospuesto') {
                     $('#campo_fecha_ejecutada').show();
                     $('#required_fecha_ejec').show();
                     $('#txt_fecha_ejecutada_es').prop('required', true);
+                    $('#texto_label_fecha_ejecutada').text(textosFechaEstado[estado].label);
+                    $('#ayuda_fecha_ejecutada').text(textosFechaEstado[estado].ayuda);
                     // Si no tiene fecha, poner hoy
                     if (!$('#txt_fecha_ejecutada_es').val()) {
                         $('#txt_fecha_ejecutada_es').val(new Date().toISOString().split('T')[0]);
@@ -410,6 +430,10 @@
                     $('#campo_fecha_ejecutada').hide();
                     $('#required_fecha_ejec').hide();
                     $('#txt_fecha_ejecutada_es').prop('required', false).val('');
+                }
+                // Revalidar fecha programada: su regla depende del estado seleccionado
+                if ($('#txt_fecha_programada_es').val()) {
+                    $('#txt_fecha_programada_es').valid();
                 }
             });
 
@@ -465,7 +489,7 @@
                         required: "Seleccione el estado"
                     },
                     txt_fecha_ejecutada_es: {
-                        fechaEjecutadaValida: "Debe ser igual o posterior a la fecha programada"
+                        fechaEjecutadaValida: "Esta fecha es obligatoria para el estado seleccionado (y si es 'Ejecutado', debe ser igual o posterior a la programada)"
                     },
                     sel_producto_es: {
                         productoRequerido: "Seleccione un producto veterinario"
@@ -596,6 +620,9 @@
             // VALIDACION AL PERDER FOCO - FECHAS
             // ==========================================
             $('#txt_fecha_ejecutada_es').on('blur', function() {
+                let estado = $('#sel_estado_es').val();
+                // Cancelado/Pospuesto pueden registrarse antes de la fecha programada
+                if (estado !== 'ejecutado') return;
                 let fechaProg = $('#txt_fecha_programada_es').val();
                 let fechaEjec = $(this).val();
                 if (fechaEjec && fechaProg && new Date(fechaEjec) < new Date(fechaProg)) {
