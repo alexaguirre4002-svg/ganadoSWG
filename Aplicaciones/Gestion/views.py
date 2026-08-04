@@ -432,14 +432,16 @@ def guardarpotrero(request):
             return redirect('/nuevopotrero/')
         
         try:
-            hectareas_po = float(hectareas_str)
+            # Se usa Decimal (no float) para no arrastrar imprecisión binaria
+            # que Django luego rechaza como "más de 2 dígitos decimales"
+            hectareas_po = Decimal(hectareas_str.replace(',', '.')).quantize(Decimal('0.01'))
             if hectareas_po <= 0:
                 messages.error(request, "Las hectáreas deben ser mayores a 0")
                 return redirect('/nuevopotrero/')
-            if hectareas_po > 9999.99:
+            if hectareas_po > Decimal('9999.99'):
                 messages.error(request, "Las hectáreas no pueden exceder 9999.99")
                 return redirect('/nuevopotrero/')
-        except ValueError:
+        except (ValueError, InvalidOperation):
             messages.error(request, "Las hectáreas deben ser un número válido")
             return redirect('/nuevopotrero/')
         
@@ -568,14 +570,16 @@ def procesareditarpotrero(request):
             return redirect(f'/editarpotrero/{id_po}')
         
         try:
-            hectareas_po = float(hectareas_str)
+            # Se usa Decimal (no float) para no arrastrar imprecisión binaria
+            # que Django luego rechaza como "más de 2 dígitos decimales"
+            hectareas_po = Decimal(hectareas_str.replace(',', '.')).quantize(Decimal('0.01'))
             if hectareas_po <= 0:
                 messages.error(request, "Las hectáreas deben ser mayores a 0")
                 return redirect(f'/editarpotrero/{id_po}')
-            if hectareas_po > 9999.99:
+            if hectareas_po > Decimal('9999.99'):
                 messages.error(request, "Las hectáreas no pueden exceder 9999.99")
                 return redirect(f'/editarpotrero/{id_po}')
-        except ValueError:
+        except (ValueError, InvalidOperation):
             messages.error(request, "Las hectáreas deben ser un número válido")
             return redirect(f'/editarpotrero/{id_po}')
         
