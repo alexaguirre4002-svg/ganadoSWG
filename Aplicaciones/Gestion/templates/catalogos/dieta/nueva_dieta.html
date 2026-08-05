@@ -221,7 +221,7 @@
                                        class="form-control" 
                                        placeholder="0.00">
                             </div>
-                            <small class="text-muted">Máximo 999999.99. Use punto o coma decimal.</small>
+                            <small class="text-muted">Máximo 999999.99. Use punto decimal.</small>
                         </div>
 
                         <!-- ========================================== -->
@@ -390,22 +390,22 @@
         // Decimal positivo o cero con límites
         jQuery.validator.addMethod("decimalNutricional6", function(value, element) {
             if (this.optional(element)) return true;
-            let val = parseFloat(value.replace(',', '.'));
-            return /^\d+([.,]\d{1,2})?$/.test(value) && val >= 0 && val < 10000;
+            let val = parseFloat(value);
+            return /^\d+(\.\d{1,2})?$/.test(value) && val >= 0 && val < 10000;
         }, "Debe ser entre 0 y 9999.99, máx 2 decimales");
 
         // Decimal porcentaje (5 dígitos: 999.99)
         jQuery.validator.addMethod("decimalPorcentaje", function(value, element) {
             if (this.optional(element)) return true;
-            let val = parseFloat(value.replace(',', '.'));
-            return /^\d+([.,]\d{1,2})?$/.test(value) && val >= 0 && val < 1000;
+            let val = parseFloat(value);
+            return /^\d+(\.\d{1,2})?$/.test(value) && val >= 0 && val < 1000;
         }, "Debe ser entre 0 y 999.99, máx 2 decimales");
 
         // Costo diario (8 dígitos: 999999.99)
         jQuery.validator.addMethod("decimalCosto", function(value, element) {
             if (this.optional(element)) return true;
-            let val = parseFloat(value.replace(',', '.'));
-            return /^\d+([.,]\d{1,2})?$/.test(value) && val >= 0 && val < 1000000;
+            let val = parseFloat(value);
+            return /^\d+(\.\d{1,2})?$/.test(value) && val >= 0 && val < 1000000;
         }, "Debe ser entre 0 y 999999.99, máx 2 decimales");
 
         $(document).ready(function() {
@@ -548,8 +548,8 @@
             // ==========================================
             function validarDecimalNutricional(input, maxEnteros, maxDecimales) {
                 let valor = input.val();
-                let filtrado = valor.replace(/[^\d\.,]/g, '');
-                let partes = filtrado.split(/[\.,]/);
+                let filtrado = valor.replace(/[^\d\.]/g, '');
+                let partes = filtrado.split('.');
                 
                 if (partes.length > 2) {
                     filtrado = partes[0] + '.' + partes.slice(1).join('');
