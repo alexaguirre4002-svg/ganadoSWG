@@ -74,7 +74,7 @@
                                     <label for="txt_stock_pv">
                                         <i class="bi bi-boxes me-1"></i>Stock <span class="text-danger">*</span>
                                     </label>
-                                    <input type="number" name="txt_stock_pv" id="txt_stock_pv" class="form-control" value="{{ prodvet.stock_pv|stringformat:'s' }}" placeholder="Ej: 100" step="0.01" min="0" required>
+                                    <input type="number" name="txt_stock_pv" id="txt_stock_pv" class="form-control" value="{{ prodvet.stock_pv|default_if_none:'' }}" placeholder="Ej: 100" step="0.01" min="0" required>
                                     <small class="text-muted">Número decimal positivo.</small>
                                 </div>
                             </div>
@@ -83,15 +83,15 @@
                                     <label for="txt_stock_minimo_pv">
                                         <i class="bi bi-bell me-1"></i>Stock mínimo
                                     </label>
-                                    <input type="number" name="txt_stock_minimo_pv" id="txt_stock_minimo_pv" class="form-control" value="{{ prodvet.stock_minimo_pv|stringformat:'s' }}" placeholder="Ej: 10" step="0.01" min="0">
+                                    <input type="number" name="txt_stock_minimo_pv" id="txt_stock_minimo_pv" class="form-control" value="{{ prodvet.stock_minimo_pv|default_if_none:'' }}" placeholder="Ej: 10" step="0.01" min="0">
                                     <small class="text-muted">Número decimal positivo.</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="txt_unidad_medida_pv">
                                         <i class="bi bi-rulers me-1"></i>Unidad de medida <span class="text-danger">*</span>
                                     </label>
-                                    <input type="text" name="txt_unidad_medida_pv" id="txt_unidad_medida_pv" class="form-control" value="{{ prodvet.unidad_medida_pv|default_if_none:'' }}" placeholder="Ej: ml, mg, unidades..." maxlength="50" required>
-                                    <small class="text-muted">Letras. Máx 50.</small>
+                                    <input type="text" name="txt_unidad_medida_pv" id="txt_unidad_medida_pv" class="form-control" value="{{ prodvet.unidad_medida_pv|default_if_none:'' }}" placeholder="Ej: ml, mg, unidades..." maxlength="20" required>
+                                    <small class="text-muted">Letras. Máx 20.</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="txt_fecha_vencimiento_pv">
@@ -111,7 +111,7 @@
                                     <label for="txt_costo_unitario_pv">
                                         <i class="bi bi-currency-dollar me-1"></i>Costo unitario
                                     </label>
-                                    <input type="number" name="txt_costo_unitario_pv" id="txt_costo_unitario_pv" class="form-control" value="{{ prodvet.costo_unitario_pv|stringformat:'s' }}" placeholder="Ej: 15.50" step="0.01" min="0">
+                                    <input type="number" name="txt_costo_unitario_pv" id="txt_costo_unitario_pv" class="form-control" value="{{ prodvet.costo_unitario_pv|default_if_none:'' }}" placeholder="Ej: 15.50" step="0.01" min="0">
                                     <small class="text-muted">Número decimal positivo.</small>
                                 </div>
                                 <div class="mb-3">
@@ -265,7 +265,7 @@
                         required: true,
                         soloLetras: true,
                         minlength: 1,
-                        maxlength: 50
+                        maxlength: 20
                     },
                     txt_fecha_vencimiento_pv: {
                         fechaFutura: true
@@ -311,7 +311,7 @@
                     txt_unidad_medida_pv: {
                         required: "La unidad de medida es obligatoria",
                         soloLetras: "Solo se permiten letras",
-                        maxlength: "Máximo 50 caracteres"
+                        maxlength: "Máximo 20 caracteres"
                     },
                     txt_fecha_vencimiento_pv: {
                         fechaFutura: "La fecha de vencimiento debe ser futura"
@@ -379,9 +379,9 @@
             $('#txt_unidad_medida_pv').on('input', function() {
                 let valor = $(this).val();
                 let filtrado = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
-                if (filtrado.length > 50) {
-                    filtrado = filtrado.substring(0, 50);
-                    alertaAdvertencia('Límite alcanzado', 'Máximo 50 caracteres para la unidad.');
+                if (filtrado.length > 20) {
+                    filtrado = filtrado.substring(0, 20);
+                    alertaAdvertencia('Límite alcanzado', 'Máximo 20 caracteres para la unidad.');
                 }
                 if (valor !== filtrado) {
                     $(this).val(filtrado);

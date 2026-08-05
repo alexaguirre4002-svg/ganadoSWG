@@ -780,17 +780,63 @@ def listadoprodvet(request):
     })
 
 def guardarprodvet(request):
-    codigo_pv = request.POST['txt_codigo_pv']
-    nombre_pv = request.POST['txt_nombre_pv']
-    tipo_pv = request.POST['txt_tipo_pv']
-    presentacion_pv = request.POST.get('txt_presentacion_pv', '')
-    stock_pv = request.POST['txt_stock_pv']
-    stock_minimo_pv = request.POST.get('txt_stock_minimo_pv', 10)
-    unidad_medida_pv = request.POST['txt_unidad_medida_pv']
+    if request.method != 'POST':
+        messages.error(request, "Método no permitido")
+        return redirect('/nuevoprodvet/')
+
+    # Campos obligatorios (uso .get() para no reventar con KeyError/500
+    # si algo llega vacío o el navegador no lo envía)
+    codigo_pv = request.POST.get('txt_codigo_pv', '').strip().upper()
+    nombre_pv = request.POST.get('txt_nombre_pv', '').strip()
+    tipo_pv = request.POST.get('txt_tipo_pv', '').strip()
+    stock_str = request.POST.get('txt_stock_pv', '').strip()
+    unidad_medida_pv = request.POST.get('txt_unidad_medida_pv', '').strip()
+
+    if not codigo_pv or not nombre_pv or not tipo_pv or not stock_str or not unidad_medida_pv:
+        messages.error(request, "Código, nombre, tipo, stock y unidad de medida son obligatorios")
+        return redirect('/nuevoprodvet/')
+
+    # unidad_medida_pv en el modelo tiene max_length=20: si llega más largo,
+    # Django lanza un error de base de datos (500) en vez de un mensaje amigable
+    if len(unidad_medida_pv) > 20:
+        messages.error(request, "La unidad de medida no puede superar 20 caracteres")
+        return redirect('/nuevoprodvet/')
+
+    if ProductoVeterinario.objects.filter(codigo_pv=codigo_pv).exists():
+        messages.error(request, f"Ya existe un producto con el código '{codigo_pv}'")
+        return redirect('/nuevoprodvet/')
+
+    presentacion_pv = request.POST.get('txt_presentacion_pv', '').strip()
+    proveedor_pv = request.POST.get('txt_proveedor_pv', '').strip()
     fecha_vencimiento_pv = request.POST.get('txt_fecha_vencimiento_pv') or None
-    proveedor_pv = request.POST.get('txt_proveedor_pv', '')
-    costo_unitario_pv = request.POST.get('txt_costo_unitario_pv') or None
     activo_pv = request.POST.get('chk_activo_pv') == '1'
+
+    # Campos decimales: se parsean explícitamente para nunca guardar
+    # cadenas inválidas (como "None" o vacío) en un DecimalField
+    try:
+        stock_pv = Decimal(stock_str)
+        if stock_pv < 0:
+            messages.error(request, "El stock no puede ser negativo")
+            return redirect('/nuevoprodvet/')
+    except InvalidOperation:
+        messages.error(request, "El stock debe ser un número válido")
+        return redirect('/nuevoprodvet/')
+
+    stock_minimo_str = request.POST.get('txt_stock_minimo_pv', '').strip()
+    try:
+        stock_minimo_pv = Decimal(stock_minimo_str) if stock_minimo_str else Decimal('10')
+    except InvalidOperation:
+        messages.error(request, "El stock mínimo debe ser un número válido")
+        return redirect('/nuevoprodvet/')
+
+    costo_str = request.POST.get('txt_costo_unitario_pv', '').strip()
+    costo_unitario_pv = None
+    if costo_str and costo_str.lower() != 'none':
+        try:
+            costo_unitario_pv = Decimal(costo_str)
+        except InvalidOperation:
+            messages.error(request, "El costo unitario debe ser un número válido")
+            return redirect('/nuevoprodvet/')
 
     nuevoprodvet = ProductoVeterinario.objects.create(
         codigo_pv=codigo_pv,
@@ -855,18 +901,75 @@ def editarprodvet(request, id_pv):
     return render(request, 'catalogos/salud/prodvet/editar_prodvet.html', {'prodvet': prodvetBdd})
 
 def procesareditarprodvet(request):
-    cam = ProductoVeterinario.objects.get(id_pv=request.POST['id_pv'])
+    if request.method != 'POST':
+        messages.error(request, "Método no permitido")
+        return redirect('/listadoprodvet')
 
-    cam.codigo_pv = request.POST['txt_codigo_pv']
-    cam.nombre_pv = request.POST['txt_nombre_pv']
-    cam.tipo_pv = request.POST['txt_tipo_pv']
-    cam.presentacion_pv = request.POST.get('txt_presentacion_pv', '')
-    cam.stock_pv = request.POST['txt_stock_pv']
-    cam.stock_minimo_pv = request.POST.get('txt_stock_minimo_pv', 10)
-    cam.unidad_medida_pv = request.POST['txt_unidad_medida_pv']
+    id_pv = request.POST.get('id_pv')
+    if not id_pv:
+        messages.error(request, "ID de producto no proporcionado")
+        return redirect('/listadoprodvet')
+
+    cam = get_object_or_404(ProductoVeterinario, id_pv=id_pv)
+
+    codigo_pv = request.POST.get('txt_codigo_pv', '').strip().upper()
+    nombre_pv = request.POST.get('txt_nombre_pv', '').strip()
+    tipo_pv = request.POST.get('txt_tipo_pv', '').strip()
+    stock_str = request.POST.get('txt_stock_pv', '').strip()
+    unidad_medida_pv = request.POST.get('txt_unidad_medida_pv', '').strip()
+
+    if not codigo_pv or not nombre_pv or not tipo_pv or not stock_str or not unidad_medida_pv:
+        messages.error(request, "Código, nombre, tipo, stock y unidad de medida son obligatorios")
+        return redirect(f'/editarprodvet/{id_pv}')
+
+    # unidad_medida_pv en el modelo tiene max_length=20
+    if len(unidad_medida_pv) > 20:
+        messages.error(request, "La unidad de medida no puede superar 20 caracteres")
+        return redirect(f'/editarprodvet/{id_pv}')
+
+    if ProductoVeterinario.objects.filter(codigo_pv=codigo_pv).exclude(id_pv=cam.id_pv).exists():
+        messages.error(request, f"Ya existe otro producto con el código '{codigo_pv}'")
+        return redirect(f'/editarprodvet/{id_pv}')
+
+    # Campos decimales: se parsean explícitamente. Esto es lo que evita el
+    # error 500 al editar un producto cuyo costo_unitario_pv es NULL: antes,
+    # el HTML renderizaba el texto literal "None" en el campo, y ese texto
+    # se intentaba guardar directo en un DecimalField sin validar.
+    try:
+        stock_pv = Decimal(stock_str)
+        if stock_pv < 0:
+            messages.error(request, "El stock no puede ser negativo")
+            return redirect(f'/editarprodvet/{id_pv}')
+    except InvalidOperation:
+        messages.error(request, "El stock debe ser un número válido")
+        return redirect(f'/editarprodvet/{id_pv}')
+
+    stock_minimo_str = request.POST.get('txt_stock_minimo_pv', '').strip()
+    try:
+        stock_minimo_pv = Decimal(stock_minimo_str) if stock_minimo_str else Decimal('10')
+    except InvalidOperation:
+        messages.error(request, "El stock mínimo debe ser un número válido")
+        return redirect(f'/editarprodvet/{id_pv}')
+
+    costo_str = request.POST.get('txt_costo_unitario_pv', '').strip()
+    costo_unitario_pv = None
+    if costo_str and costo_str.lower() != 'none':
+        try:
+            costo_unitario_pv = Decimal(costo_str)
+        except InvalidOperation:
+            messages.error(request, "El costo unitario debe ser un número válido")
+            return redirect(f'/editarprodvet/{id_pv}')
+
+    cam.codigo_pv = codigo_pv
+    cam.nombre_pv = nombre_pv
+    cam.tipo_pv = tipo_pv
+    cam.presentacion_pv = request.POST.get('txt_presentacion_pv', '').strip()
+    cam.stock_pv = stock_pv
+    cam.stock_minimo_pv = stock_minimo_pv
+    cam.unidad_medida_pv = unidad_medida_pv
     cam.fecha_vencimiento_pv = request.POST.get('txt_fecha_vencimiento_pv') or None
-    cam.proveedor_pv = request.POST.get('txt_proveedor_pv', '')
-    cam.costo_unitario_pv = request.POST.get('txt_costo_unitario_pv') or None
+    cam.proveedor_pv = request.POST.get('txt_proveedor_pv', '').strip()
+    cam.costo_unitario_pv = costo_unitario_pv
     cam.activo_pv = request.POST.get('chk_activo_pv') == '1'
 
     cam.save()
