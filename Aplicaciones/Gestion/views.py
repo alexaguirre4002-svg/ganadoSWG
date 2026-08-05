@@ -1223,6 +1223,47 @@ def listadodietas(request):
         'costo_total_diario': round(costo_total_diario, 2),
     })
 
+def guardardieta(request):
+    codigo_di = request.POST['txt_codigo_di'].strip().upper()
+    nombre_di = request.POST['txt_nombre_di'].strip()
+    categoria_objetivo_di = request.POST['sel_categoria_objetivo_di']
+
+    materia_seca_kg_di = request.POST.get('txt_materia_seca_kg_di', '').replace(',', '.') or None
+    energia_mcal_di = request.POST.get('txt_energia_mcal_di', '').replace(',', '.') or None
+    proteina_cruda_pct_di = request.POST.get('txt_proteina_cruda_pct_di', '').replace(',', '.') or None
+    fibra_cruda_pct_di = request.POST.get('txt_fibra_cruda_pct_di', '').replace(',', '.') or None
+    calcio_pct_di = request.POST.get('txt_calcio_pct_di', '').replace(',', '.') or None
+    fosforo_pct_di = request.POST.get('txt_fosforo_pct_di', '').replace(',', '.') or None
+    costo_diario_estimado_di = request.POST.get('txt_costo_diario_estimado_di', '').replace(',', '.') or None
+
+    activa_di = request.POST.get('chk_activa_di') == '1'
+
+    def to_decimal(val, max_digits=10):
+        if val is None or val == '':
+            return None
+        try:
+            d = Decimal(val)
+            if d >= Decimal('10') ** (max_digits - 2):
+                return None
+            return d
+        except:
+            return None
+
+    try:
+        nueva_dieta = Dieta.objects.create(
+            codigo_di=codigo_di,
+            nombre_di=nombre_di,
+            categoria_objetivo_di=categoria_objetivo_di,
+            materia_seca_kg_di=to_decimal(materia_seca_kg_di, 6),
+            energia_mcal_di=to_decimal(energia_mcal_di, 6),
+            proteina_cruda_pct_di=to_decimal(proteina_cruda_pct_di, 5),
+            fibra_cruda_pct_di=to_decimal(fibra_cruda_pct_di, 5),
+            calcio_pct_di=to_decimal(calcio_pct_di, 5),
+            fosforo_pct_di=to_decimal(fosforo_pct_di, 5),
+            costo_diario_estimado_di=to_decimal(costo_diario_estimado_di, 8),
+            activa_di=activa_di
+        )
+    except Exception as e:
         messages.error(request, f"Error al guardar la dieta: {e}")
         return redirect('/nuevadieta/')
 
@@ -1240,33 +1281,8 @@ def listadodietas(request):
     messages.success(request, "Dieta guardada exitosamente")
     return redirect('/listadodietas/')
 
-def eliminardieta(request, id_di):
-    dietaBdd = get_object_or_404(Dieta, id_di=id_di)
 
-    try:
-        # GUARDAR DATOS ANTES DE ELIMINAR
-        nombre_dieta = dietaBdd.nombre_di
-        id_dieta = dietaBdd.id_di
 
-        dietaBdd.delete()
-
-        # ==========================================
-        # AUDITORÍA
-        # ==========================================
-        guardar_auditoria(
-            request,
-            'eliminar',
-            'Dieta',
-            id_dieta,
-            f'Se eliminó la dieta: {nombre_dieta}'
-        )
-
-        messages.success(request, "Dieta eliminada exitosamente")
-
-    except IntegrityError:
-        messages.error(request, "No se puede eliminar: tiene registros asociados")
-
-    return redirect('/listadodietas/')
 
 def eliminardieta(request, id_di):
     dietaBdd = get_object_or_404(Dieta, id_di=id_di)
