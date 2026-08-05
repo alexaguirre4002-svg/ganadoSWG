@@ -1249,19 +1249,23 @@ def guardardieta(request):
         except:
             return None
 
-    nueva_dieta = Dieta.objects.create(
-        codigo_di=codigo_di,
-        nombre_di=nombre_di,
-        categoria_objetivo_di=categoria_objetivo_di,
-        materia_seca_kg_di=to_decimal(materia_seca_kg_di, 6),
-        energia_mcal_di=to_decimal(energia_mcal_di, 6),
-        proteina_cruda_pct_di=to_decimal(proteina_cruda_pct_di, 5),
-        fibra_cruda_pct_di=to_decimal(fibra_cruda_pct_di, 5),
-        calcio_pct_di=to_decimal(calcio_pct_di, 5),
-        fosforo_pct_di=to_decimal(fosforo_pct_di, 5),
-        costo_diario_estimado_di=to_decimal(costo_diario_estimado_di, 8),
-        activa_di=activa_di
-    )
+    try:
+        nueva_dieta = Dieta.objects.create(
+            codigo_di=codigo_di,
+            nombre_di=nombre_di,
+            categoria_objetivo_di=categoria_objetivo_di,
+            materia_seca_kg_di=to_decimal(materia_seca_kg_di, 6),
+            energia_mcal_di=to_decimal(energia_mcal_di, 6),
+            proteina_cruda_pct_di=to_decimal(proteina_cruda_pct_di, 5),
+            fibra_cruda_pct_di=to_decimal(fibra_cruda_pct_di, 5),
+            calcio_pct_di=to_decimal(calcio_pct_di, 5),
+            fosforo_pct_di=to_decimal(fosforo_pct_di, 5),
+            costo_diario_estimado_di=to_decimal(costo_diario_estimado_di, 8),
+            activa_di=activa_di
+        )
+    except Exception as e:
+        messages.error(request, f"Error al guardar la dieta: {e}")
+        return redirect('/nuevadieta/')
 
     # ==========================================
     # AUDITORÍA
@@ -1275,34 +1279,6 @@ def guardardieta(request):
     )
 
     messages.success(request, "Dieta guardada exitosamente")
-    return redirect('/listadodietas/')
-
-def eliminardieta(request, id_di):
-    dietaBdd = get_object_or_404(Dieta, id_di=id_di)
-
-    try:
-        # GUARDAR DATOS ANTES DE ELIMINAR
-        nombre_dieta = dietaBdd.nombre_di
-        id_dieta = dietaBdd.id_di
-
-        dietaBdd.delete()
-
-        # ==========================================
-        # AUDITORÍA
-        # ==========================================
-        guardar_auditoria(
-            request,
-            'eliminar',
-            'Dieta',
-            id_dieta,
-            f'Se eliminó la dieta: {nombre_dieta}'
-        )
-
-        messages.success(request, "Dieta eliminada exitosamente")
-
-    except IntegrityError:
-        messages.error(request, "No se puede eliminar: tiene registros asociados")
-
     return redirect('/listadodietas/')
 
 def editardieta(request, id_di):
