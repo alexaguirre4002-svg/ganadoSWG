@@ -1280,6 +1280,29 @@ def guardardieta(request):
 
     messages.success(request, "Dieta guardada exitosamente")
     return redirect('/listadodietas/')
+def eliminardieta(request, id_di):
+    dietaBdd = get_object_or_404(Dieta, id_di=id_di)
+
+    try:
+        nombre_dieta = dietaBdd.nombre_di
+        id_dieta = dietaBdd.id_di
+
+        dietaBdd.delete()
+
+        guardar_auditoria(
+            request,
+            'eliminar',
+            'Dieta',
+            id_dieta,
+            f'Se eliminó la dieta: {nombre_dieta}'
+        )
+
+        messages.success(request, "Dieta eliminada exitosamente")
+
+    except IntegrityError:
+        messages.error(request, "No se puede eliminar: tiene registros asociados")
+
+    return redirect('/listadodietas/')
 
 def editardieta(request, id_di):
     dietaBdd = Dieta.objects.get(id_di=id_di)
