@@ -1,4 +1,5 @@
 {% extends "plantilla.html" %}
+{% load l10n %}
 
 <!-- ========================================== -->
 <!-- BLOQUE: TITULO DE LA PAGINA                -->
@@ -135,7 +136,7 @@
                                                name="txt_materia_seca_kg_di" 
                                                id="txt_materia_seca_kg_di" 
                                                class="form-control" 
-                                               value="{{ dieta.materia_seca_kg_di|default:'' }}"
+                                               value="{{ dieta.materia_seca_kg_di|default:''|unlocalize }}"
                                                placeholder="0.00">
                                         <small class="text-muted">Máx 9999.99 kg</small>
                                     </div>
@@ -149,7 +150,7 @@
                                                name="txt_energia_mcal_di" 
                                                id="txt_energia_mcal_di" 
                                                class="form-control" 
-                                               value="{{ dieta.energia_mcal_di|default:'' }}"
+                                               value="{{ dieta.energia_mcal_di|default:''|unlocalize }}"
                                                placeholder="0.00">
                                         <small class="text-muted">Máx 9999.99 Mcal</small>
                                     </div>
@@ -163,7 +164,7 @@
                                                name="txt_proteina_cruda_pct_di" 
                                                id="txt_proteina_cruda_pct_di" 
                                                class="form-control" 
-                                               value="{{ dieta.proteina_cruda_pct_di|default:'' }}"
+                                               value="{{ dieta.proteina_cruda_pct_di|default:''|unlocalize }}"
                                                placeholder="0.00">
                                         <small class="text-muted">Máx 999.99 %</small>
                                     </div>
@@ -179,7 +180,7 @@
                                                name="txt_fibra_cruda_pct_di" 
                                                id="txt_fibra_cruda_pct_di" 
                                                class="form-control" 
-                                               value="{{ dieta.fibra_cruda_pct_di|default:'' }}"
+                                               value="{{ dieta.fibra_cruda_pct_di|default:''|unlocalize }}"
                                                placeholder="0.00">
                                         <small class="text-muted">Máx 999.99 %</small>
                                     </div>
@@ -193,7 +194,7 @@
                                                name="txt_calcio_pct_di" 
                                                id="txt_calcio_pct_di" 
                                                class="form-control" 
-                                               value="{{ dieta.calcio_pct_di|default:'' }}"
+                                               value="{{ dieta.calcio_pct_di|default:''|unlocalize }}"
                                                placeholder="0.00">
                                         <small class="text-muted">Máx 999.99 %</small>
                                     </div>
@@ -207,7 +208,7 @@
                                                name="txt_fosforo_pct_di" 
                                                id="txt_fosforo_pct_di" 
                                                class="form-control" 
-                                               value="{{ dieta.fosforo_pct_di|default:'' }}"
+                                               value="{{ dieta.fosforo_pct_di|default:''|unlocalize }}"
                                                placeholder="0.00">
                                         <small class="text-muted">Máx 999.99 %</small>
                                     </div>
@@ -228,7 +229,7 @@
                                        name="txt_costo_diario_estimado_di" 
                                        id="txt_costo_diario_estimado_di" 
                                        class="form-control" 
-                                       value="{{ dieta.costo_diario_estimado_di|default:'' }}"
+                                       value="{{ dieta.costo_diario_estimado_di|default:''|unlocalize }}"
                                        placeholder="0.00">
                             </div>
                             <small class="text-muted">Máximo 999999.99. Use punto (.) como separador decimal.</small>
