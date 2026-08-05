@@ -74,7 +74,7 @@
                                     <label for="txt_stock_pv">
                                         <i class="bi bi-boxes me-1"></i>Stock <span class="text-danger">*</span>
                                     </label>
-                                    <input type="number" name="txt_stock_pv" id="txt_stock_pv" class="form-control" value="{{ prodvet.stock_pv|default_if_none:'' }}" placeholder="Ej: 100" step="0.01" min="0" required>
+                                    <input type="number" name="txt_stock_pv" id="txt_stock_pv" class="form-control" value="{{ prodvet.stock_pv|default_if_none:''|stringformat:'s' }}" placeholder="Ej: 100" step="0.01" min="0" required>
                                     <small class="text-muted">Número decimal positivo.</small>
                                 </div>
                             </div>
@@ -83,7 +83,7 @@
                                     <label for="txt_stock_minimo_pv">
                                         <i class="bi bi-bell me-1"></i>Stock mínimo
                                     </label>
-                                    <input type="number" name="txt_stock_minimo_pv" id="txt_stock_minimo_pv" class="form-control" value="{{ prodvet.stock_minimo_pv|default_if_none:'' }}" placeholder="Ej: 10" step="0.01" min="0">
+                                    <input type="number" name="txt_stock_minimo_pv" id="txt_stock_minimo_pv" class="form-control" value="{{ prodvet.stock_minimo_pv|default_if_none:''|stringformat:'s' }}" placeholder="Ej: 10" step="0.01" min="0">
                                     <small class="text-muted">Número decimal positivo.</small>
                                 </div>
                                 <div class="mb-3">
@@ -111,7 +111,7 @@
                                     <label for="txt_costo_unitario_pv">
                                         <i class="bi bi-currency-dollar me-1"></i>Costo unitario
                                     </label>
-                                    <input type="number" name="txt_costo_unitario_pv" id="txt_costo_unitario_pv" class="form-control" value="{{ prodvet.costo_unitario_pv|default_if_none:'' }}" placeholder="Ej: 15.50" step="0.01" min="0">
+                                    <input type="number" name="txt_costo_unitario_pv" id="txt_costo_unitario_pv" class="form-control" value="{{ prodvet.costo_unitario_pv|default_if_none:''|stringformat:'s' }}" placeholder="Ej: 15.50" step="0.01" min="0">
                                     <small class="text-muted">Número decimal positivo.</small>
                                 </div>
                                 <div class="mb-3">
