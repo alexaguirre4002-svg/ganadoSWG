@@ -231,7 +231,7 @@
                                        value="{{ dieta.costo_diario_estimado_di|default:'' }}"
                                        placeholder="0.00">
                             </div>
-                            <small class="text-muted">Máximo 999999.99. Use punto o coma decimal.</small>
+                            <small class="text-muted">Máximo 999999.99. Use punto (.) como separador decimal.</small>
                         </div>
 
                         <!-- ========================================== -->
@@ -362,21 +362,21 @@
 
         jQuery.validator.addMethod("decimalNutricional6", function(value, element) {
             if (this.optional(element)) return true;
-            let val = parseFloat(value.replace(',', '.'));
-            return /^\d+([.,]\d{1,2})?$/.test(value) && val >= 0 && val < 10000;
-        }, "Debe ser entre 0 y 9999.99, máx 2 decimales");
+            let val = parseFloat(value);
+            return /^\d+(\.\d{1,2})?$/.test(value) && val >= 0 && val < 10000;
+        }, "Debe ser entre 0 y 9999.99, máx 2 decimales, use punto");
 
         jQuery.validator.addMethod("decimalPorcentaje", function(value, element) {
             if (this.optional(element)) return true;
-            let val = parseFloat(value.replace(',', '.'));
-            return /^\d+([.,]\d{1,2})?$/.test(value) && val >= 0 && val < 1000;
-        }, "Debe ser entre 0 y 999.99, máx 2 decimales");
+            let val = parseFloat(value);
+            return /^\d+(\.\d{1,2})?$/.test(value) && val >= 0 && val < 1000;
+        }, "Debe ser entre 0 y 999.99, máx 2 decimales, use punto");
 
         jQuery.validator.addMethod("decimalCosto", function(value, element) {
             if (this.optional(element)) return true;
-            let val = parseFloat(value.replace(',', '.'));
-            return /^\d+([.,]\d{1,2})?$/.test(value) && val >= 0 && val < 1000000;
-        }, "Debe ser entre 0 y 999999.99, máx 2 decimales");
+            let val = parseFloat(value);
+            return /^\d+(\.\d{1,2})?$/.test(value) && val >= 0 && val < 1000000;
+        }, "Debe ser entre 0 y 999999.99, máx 2 decimales, use punto");
 
         $(document).ready(function() {
             $("#frm_editar_dieta").validate({
@@ -435,25 +435,25 @@
                         required: "Seleccione la categoría objetivo"
                     },
                     txt_materia_seca_kg_di: {
-                        decimalNutricional6: "Valor inválido (0 - 9999.99, máx 2 decimales)"
+                        decimalNutricional6: "Valor inválido (0 - 9999.99, máx 2 decimales, use punto)"
                     },
                     txt_energia_mcal_di: {
-                        decimalNutricional6: "Valor inválido (0 - 9999.99, máx 2 decimales)"
+                        decimalNutricional6: "Valor inválido (0 - 9999.99, máx 2 decimales, use punto)"
                     },
                     txt_proteina_cruda_pct_di: {
-                        decimalPorcentaje: "Valor inválido (0 - 999.99, máx 2 decimales)"
+                        decimalPorcentaje: "Valor inválido (0 - 999.99, máx 2 decimales, use punto)"
                     },
                     txt_fibra_cruda_pct_di: {
-                        decimalPorcentaje: "Valor inválido (0 - 999.99, máx 2 decimales)"
+                        decimalPorcentaje: "Valor inválido (0 - 999.99, máx 2 decimales, use punto)"
                     },
                     txt_calcio_pct_di: {
-                        decimalPorcentaje: "Valor inválido (0 - 999.99, máx 2 decimales)"
+                        decimalPorcentaje: "Valor inválido (0 - 999.99, máx 2 decimales, use punto)"
                     },
                     txt_fosforo_pct_di: {
-                        decimalPorcentaje: "Valor inválido (0 - 999.99, máx 2 decimales)"
+                        decimalPorcentaje: "Valor inválido (0 - 999.99, máx 2 decimales, use punto)"
                     },
                     txt_costo_diario_estimado_di: {
-                        decimalCosto: "Valor inválido (0 - 999999.99, máx 2 decimales)"
+                        decimalCosto: "Valor inválido (0 - 999999.99, máx 2 decimales, use punto)"
                     }
                 },
                 errorElement: "span",
@@ -509,8 +509,8 @@
             // BLOQUEO EN TIEMPO REAL - DECIMALES NUTRICIONALES
             function validarDecimalNutricional(input, maxEnteros, maxDecimales) {
                 let valor = input.val();
-                let filtrado = valor.replace(/[^\d\.,]/g, '');
-                let partes = filtrado.split(/[\.,]/);
+                let filtrado = valor.replace(/[^\d\.]/g, '');
+                let partes = filtrado.split('.');
                 
                 if (partes.length > 2) {
                     filtrado = partes[0] + '.' + partes.slice(1).join('');
