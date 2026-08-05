@@ -1249,23 +1249,19 @@ def guardardieta(request):
         except:
             return None
 
-    try:
-        nueva_dieta = Dieta.objects.create(
-            codigo_di=codigo_di,
-            nombre_di=nombre_di,
-            categoria_objetivo_di=categoria_objetivo_di,
-            materia_seca_kg_di=to_decimal(materia_seca_kg_di, 6),
-            energia_mcal_di=to_decimal(energia_mcal_di, 6),
-            proteina_cruda_pct_di=to_decimal(proteina_cruda_pct_di, 5),
-            fibra_cruda_pct_di=to_decimal(fibra_cruda_pct_di, 5),
-            calcio_pct_di=to_decimal(calcio_pct_di, 5),
-            fosforo_pct_di=to_decimal(fosforo_pct_di, 5),
-            costo_diario_estimado_di=to_decimal(costo_diario_estimado_di, 8),
-            activa_di=activa_di
-        )
-    except Exception as e:
-        messages.error(request, f"Error al guardar la dieta: {e}")
-        return redirect('/nuevadieta/')
+    nueva_dieta = Dieta.objects.create(
+        codigo_di=codigo_di,
+        nombre_di=nombre_di,
+        categoria_objetivo_di=categoria_objetivo_di,
+        materia_seca_kg_di=to_decimal(materia_seca_kg_di, 6),
+        energia_mcal_di=to_decimal(energia_mcal_di, 6),
+        proteina_cruda_pct_di=to_decimal(proteina_cruda_pct_di, 5),
+        fibra_cruda_pct_di=to_decimal(fibra_cruda_pct_di, 5),
+        calcio_pct_di=to_decimal(calcio_pct_di, 5),
+        fosforo_pct_di=to_decimal(fosforo_pct_di, 5),
+        costo_diario_estimado_di=to_decimal(costo_diario_estimado_di, 8),
+        activa_di=activa_di
+    )
 
     # ==========================================
     # AUDITORÍA
