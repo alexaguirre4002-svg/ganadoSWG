@@ -1224,9 +1224,17 @@ def listadodietas(request):
     })
 
 def guardardieta(request):
-    codigo_di = request.POST['txt_codigo_di'].strip().upper()
-    nombre_di = request.POST['txt_nombre_di'].strip()
-    categoria_objetivo_di = request.POST['sel_categoria_objetivo_di']
+    codigo_di = request.POST.get('txt_codigo_di', '').strip().upper()
+    nombre_di = request.POST.get('txt_nombre_di', '').strip()
+    categoria_objetivo_di = request.POST.get('sel_categoria_objetivo_di', '').strip()
+
+    if not codigo_di or not nombre_di or not categoria_objetivo_di:
+        messages.error(request, "Código, nombre y categoría objetivo son obligatorios")
+        return redirect('/listadodietas/')
+
+    if Dieta.objects.filter(codigo_di=codigo_di).exists():
+        messages.error(request, f"Ya existe una dieta con el código {codigo_di}")
+        return redirect('/listadodietas/')
 
     materia_seca_kg_di = request.POST.get('txt_materia_seca_kg_di', '').replace(',', '.') or None
     energia_mcal_di = request.POST.get('txt_energia_mcal_di', '').replace(',', '.') or None
@@ -1249,23 +1257,24 @@ def guardardieta(request):
         except:
             return None
 
-    nueva_dieta = Dieta.objects.create(
-        codigo_di=codigo_di,
-        nombre_di=nombre_di,
-        categoria_objetivo_di=categoria_objetivo_di,
-        materia_seca_kg_di=to_decimal(materia_seca_kg_di, 6),
-        energia_mcal_di=to_decimal(energia_mcal_di, 6),
-        proteina_cruda_pct_di=to_decimal(proteina_cruda_pct_di, 5),
-        fibra_cruda_pct_di=to_decimal(fibra_cruda_pct_di, 5),
-        calcio_pct_di=to_decimal(calcio_pct_di, 5),
-        fosforo_pct_di=to_decimal(fosforo_pct_di, 5),
-        costo_diario_estimado_di=to_decimal(costo_diario_estimado_di, 8),
-        activa_di=activa_di
-    )
+    try:
+        nueva_dieta = Dieta.objects.create(
+            codigo_di=codigo_di,
+            nombre_di=nombre_di,
+            categoria_objetivo_di=categoria_objetivo_di,
+            materia_seca_kg_di=to_decimal(materia_seca_kg_di, 6),
+            energia_mcal_di=to_decimal(energia_mcal_di, 6),
+            proteina_cruda_pct_di=to_decimal(proteina_cruda_pct_di, 5),
+            fibra_cruda_pct_di=to_decimal(fibra_cruda_pct_di, 5),
+            calcio_pct_di=to_decimal(calcio_pct_di, 5),
+            fosforo_pct_di=to_decimal(fosforo_pct_di, 5),
+            costo_diario_estimado_di=to_decimal(costo_diario_estimado_di, 8),
+            activa_di=activa_di
+        )
+    except IntegrityError:
+        messages.error(request, f"Ya existe una dieta con el código {codigo_di}")
+        return redirect('/listadodietas/')
 
-    # ==========================================
-    # AUDITORÍA
-    # ==========================================
     guardar_auditoria(
         request,
         'crear',
@@ -1276,7 +1285,6 @@ def guardardieta(request):
 
     messages.success(request, "Dieta guardada exitosamente")
     return redirect('/listadodietas/')
-
 
 
 
