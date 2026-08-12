@@ -53,34 +53,34 @@
             <td class="text-center">
                 {% if calidad.grasa_pct_cl %}
                     {{ calidad.grasa_pct_cl }}
-                    {% if calidad.grasa_pct_cl < 3 %}⚠{% endif %}
+                    {% if calidad.grasa_pct_cl < 3 %}*{% endif %}
                 {% else %}—{% endif %}
             </td>
             <td class="text-center">
                 {% if calidad.proteina_pct_cl %}
                     {{ calidad.proteina_pct_cl }}
-                    {% if calidad.proteina_pct_cl < 2.8 %}⚠{% endif %}
+                    {% if calidad.proteina_pct_cl < 2.8 %}*{% endif %}
                 {% else %}—{% endif %}
             </td>
             <td class="text-center">
                 {% if calidad.ccs_cl %}
                     {{ calidad.ccs_cl }}
-                    {% if calidad.ccs_cl > 200000 %}⚠{% endif %}
+                    {% if calidad.ccs_cl > 200000 %}*{% endif %}
                 {% else %}—{% endif %}
             </td>
             <td class="text-center">
                 {% if calidad.ufc_cl %}
                     {{ calidad.ufc_cl }}
-                    {% if calidad.ufc_cl > 100000 %}⚠{% endif %}
+                    {% if calidad.ufc_cl > 100000 %}*{% endif %}
                 {% else %}—{% endif %}
             </td>
             <td>
                 {% if calidad.resultado_cl == 'apto' %}
-                    <span style="color:#28a745;">✓ Apto</span>
+                    Apto
                 {% elif calidad.resultado_cl == 'no_apto' %}
-                    <span style="color:#dc3545;">✗ No apto</span>
+                    No apto
                 {% elif calidad.resultado_cl == 'pendiente' %}
-                    <span style="color:#ffc107;">⏳ Pendiente</span>
+                    Pendiente
                 {% else %}—{% endif %}
             </td>
             <td>{{ calidad.laboratorio_cl|default:"—" }}</td>
@@ -93,12 +93,20 @@
     </tbody>
 </table>
 
-<!-- Resumen de totales -->
-<div class="resumen-reporte">
+<!-- Resumen de totales - SIN ICONOS -->
+<div class="resumen-reporte" style="margin-top: 20px; padding: 15px; background: #f8f9f5; border: 1px solid #d4c5a9; border-radius: 6px;">
     <p><strong>Resumen del reporte:</strong></p>
-    <ul>
+    <ul style="list-style: none; padding-left: 0; display: flex; flex-wrap: wrap; gap: 20px;">
         <li><strong>Total de análisis:</strong> {{ total_resultados }}</li>
-        <li><strong>Fecha de generación:</strong> {{ fecha_generacion|date:"d/m/Y H:i" }}</li>
+        <li><strong>Aptos:</strong> {{ aptos }}</li>
+        <li><strong>No aptos:</strong> {{ no_aptos }}</li>
+        <li><strong>Pendientes:</strong> {{ pendientes }}</li>
+        <li><strong>Grasa promedio:</strong> {{ promedio_grasa }}%</li>
+        <li><strong>Proteína promedio:</strong> {{ promedio_proteina }}%</li>
+        <li><strong>CCS promedio:</strong> {{ promedio_ccs }}</li>
+        <li><strong>Alertas sanitarias:</strong> {{ total_alertas }}</li>
+        <li><strong>Costo total:</strong> ${{ total_costo }}</li>
+        <li><strong>Fecha generación:</strong> {{ fecha_generacion|date:"d/m/Y H:i" }}</li>
     </ul>
 </div>
 {% endblock %}

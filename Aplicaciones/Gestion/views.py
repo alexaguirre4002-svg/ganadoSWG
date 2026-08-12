@@ -13098,6 +13098,10 @@ def exportarentregas_csv(request):
 # CALIDAD DE LECHE - FILTROS Y REPORTES
 # ==========================================
 
+from django.db.models import Q, Sum, Avg
+from django.core.paginator import Paginator
+from datetime import date, timedelta, datetime
+
 def _construir_queryset_calidad(request):
     """
     Aplica todos los filtros del listado de calidad de leche sobre el queryset.
@@ -13114,7 +13118,6 @@ def _construir_queryset_calidad(request):
 
     calidad_query = CalidadLeche.objects.all().select_related('fk_an', 'fk_us_cl')
 
-    # Búsqueda por animal o laboratorio
     if search:
         calidad_query = calidad_query.filter(
             Q(fk_an__codigo_an__icontains=search) |
@@ -13122,38 +13125,44 @@ def _construir_queryset_calidad(request):
             Q(laboratorio_cl__icontains=search)
         )
 
-    # Filtro por animal específico
     if fk_an:
-        calidad_query = calidad_query.filter(fk_an_id=fk_an)
+        try:
+            calidad_query = calidad_query.filter(fk_an_id=int(fk_an))
+        except ValueError:
+            pass
 
-    # Filtro por resultado
     if resultado_cl:
         calidad_query = calidad_query.filter(resultado_cl=resultado_cl)
 
-    # Filtro por alertas sanitarias (CCS > 200,000 o UFC > 100,000)
     if solo_alertas == '1':
         calidad_query = calidad_query.filter(
             Q(ccs_cl__gt=200000) | Q(ufc_cl__gt=100000)
         )
 
-    # Filtro por rango de fechas
     hoy = date.today()
     if rango_fecha == 'hoy':
         calidad_query = calidad_query.filter(fecha_muestreo_cl=hoy)
     elif rango_fecha == 'semana':
         inicio_semana = hoy - timedelta(days=hoy.weekday())
-        calidad_query = calidad_query.filter(fecha_muestreo_cl__gte=inicio_semana, fecha_muestreo_cl__lte=hoy)
+        calidad_query = calidad_query.filter(
+            fecha_muestreo_cl__gte=inicio_semana,
+            fecha_muestreo_cl__lte=hoy
+        )
     elif rango_fecha == 'mes':
-        calidad_query = calidad_query.filter(fecha_muestreo_cl__year=hoy.year, fecha_muestreo_cl__month=hoy.month)
+        calidad_query = calidad_query.filter(
+            fecha_muestreo_cl__year=hoy.year,
+            fecha_muestreo_cl__month=hoy.month
+        )
     elif rango_fecha == 'anio':
-        calidad_query = calidad_query.filter(fecha_muestreo_cl__year=hoy.year)
+        calidad_query = calidad_query.filter(
+            fecha_muestreo_cl__year=hoy.year
+        )
     elif rango_fecha == 'personalizado':
         if fecha_desde:
             calidad_query = calidad_query.filter(fecha_muestreo_cl__gte=fecha_desde)
         if fecha_hasta:
             calidad_query = calidad_query.filter(fecha_muestreo_cl__lte=fecha_hasta)
 
-    # Ordenamiento
     ordenes_validos = {
         'reciente': '-fecha_muestreo_cl',
         'antiguo': 'fecha_muestreo_cl',
@@ -13167,18 +13176,13 @@ def _construir_queryset_calidad(request):
 
 def listacalidadl(request):
     """
-    Muestra el listado completo de análisis de calidad de leche con filtros avanzados,
-    búsqueda, estadísticas y exportación de reportes.
+    Muestra el listado completo de análisis de calidad de leche con filtros avanzados.
     """
-    # ==========================================
-    # ESTADÍSTICAS GENERALES
-    # ==========================================
     total_analisis = CalidadLeche.objects.count()
     total_apto = CalidadLeche.objects.filter(resultado_cl='apto').count()
     total_no_apto = CalidadLeche.objects.filter(resultado_cl='no_apto').count()
     total_pendiente = CalidadLeche.objects.filter(resultado_cl='pendiente').count()
 
-    # Promedios generales
     promedio_grasa_general = CalidadLeche.objects.filter(
         grasa_pct_cl__isnull=False
     ).aggregate(prom=Avg('grasa_pct_cl'))['prom'] or 0
@@ -13195,28 +13199,21 @@ def listacalidadl(request):
         costo_analisis_cl__isnull=False
     ).aggregate(total=Sum('costo_analisis_cl'))['total'] or 0
 
-    # Alertas generales
     alertas_ccs_general = CalidadLeche.objects.filter(ccs_cl__gt=200000).count()
     alertas_ufc_general = CalidadLeche.objects.filter(ufc_cl__gt=100000).count()
     total_alertas_general = alertas_ccs_general + alertas_ufc_general
 
-    # Animales para el filtro
     animales_calidad = CalidadLeche.objects.values_list(
         'fk_an_id', 'fk_an__codigo_an', 'fk_an__nombre_an'
     ).distinct().order_by('fk_an__codigo_an')
 
-    # ==========================================
-    # APLICAR FILTROS
-    # ==========================================
     calidad_query = _construir_queryset_calidad(request)
 
-    # Totales del resultado filtrado
     total_filtrado = calidad_query.count()
-    
     apto_filtrado = calidad_query.filter(resultado_cl='apto').count()
     no_apto_filtrado = calidad_query.filter(resultado_cl='no_apto').count()
     pendiente_filtrado = calidad_query.filter(resultado_cl='pendiente').count()
-    
+
     promedio_grasa_filtrado = calidad_query.filter(
         grasa_pct_cl__isnull=False
     ).aggregate(prom=Avg('grasa_pct_cl'))['prom'] or 0
@@ -13237,14 +13234,10 @@ def listacalidadl(request):
     alertas_ufc_filtrado = calidad_query.filter(ufc_cl__gt=100000).count()
     total_alertas_filtrado = alertas_ccs_filtrado + alertas_ufc_filtrado
 
-    # ==========================================
-    # PAGINACIÓN
-    # ==========================================
     paginator = Paginator(calidad_query, 20)
     page_number = request.GET.get('page', 1)
     calidad_list = paginator.get_page(page_number)
 
-    # Calcular alertas para los registros paginados
     for calidad in calidad_list:
         calidad.alerta_ccs = calidad.ccs_cl and calidad.ccs_cl > 200000
         calidad.alerta_ufc = calidad.ufc_cl and calidad.ufc_cl > 100000
@@ -13284,23 +13277,55 @@ def reportecalidad_imprimir(request):
     Vista de solo lectura, sin paginación, con todos los análisis que
     cumplen los filtros actuales, lista para imprimir.
     """
-    calidad_query = _construir_queryset_calidad(request)
+    try:
+        calidad_query = _construir_queryset_calidad(request)
+        
+        total_analisis = calidad_query.count()
+        aptos = calidad_query.filter(resultado_cl='apto').count()
+        no_aptos = calidad_query.filter(resultado_cl='no_apto').count()
+        pendientes = calidad_query.filter(resultado_cl='pendiente').count()
+        
+        promedio_grasa = calidad_query.filter(
+            grasa_pct_cl__isnull=False
+        ).aggregate(prom=Avg('grasa_pct_cl'))['prom'] or 0
+        
+        promedio_proteina = calidad_query.filter(
+            proteina_pct_cl__isnull=False
+        ).aggregate(prom=Avg('proteina_pct_cl'))['prom'] or 0
+        
+        promedio_ccs = calidad_query.filter(
+            ccs_cl__isnull=False
+        ).aggregate(prom=Avg('ccs_cl'))['prom'] or 0
+        
+        total_costo = calidad_query.filter(
+            costo_analisis_cl__isnull=False
+        ).aggregate(total=Sum('costo_analisis_cl'))['total'] or 0
+        
+        alertas_ccs = calidad_query.filter(ccs_cl__gt=200000).count()
+        alertas_ufc = calidad_query.filter(ufc_cl__gt=100000).count()
+        total_alertas = alertas_ccs + alertas_ufc
 
-    total_litros = calidad_query.aggregate(
-        total=Sum('litros_totales_el')
-    )['total'] or 0
-
-    return render(request, 'catalogos/produccion/calidadL/reporte_calidad_imprimir.html', {
-        'calidades': calidad_query,
-        'total_resultados': calidad_query.count(),
-        'fecha_generacion': datetime.now(),
-    })
+        return render(request, 'catalogos/produccion/calidadL/reporte_calidad_imprimir.html', {
+            'calidades': calidad_query,
+            'total_resultados': total_analisis,
+            'aptos': aptos,
+            'no_aptos': no_aptos,
+            'pendientes': pendientes,
+            'promedio_grasa': round(promedio_grasa, 2),
+            'promedio_proteina': round(promedio_proteina, 2),
+            'promedio_ccs': round(promedio_ccs, 0),
+            'total_costo': round(total_costo, 2),
+            'total_alertas': total_alertas,
+            'fecha_generacion': datetime.now(),
+        })
+    except Exception as e:
+        messages.error(request, f"Error al generar el reporte: {str(e)}")
+        return redirect('/listacalidadl/')
 
 
 def exportarcalidad_excel(request):
     """
-    Descarga en Excel (.xlsx) de los análisis de calidad que cumplen los filtros
-    actualmente aplicados en el listado.
+    Descarga en Excel (.xlsx) de los análisis de calidad.
     """
     import openpyxl
     from openpyxl.styles import Font, PatternFill, Alignment
@@ -13354,7 +13379,7 @@ def exportarcalidad_excel(request):
 
 def exportarcalidad_csv(request):
     """
-    Descarga en CSV de los análisis de calidad que cumplen los filtros actuales.
+    Descarga en CSV de los análisis de calidad.
     """
     import csv
 
