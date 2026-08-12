@@ -14322,18 +14322,22 @@ def reporteevento_imprimir(request):
     Vista de solo lectura, sin paginación, con todos los eventos que
     cumplen los filtros actuales, lista para imprimir.
     """
-    eventos_query = _construir_queryset_eventos(request)
-    
-    costo_total = eventos_query.filter(
-        estado_es='ejecutado'
-    ).aggregate(total=Sum('costo_es'))['total'] or 0
+    try:
+        eventos_query = _construir_queryset_eventos(request)
+        
+        costo_total = eventos_query.filter(
+            estado_es='ejecutado'
+        ).aggregate(total=Sum('costo_es'))['total'] or 0
 
-    return render(request, 'catalogos/animal/eventosS/reporte_evento_imprimir.html', {
-        'eventos': eventos_query,
-        'total_resultados': eventos_query.count(),
-        'costo_total': round(costo_total, 2),
-        'fecha_generacion': datetime.now(),
-    })
+        return render(request, 'catalogos/animal/eventosS/reporte_evento_imprimir.html', {
+            'eventos': eventos_query,
+            'total_resultados': eventos_query.count(),
+            'costo_total': round(costo_total, 2),
+            'fecha_generacion': datetime.now(),
+        })
+    except Exception as e:
+        messages.error(request, f"Error al generar el reporte: {str(e)}")
+        return redirect('/listaeventosanitario/')
 
 
 def exportarevento_excel(request):
@@ -14362,24 +14366,76 @@ def exportarevento_excel(request):
         celda.alignment = Alignment(horizontal='center')
 
     for e in eventos_query:
+        # Tipo de evento con texto
+        tipo_texto = ''
+        if e.tipo_evento_es == 'vacunacion':
+            tipo_texto = 'Vacunación'
+        elif e.tipo_evento_es == 'desparasitacion':
+            tipo_texto = 'Desparasitación'
+        elif e.tipo_evento_es == 'vitaminacion':
+            tipo_texto = 'Vitaminación'
+        elif e.tipo_evento_es == 'prueba_tuberculosis':
+            tipo_texto = 'Prueba tuberculosis'
+        elif e.tipo_evento_es == 'prueba_brucelosis':
+            tipo_texto = 'Prueba brucelosis'
+        else:
+            tipo_texto = 'Otro'
+
+        # Estado con texto
+        estado_texto = ''
+        if e.estado_es == 'pendiente':
+            estado_texto = 'Pendiente'
+        elif e.estado_es == 'ejecutado':
+            estado_texto = 'Ejecutado'
+        elif e.estado_es == 'cancelado':
+            estado_texto = 'Cancelado'
+        elif e.estado_es == 'pospuesto':
+            estado_texto = 'Pospuesto'
+        else:
+            estado_texto = e.estado_es or ''
+
+        # Vía administración con texto
+        via_texto = ''
+        if e.via_administracion_es:
+            if e.via_administracion_es == 'oral':
+                via_texto = 'Oral'
+            elif e.via_administracion_es == 'subcutanea':
+                via_texto = 'Subcutánea'
+            elif e.via_administracion_es == 'intramuscular':
+                via_texto = 'Intramuscular'
+            elif e.via_administracion_es == 'intravenosa':
+                via_texto = 'Intravenosa'
+            elif e.via_administracion_es == 'topica':
+                via_texto = 'Tópica'
+            else:
+                via_texto = e.via_administracion_es
+
         hoja.append([
             e.id_es,
             e.fk_an.codigo_an if e.fk_an else '',
-            e.get_tipo_evento_es_display(),
-            e.get_estado_es_display(),
+            tipo_texto,
+            estado_texto,
             e.fecha_programada_es.strftime('%d/%m/%Y') if e.fecha_programada_es else '',
             e.fecha_ejecutada_es.strftime('%d/%m/%Y') if e.fecha_ejecutada_es else '',
             e.fk_pv.nombre_pv if e.fk_pv else '',
             float(e.dosis_es) if e.dosis_es is not None else '',
-            e.get_via_administracion_es_display() if e.via_administracion_es else '',
+            via_texto,
             e.veterinario_responsable_es or '',
             e.resultado_es or '',
             float(e.costo_es) if e.costo_es is not None else '',
             e.fk_us_es.username_us if e.fk_us_es else '',
         ])
 
+    # Ajustar ancho de columnas
     for columna in hoja.columns:
-        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        max_len = 0
+        for celda in columna:
+            if celda.value:
+                try:
+                    if len(str(celda.value)) > max_len:
+                        max_len = len(str(celda.value))
+                except:
+                    pass
         hoja.column_dimensions[columna[0].column_letter].width = max_len + 3
 
     response = HttpResponse(
@@ -14410,16 +14466,60 @@ def exportarevento_csv(request):
         'Resultado', 'Costo', 'Registrado por'
     ])
     for e in eventos_query:
+        # Tipo de evento con texto
+        tipo_texto = ''
+        if e.tipo_evento_es == 'vacunacion':
+            tipo_texto = 'Vacunación'
+        elif e.tipo_evento_es == 'desparasitacion':
+            tipo_texto = 'Desparasitación'
+        elif e.tipo_evento_es == 'vitaminacion':
+            tipo_texto = 'Vitaminación'
+        elif e.tipo_evento_es == 'prueba_tuberculosis':
+            tipo_texto = 'Prueba tuberculosis'
+        elif e.tipo_evento_es == 'prueba_brucelosis':
+            tipo_texto = 'Prueba brucelosis'
+        else:
+            tipo_texto = 'Otro'
+
+        # Estado con texto
+        estado_texto = ''
+        if e.estado_es == 'pendiente':
+            estado_texto = 'Pendiente'
+        elif e.estado_es == 'ejecutado':
+            estado_texto = 'Ejecutado'
+        elif e.estado_es == 'cancelado':
+            estado_texto = 'Cancelado'
+        elif e.estado_es == 'pospuesto':
+            estado_texto = 'Pospuesto'
+        else:
+            estado_texto = e.estado_es or ''
+
+        # Vía administración con texto
+        via_texto = ''
+        if e.via_administracion_es:
+            if e.via_administracion_es == 'oral':
+                via_texto = 'Oral'
+            elif e.via_administracion_es == 'subcutanea':
+                via_texto = 'Subcutánea'
+            elif e.via_administracion_es == 'intramuscular':
+                via_texto = 'Intramuscular'
+            elif e.via_administracion_es == 'intravenosa':
+                via_texto = 'Intravenosa'
+            elif e.via_administracion_es == 'topica':
+                via_texto = 'Tópica'
+            else:
+                via_texto = e.via_administracion_es
+
         writer.writerow([
             e.id_es,
             e.fk_an.codigo_an if e.fk_an else '',
-            e.get_tipo_evento_es_display(),
-            e.get_estado_es_display(),
+            tipo_texto,
+            estado_texto,
             e.fecha_programada_es.strftime('%d/%m/%Y') if e.fecha_programada_es else '',
             e.fecha_ejecutada_es.strftime('%d/%m/%Y') if e.fecha_ejecutada_es else '',
             e.fk_pv.nombre_pv if e.fk_pv else '',
             e.dosis_es if e.dosis_es is not None else '',
-            e.get_via_administracion_es_display() if e.via_administracion_es else '',
+            via_texto,
             e.veterinario_responsable_es or '',
             e.resultado_es or '',
             e.costo_es if e.costo_es is not None else '',
