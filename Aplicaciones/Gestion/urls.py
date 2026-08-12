@@ -227,6 +227,10 @@ urlpatterns = [
     path('reporteentrega/imprimir/', views.reporteentrega_imprimir, name='reporteentrega_imprimir'),
     path('exportarentregas/excel/', views.exportarentregas_excel, name='exportarentregas_excel'),
     path('exportarentregas/csv/', views.exportarentregas_csv, name='exportarentregas_csv'),
+    # REPORTES CALIDAD
+    path('reportecalidad/imprimir/', views.reportecalidad_imprimir, name='reportecalidad_imprimir'),
+    path('exportarcalidad/excel/', views.exportarcalidad_excel, name='exportarcalidad_excel'),
+    path('exportarcalidad/csv/', views.exportarcalidad_csv, name='exportarcalidad_csv'),
 
 ]
 if settings.DEBUG:

@@ -13094,3 +13094,297 @@ def exportarentregas_csv(request):
     writer.writerow(['TOTAL LITROS:', float(total_litros), 'TOTAL MONTO:', float(total_monto)])
 
     return response
+# ==========================================
+# CALIDAD DE LECHE - FILTROS Y REPORTES
+# ==========================================
+
+def _construir_queryset_calidad(request):
+    """
+    Aplica todos los filtros del listado de calidad de leche sobre el queryset.
+    Se usa tanto en el listado como en la exportación/impresión.
+    """
+    search = request.GET.get('search', '')
+    fk_an = request.GET.get('fk_an', '')
+    resultado_cl = request.GET.get('resultado_cl', '')
+    solo_alertas = request.GET.get('solo_alertas', '')
+    rango_fecha = request.GET.get('rango_fecha', '')
+    fecha_desde = request.GET.get('fecha_desde', '')
+    fecha_hasta = request.GET.get('fecha_hasta', '')
+    orden = request.GET.get('orden', 'reciente')
+
+    calidad_query = CalidadLeche.objects.all().select_related('fk_an', 'fk_us_cl')
+
+    # Búsqueda por animal o laboratorio
+    if search:
+        calidad_query = calidad_query.filter(
+            Q(fk_an__codigo_an__icontains=search) |
+            Q(fk_an__nombre_an__icontains=search) |
+            Q(laboratorio_cl__icontains=search)
+        )
+
+    # Filtro por animal específico
+    if fk_an:
+        calidad_query = calidad_query.filter(fk_an_id=fk_an)
+
+    # Filtro por resultado
+    if resultado_cl:
+        calidad_query = calidad_query.filter(resultado_cl=resultado_cl)
+
+    # Filtro por alertas sanitarias (CCS > 200,000 o UFC > 100,000)
+    if solo_alertas == '1':
+        calidad_query = calidad_query.filter(
+            Q(ccs_cl__gt=200000) | Q(ufc_cl__gt=100000)
+        )
+
+    # Filtro por rango de fechas
+    hoy = date.today()
+    if rango_fecha == 'hoy':
+        calidad_query = calidad_query.filter(fecha_muestreo_cl=hoy)
+    elif rango_fecha == 'semana':
+        inicio_semana = hoy - timedelta(days=hoy.weekday())
+        calidad_query = calidad_query.filter(fecha_muestreo_cl__gte=inicio_semana, fecha_muestreo_cl__lte=hoy)
+    elif rango_fecha == 'mes':
+        calidad_query = calidad_query.filter(fecha_muestreo_cl__year=hoy.year, fecha_muestreo_cl__month=hoy.month)
+    elif rango_fecha == 'anio':
+        calidad_query = calidad_query.filter(fecha_muestreo_cl__year=hoy.year)
+    elif rango_fecha == 'personalizado':
+        if fecha_desde:
+            calidad_query = calidad_query.filter(fecha_muestreo_cl__gte=fecha_desde)
+        if fecha_hasta:
+            calidad_query = calidad_query.filter(fecha_muestreo_cl__lte=fecha_hasta)
+
+    # Ordenamiento
+    ordenes_validos = {
+        'reciente': '-fecha_muestreo_cl',
+        'antiguo': 'fecha_muestreo_cl',
+        'animal': 'fk_an__codigo_an',
+        'grasa': '-grasa_pct_cl',
+        'proteina': '-proteina_pct_cl',
+        'resultado': 'resultado_cl',
+    }
+    return calidad_query.order_by(ordenes_validos.get(orden, '-fecha_muestreo_cl'))
+
+
+def listacalidadl(request):
+    """
+    Muestra el listado completo de análisis de calidad de leche con filtros avanzados,
+    búsqueda, estadísticas y exportación de reportes.
+    """
+    # ==========================================
+    # ESTADÍSTICAS GENERALES
+    # ==========================================
+    total_analisis = CalidadLeche.objects.count()
+    total_apto = CalidadLeche.objects.filter(resultado_cl='apto').count()
+    total_no_apto = CalidadLeche.objects.filter(resultado_cl='no_apto').count()
+    total_pendiente = CalidadLeche.objects.filter(resultado_cl='pendiente').count()
+
+    # Promedios generales
+    promedio_grasa_general = CalidadLeche.objects.filter(
+        grasa_pct_cl__isnull=False
+    ).aggregate(prom=Avg('grasa_pct_cl'))['prom'] or 0
+
+    promedio_proteina_general = CalidadLeche.objects.filter(
+        proteina_pct_cl__isnull=False
+    ).aggregate(prom=Avg('proteina_pct_cl'))['prom'] or 0
+
+    promedio_ccs_general = CalidadLeche.objects.filter(
+        ccs_cl__isnull=False
+    ).aggregate(prom=Avg('ccs_cl'))['prom'] or 0
+
+    total_costo_general = CalidadLeche.objects.filter(
+        costo_analisis_cl__isnull=False
+    ).aggregate(total=Sum('costo_analisis_cl'))['total'] or 0
+
+    # Alertas generales
+    alertas_ccs_general = CalidadLeche.objects.filter(ccs_cl__gt=200000).count()
+    alertas_ufc_general = CalidadLeche.objects.filter(ufc_cl__gt=100000).count()
+    total_alertas_general = alertas_ccs_general + alertas_ufc_general
+
+    # Animales para el filtro
+    animales_calidad = CalidadLeche.objects.values_list(
+        'fk_an_id', 'fk_an__codigo_an', 'fk_an__nombre_an'
+    ).distinct().order_by('fk_an__codigo_an')
+
+    # ==========================================
+    # APLICAR FILTROS
+    # ==========================================
+    calidad_query = _construir_queryset_calidad(request)
+
+    # Totales del resultado filtrado
+    total_filtrado = calidad_query.count()
+    
+    apto_filtrado = calidad_query.filter(resultado_cl='apto').count()
+    no_apto_filtrado = calidad_query.filter(resultado_cl='no_apto').count()
+    pendiente_filtrado = calidad_query.filter(resultado_cl='pendiente').count()
+    
+    promedio_grasa_filtrado = calidad_query.filter(
+        grasa_pct_cl__isnull=False
+    ).aggregate(prom=Avg('grasa_pct_cl'))['prom'] or 0
+
+    promedio_proteina_filtrado = calidad_query.filter(
+        proteina_pct_cl__isnull=False
+    ).aggregate(prom=Avg('proteina_pct_cl'))['prom'] or 0
+
+    promedio_ccs_filtrado = calidad_query.filter(
+        ccs_cl__isnull=False
+    ).aggregate(prom=Avg('ccs_cl'))['prom'] or 0
+
+    total_costo_filtrado = calidad_query.filter(
+        costo_analisis_cl__isnull=False
+    ).aggregate(total=Sum('costo_analisis_cl'))['total'] or 0
+
+    alertas_ccs_filtrado = calidad_query.filter(ccs_cl__gt=200000).count()
+    alertas_ufc_filtrado = calidad_query.filter(ufc_cl__gt=100000).count()
+    total_alertas_filtrado = alertas_ccs_filtrado + alertas_ufc_filtrado
+
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(calidad_query, 20)
+    page_number = request.GET.get('page', 1)
+    calidad_list = paginator.get_page(page_number)
+
+    # Calcular alertas para los registros paginados
+    for calidad in calidad_list:
+        calidad.alerta_ccs = calidad.ccs_cl and calidad.ccs_cl > 200000
+        calidad.alerta_ufc = calidad.ufc_cl and calidad.ufc_cl > 100000
+        calidad.alerta_grasa_baja = calidad.grasa_pct_cl and calidad.grasa_pct_cl < 3.0
+        calidad.alerta_proteina_baja = calidad.proteina_pct_cl and calidad.proteina_pct_cl < 2.8
+
+    contexto = {
+        'calidad_list': calidad_list,
+        'total_analisis': total_analisis,
+        'total_apto': total_apto,
+        'total_no_apto': total_no_apto,
+        'total_pendiente': total_pendiente,
+        'promedio_grasa_general': round(promedio_grasa_general, 2),
+        'promedio_proteina_general': round(promedio_proteina_general, 2),
+        'promedio_ccs_general': round(promedio_ccs_general, 0),
+        'total_costo_general': round(total_costo_general, 2),
+        'alertas_ccs_general': alertas_ccs_general,
+        'alertas_ufc_general': alertas_ufc_general,
+        'total_alertas_general': total_alertas_general,
+        'total_filtrado': total_filtrado,
+        'apto_filtrado': apto_filtrado,
+        'no_apto_filtrado': no_apto_filtrado,
+        'pendiente_filtrado': pendiente_filtrado,
+        'promedio_grasa_filtrado': round(promedio_grasa_filtrado, 2),
+        'promedio_proteina_filtrado': round(promedio_proteina_filtrado, 2),
+        'promedio_ccs_filtrado': round(promedio_ccs_filtrado, 0),
+        'total_costo_filtrado': round(total_costo_filtrado, 2),
+        'total_alertas_filtrado': total_alertas_filtrado,
+        'animales_calidad': animales_calidad,
+    }
+
+    return render(request, 'catalogos/produccion/calidadL/lista_calidadl.html', contexto)
+
+
+def reportecalidad_imprimir(request):
+    """
+    Vista de solo lectura, sin paginación, con todos los análisis que
+    cumplen los filtros actuales, lista para imprimir.
+    """
+    calidad_query = _construir_queryset_calidad(request)
+
+    total_litros = calidad_query.aggregate(
+        total=Sum('litros_totales_el')
+    )['total'] or 0
+
+    return render(request, 'catalogos/produccion/calidadL/reporte_calidad_imprimir.html', {
+        'calidades': calidad_query,
+        'total_resultados': calidad_query.count(),
+        'fecha_generacion': datetime.now(),
+    })
+
+
+def exportarcalidad_excel(request):
+    """
+    Descarga en Excel (.xlsx) de los análisis de calidad que cumplen los filtros
+    actualmente aplicados en el listado.
+    """
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+
+    calidad_query = _construir_queryset_calidad(request)
+
+    wb = openpyxl.Workbook()
+    hoja = wb.active
+    hoja.title = 'Calidad de Leche'
+
+    encabezados = [
+        'ID', 'Animal', 'Nombre', 'Categoría', 'Fecha muestreo',
+        'Grasa %', 'Proteína %', 'CCS', 'UFC', 'Resultado',
+        'Laboratorio', 'Costo', 'Registrado por'
+    ]
+    hoja.append(encabezados)
+    for celda in hoja[1]:
+        celda.font = Font(bold=True, color='FFFFFF')
+        celda.fill = PatternFill(start_color='2C5E1A', end_color='2C5E1A', fill_type='solid')
+        celda.alignment = Alignment(horizontal='center')
+
+    for c in calidad_query:
+        hoja.append([
+            c.id_cl,
+            c.fk_an.codigo_an if c.fk_an else '',
+            c.fk_an.nombre_an if c.fk_an else '',
+            c.fk_an.categoria_an if c.fk_an else '',
+            c.fecha_muestreo_cl.strftime('%d/%m/%Y') if c.fecha_muestreo_cl else '',
+            float(c.grasa_pct_cl) if c.grasa_pct_cl is not None else '',
+            float(c.proteina_pct_cl) if c.proteina_pct_cl is not None else '',
+            c.ccs_cl if c.ccs_cl is not None else '',
+            c.ufc_cl if c.ufc_cl is not None else '',
+            c.resultado_cl or '',
+            c.laboratorio_cl or '',
+            float(c.costo_analisis_cl) if c.costo_analisis_cl is not None else '',
+            c.fk_us_cl.username_us if c.fk_us_cl else '',
+        ])
+
+    for columna in hoja.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        hoja.column_dimensions[columna[0].column_letter].width = max_len + 3
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    nombre_archivo = f'calidad_leche_{date.today().strftime("%Y%m%d")}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+    wb.save(response)
+    return response
+
+
+def exportarcalidad_csv(request):
+    """
+    Descarga en CSV de los análisis de calidad que cumplen los filtros actuales.
+    """
+    import csv
+
+    calidad_query = _construir_queryset_calidad(request)
+
+    response = HttpResponse(content_type='text/csv')
+    nombre_archivo = f'calidad_leche_{date.today().strftime("%Y%m%d")}.csv'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'ID', 'Animal', 'Nombre', 'Categoría', 'Fecha muestreo',
+        'Grasa %', 'Proteína %', 'CCS', 'UFC', 'Resultado',
+        'Laboratorio', 'Costo', 'Registrado por'
+    ])
+    for c in calidad_query:
+        writer.writerow([
+            c.id_cl,
+            c.fk_an.codigo_an if c.fk_an else '',
+            c.fk_an.nombre_an if c.fk_an else '',
+            c.fk_an.categoria_an if c.fk_an else '',
+            c.fecha_muestreo_cl.strftime('%d/%m/%Y') if c.fecha_muestreo_cl else '',
+            c.grasa_pct_cl if c.grasa_pct_cl is not None else '',
+            c.proteina_pct_cl if c.proteina_pct_cl is not None else '',
+            c.ccs_cl if c.ccs_cl is not None else '',
+            c.ufc_cl if c.ufc_cl is not None else '',
+            c.resultado_cl or '',
+            c.laboratorio_cl or '',
+            c.costo_analisis_cl if c.costo_analisis_cl is not None else '',
+            c.fk_us_cl.username_us if c.fk_us_cl else '',
+        ])
+
+    return response

@@ -1,0 +1,104 @@
+{% extends "catalogos/reportes/reporte_base_imprimir.html" %}
+{% load filtros_extra %}
+
+{% block titulo %}Reporte de calidad de leche | Hacienda Joseph{% endblock %}
+{% block encabezado_titulo %}Reporte de calidad de leche{% endblock %}
+
+{% block filtros_aplicados %}
+    {% if request.GET.search %}<strong>Búsqueda:</strong> "{{ request.GET.search }}" &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.fk_an %}<strong>Animal:</strong> filtrado &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.resultado_cl %}<strong>Resultado:</strong> {{ request.GET.resultado_cl }} &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.rango_fecha %}<strong>Fecha:</strong>
+        {% if request.GET.rango_fecha == 'hoy' %}Hoy
+        {% elif request.GET.rango_fecha == 'semana' %}Esta semana
+        {% elif request.GET.rango_fecha == 'mes' %}Este mes
+        {% elif request.GET.rango_fecha == 'anio' %}Este año
+        {% elif request.GET.rango_fecha == 'personalizado' %}Del {{ request.GET.fecha_desde }} al {{ request.GET.fecha_hasta }}
+        {% endif %}
+        &nbsp;·&nbsp;
+    {% endif %}
+    {% if request.GET.solo_alertas == '1' %}<strong>Alertas:</strong> Solo registros con alertas sanitarias &nbsp;·&nbsp;{% endif %}
+    {% if not request.GET.search and not request.GET.fk_an and not request.GET.resultado_cl and not request.GET.rango_fecha and not request.GET.solo_alertas %}
+        Ninguno (se muestran todos los análisis registrados)
+    {% endif %}
+{% endblock %}
+
+{% block tabla_reporte %}
+<table class="tabla-reporte">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Animal</th>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Fecha muestreo</th>
+            <th>Grasa %</th>
+            <th>Proteína %</th>
+            <th>CCS</th>
+            <th>UFC</th>
+            <th>Resultado</th>
+            <th>Laboratorio</th>
+            <th>Costo</th>
+            <th>Registrado por</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for calidad in calidades %}
+        <tr>
+            <td>#{{ calidad.id_cl }}</td>
+            <td>{{ calidad.fk_an.codigo_an|default:"—" }}</td>
+            <td>{{ calidad.fk_an.nombre_an|default:"—" }}</td>
+            <td>{{ calidad.fk_an.categoria_an|default:"—" }}</td>
+            <td>{{ calidad.fecha_muestreo_cl|date:"d/m/Y" }}</td>
+            <td class="text-center">
+                {% if calidad.grasa_pct_cl %}
+                    {{ calidad.grasa_pct_cl }}
+                    {% if calidad.grasa_pct_cl < 3 %}⚠{% endif %}
+                {% else %}—{% endif %}
+            </td>
+            <td class="text-center">
+                {% if calidad.proteina_pct_cl %}
+                    {{ calidad.proteina_pct_cl }}
+                    {% if calidad.proteina_pct_cl < 2.8 %}⚠{% endif %}
+                {% else %}—{% endif %}
+            </td>
+            <td class="text-center">
+                {% if calidad.ccs_cl %}
+                    {{ calidad.ccs_cl }}
+                    {% if calidad.ccs_cl > 200000 %}⚠{% endif %}
+                {% else %}—{% endif %}
+            </td>
+            <td class="text-center">
+                {% if calidad.ufc_cl %}
+                    {{ calidad.ufc_cl }}
+                    {% if calidad.ufc_cl > 100000 %}⚠{% endif %}
+                {% else %}—{% endif %}
+            </td>
+            <td>
+                {% if calidad.resultado_cl == 'apto' %}
+                    <span style="color:#28a745;">✓ Apto</span>
+                {% elif calidad.resultado_cl == 'no_apto' %}
+                    <span style="color:#dc3545;">✗ No apto</span>
+                {% elif calidad.resultado_cl == 'pendiente' %}
+                    <span style="color:#ffc107;">⏳ Pendiente</span>
+                {% else %}—{% endif %}
+            </td>
+            <td>{{ calidad.laboratorio_cl|default:"—" }}</td>
+            <td class="text-end">{% if calidad.costo_analisis_cl %}${{ calidad.costo_analisis_cl }}{% else %}—{% endif %}</td>
+            <td>{{ calidad.fk_us_cl.username_us|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="13" style="text-align:center; padding:20px;">No hay análisis de calidad que coincidan con los filtros aplicados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Resumen de totales -->
+<div class="resumen-reporte">
+    <p><strong>Resumen del reporte:</strong></p>
+    <ul>
+        <li><strong>Total de análisis:</strong> {{ total_resultados }}</li>
+        <li><strong>Fecha de generación:</strong> {{ fecha_generacion|date:"d/m/Y H:i" }}</li>
+    </ul>
+</div>
+{% endblock %}
