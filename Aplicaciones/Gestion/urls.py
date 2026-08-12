@@ -223,6 +223,7 @@ urlpatterns = [
     path('reporteordeno/imprimir/', views.reporteordeno_imprimir, name='reporteordeno_imprimir'),
     path('exportarordenos/excel/', views.exportarordenos_excel, name='exportarordenos_excel'),
     path('exportarordenos/csv/', views.exportarordenos_csv, name='exportarordenos_csv'),
+    
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
