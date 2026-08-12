@@ -3,7 +3,7 @@ from decimal import Decimal,InvalidOperation
 from django.db import transaction
 from django.contrib import messages
 from django.db import models
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from .models import Aborto, Animal, AsignacionPotrero, CalidadLeche, Celo, Costo, EntregaLeche, EventoSanitario, Ingreso, Inseminacion, InsumoAlimenticio, LogAuditoria, ModeloML, MovimientoAnimal, Ordeno, Parto, Pesaje, PrediccionML, Prenez, Racion, Raza, Potrero,ProductoVeterinario,Dieta, RegistroClinico, Secado, Usuario  
 from django.db import IntegrityError
@@ -17,6 +17,7 @@ import random,string
 from django.core.files.storage import FileSystemStorage
 from django.db.models import F, Count, Q, Sum, Avg, Max, Min
 from django.core.paginator import Paginator
+
 # ====== NUEVO: IMPORTS PARA CLOUDINARY ======
 import cloudinary
 import cloudinary.uploader
@@ -12418,3 +12419,214 @@ def api_historial_rl4_animal(request, animal_id):
             'exito': False,
             'mensaje': f'Ocurrió un error generando el historial de RL-4: {str(e)}'
         }, status=200)
+
+#REPORTES
+def _construir_queryset_animales(request):
+    """
+    Aplica todos los filtros del listado de animales sobre el queryset.
+    Se usa tanto en el listado como en la exportación/impresión.
+    """
+    search = request.GET.get('search', '')
+    fk_ra = request.GET.get('fk_ra', '')
+    sexo_an = request.GET.get('sexo_an', '')
+    categoria_an = request.GET.get('categoria_an', '')
+    estado_an = request.GET.get('estado_an', '')
+    fk_potrero_an = request.GET.get('fk_potrero_an', '')
+    rango_fecha = request.GET.get('rango_fecha', '')
+    fecha_desde = request.GET.get('fecha_desde', '')
+    fecha_hasta = request.GET.get('fecha_hasta', '')
+    orden = request.GET.get('orden', 'reciente')
+
+    animales_query = Animal.objects.all().select_related(
+        'fk_ra', 'fk_potrero_an', 'fk_madre_an', 'fk_padre_an'
+    )
+
+    if search:
+        animales_query = animales_query.filter(
+            Q(codigo_an__icontains=search) |
+            Q(nombre_an__icontains=search) |
+            Q(fk_ra__nombre_ra__icontains=search) |
+            Q(categoria_an__icontains=search)
+        )
+    if fk_ra:
+        animales_query = animales_query.filter(fk_ra_id=fk_ra)
+    if sexo_an:
+        animales_query = animales_query.filter(sexo_an=sexo_an)
+    if categoria_an:
+        animales_query = animales_query.filter(categoria_an=categoria_an)
+    if estado_an:
+        animales_query = animales_query.filter(estado_an=estado_an)
+    if fk_potrero_an:
+        animales_query = animales_query.filter(fk_potrero_an_id=fk_potrero_an)
+
+    hoy = date.today()
+    if rango_fecha == 'hoy':
+        animales_query = animales_query.filter(fecha_ingreso_an=hoy)
+    elif rango_fecha == '7dias':
+        animales_query = animales_query.filter(fecha_ingreso_an__gte=hoy - timedelta(days=7))
+    elif rango_fecha == '30dias':
+        animales_query = animales_query.filter(fecha_ingreso_an__gte=hoy - timedelta(days=30))
+    elif rango_fecha == 'anio_actual':
+        animales_query = animales_query.filter(fecha_ingreso_an__year=hoy.year)
+    elif rango_fecha == 'personalizado':
+        if fecha_desde:
+            animales_query = animales_query.filter(fecha_ingreso_an__gte=fecha_desde)
+        if fecha_hasta:
+            animales_query = animales_query.filter(fecha_ingreso_an__lte=fecha_hasta)
+
+    ordenes_validos = {
+        'nombre': 'nombre_an',
+        'codigo': 'codigo_an',
+        'fecha_ingreso': '-fecha_ingreso_an',
+        'peso': '-peso_actual_kg_an',
+        'reciente': '-created_at_an',
+    }
+    return animales_query.order_by(ordenes_validos.get(orden, '-created_at_an'))
+
+
+CATEGORIAS_ANIMAL_LABELS = {
+    'ternero': 'Ternero', 'novilla': 'Novilla', 'vaca_leche': 'Vaca leche',
+    'vaca_seca': 'Vaca seca', 'toro': 'Toro', 'torito': 'Torito', 'ceba': 'Ceba',
+}
+ESTADOS_ANIMAL_LABELS = {
+    'activo': 'Activo', 'vendido': 'Vendido', 'muerto': 'Muerto',
+    'faenado': 'Faenado', 'retirado': 'Retirado',
+}
+
+
+def listaanimal(request):
+    """
+    Muestra el listado completo de animales con filtros avanzados,
+    búsqueda, estadísticas y exportación de reportes.
+    """
+    total_animales = Animal.objects.count()
+    total_activos = Animal.objects.filter(estado_an='activo').count()
+    total_terneros = Animal.objects.filter(categoria_an='ternero').count()
+    total_vacas_leche = Animal.objects.filter(categoria_an='vaca_leche').count()
+    total_toros = Animal.objects.filter(categoria_an='toro').count()
+    total_retirados = Animal.objects.filter(estado_an='retirado').count()
+
+    animales_query = _construir_queryset_animales(request)
+
+    paginator = Paginator(animales_query, 20)
+    page_number = request.GET.get('page', 1)
+    animales = paginator.get_page(page_number)
+
+    return render(request, 'catalogos/animal/lista_animal.html', {
+        'animales': animales,
+        'total_animales': total_animales,
+        'total_activos': total_activos,
+        'total_terneros': total_terneros,
+        'total_vacas_leche': total_vacas_leche,
+        'total_toros': total_toros,
+        'total_retirados': total_retirados,
+        'razas_filtro': Raza.objects.filter(activo_ra=True).order_by('nombre_ra'),
+        'potreros_filtro': Potrero.objects.all().order_by('nombre_po'),
+    })
+
+
+def reporteanimal_imprimir(request):
+    """
+    Vista de solo lectura, sin paginación, con todos los animales que
+    cumplen los filtros actuales, lista para imprimir.
+    """
+    animales_query = _construir_queryset_animales(request)
+    return render(request, 'catalogos/animal/reporte_animal_imprimir.html', {
+        'animales': animales_query,
+        'total_resultados': animales_query.count(),
+        'fecha_generacion': datetime.now(),
+        'categorias_labels': CATEGORIAS_ANIMAL_LABELS,
+        'estados_labels': ESTADOS_ANIMAL_LABELS,
+    })
+
+
+def exportaranimales_excel(request):
+    """
+    Descarga en Excel (.xlsx) de los animales que cumplen los filtros
+    actualmente aplicados en el listado.
+    """
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+
+    animales_query = _construir_queryset_animales(request)
+
+    wb = openpyxl.Workbook()
+    hoja = wb.active
+    hoja.title = 'Animales'
+
+    encabezados = [
+        'Código', 'Nombre', 'Raza', 'Sexo', 'Categoría', 'Estado',
+        'Peso nacimiento (kg)', 'Peso actual (kg)', 'Condición corporal',
+        'Potrero', 'Fecha nacimiento', 'Fecha ingreso', 'Fecha salida', 'Motivo salida',
+    ]
+    hoja.append(encabezados)
+    for celda in hoja[1]:
+        celda.font = Font(bold=True, color='FFFFFF')
+        celda.fill = PatternFill(start_color='2C5E1A', end_color='2C5E1A', fill_type='solid')
+        celda.alignment = Alignment(horizontal='center')
+
+    for a in animales_query:
+        hoja.append([
+            a.codigo_an,
+            a.nombre_an or '',
+            a.fk_ra.nombre_ra if a.fk_ra else '',
+            'Macho' if a.sexo_an == 'M' else 'Hembra',
+            CATEGORIAS_ANIMAL_LABELS.get(a.categoria_an, a.categoria_an),
+            ESTADOS_ANIMAL_LABELS.get(a.estado_an, a.estado_an),
+            float(a.peso_nacimiento_kg_an) if a.peso_nacimiento_kg_an else '',
+            float(a.peso_actual_kg_an) if a.peso_actual_kg_an else '',
+            a.condicion_corporal_an or '',
+            a.fk_potrero_an.nombre_po if a.fk_potrero_an else '',
+            a.fecha_nacimiento_an.strftime('%d/%m/%Y') if a.fecha_nacimiento_an else '',
+            a.fecha_ingreso_an.strftime('%d/%m/%Y') if a.fecha_ingreso_an else '',
+            a.fecha_salida_an.strftime('%d/%m/%Y') if a.fecha_salida_an else '',
+            a.motivo_salida_an or '',
+        ])
+
+    for columna in hoja.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        hoja.column_dimensions[columna[0].column_letter].width = max_len + 3
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    nombre_archivo = f'animales_hacienda_joseph_{date.today().strftime("%Y%m%d")}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+    wb.save(response)
+    return response
+
+
+def exportaranimales_csv(request):
+    """
+    Descarga en CSV de los animales que cumplen los filtros actuales.
+    """
+    import csv
+
+    animales_query = _construir_queryset_animales(request)
+
+    response = HttpResponse(content_type='text/csv')
+    nombre_archivo = f'animales_hacienda_joseph_{date.today().strftime("%Y%m%d")}.csv'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'Código', 'Nombre', 'Raza', 'Sexo', 'Categoría', 'Estado',
+        'Peso nacimiento (kg)', 'Peso actual (kg)', 'Condición corporal',
+        'Potrero', 'Fecha nacimiento', 'Fecha ingreso', 'Fecha salida', 'Motivo salida',
+    ])
+    for a in animales_query:
+        writer.writerow([
+            a.codigo_an, a.nombre_an or '',
+            a.fk_ra.nombre_ra if a.fk_ra else '',
+            'Macho' if a.sexo_an == 'M' else 'Hembra',
+            CATEGORIAS_ANIMAL_LABELS.get(a.categoria_an, a.categoria_an),
+            ESTADOS_ANIMAL_LABELS.get(a.estado_an, a.estado_an),
+            a.peso_nacimiento_kg_an or '', a.peso_actual_kg_an or '',
+            a.condicion_corporal_an or '',
+            a.fk_potrero_an.nombre_po if a.fk_potrero_an else '',
+            a.fecha_nacimiento_an.strftime('%d/%m/%Y') if a.fecha_nacimiento_an else '',
+            a.fecha_ingreso_an.strftime('%d/%m/%Y') if a.fecha_ingreso_an else '',
+            a.fecha_salida_an.strftime('%d/%m/%Y') if a.fecha_salida_an else '',
+            a.motivo_salida_an or '',
+        ])
+    return response
