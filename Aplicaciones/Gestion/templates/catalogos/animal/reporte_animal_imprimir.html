@@ -1,0 +1,70 @@
+{% extends "catalogos/reportes/reporte_base_imprimir.html" %}
+{% load filtros_extra %}
+
+{% block titulo %}Reporte de animales | Hacienda Joseph{% endblock %}
+{% block encabezado_titulo %}Reporte de animales{% endblock %}
+
+{% block filtros_aplicados %}
+    {% if request.GET.search %}<strong>Búsqueda:</strong> "{{ request.GET.search }}" &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.fk_ra %}<strong>Raza:</strong> filtrada &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.sexo_an %}<strong>Sexo:</strong> {% if request.GET.sexo_an == "M" %}Macho{% else %}Hembra{% endif %} &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.categoria_an %}<strong>Categoría:</strong> {{ categorias_labels|get_item:request.GET.categoria_an }} &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.estado_an %}<strong>Estado:</strong> {{ estados_labels|get_item:request.GET.estado_an }} &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.fk_potrero_an %}<strong>Potrero:</strong> filtrado &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.rango_fecha %}<strong>Fecha de ingreso:</strong>
+        {% if request.GET.rango_fecha == "hoy" %}Hoy
+        {% elif request.GET.rango_fecha == "7dias" %}Últimos 7 días
+        {% elif request.GET.rango_fecha == "30dias" %}Últimos 30 días
+        {% elif request.GET.rango_fecha == "anio_actual" %}Este año
+        {% elif request.GET.rango_fecha == "personalizado" %}Del {{ request.GET.fecha_desde }} al {{ request.GET.fecha_hasta }}
+        {% endif %}
+    {% endif %}
+    {% if not request.GET.search and not request.GET.fk_ra and not request.GET.sexo_an and not request.GET.categoria_an and not request.GET.estado_an and not request.GET.fk_potrero_an and not request.GET.rango_fecha %}
+        Ninguno (se muestran todos los animales registrados)
+    {% endif %}
+{% endblock %}
+
+{% block tabla_reporte %}
+<table class="tabla-reporte">
+    <thead>
+        <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Raza</th>
+            <th>Sexo</th>
+            <th>Categoría</th>
+            <th>Estado</th>
+            <th>Peso nac. (kg)</th>
+            <th>Peso act. (kg)</th>
+            <th>Cond. corp.</th>
+            <th>Potrero</th>
+            <th>F. nacimiento</th>
+            <th>F. ingreso</th>
+            <th>F. salida</th>
+            <th>Motivo salida</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for animal in animales %}
+        <tr>
+            <td>{{ animal.codigo_an }}</td>
+            <td>{{ animal.nombre_an|default:"—" }}</td>
+            <td>{{ animal.fk_ra.nombre_ra|default:"—" }}</td>
+            <td>{% if animal.sexo_an == "M" %}Macho{% else %}Hembra{% endif %}</td>
+            <td>{{ categorias_labels|get_item:animal.categoria_an }}</td>
+            <td>{{ estados_labels|get_item:animal.estado_an }}</td>
+            <td>{{ animal.peso_nacimiento_kg_an|default:"—" }}</td>
+            <td>{{ animal.peso_actual_kg_an|default:"—" }}</td>
+            <td>{{ animal.condicion_corporal_an|default:"—" }}</td>
+            <td>{{ animal.fk_potrero_an.nombre_po|default:"—" }}</td>
+            <td>{{ animal.fecha_nacimiento_an|date:"d/m/Y" }}</td>
+            <td>{{ animal.fecha_ingreso_an|date:"d/m/Y" }}</td>
+            <td>{{ animal.fecha_salida_an|date:"d/m/Y"|default:"—" }}</td>
+            <td>{{ animal.motivo_salida_an|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="14" style="text-align:center; padding:20px;">No hay animales que coincidan con los filtros aplicados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

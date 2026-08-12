@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block titulo %}Reporte | Hacienda Joseph{% endblock %}</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #2b2b2b;
+            margin: 0;
+            padding: 24px;
+            background: #fff;
+        }
+        .barra-acciones {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .btn-accion {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid #2c5e1a;
+            background: #2c5e1a;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-accion.secundario {
+            background: #fff;
+            color: #2c5e1a;
+        }
+        .encabezado-reporte {
+            border-bottom: 3px solid #2c5e1a;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .encabezado-reporte h1 {
+            font-size: 20px;
+            color: #2c5e1a;
+            margin: 0 0 4px 0;
+        }
+        .encabezado-reporte .subtitulo {
+            font-size: 13px;
+            color: #6c757d;
+        }
+        .encabezado-reporte .marca {
+            text-align: right;
+            font-size: 12px;
+            color: #8B6914;
+        }
+        .caja-filtros {
+            background: #f8f9f5;
+            border: 1px solid #d4c5a9;
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 12.5px;
+            color: #5c450e;
+            margin-bottom: 18px;
+        }
+        .caja-filtros strong { color: #2c5e1a; }
+        table.tabla-reporte {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        table.tabla-reporte th {
+            background: #2c5e1a;
+            color: #fff;
+            text-align: left;
+            padding: 6px 8px;
+            border: 1px solid #1e4012;
+        }
+        table.tabla-reporte td {
+            padding: 5px 8px;
+            border: 1px solid #d4c5a9;
+        }
+        table.tabla-reporte tr:nth-child(even) td {
+            background: #f8f9f5;
+        }
+        .pie-reporte {
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #6c757d;
+            border-top: 1px solid #d4c5a9;
+            padding-top: 8px;
+        }
+        @page {
+            size: {% block orientacion_pagina %}A4 landscape{% endblock %};
+            margin: 1.5cm;
+        }
+        @media print {
+            .barra-acciones { display: none; }
+            body { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="barra-acciones">
+        <button class="btn-accion" onclick="window.print()">🖨️ Imprimir</button>
+        <button class="btn-accion secundario" onclick="window.close()">Cerrar</button>
+    </div>
+
+    <div class="encabezado-reporte">
+        <div>
+            <h1>{% block encabezado_titulo %}Reporte{% endblock %}</h1>
+            <div class="subtitulo">Hacienda Joseph — Pilaló, Cotopaxi</div>
+        </div>
+        <div class="marca">
+            Generado el {{ fecha_generacion|date:"d/m/Y H:i" }}
+        </div>
+    </div>
+
+    <div class="caja-filtros">
+        <strong>Filtros aplicados:</strong>
+        {% block filtros_aplicados %}Ninguno (se muestran todos los registros){% endblock %}
+    </div>
+
+    {% block tabla_reporte %}{% endblock %}
+
+    <div class="pie-reporte">
+        <div>{% block total_texto %}Total de registros: {{ total_resultados }}{% endblock %}</div>
+        <div>ganadoSWG — Sistema de Gestión Ganadera</div>
+    </div>
+
+</body>
+</html>
