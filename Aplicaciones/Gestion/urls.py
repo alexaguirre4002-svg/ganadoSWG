@@ -214,6 +214,10 @@ urlpatterns = [
     path('api/ml/historial_ad1/<int:animal_id>/', views.api_historial_ad1_animal, name='api_historial_ad1_animal'),
     path('api/ml/historial_ad2/<int:animal_id>/', views.api_historial_ad2_animal, name='api_historial_ad2_animal'),
     path('api/ml/historial_rl4/<int:animal_id>/', views.api_historial_rl4_animal, name='api_historial_rl4_animal'),
+    #REPORTES
+    path('reporteanimal/imprimir/', views.reporteanimal_imprimir, name='reporteanimal_imprimir'),
+    path('exportaranimales/excel/', views.exportaranimales_excel, name='exportaranimales_excel'),
+    path('exportaranimales/csv/', views.exportaranimales_csv, name='exportaranimales_csv'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
