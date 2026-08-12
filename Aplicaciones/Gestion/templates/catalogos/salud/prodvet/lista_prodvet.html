@@ -103,160 +103,7 @@ Listado de productos veterinarios | Hacienda Joseph
                 <span class="badge bg-secondary ms-2">{{ prodvet.paginator.count }}</span>
             </div>
             <div class="p-4">
-
-                <!-- ========================================== -->
-                <!-- PANEL DE FILTROS AVANZADOS                -->
-                <!-- ========================================== -->
-                <div class="row mb-3">
-                    <div class="col-12">
-                        <form method="GET" action="" id="formFiltrosProdVet" class="p-3" style="background:#f8f9f5; border:1px solid #d4c5a9; border-radius:10px;">
-                            
-                            <!-- Fila 1: Búsqueda y filtros principales -->
-                            <div class="row g-2 align-items-end">
-                                <div class="col-md-3">
-                                    <label class="form-label small fw-bold text-muted mb-1">Buscar</label>
-                                    <input type="text" name="search" class="form-control form-control-sm"
-                                           placeholder="🔍 Código, nombre o tipo..." value="{{ request.GET.search }}">
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label small fw-bold text-muted mb-1">Tipo</label>
-                                    <select name="tipo_pv" class="form-select form-select-sm">
-                                        <option value="">Todos</option>
-                                        {% for valor, nombre in tipos_producto %}
-                                        <option value="{{ valor }}" {% if request.GET.tipo_pv == valor %}selected{% endif %}>{{ nombre }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label small fw-bold text-muted mb-1">Estado</label>
-                                    <select name="activo_pv" class="form-select form-select-sm">
-                                        <option value="">Todos</option>
-                                        <option value="activo" {% if request.GET.activo_pv == "activo" %}selected{% endif %}>Activos</option>
-                                        <option value="inactivo" {% if request.GET.activo_pv == "inactivo" %}selected{% endif %}>Inactivos</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label small fw-bold text-muted mb-1">Stock bajo</label>
-                                    <select name="stock_bajo" class="form-select form-select-sm">
-                                        <option value="">Todos</option>
-                                        <option value="1" {% if request.GET.stock_bajo == "1" %}selected{% endif %}>Solo stock bajo</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label small fw-bold text-muted mb-1">Proveedor</label>
-                                    <select name="proveedor_pv" class="form-select form-select-sm">
-                                        <option value="">Todos</option>
-                                        {% for proveedor in proveedores %}
-                                        <option value="{{ proveedor }}" {% if request.GET.proveedor_pv == proveedor %}selected{% endif %}>{{ proveedor }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Fila 2: Vencimiento y orden -->
-                            <div class="row g-2 align-items-end mt-2">
-                                <div class="col-md-2">
-                                    <label class="form-label small fw-bold text-muted mb-1">Rango vencimiento</label>
-                                    <select name="rango_vencimiento" id="selectRangoVencimiento" class="form-select form-select-sm">
-                                        <option value="">Todos</option>
-                                        <option value="proximo" {% if request.GET.rango_vencimiento == "proximo" %}selected{% endif %}>Próximo a vencer (30 días)</option>
-                                        <option value="vencido" {% if request.GET.rango_vencimiento == "vencido" %}selected{% endif %}>Vencidos</option>
-                                        <option value="personalizado" {% if request.GET.rango_vencimiento == "personalizado" %}selected{% endif %}>Rango personalizado</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2 campo-vencimiento-personalizado" style="{% if request.GET.rango_vencimiento != 'personalizado' %}display:none;{% endif %}">
-                                    <label class="form-label small fw-bold text-muted mb-1">Desde</label>
-                                    <input type="date" name="fecha_vencimiento_desde" class="form-control form-control-sm" value="{{ request.GET.fecha_vencimiento_desde }}">
-                                </div>
-                                <div class="col-md-2 campo-vencimiento-personalizado" style="{% if request.GET.rango_vencimiento != 'personalizado' %}display:none;{% endif %}">
-                                    <label class="form-label small fw-bold text-muted mb-1">Hasta</label>
-                                    <input type="date" name="fecha_vencimiento_hasta" class="form-control form-control-sm" value="{{ request.GET.fecha_vencimiento_hasta }}">
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label small fw-bold text-muted mb-1">Ordenar por</label>
-                                    <select name="orden" class="form-select form-select-sm">
-                                        <option value="reciente" {% if request.GET.orden == "reciente" or not request.GET.orden %}selected{% endif %}>Más reciente</option>
-                                        <option value="nombre" {% if request.GET.orden == "nombre" %}selected{% endif %}>Nombre</option>
-                                        <option value="codigo" {% if request.GET.orden == "codigo" %}selected{% endif %}>Código</option>
-                                        <option value="stock" {% if request.GET.orden == "stock" %}selected{% endif %}>Stock</option>
-                                        <option value="vencimiento" {% if request.GET.orden == "vencimiento" %}selected{% endif %}>Vencimiento</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4 text-end">
-                                    <small class="text-muted">
-                                        Total filtrado: <strong>{{ total_filtrado }}</strong> | 
-                                        Stock bajo: <strong>{{ stock_bajo_filtrado }}</strong> |
-                                        Vencidos: <strong>{{ vencidos_filtrado }}</strong>
-                                    </small>
-                                </div>
-                            </div>
-
-                            <!-- Fila 3: Botones de acción -->
-                            <div class="row mt-3">
-                                <div class="col-md-6 d-flex gap-2 flex-wrap">
-                                    <button type="submit" class="btn btn-sm btn-hacienda">
-                                        <i class="bi bi-funnel me-1"></i>Filtrar
-                                    </button>
-                                    <a href="{% url 'listadoprodvet' %}" class="btn btn-sm btn-hacienda-secondary">
-                                        <i class="bi bi-x-circle me-1"></i>Limpiar
-                                    </a>
-                                </div>
-                                <div class="col-md-6 text-md-end d-flex gap-2 justify-content-md-end flex-wrap mt-2 mt-md-0">
-                                    <button type="submit" formaction="{% url 'reporteprodvet_imprimir' %}" formtarget="_blank" class="btn btn-sm btn-outline-dark">
-                                        <i class="bi bi-printer me-1"></i>Reporte
-                                    </button>
-                                    <button type="submit" formaction="{% url 'exportarprodvet_excel' %}" class="btn btn-sm btn-success">
-                                        <i class="bi bi-file-earmark-excel me-1"></i>Excel
-                                    </button>
-                                    <button type="submit" formaction="{% url 'exportarprodvet_csv' %}" class="btn btn-sm btn-outline-success">
-                                        <i class="bi bi-filetype-csv me-1"></i>CSV
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Resumen de filtros aplicados -->
-                {% if request.GET %}
-                <div class="row mb-2">
-                    <div class="col-12">
-                        <div class="d-flex flex-wrap gap-2 align-items-center">
-                            <span class="badge bg-hacienda-light p-2">
-                                <i class="bi bi-funnel me-1"></i> Filtros activos:
-                            </span>
-                            {% if request.GET.search %}
-                            <span class="badge bg-secondary p-2">Buscar: "{{ request.GET.search }}"</span>
-                            {% endif %}
-                            {% if request.GET.tipo_pv %}
-                            <span class="badge bg-secondary p-2">Tipo: {{ request.GET.tipo_pv }}</span>
-                            {% endif %}
-                            {% if request.GET.activo_pv %}
-                            <span class="badge bg-secondary p-2">Estado: {{ request.GET.activo_pv }}</span>
-                            {% endif %}
-                            {% if request.GET.stock_bajo == '1' %}
-                            <span class="badge bg-danger p-2">Stock bajo</span>
-                            {% endif %}
-                            {% if request.GET.proveedor_pv %}
-                            <span class="badge bg-secondary p-2">Proveedor: {{ request.GET.proveedor_pv }}</span>
-                            {% endif %}
-                            {% if request.GET.rango_vencimiento %}
-                            <span class="badge bg-secondary p-2">Vencimiento: 
-                                {% if request.GET.rango_vencimiento == 'proximo' %}Próximo a vencer
-                                {% elif request.GET.rango_vencimiento == 'vencido' %}Vencidos
-                                {% elif request.GET.rango_vencimiento == 'personalizado' %}Del {{ request.GET.fecha_vencimiento_desde }} al {{ request.GET.fecha_vencimiento_hasta }}
-                                {% endif %}
-                            </span>
-                            {% endif %}
-                            <a href="{% url 'listadoprodvet' %}" class="badge bg-danger p-2 text-decoration-none">
-                                <i class="bi bi-x-circle me-1"></i>Limpiar todos
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Filtro de búsqueda - ORIGINAL SIN MODIFICAR -->
+                <!-- Filtro de búsqueda -->
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <form method="GET" action="" class="d-flex">
@@ -281,7 +128,7 @@ Listado de productos veterinarios | Hacienda Joseph
                     </div>
                 </div>
 
-                <!-- Tabla - ORIGINAL SIN MODIFICAR -->
+                <!-- Tabla -->
                 <div class="table-responsive">
                     <table class="table table-hacienda align-middle mb-0">
                         <thead>
@@ -475,11 +322,8 @@ Listado de productos veterinarios | Hacienda Joseph
                             <tr>
                                 <td colspan="13" class="text-center py-5">
                                     <i class="bi bi-inbox fs-1 text-muted"></i>
-                                    <p class="mt-3 text-muted">No hay productos veterinarios que coincidan con los filtros aplicados</p>
-                                    <a href="{% url 'listadoprodvet' %}" class="btn btn-hacienda btn-sm mt-2">
-                                        <i class="bi bi-arrow-repeat me-2"></i>Limpiar filtros
-                                    </a>
-                                    <a href="/nuevoprodvet/" class="btn btn-hacienda-secondary btn-sm mt-2">
+                                    <p class="mt-3 text-muted">No hay productos veterinarios registrados</p>
+                                    <a href="/nuevoprodvet/" class="btn btn-hacienda btn-sm mt-2">
                                         <i class="bi bi-plus-circle me-2"></i>Registrar primer producto
                                     </a>
                                 </td>
@@ -489,7 +333,7 @@ Listado de productos veterinarios | Hacienda Joseph
                     </table>
                 </div>
 
-                <!-- Paginación de Django - ORIGINAL SIN MODIFICAR -->
+                <!-- Paginación de Django -->
                 {% if prodvet.has_other_pages %}
                 <div class="row mt-4">
                     <div class="col-md-6">
@@ -503,12 +347,12 @@ Listado de productos veterinarios | Hacienda Joseph
                             <ul class="pagination justify-content-end flex-wrap">
                                 {% if prodvet.has_previous %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
                                         <i class="bi bi-chevron-double-left"></i>
                                     </a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ prodvet.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <a class="page-link" href="?page={{ prodvet.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
                                         <i class="bi bi-chevron-left"></i>
                                     </a>
                                 </li>
@@ -521,7 +365,7 @@ Listado de productos veterinarios | Hacienda Joseph
                                     </li>
                                     {% elif num > prodvet.number|add:'-3' and num < prodvet.number|add:'3' %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
                                             {{ num }}
                                         </a>
                                     </li>
@@ -530,12 +374,12 @@ Listado de productos veterinarios | Hacienda Joseph
 
                                 {% if prodvet.has_next %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ prodvet.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <a class="page-link" href="?page={{ prodvet.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
                                         <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ prodvet.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <a class="page-link" href="?page={{ prodvet.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
                                         <i class="bi bi-chevron-double-right"></i>
                                     </a>
                                 </li>
@@ -549,9 +393,7 @@ Listado de productos veterinarios | Hacienda Joseph
             <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
                 <small class="text-muted">
                     <i class="bi bi-bar-chart-line me-1"></i>
-                    Total productos: <strong>{{ prodvet.paginator.count }}</strong> | 
-                    Stock bajo: <strong>{{ stock_bajo_filtrado }}</strong> |
-                    Vencidos: <strong>{{ vencidos_filtrado }}</strong>
+                    Total de productos: <strong>{{ prodvet.paginator.count }}</strong>
                 </small>
             </div>
         </div>
@@ -707,11 +549,6 @@ Listado de productos veterinarios | Hacienda Joseph
         font-size: 0.8rem;
         padding: 0.35rem 0.65rem;
     }
-    .bg-hacienda-light {
-        background-color: #e8f5e9;
-        color: #2c5e1a;
-        border: 1px solid #2c5e1a;
-    }
 </style>
 
 {% endblock %}
@@ -721,25 +558,6 @@ Listado de productos veterinarios | Hacienda Joseph
 <!-- ========================================== -->
 {% block scripts_extra %}
 <script>
-    // Mostrar/ocultar campos de rango de vencimiento personalizado
-    document.getElementById('selectRangoVencimiento').addEventListener('change', function () {
-        var campos = document.querySelectorAll('.campo-vencimiento-personalizado');
-        var mostrar = this.value === 'personalizado';
-        campos.forEach(function (c) {
-            c.style.display = mostrar ? '' : 'none';
-        });
-    });
-
-    // Inicializar
-    document.addEventListener('DOMContentLoaded', function() {
-        var select = document.getElementById('selectRangoVencimiento');
-        if (select.value === 'personalizado') {
-            document.querySelectorAll('.campo-vencimiento-personalizado').forEach(function(c) {
-                c.style.display = '';
-            });
-        }
-    });
-
     // Modal detalle producto veterinario
     var modalDetalleProdVet = document.getElementById('modalDetalleProdVet');
     modalDetalleProdVet.addEventListener('show.bs.modal', function (event) {
@@ -816,7 +634,9 @@ Listado de productos veterinarios | Hacienda Joseph
         
         document.getElementById('btnEditarDesdeDetalle').href = '/editarprodvet/' + id;
     });
+</script>
 
+<script>
     // Modal eliminar producto veterinario
     var modalEliminarProdVet = document.getElementById('modalEliminarProdVet');
     modalEliminarProdVet.addEventListener('show.bs.modal', function (event) {
