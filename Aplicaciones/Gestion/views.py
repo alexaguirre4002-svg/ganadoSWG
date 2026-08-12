@@ -14532,14 +14532,13 @@ def exportarevento_csv(request):
 # PRODUCTOS VETERINARIOS - FILTROS Y REPORTES
 # ==========================================
 
-from django.db.models import Q, Sum, Avg, Count, F
+from django.db.models import Q, Sum
 from django.core.paginator import Paginator
 from datetime import date, timedelta, datetime
 
 def _construir_queryset_prodvet(request):
     """
     Aplica todos los filtros del listado de productos veterinarios sobre el queryset.
-    Se usa tanto en el listado como en la exportación/impresión.
     """
     search = request.GET.get('search', '')
     tipo_pv = request.GET.get('tipo_pv', '')
@@ -14570,7 +14569,7 @@ def _construir_queryset_prodvet(request):
         prodvet_query = prodvet_query.filter(activo_pv=False)
 
     if stock_bajo == '1':
-        prodvet_query = prodvet_query.filter(stock_pv__lte=F('stock_minimo_pv'))
+        prodvet_query = prodvet_query.filter(stock_pv__lte=10)  # stock bajo si es <= 10
 
     if proveedor_pv:
         prodvet_query = prodvet_query.filter(proveedor_pv=proveedor_pv)
@@ -14593,83 +14592,106 @@ def _construir_queryset_prodvet(request):
         if fecha_vencimiento_hasta:
             prodvet_query = prodvet_query.filter(fecha_vencimiento_pv__lte=fecha_vencimiento_hasta)
 
-    ordenes_validos = {
-        'reciente': '-created_at_pv',
-        'nombre': 'nombre_pv',
-        'codigo': 'codigo_pv',
-        'stock': 'stock_pv',
-        'vencimiento': 'fecha_vencimiento_pv',
-    }
-    return prodvet_query.order_by(ordenes_validos.get(orden, '-created_at_pv'))
+    if orden == 'reciente':
+        prodvet_query = prodvet_query.order_by('-created_at_pv')
+    elif orden == 'nombre':
+        prodvet_query = prodvet_query.order_by('nombre_pv')
+    elif orden == 'codigo':
+        prodvet_query = prodvet_query.order_by('codigo_pv')
+    elif orden == 'stock':
+        prodvet_query = prodvet_query.order_by('stock_pv')
+    elif orden == 'vencimiento':
+        prodvet_query = prodvet_query.order_by('fecha_vencimiento_pv')
+    else:
+        prodvet_query = prodvet_query.order_by('-created_at_pv')
+
+    return prodvet_query
 
 
 def listadoprodvet(request):
     """
-    Muestra el listado completo de productos veterinarios con filtros avanzados,
-    búsqueda, estadísticas y exportación de reportes.
+    Muestra el listado completo de productos veterinarios con filtros avanzados.
     """
-    # ==========================================
-    # ESTADÍSTICAS GENERALES
-    # ==========================================
-    total_prodvet = ProductoVeterinario.objects.count()
-    total_activos = ProductoVeterinario.objects.filter(activo_pv=True).count()
-    total_vacunas = ProductoVeterinario.objects.filter(tipo_pv='vacuna').count()
-    total_antibioticos = ProductoVeterinario.objects.filter(tipo_pv='antibiotico').count()
-    total_vitaminas = ProductoVeterinario.objects.filter(tipo_pv='vitamina').count()
-    total_stock_bajo = ProductoVeterinario.objects.filter(stock_pv__lte=F('stock_minimo_pv')).count()
+    try:
+        # ==========================================
+        # ESTADÍSTICAS GENERALES
+        # ==========================================
+        total_prodvet = ProductoVeterinario.objects.count()
+        total_activos = ProductoVeterinario.objects.filter(activo_pv=True).count()
+        total_vacunas = ProductoVeterinario.objects.filter(tipo_pv='vacuna').count()
+        total_antibioticos = ProductoVeterinario.objects.filter(tipo_pv='antibiotico').count()
+        total_vitaminas = ProductoVeterinario.objects.filter(tipo_pv='vitamina').count()
+        total_stock_bajo = ProductoVeterinario.objects.filter(stock_pv__lte=10).count()
 
-    # Proveedores para el filtro
-    proveedores = ProductoVeterinario.objects.exclude(
-        proveedor_pv__isnull=True
-    ).exclude(
-        proveedor_pv=''
-    ).values_list('proveedor_pv', flat=True).distinct().order_by('proveedor_pv')
+        # Proveedores para el filtro
+        proveedores = ProductoVeterinario.objects.exclude(
+            proveedor_pv__isnull=True
+        ).exclude(
+            proveedor_pv=''
+        ).values_list('proveedor_pv', flat=True).distinct().order_by('proveedor_pv')
 
-    # Tipos de producto para el filtro
-    tipos_producto = [
-        ('vacuna', 'Vacuna'),
-        ('antibiotico', 'Antibiótico'),
-        ('desparasitante', 'Desparasitante'),
-        ('vitamina', 'Vitamina'),
-        ('antiseptico', 'Antiséptico'),
-        ('otro', 'Otro'),
-    ]
+        # Tipos de producto para el filtro
+        tipos_producto = [
+            ('vacuna', 'Vacuna'),
+            ('antibiotico', 'Antibiótico'),
+            ('desparasitante', 'Desparasitante'),
+            ('vitamina', 'Vitamina'),
+            ('antiseptico', 'Antiséptico'),
+            ('otro', 'Otro'),
+        ]
 
-    # ==========================================
-    # APLICAR FILTROS
-    # ==========================================
-    prodvet_query = _construir_queryset_prodvet(request)
+        # ==========================================
+        # APLICAR FILTROS
+        # ==========================================
+        prodvet_query = _construir_queryset_prodvet(request)
 
-    total_filtrado = prodvet_query.count()
-    stock_bajo_filtrado = prodvet_query.filter(stock_pv__lte=F('stock_minimo_pv')).count()
-    vencidos_filtrado = prodvet_query.filter(
-        fecha_vencimiento_pv__isnull=False,
-        fecha_vencimiento_pv__lt=date.today()
-    ).count()
+        total_filtrado = prodvet_query.count()
+        stock_bajo_filtrado = prodvet_query.filter(stock_pv__lte=10).count()
+        vencidos_filtrado = prodvet_query.filter(
+            fecha_vencimiento_pv__isnull=False,
+            fecha_vencimiento_pv__lt=date.today()
+        ).count()
 
-    # ==========================================
-    # PAGINACIÓN
-    # ==========================================
-    paginator = Paginator(prodvet_query, 20)
-    page_number = request.GET.get('page', 1)
-    prodvet = paginator.get_page(page_number)
+        # ==========================================
+        # PAGINACIÓN
+        # ==========================================
+        paginator = Paginator(prodvet_query, 20)
+        page_number = request.GET.get('page', 1)
+        prodvet = paginator.get_page(page_number)
 
-    contexto = {
-        'prodvet': prodvet,
-        'total_prodvet': total_prodvet,
-        'total_activos': total_activos,
-        'total_vacunas': total_vacunas,
-        'total_antibioticos': total_antibioticos,
-        'total_vitaminas': total_vitaminas,
-        'total_stock_bajo': total_stock_bajo,
-        'total_filtrado': total_filtrado,
-        'stock_bajo_filtrado': stock_bajo_filtrado,
-        'vencidos_filtrado': vencidos_filtrado,
-        'proveedores': proveedores,
-        'tipos_producto': tipos_producto,
-    }
+        contexto = {
+            'prodvet': prodvet,
+            'total_prodvet': total_prodvet,
+            'total_activos': total_activos,
+            'total_vacunas': total_vacunas,
+            'total_antibioticos': total_antibioticos,
+            'total_vitaminas': total_vitaminas,
+            'total_stock_bajo': total_stock_bajo,
+            'total_filtrado': total_filtrado,
+            'stock_bajo_filtrado': stock_bajo_filtrado,
+            'vencidos_filtrado': vencidos_filtrado,
+            'proveedores': proveedores,
+            'tipos_producto': tipos_producto,
+        }
 
-    return render(request, 'catalogos/salud/prodvet/lista_prodvet.html', contexto)
+        return render(request, 'catalogos/salud/prodvet/lista_prodvet.html', contexto)
+    
+    except Exception as e:
+        messages.error(request, f"Error al cargar la lista: {str(e)}")
+        return render(request, 'catalogos/salud/prodvet/lista_prodvet.html', {
+            'prodvet': [],
+            'total_prodvet': 0,
+            'total_activos': 0,
+            'total_vacunas': 0,
+            'total_antibioticos': 0,
+            'total_vitaminas': 0,
+            'total_stock_bajo': 0,
+            'total_filtrado': 0,
+            'stock_bajo_filtrado': 0,
+            'vencidos_filtrado': 0,
+            'proveedores': [],
+            'tipos_producto': [],
+        })
 
 
 def reporteprodvet_imprimir(request):
@@ -14681,7 +14703,7 @@ def reporteprodvet_imprimir(request):
         prodvet_query = _construir_queryset_prodvet(request)
         
         total_stock = prodvet_query.aggregate(total=Sum('stock_pv'))['total'] or 0
-        stock_bajo = prodvet_query.filter(stock_pv__lte=F('stock_minimo_pv')).count()
+        stock_bajo = prodvet_query.filter(stock_pv__lte=10).count()
         vencidos = prodvet_query.filter(
             fecha_vencimiento_pv__isnull=False,
             fecha_vencimiento_pv__lt=date.today()
@@ -14702,128 +14724,132 @@ def reporteprodvet_imprimir(request):
 
 def exportarprodvet_excel(request):
     """
-    Descarga en Excel (.xlsx) de los productos veterinarios que cumplen los filtros
-    actualmente aplicados en el listado.
+    Descarga en Excel (.xlsx) de los productos veterinarios.
     """
-    import openpyxl
-    from openpyxl.styles import Font, PatternFill, Alignment
+    try:
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment
 
-    prodvet_query = _construir_queryset_prodvet(request)
+        prodvet_query = _construir_queryset_prodvet(request)
 
-    wb = openpyxl.Workbook()
-    hoja = wb.active
-    hoja.title = 'Productos Veterinarios'
+        wb = openpyxl.Workbook()
+        hoja = wb.active
+        hoja.title = 'Productos Veterinarios'
 
-    encabezados = [
-        'ID', 'Código', 'Nombre', 'Tipo', 'Presentación',
-        'Stock', 'Stock mínimo', 'Unidad', 'Vencimiento',
-        'Proveedor', 'Costo unitario', 'Estado'
-    ]
-    hoja.append(encabezados)
-    for celda in hoja[1]:
-        celda.font = Font(bold=True, color='FFFFFF')
-        celda.fill = PatternFill(start_color='2C5E1A', end_color='2C5E1A', fill_type='solid')
-        celda.alignment = Alignment(horizontal='center')
+        encabezados = [
+            'ID', 'Código', 'Nombre', 'Tipo', 'Presentación',
+            'Stock', 'Stock mínimo', 'Unidad', 'Vencimiento',
+            'Proveedor', 'Costo unitario', 'Estado'
+        ]
+        hoja.append(encabezados)
+        for celda in hoja[1]:
+            celda.font = Font(bold=True, color='FFFFFF')
+            celda.fill = PatternFill(start_color='2C5E1A', end_color='2C5E1A', fill_type='solid')
+            celda.alignment = Alignment(horizontal='center')
 
-    for p in prodvet_query:
-        # Tipo con texto
-        tipo_texto = ''
-        if p.tipo_pv == 'vacuna':
-            tipo_texto = 'Vacuna'
-        elif p.tipo_pv == 'antibiotico':
-            tipo_texto = 'Antibiótico'
-        elif p.tipo_pv == 'desparasitante':
-            tipo_texto = 'Desparasitante'
-        elif p.tipo_pv == 'vitamina':
-            tipo_texto = 'Vitamina'
-        elif p.tipo_pv == 'antiseptico':
-            tipo_texto = 'Antiséptico'
-        else:
-            tipo_texto = 'Otro'
+        for p in prodvet_query:
+            tipo_texto = ''
+            if p.tipo_pv == 'vacuna':
+                tipo_texto = 'Vacuna'
+            elif p.tipo_pv == 'antibiotico':
+                tipo_texto = 'Antibiótico'
+            elif p.tipo_pv == 'desparasitante':
+                tipo_texto = 'Desparasitante'
+            elif p.tipo_pv == 'vitamina':
+                tipo_texto = 'Vitamina'
+            elif p.tipo_pv == 'antiseptico':
+                tipo_texto = 'Antiséptico'
+            else:
+                tipo_texto = 'Otro'
 
-        hoja.append([
-            p.id_pv,
-            p.codigo_pv,
-            p.nombre_pv,
-            tipo_texto,
-            p.presentacion_pv or '',
-            float(p.stock_pv) if p.stock_pv is not None else '',
-            float(p.stock_minimo_pv) if p.stock_minimo_pv is not None else '',
-            p.unidad_medida_pv or '',
-            p.fecha_vencimiento_pv.strftime('%d/%m/%Y') if p.fecha_vencimiento_pv else '',
-            p.proveedor_pv or '',
-            float(p.costo_unitario_pv) if p.costo_unitario_pv is not None else '',
-            'Activo' if p.activo_pv else 'Inactivo',
-        ])
+            hoja.append([
+                p.id_pv,
+                p.codigo_pv,
+                p.nombre_pv,
+                tipo_texto,
+                p.presentacion_pv or '',
+                float(p.stock_pv) if p.stock_pv is not None else '',
+                float(p.stock_minimo_pv) if p.stock_minimo_pv is not None else '',
+                p.unidad_medida_pv or '',
+                p.fecha_vencimiento_pv.strftime('%d/%m/%Y') if p.fecha_vencimiento_pv else '',
+                p.proveedor_pv or '',
+                float(p.costo_unitario_pv) if p.costo_unitario_pv is not None else '',
+                'Activo' if p.activo_pv else 'Inactivo',
+            ])
 
-    # Ajustar ancho de columnas
-    for columna in hoja.columns:
-        max_len = 0
-        for celda in columna:
-            if celda.value:
-                try:
-                    if len(str(celda.value)) > max_len:
-                        max_len = len(str(celda.value))
-                except:
-                    pass
-        hoja.column_dimensions[columna[0].column_letter].width = max_len + 3
+        for columna in hoja.columns:
+            max_len = 0
+            for celda in columna:
+                if celda.value:
+                    try:
+                        if len(str(celda.value)) > max_len:
+                            max_len = len(str(celda.value))
+                    except:
+                        pass
+            hoja.column_dimensions[columna[0].column_letter].width = max_len + 3
 
-    response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
-    nombre_archivo = f'productos_veterinarios_{date.today().strftime("%Y%m%d")}.xlsx'
-    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
-    wb.save(response)
-    return response
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        nombre_archivo = f'productos_veterinarios_{date.today().strftime("%Y%m%d")}.xlsx'
+        response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+        wb.save(response)
+        return response
+    except Exception as e:
+        messages.error(request, f"Error al exportar Excel: {str(e)}")
+        return redirect('/listadoprodvet')
 
 
 def exportarprodvet_csv(request):
     """
-    Descarga en CSV de los productos veterinarios que cumplen los filtros actuales.
+    Descarga en CSV de los productos veterinarios.
     """
-    import csv
+    try:
+        import csv
 
-    prodvet_query = _construir_queryset_prodvet(request)
+        prodvet_query = _construir_queryset_prodvet(request)
 
-    response = HttpResponse(content_type='text/csv')
-    nombre_archivo = f'productos_veterinarios_{date.today().strftime("%Y%m%d")}.csv'
-    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+        response = HttpResponse(content_type='text/csv')
+        nombre_archivo = f'productos_veterinarios_{date.today().strftime("%Y%m%d")}.csv'
+        response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
 
-    writer = csv.writer(response)
-    writer.writerow([
-        'ID', 'Código', 'Nombre', 'Tipo', 'Presentación',
-        'Stock', 'Stock mínimo', 'Unidad', 'Vencimiento',
-        'Proveedor', 'Costo unitario', 'Estado'
-    ])
-    for p in prodvet_query:
-        # Tipo con texto
-        tipo_texto = ''
-        if p.tipo_pv == 'vacuna':
-            tipo_texto = 'Vacuna'
-        elif p.tipo_pv == 'antibiotico':
-            tipo_texto = 'Antibiótico'
-        elif p.tipo_pv == 'desparasitante':
-            tipo_texto = 'Desparasitante'
-        elif p.tipo_pv == 'vitamina':
-            tipo_texto = 'Vitamina'
-        elif p.tipo_pv == 'antiseptico':
-            tipo_texto = 'Antiséptico'
-        else:
-            tipo_texto = 'Otro'
-
+        writer = csv.writer(response)
         writer.writerow([
-            p.id_pv,
-            p.codigo_pv,
-            p.nombre_pv,
-            tipo_texto,
-            p.presentacion_pv or '',
-            p.stock_pv if p.stock_pv is not None else '',
-            p.stock_minimo_pv if p.stock_minimo_pv is not None else '',
-            p.unidad_medida_pv or '',
-            p.fecha_vencimiento_pv.strftime('%d/%m/%Y') if p.fecha_vencimiento_pv else '',
-            p.proveedor_pv or '',
-            p.costo_unitario_pv if p.costo_unitario_pv is not None else '',
-            'Activo' if p.activo_pv else 'Inactivo',
+            'ID', 'Código', 'Nombre', 'Tipo', 'Presentación',
+            'Stock', 'Stock mínimo', 'Unidad', 'Vencimiento',
+            'Proveedor', 'Costo unitario', 'Estado'
         ])
+        for p in prodvet_query:
+            tipo_texto = ''
+            if p.tipo_pv == 'vacuna':
+                tipo_texto = 'Vacuna'
+            elif p.tipo_pv == 'antibiotico':
+                tipo_texto = 'Antibiótico'
+            elif p.tipo_pv == 'desparasitante':
+                tipo_texto = 'Desparasitante'
+            elif p.tipo_pv == 'vitamina':
+                tipo_texto = 'Vitamina'
+            elif p.tipo_pv == 'antiseptico':
+                tipo_texto = 'Antiséptico'
+            else:
+                tipo_texto = 'Otro'
 
-    return response
+            writer.writerow([
+                p.id_pv,
+                p.codigo_pv,
+                p.nombre_pv,
+                tipo_texto,
+                p.presentacion_pv or '',
+                p.stock_pv if p.stock_pv is not None else '',
+                p.stock_minimo_pv if p.stock_minimo_pv is not None else '',
+                p.unidad_medida_pv or '',
+                p.fecha_vencimiento_pv.strftime('%d/%m/%Y') if p.fecha_vencimiento_pv else '',
+                p.proveedor_pv or '',
+                p.costo_unitario_pv if p.costo_unitario_pv is not None else '',
+                'Activo' if p.activo_pv else 'Inactivo',
+            ])
+
+        return response
+    except Exception as e:
+        messages.error(request, f"Error al exportar CSV: {str(e)}")
+        return redirect('/listadoprodvet')
