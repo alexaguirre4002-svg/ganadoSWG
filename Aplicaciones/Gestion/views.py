@@ -13870,6 +13870,7 @@ def exportaringreso_csv(request):
     writer.writerow(['TOTAL:', float(total_monto)])
 
     return response
+#RACION
 # ==========================================
 # RACIONES - FILTROS Y REPORTES
 # ==========================================
@@ -13941,7 +13942,6 @@ def _construir_queryset_raciones(request):
         'ofrecido_mayor': '-cantidad_ofrecida_kg_ra',
         'ofrecido_menor': 'cantidad_ofrecida_kg_ra',
         'animal': 'fk_an__codigo_an',
-        'eficiencia': '-eficiencia',
     }
     return raciones_query.order_by(ordenes_validos.get(orden, '-fecha_inicio_ra'))
 
@@ -13980,11 +13980,19 @@ def listaracion(request):
     total_consumido_filtrado = raciones_query.aggregate(total=Sum('cantidad_consumida_kg_ra'))['total'] or 0
     total_desperdicio_filtrado = raciones_query.aggregate(total=Sum('desperdicio_kg_ra'))['total'] or 0
 
-    eficiencia_promedio_filtrado = raciones_query.exclude(
-        cantidad_ofrecida_kg_ra=0
-    ).exclude(
-        cantidad_consumida_kg_ra__isnull=True
-    ).aggregate(prom=Avg('eficiencia'))['prom'] or 0
+    # Calcular eficiencia promedio manualmente
+    eficiencia_promedio_filtrado = 0
+    raciones_con_consumo = raciones_query.exclude(cantidad_consumida_kg_ra__isnull=True).exclude(cantidad_ofrecida_kg_ra=0)
+    if raciones_con_consumo.exists():
+        suma_eficiencias = 0
+        count = 0
+        for r in raciones_con_consumo:
+            if r.cantidad_ofrecida_kg_ra and r.cantidad_ofrecida_kg_ra > 0:
+                eficiencia = (r.cantidad_consumida_kg_ra / r.cantidad_ofrecida_kg_ra) * 100
+                suma_eficiencias += eficiencia
+                count += 1
+        if count > 0:
+            eficiencia_promedio_filtrado = suma_eficiencias / count
 
     # ==========================================
     # PAGINACIÓN
@@ -13993,10 +14001,27 @@ def listaracion(request):
     page_number = request.GET.get('page', 1)
     raciones_list = paginator.get_page(page_number)
 
-    # Calcular eficiencia y estado para los registros paginados
+    # Calcular eficiencia y desperdicio para los registros paginados
     for racion in raciones_list:
-        racion.eficiencia = racion.calcular_eficiencia()
-        racion.desperdicio_pct = racion.calcular_desperdicio_pct()
+        # Eficiencia
+        if racion.cantidad_ofrecida_kg_ra and racion.cantidad_ofrecida_kg_ra > 0:
+            if racion.cantidad_consumida_kg_ra is not None:
+                racion.eficiencia = round((racion.cantidad_consumida_kg_ra / racion.cantidad_ofrecida_kg_ra) * 100, 2)
+            else:
+                racion.eficiencia = None
+        else:
+            racion.eficiencia = None
+        
+        # Desperdicio porcentaje
+        if racion.cantidad_ofrecida_kg_ra and racion.cantidad_ofrecida_kg_ra > 0:
+            if racion.desperdicio_kg_ra is not None:
+                racion.desperdicio_pct = round((racion.desperdicio_kg_ra / racion.cantidad_ofrecida_kg_ra) * 100, 2)
+            else:
+                racion.desperdicio_pct = None
+        else:
+            racion.desperdicio_pct = None
+        
+        # Estado
         racion.estado = 'activa' if racion.fecha_fin_ra is None else 'finalizada'
 
     contexto = {
@@ -14027,6 +14052,16 @@ def reporteracion_imprimir(request):
     total_ofrecido = raciones_query.aggregate(total=Sum('cantidad_ofrecida_kg_ra'))['total'] or 0
     total_consumido = raciones_query.aggregate(total=Sum('cantidad_consumida_kg_ra'))['total'] or 0
     total_desperdicio = raciones_query.aggregate(total=Sum('desperdicio_kg_ra'))['total'] or 0
+
+    # Calcular eficiencia para cada ración
+    for racion in raciones_query:
+        if racion.cantidad_ofrecida_kg_ra and racion.cantidad_ofrecida_kg_ra > 0:
+            if racion.cantidad_consumida_kg_ra is not None:
+                racion.eficiencia = round((racion.cantidad_consumida_kg_ra / racion.cantidad_ofrecida_kg_ra) * 100, 2)
+            else:
+                racion.eficiencia = None
+        else:
+            racion.eficiencia = None
 
     return render(request, 'catalogos/alimentacion/racion/reporte_racion_imprimir.html', {
         'raciones': raciones_query,
@@ -14064,7 +14099,12 @@ def exportarracion_excel(request):
         celda.alignment = Alignment(horizontal='center')
 
     for r in raciones_query:
-        eficiencia = r.calcular_eficiencia()
+        # Calcular eficiencia
+        eficiencia = None
+        if r.cantidad_ofrecida_kg_ra and r.cantidad_ofrecida_kg_ra > 0:
+            if r.cantidad_consumida_kg_ra is not None:
+                eficiencia = round((r.cantidad_consumida_kg_ra / r.cantidad_ofrecida_kg_ra) * 100, 2)
+        
         hoja.append([
             r.id_ra,
             r.fk_an.codigo_an if r.fk_an else '',
@@ -14112,7 +14152,12 @@ def exportarracion_csv(request):
         'Dias en potrero', 'Registrado por'
     ])
     for r in raciones_query:
-        eficiencia = r.calcular_eficiencia()
+        # Calcular eficiencia
+        eficiencia = None
+        if r.cantidad_ofrecida_kg_ra and r.cantidad_ofrecida_kg_ra > 0:
+            if r.cantidad_consumida_kg_ra is not None:
+                eficiencia = round((r.cantidad_consumida_kg_ra / r.cantidad_ofrecida_kg_ra) * 100, 2)
+        
         writer.writerow([
             r.id_ra,
             r.fk_an.codigo_an if r.fk_an else '',
