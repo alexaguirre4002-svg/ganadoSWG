@@ -1,0 +1,77 @@
+{% extends "catalogos/reportes/reporte_base_imprimir.html" %}
+{% load filtros_extra %}
+
+{% block titulo %}Reporte de raciones | Hacienda Joseph{% endblock %}
+{% block encabezado_titulo %}Reporte de raciones{% endblock %}
+
+{% block filtros_aplicados %}
+    {% if request.GET.search %}<strong>Búsqueda:</strong> "{{ request.GET.search }}" &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.fk_an %}<strong>Animal:</strong> filtrado &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.fk_di %}<strong>Dieta:</strong> filtrada &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.estado_ra %}<strong>Estado:</strong> {{ request.GET.estado_ra }} &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.rango_fecha %}<strong>Fecha:</strong>
+        {% if request.GET.rango_fecha == 'hoy' %}Hoy
+        {% elif request.GET.rango_fecha == 'semana' %}Esta semana
+        {% elif request.GET.rango_fecha == 'mes' %}Este mes
+        {% elif request.GET.rango_fecha == 'anio' %}Este año
+        {% elif request.GET.rango_fecha == 'personalizado' %}Del {{ request.GET.fecha_desde }} al {{ request.GET.fecha_hasta }}
+        {% endif %}
+        &nbsp;·&nbsp;
+    {% endif %}
+    {% if not request.GET.search and not request.GET.fk_an and not request.GET.fk_di and not request.GET.estado_ra and not request.GET.rango_fecha %}
+        Ninguno (se muestran todas las raciones registradas)
+    {% endif %}
+{% endblock %}
+
+{% block tabla_reporte %}
+<table class="tabla-reporte">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Animal</th>
+            <th>Dieta</th>
+            <th>Insumo</th>
+            <th>Fecha inicio</th>
+            <th>Fecha fin</th>
+            <th>Ofrecido kg</th>
+            <th>Consumido kg</th>
+            <th>Desperdicio kg</th>
+            <th>Eficiencia %</th>
+            <th>Dias en potrero</th>
+            <th>Registrado por</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for racion in raciones %}
+        <tr>
+            <td>#{{ racion.id_ra }}</td>
+            <td>{{ racion.fk_an.codigo_an|default:"—" }}</td>
+            <td>{{ racion.fk_di.nombre_di|default:"—" }}</td>
+            <td>{{ racion.fk_ia.nombre_ia|default:"—" }}</td>
+            <td>{{ racion.fecha_inicio_ra|date:"d/m/Y" }}</td>
+            <td>{{ racion.fecha_fin_ra|date:"d/m/Y"|default:"En curso" }}</td>
+            <td class="text-end">{{ racion.cantidad_ofrecida_kg_ra|default:"—" }}</td>
+            <td class="text-end">{{ racion.cantidad_consumida_kg_ra|default:"—" }}</td>
+            <td class="text-end">{{ racion.desperdicio_kg_ra|default:"—" }}</td>
+            <td class="text-center">{% if racion.eficiencia %}{{ racion.eficiencia }}%{% else %}—{% endif %}</td>
+            <td class="text-center">{{ racion.dias_en_potrero_ra|default:"—" }}</td>
+            <td>{{ racion.fk_us_ra.username_us|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="12" style="text-align:center; padding:20px;">No hay raciones que coincidan con los filtros aplicados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Resumen de totales -->
+<div class="resumen-reporte" style="margin-top: 20px; padding: 15px; background: #f8f9f5; border: 1px solid #d4c5a9; border-radius: 6px;">
+    <p><strong>Resumen del reporte:</strong></p>
+    <ul style="list-style: none; padding-left: 0; display: flex; flex-wrap: wrap; gap: 20px;">
+        <li><strong>Total de raciones:</strong> {{ total_resultados }}</li>
+        <li><strong>Total ofrecido:</strong> {{ total_ofrecido }} kg</li>
+        <li><strong>Total consumido:</strong> {{ total_consumido }} kg</li>
+        <li><strong>Total desperdicio:</strong> {{ total_desperdicio }} kg</li>
+        <li><strong>Fecha generación:</strong> {{ fecha_generacion|date:"d/m/Y H:i" }}</li>
+    </ul>
+</div>
+{% endblock %}

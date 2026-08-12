@@ -13870,3 +13870,262 @@ def exportaringreso_csv(request):
     writer.writerow(['TOTAL:', float(total_monto)])
 
     return response
+# ==========================================
+# RACIONES - FILTROS Y REPORTES
+# ==========================================
+
+from django.db.models import Q, Sum, Avg
+from django.core.paginator import Paginator
+from datetime import date, timedelta, datetime
+
+def _construir_queryset_raciones(request):
+    """
+    Aplica todos los filtros del listado de raciones sobre el queryset.
+    Se usa tanto en el listado como en la exportación/impresión.
+    """
+    search = request.GET.get('search', '')
+    fk_an = request.GET.get('fk_an', '')
+    fk_di = request.GET.get('fk_di', '')
+    estado_ra = request.GET.get('estado_ra', '')
+    rango_fecha = request.GET.get('rango_fecha', '')
+    fecha_desde = request.GET.get('fecha_desde', '')
+    fecha_hasta = request.GET.get('fecha_hasta', '')
+    orden = request.GET.get('orden', 'reciente')
+
+    raciones_query = Racion.objects.all().select_related('fk_an', 'fk_di', 'fk_ia', 'fk_us_ra')
+
+    if search:
+        raciones_query = raciones_query.filter(
+            Q(fk_an__codigo_an__icontains=search) |
+            Q(fk_an__nombre_an__icontains=search) |
+            Q(fk_di__nombre_di__icontains=search) |
+            Q(fk_ia__nombre_ia__icontains=search)
+        )
+
+    if fk_an:
+        try:
+            raciones_query = raciones_query.filter(fk_an_id=int(fk_an))
+        except ValueError:
+            pass
+
+    if fk_di:
+        try:
+            raciones_query = raciones_query.filter(fk_di_id=int(fk_di))
+        except ValueError:
+            pass
+
+    if estado_ra == 'activa':
+        raciones_query = raciones_query.filter(fecha_fin_ra__isnull=True)
+    elif estado_ra == 'finalizada':
+        raciones_query = raciones_query.filter(fecha_fin_ra__isnull=False)
+
+    hoy = date.today()
+    if rango_fecha == 'hoy':
+        raciones_query = raciones_query.filter(fecha_inicio_ra=hoy)
+    elif rango_fecha == 'semana':
+        inicio_semana = hoy - timedelta(days=hoy.weekday())
+        raciones_query = raciones_query.filter(fecha_inicio_ra__gte=inicio_semana, fecha_inicio_ra__lte=hoy)
+    elif rango_fecha == 'mes':
+        raciones_query = raciones_query.filter(fecha_inicio_ra__year=hoy.year, fecha_inicio_ra__month=hoy.month)
+    elif rango_fecha == 'anio':
+        raciones_query = raciones_query.filter(fecha_inicio_ra__year=hoy.year)
+    elif rango_fecha == 'personalizado':
+        if fecha_desde:
+            raciones_query = raciones_query.filter(fecha_inicio_ra__gte=fecha_desde)
+        if fecha_hasta:
+            raciones_query = raciones_query.filter(fecha_inicio_ra__lte=fecha_hasta)
+
+    ordenes_validos = {
+        'reciente': '-fecha_inicio_ra',
+        'antiguo': 'fecha_inicio_ra',
+        'ofrecido_mayor': '-cantidad_ofrecida_kg_ra',
+        'ofrecido_menor': 'cantidad_ofrecida_kg_ra',
+        'animal': 'fk_an__codigo_an',
+        'eficiencia': '-eficiencia',
+    }
+    return raciones_query.order_by(ordenes_validos.get(orden, '-fecha_inicio_ra'))
+
+
+def listaracion(request):
+    """
+    Muestra el listado completo de raciones con filtros avanzados,
+    búsqueda, estadísticas y exportación de reportes.
+    """
+    # ==========================================
+    # ESTADÍSTICAS GENERALES
+    # ==========================================
+    total_raciones = Racion.objects.count()
+    
+    total_ofrecido_general = Racion.objects.aggregate(total=Sum('cantidad_ofrecida_kg_ra'))['total'] or 0
+    total_consumido_general = Racion.objects.aggregate(total=Sum('cantidad_consumida_kg_ra'))['total'] or 0
+    total_desperdicio_general = Racion.objects.aggregate(total=Sum('desperdicio_kg_ra'))['total'] or 0
+
+    # Animales para el filtro
+    animales = Animal.objects.filter(
+        estado_an='activo',
+        categoria_an__in=['ternero', 'novilla', 'vaca_leche', 'vaca_seca', 'toro', 'ceba']
+    ).order_by('codigo_an')
+
+    # Dietas para el filtro
+    dietas = Dieta.objects.filter(activa_di=True).order_by('nombre_di')
+
+    # ==========================================
+    # APLICAR FILTROS
+    # ==========================================
+    raciones_query = _construir_queryset_raciones(request)
+
+    total_filtrado = raciones_query.count()
+    
+    total_ofrecido_filtrado = raciones_query.aggregate(total=Sum('cantidad_ofrecida_kg_ra'))['total'] or 0
+    total_consumido_filtrado = raciones_query.aggregate(total=Sum('cantidad_consumida_kg_ra'))['total'] or 0
+    total_desperdicio_filtrado = raciones_query.aggregate(total=Sum('desperdicio_kg_ra'))['total'] or 0
+
+    eficiencia_promedio_filtrado = raciones_query.exclude(
+        cantidad_ofrecida_kg_ra=0
+    ).exclude(
+        cantidad_consumida_kg_ra__isnull=True
+    ).aggregate(prom=Avg('eficiencia'))['prom'] or 0
+
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(raciones_query, 20)
+    page_number = request.GET.get('page', 1)
+    raciones_list = paginator.get_page(page_number)
+
+    # Calcular eficiencia y estado para los registros paginados
+    for racion in raciones_list:
+        racion.eficiencia = racion.calcular_eficiencia()
+        racion.desperdicio_pct = racion.calcular_desperdicio_pct()
+        racion.estado = 'activa' if racion.fecha_fin_ra is None else 'finalizada'
+
+    contexto = {
+        'raciones_list': raciones_list,
+        'total_raciones': total_raciones,
+        'total_ofrecido_general': round(total_ofrecido_general, 2),
+        'total_consumido_general': round(total_consumido_general, 2),
+        'total_desperdicio_general': round(total_desperdicio_general, 2),
+        'total_filtrado': total_filtrado,
+        'total_ofrecido_filtrado': round(total_ofrecido_filtrado, 2),
+        'total_consumido_filtrado': round(total_consumido_filtrado, 2),
+        'total_desperdicio_filtrado': round(total_desperdicio_filtrado, 2),
+        'eficiencia_promedio_filtrado': round(eficiencia_promedio_filtrado, 2),
+        'animales': animales,
+        'dietas': dietas,
+    }
+
+    return render(request, 'catalogos/alimentacion/racion/lista_racion.html', contexto)
+
+
+def reporteracion_imprimir(request):
+    """
+    Vista de solo lectura, sin paginación, con todas las raciones que
+    cumplen los filtros actuales, lista para imprimir.
+    """
+    raciones_query = _construir_queryset_raciones(request)
+    
+    total_ofrecido = raciones_query.aggregate(total=Sum('cantidad_ofrecida_kg_ra'))['total'] or 0
+    total_consumido = raciones_query.aggregate(total=Sum('cantidad_consumida_kg_ra'))['total'] or 0
+    total_desperdicio = raciones_query.aggregate(total=Sum('desperdicio_kg_ra'))['total'] or 0
+
+    return render(request, 'catalogos/alimentacion/racion/reporte_racion_imprimir.html', {
+        'raciones': raciones_query,
+        'total_resultados': raciones_query.count(),
+        'total_ofrecido': round(total_ofrecido, 2),
+        'total_consumido': round(total_consumido, 2),
+        'total_desperdicio': round(total_desperdicio, 2),
+        'fecha_generacion': datetime.now(),
+    })
+
+
+def exportarracion_excel(request):
+    """
+    Descarga en Excel (.xlsx) de las raciones que cumplen los filtros
+    actualmente aplicados en el listado.
+    """
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+
+    raciones_query = _construir_queryset_raciones(request)
+
+    wb = openpyxl.Workbook()
+    hoja = wb.active
+    hoja.title = 'Raciones'
+
+    encabezados = [
+        'ID', 'Animal', 'Dieta', 'Insumo', 'Fecha inicio', 'Fecha fin',
+        'Ofrecido kg', 'Consumido kg', 'Desperdicio kg', 'Eficiencia %',
+        'Dias en potrero', 'Registrado por'
+    ]
+    hoja.append(encabezados)
+    for celda in hoja[1]:
+        celda.font = Font(bold=True, color='FFFFFF')
+        celda.fill = PatternFill(start_color='2C5E1A', end_color='2C5E1A', fill_type='solid')
+        celda.alignment = Alignment(horizontal='center')
+
+    for r in raciones_query:
+        eficiencia = r.calcular_eficiencia()
+        hoja.append([
+            r.id_ra,
+            r.fk_an.codigo_an if r.fk_an else '',
+            r.fk_di.nombre_di if r.fk_di else '',
+            r.fk_ia.nombre_ia if r.fk_ia else '',
+            r.fecha_inicio_ra.strftime('%d/%m/%Y') if r.fecha_inicio_ra else '',
+            r.fecha_fin_ra.strftime('%d/%m/%Y') if r.fecha_fin_ra else '',
+            float(r.cantidad_ofrecida_kg_ra) if r.cantidad_ofrecida_kg_ra is not None else '',
+            float(r.cantidad_consumida_kg_ra) if r.cantidad_consumida_kg_ra is not None else '',
+            float(r.desperdicio_kg_ra) if r.desperdicio_kg_ra is not None else '',
+            eficiencia if eficiencia is not None else '',
+            r.dias_en_potrero_ra or '',
+            r.fk_us_ra.username_us if r.fk_us_ra else '',
+        ])
+
+    for columna in hoja.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        hoja.column_dimensions[columna[0].column_letter].width = max_len + 3
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    nombre_archivo = f'raciones_{date.today().strftime("%Y%m%d")}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+    wb.save(response)
+    return response
+
+
+def exportarracion_csv(request):
+    """
+    Descarga en CSV de las raciones que cumplen los filtros actuales.
+    """
+    import csv
+
+    raciones_query = _construir_queryset_raciones(request)
+
+    response = HttpResponse(content_type='text/csv')
+    nombre_archivo = f'raciones_{date.today().strftime("%Y%m%d")}.csv'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'ID', 'Animal', 'Dieta', 'Insumo', 'Fecha inicio', 'Fecha fin',
+        'Ofrecido kg', 'Consumido kg', 'Desperdicio kg', 'Eficiencia %',
+        'Dias en potrero', 'Registrado por'
+    ])
+    for r in raciones_query:
+        eficiencia = r.calcular_eficiencia()
+        writer.writerow([
+            r.id_ra,
+            r.fk_an.codigo_an if r.fk_an else '',
+            r.fk_di.nombre_di if r.fk_di else '',
+            r.fk_ia.nombre_ia if r.fk_ia else '',
+            r.fecha_inicio_ra.strftime('%d/%m/%Y') if r.fecha_inicio_ra else '',
+            r.fecha_fin_ra.strftime('%d/%m/%Y') if r.fecha_fin_ra else '',
+            r.cantidad_ofrecida_kg_ra if r.cantidad_ofrecida_kg_ra is not None else '',
+            r.cantidad_consumida_kg_ra if r.cantidad_consumida_kg_ra is not None else '',
+            r.desperdicio_kg_ra if r.desperdicio_kg_ra is not None else '',
+            eficiencia if eficiencia is not None else '',
+            r.dias_en_potrero_ra or '',
+            r.fk_us_ra.username_us if r.fk_us_ra else '',
+        ])
+
+    return response
