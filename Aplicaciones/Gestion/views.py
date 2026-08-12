@@ -12839,3 +12839,258 @@ def exportarordenos_csv(request):
     writer.writerow([])
     writer.writerow(['', '', '', 'TOTAL LITROS:', total_litros])
     return response
+
+# ==========================================
+# ENTREGAS DE LECHE - FILTROS Y REPORTES
+# ==========================================
+
+def _construir_queryset_entregas(request):
+    """
+    Aplica todos los filtros del listado de entregas sobre el queryset.
+    Se usa tanto en el listado como en la exportación/impresión.
+    """
+    search = request.GET.get('search', '')
+    cliente = request.GET.get('cliente', '')
+    rango_fecha = request.GET.get('rango_fecha', '')
+    fecha_desde = request.GET.get('fecha_desde', '')
+    fecha_hasta = request.GET.get('fecha_hasta', '')
+    orden = request.GET.get('orden', 'reciente')
+
+    entregas_query = EntregaLeche.objects.all().select_related('fk_us_el')
+
+    # Búsqueda por cliente o guía
+    if search:
+        entregas_query = entregas_query.filter(
+            Q(cliente_el__icontains=search) |
+            Q(guia_remision_el__icontains=search) |
+            Q(observaciones_el__icontains=search)
+        )
+
+    # Filtro por cliente específico
+    if cliente:
+        entregas_query = entregas_query.filter(cliente_el=cliente)
+
+    # Filtro por rango de fechas
+    hoy = date.today()
+    if rango_fecha == 'hoy':
+        entregas_query = entregas_query.filter(fecha_el=hoy)
+    elif rango_fecha == 'semana':
+        inicio_semana = hoy - timedelta(days=hoy.weekday())
+        entregas_query = entregas_query.filter(fecha_el__gte=inicio_semana, fecha_el__lte=hoy)
+    elif rango_fecha == 'mes':
+        entregas_query = entregas_query.filter(fecha_el__year=hoy.year, fecha_el__month=hoy.month)
+    elif rango_fecha == 'anio':
+        entregas_query = entregas_query.filter(fecha_el__year=hoy.year)
+    elif rango_fecha == 'personalizado':
+        if fecha_desde:
+            entregas_query = entregas_query.filter(fecha_el__gte=fecha_desde)
+        if fecha_hasta:
+            entregas_query = entregas_query.filter(fecha_el__lte=fecha_hasta)
+
+    # Ordenamiento
+    ordenes_validos = {
+        'reciente': '-fecha_el',
+        'antiguo': 'fecha_el',
+        'litros': '-litros_totales_el',
+        'monto': '-monto_total_el',
+        'cliente': 'cliente_el',
+    }
+    return entregas_query.order_by(ordenes_validos.get(orden, '-fecha_el'))
+
+
+def listaentrega(request):
+    """
+    Muestra el listado completo de entregas de leche con filtros avanzados,
+    búsqueda, estadísticas y exportación de reportes.
+    """
+    # ==========================================
+    # ESTADÍSTICAS GENERALES
+    # ==========================================
+    total_entregas = EntregaLeche.objects.count()
+    
+    total_litros_general = EntregaLeche.objects.aggregate(
+        total=Sum('litros_totales_el')
+    )['total'] or 0
+    
+    total_monto_general = EntregaLeche.objects.aggregate(
+        total=Sum('monto_total_el')
+    )['total'] or 0
+    
+    promedio_precio_general = EntregaLeche.objects.filter(
+        precio_litro_el__isnull=False
+    ).aggregate(prom=Avg('precio_litro_el'))['prom'] or 0
+
+    hoy = date.today()
+    entregas_hoy = EntregaLeche.objects.filter(fecha_el=hoy).count()
+    litros_hoy = EntregaLeche.objects.filter(fecha_el=hoy).aggregate(
+        total=Sum('litros_totales_el')
+    )['total'] or 0
+
+    # Clientes únicos para el filtro
+    clientes = EntregaLeche.objects.exclude(
+        cliente_el__isnull=True
+    ).exclude(
+        cliente_el=''
+    ).values_list('cliente_el', flat=True).distinct().order_by('cliente_el')
+
+    # ==========================================
+    # APLICAR FILTROS
+    # ==========================================
+    entregas_query = _construir_queryset_entregas(request)
+
+    # Totales del resultado filtrado
+    total_litros_filtrado = entregas_query.aggregate(
+        total=Sum('litros_totales_el')
+    )['total'] or 0
+    
+    total_monto_filtrado = entregas_query.aggregate(
+        total=Sum('monto_total_el')
+    )['total'] or 0
+    
+    promedio_precio_filtrado = entregas_query.filter(
+        precio_litro_el__isnull=False
+    ).aggregate(prom=Avg('precio_litro_el'))['prom'] or 0
+
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(entregas_query, 20)
+    page_number = request.GET.get('page', 1)
+    entrega_list = paginator.get_page(page_number)
+
+    contexto = {
+        'entrega_list': entrega_list,
+        'total_entregas': total_entregas,
+        'total_litros_general': round(total_litros_general, 2),
+        'total_monto_general': round(total_monto_general, 2),
+        'promedio_precio_general': round(promedio_precio_general, 2),
+        'entregas_hoy': entregas_hoy,
+        'litros_hoy': round(litros_hoy, 2),
+        'total_litros_filtrado': round(total_litros_filtrado, 2),
+        'total_monto_filtrado': round(total_monto_filtrado, 2),
+        'promedio_precio_filtrado': round(promedio_precio_filtrado, 2),
+        'clientes': clientes,
+    }
+
+    return render(request, 'catalogos/produccion/entregaL/lista_entrega.html', contexto)
+
+
+def reporteentrega_imprimir(request):
+    """
+    Vista de solo lectura, sin paginación, con todas las entregas que
+    cumplen los filtros actuales, lista para imprimir.
+    """
+    entregas_query = _construir_queryset_entregas(request)
+    
+    total_litros = entregas_query.aggregate(
+        total=Sum('litros_totales_el')
+    )['total'] or 0
+    
+    total_monto = entregas_query.aggregate(
+        total=Sum('monto_total_el')
+    )['total'] or 0
+
+    return render(request, 'catalogos/produccion/entregaL/reporte_entrega_imprimir.html', {
+        'entregas': entregas_query,
+        'total_resultados': entregas_query.count(),
+        'total_litros': round(total_litros, 2),
+        'total_monto': round(total_monto, 2),
+        'fecha_generacion': datetime.now(),
+    })
+
+
+def exportarentregas_excel(request):
+    """
+    Descarga en Excel (.xlsx) de las entregas que cumplen los filtros
+    actualmente aplicados en el listado.
+    """
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+
+    entregas_query = _construir_queryset_entregas(request)
+
+    wb = openpyxl.Workbook()
+    hoja = wb.active
+    hoja.title = 'Entregas de Leche'
+
+    encabezados = [
+        'ID', 'Fecha', 'Litros', 'Cliente', 'Precio/L',
+        'Monto total', 'Guía remisión', 'Observaciones', 'Registrado por'
+    ]
+    hoja.append(encabezados)
+    for celda in hoja[1]:
+        celda.font = Font(bold=True, color='FFFFFF')
+        celda.fill = PatternFill(start_color='2C5E1A', end_color='2C5E1A', fill_type='solid')
+        celda.alignment = Alignment(horizontal='center')
+
+    for e in entregas_query:
+        hoja.append([
+            e.id_el,
+            e.fecha_el.strftime('%d/%m/%Y') if e.fecha_el else '',
+            float(e.litros_totales_el) if e.litros_totales_el is not None else '',
+            e.cliente_el or '',
+            float(e.precio_litro_el) if e.precio_litro_el is not None else '',
+            float(e.monto_total_el) if e.monto_total_el is not None else '',
+            e.guia_remision_el or '',
+            e.observaciones_el or '',
+            e.fk_us_el.username_us if e.fk_us_el else '',
+        ])
+
+    # Totales
+    total_litros = entregas_query.aggregate(total=Sum('litros_totales_el'))['total'] or 0
+    total_monto = entregas_query.aggregate(total=Sum('monto_total_el'))['total'] or 0
+    
+    hoja.append([])
+    hoja.append(['', '', 'TOTAL LITROS:', float(total_litros), '', 'TOTAL MONTO:', float(total_monto)])
+    for celda in hoja[hoja.max_row]:
+        celda.font = Font(bold=True)
+
+    for columna in hoja.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        hoja.column_dimensions[columna[0].column_letter].width = max_len + 3
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    nombre_archivo = f'entregas_leche_{date.today().strftime("%Y%m%d")}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+    wb.save(response)
+    return response
+
+
+def exportarentregas_csv(request):
+    """
+    Descarga en CSV de las entregas que cumplen los filtros actuales.
+    """
+    import csv
+
+    entregas_query = _construir_queryset_entregas(request)
+
+    response = HttpResponse(content_type='text/csv')
+    nombre_archivo = f'entregas_leche_{date.today().strftime("%Y%m%d")}.csv'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'ID', 'Fecha', 'Litros', 'Cliente', 'Precio/L',
+        'Monto total', 'Guía remisión', 'Observaciones', 'Registrado por'
+    ])
+    for e in entregas_query:
+        writer.writerow([
+            e.id_el,
+            e.fecha_el.strftime('%d/%m/%Y') if e.fecha_el else '',
+            e.litros_totales_el if e.litros_totales_el is not None else '',
+            e.cliente_el or '',
+            e.precio_litro_el if e.precio_litro_el is not None else '',
+            e.monto_total_el if e.monto_total_el is not None else '',
+            e.guia_remision_el or '',
+            e.observaciones_el or '',
+            e.fk_us_el.username_us if e.fk_us_el else '',
+        ])
+
+    total_litros = entregas_query.aggregate(total=Sum('litros_totales_el'))['total'] or 0
+    total_monto = entregas_query.aggregate(total=Sum('monto_total_el'))['total'] or 0
+    writer.writerow([])
+    writer.writerow(['TOTAL LITROS:', float(total_litros), 'TOTAL MONTO:', float(total_monto)])
+
+    return response

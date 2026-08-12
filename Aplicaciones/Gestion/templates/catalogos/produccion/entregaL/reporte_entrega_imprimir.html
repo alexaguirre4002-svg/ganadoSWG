@@ -1,0 +1,68 @@
+{% extends "catalogos/reportes/reporte_base_imprimir.html" %}
+{% load filtros_extra %}
+
+{% block titulo %}Reporte de entregas de leche | Hacienda Joseph{% endblock %}
+{% block encabezado_titulo %}Reporte de entregas de leche{% endblock %}
+
+{% block filtros_aplicados %}
+    {% if request.GET.search %}<strong>Búsqueda:</strong> "{{ request.GET.search }}" &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.cliente %}<strong>Cliente:</strong> {{ request.GET.cliente }} &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.rango_fecha %}<strong>Fecha:</strong>
+        {% if request.GET.rango_fecha == 'hoy' %}Hoy
+        {% elif request.GET.rango_fecha == 'semana' %}Esta semana
+        {% elif request.GET.rango_fecha == 'mes' %}Este mes
+        {% elif request.GET.rango_fecha == 'anio' %}Este año
+        {% elif request.GET.rango_fecha == 'personalizado' %}Del {{ request.GET.fecha_desde }} al {{ request.GET.fecha_hasta }}
+        {% endif %}
+        &nbsp;·&nbsp;
+    {% endif %}
+    {% if not request.GET.search and not request.GET.cliente and not request.GET.rango_fecha %}
+        Ninguno (se muestran todas las entregas registradas)
+    {% endif %}
+{% endblock %}
+
+{% block tabla_reporte %}
+<table class="tabla-reporte">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Litros</th>
+            <th>Cliente</th>
+            <th>Precio/L</th>
+            <th>Monto total</th>
+            <th>Guía remisión</th>
+            <th>Observaciones</th>
+            <th>Registrado por</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entrega in entregas %}
+        <tr>
+            <td>#{{ entrega.id_el }}</td>
+            <td>{{ entrega.fecha_el|date:"d/m/Y" }}</td>
+            <td class="text-end">{{ entrega.litros_totales_el|floatformat:2 }}</td>
+            <td>{{ entrega.cliente_el|default:"—" }}</td>
+            <td class="text-end">{% if entrega.precio_litro_el %} ${{ entrega.precio_litro_el }}{% else %}—{% endif %}</td>
+            <td class="text-end">{% if entrega.monto_total_el %} ${{ entrega.monto_total_el }}{% else %}—{% endif %}</td>
+            <td>{{ entrega.guia_remision_el|default:"—" }}</td>
+            <td>{{ entrega.observaciones_el|default:"—" }}</td>
+            <td>{{ entrega.fk_us_el.username_us|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" style="text-align:center; padding:20px;">No hay entregas que coincidan con los filtros aplicados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Resumen de totales -->
+<div class="resumen-reporte">
+    <p><strong>Resumen del reporte:</strong></p>
+    <ul>
+        <li><strong>Total de entregas:</strong> {{ total_resultados }}</li>
+        <li><strong>Total de litros:</strong> {{ total_litros }} L</li>
+        <li><strong>Total de monto:</strong> ${{ total_monto }}</li>
+        <li><strong>Fecha de generación:</strong> {{ fecha_generacion|date:"d/m/Y H:i" }}</li>
+    </ul>
+</div>
+{% endblock %}
