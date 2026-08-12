@@ -101,7 +101,168 @@ Listado de eventos sanitarios | Hacienda Joseph
                 <span class="badge bg-secondary ms-2">{{ eventos.paginator.count }}</span>
             </div>
             <div class="p-4">
-                <!-- Filtro de búsqueda -->
+
+                <!-- ========================================== -->
+                <!-- PANEL DE FILTROS AVANZADOS                -->
+                <!-- ========================================== -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <form method="GET" action="" id="formFiltrosEvento" class="p-3" style="background:#f8f9f5; border:1px solid #d4c5a9; border-radius:10px;">
+                            
+                            <!-- Fila 1: Búsqueda y filtros principales -->
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold text-muted mb-1">Buscar</label>
+                                    <input type="text" name="search" class="form-control form-control-sm"
+                                           placeholder="🔍 Animal, tipo o veterinario..." value="{{ request.GET.search }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">Animal</label>
+                                    <select name="fk_an" class="form-select form-select-sm">
+                                        <option value="">Todos los animales</option>
+                                        {% for animal in animales %}
+                                        <option value="{{ animal.id_an }}" {% if request.GET.fk_an == animal.id_an|stringformat:"s" %}selected{% endif %}>
+                                            {{ animal.codigo_an }} - {{ animal.nombre_an|default:"Sin nombre" }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">Tipo</label>
+                                    <select name="tipo_evento_es" class="form-select form-select-sm">
+                                        <option value="">Todos</option>
+                                        {% for valor, nombre in tipos_evento %}
+                                        <option value="{{ valor }}" {% if request.GET.tipo_evento_es == valor %}selected{% endif %}>{{ nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">Estado</label>
+                                    <select name="estado_es" class="form-select form-select-sm">
+                                        <option value="">Todos</option>
+                                        <option value="pendiente" {% if request.GET.estado_es == "pendiente" %}selected{% endif %}>Pendiente</option>
+                                        <option value="ejecutado" {% if request.GET.estado_es == "ejecutado" %}selected{% endif %}>Ejecutado</option>
+                                        <option value="cancelado" {% if request.GET.estado_es == "cancelado" %}selected{% endif %}>Cancelado</option>
+                                        <option value="pospuesto" {% if request.GET.estado_es == "pospuesto" %}selected{% endif %}>Pospuesto</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">Solo pendientes</label>
+                                    <select name="solo_pendientes" class="form-select form-select-sm">
+                                        <option value="">No</option>
+                                        <option value="1" {% if request.GET.solo_pendientes == "1" %}selected{% endif %}>Solo pendientes</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Fila 2: Fechas y totales -->
+                            <div class="row g-2 align-items-end mt-2">
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold text-muted mb-1">Rango fecha programada</label>
+                                    <select name="rango_fecha" id="selectRangoFecha" class="form-select form-select-sm">
+                                        <option value="">Todas las fechas</option>
+                                        <option value="hoy" {% if request.GET.rango_fecha == "hoy" %}selected{% endif %}>Hoy</option>
+                                        <option value="semana" {% if request.GET.rango_fecha == "semana" %}selected{% endif %}>Esta semana</option>
+                                        <option value="mes" {% if request.GET.rango_fecha == "mes" %}selected{% endif %}>Este mes</option>
+                                        <option value="anio" {% if request.GET.rango_fecha == "anio" %}selected{% endif %}>Este año</option>
+                                        <option value="personalizado" {% if request.GET.rango_fecha == "personalizado" %}selected{% endif %}>Rango personalizado</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 campo-fecha-personalizada" style="{% if request.GET.rango_fecha != 'personalizado' %}display:none;{% endif %}">
+                                    <label class="form-label small fw-bold text-muted mb-1">Desde</label>
+                                    <input type="date" name="fecha_desde" class="form-control form-control-sm" value="{{ request.GET.fecha_desde }}">
+                                </div>
+                                <div class="col-md-2 campo-fecha-personalizada" style="{% if request.GET.rango_fecha != 'personalizado' %}display:none;{% endif %}">
+                                    <label class="form-label small fw-bold text-muted mb-1">Hasta</label>
+                                    <input type="date" name="fecha_hasta" class="form-control form-control-sm" value="{{ request.GET.fecha_hasta }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">Ordenar por</label>
+                                    <select name="orden" class="form-select form-select-sm">
+                                        <option value="reciente" {% if request.GET.orden == "reciente" or not request.GET.orden %}selected{% endif %}>Más reciente</option>
+                                        <option value="antiguo" {% if request.GET.orden == "antiguo" %}selected{% endif %}>Más antiguo</option>
+                                        <option value="animal" {% if request.GET.orden == "animal" %}selected{% endif %}>Animal</option>
+                                        <option value="estado" {% if request.GET.orden == "estado" %}selected{% endif %}>Estado</option>
+                                        <option value="costo_mayor" {% if request.GET.orden == "costo_mayor" %}selected{% endif %}>Mayor costo</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <small class="text-muted">
+                                        Total filtrado: <strong>{{ total_filtrado }}</strong> | 
+                                        Costo total: <strong>${{ costo_total_filtrado|floatformat:2 }}</strong> |
+                                        Pendientes: <strong>{{ pendientes_filtrado }}</strong>
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Fila 3: Botones de acción -->
+                            <div class="row mt-3">
+                                <div class="col-md-6 d-flex gap-2 flex-wrap">
+                                    <button type="submit" class="btn btn-sm btn-hacienda">
+                                        <i class="bi bi-funnel me-1"></i>Filtrar
+                                    </button>
+                                    <a href="{% url 'listaeventosanitario' %}" class="btn btn-sm btn-hacienda-secondary">
+                                        <i class="bi bi-x-circle me-1"></i>Limpiar
+                                    </a>
+                                </div>
+                                <div class="col-md-6 text-md-end d-flex gap-2 justify-content-md-end flex-wrap mt-2 mt-md-0">
+                                    <button type="submit" formaction="{% url 'reporteevento_imprimir' %}" formtarget="_blank" class="btn btn-sm btn-outline-dark">
+                                        <i class="bi bi-printer me-1"></i>Reporte
+                                    </button>
+                                    <button type="submit" formaction="{% url 'exportarevento_excel' %}" class="btn btn-sm btn-success">
+                                        <i class="bi bi-file-earmark-excel me-1"></i>Excel
+                                    </button>
+                                    <button type="submit" formaction="{% url 'exportarevento_csv' %}" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-filetype-csv me-1"></i>CSV
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Resumen de filtros aplicados -->
+                {% if request.GET %}
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <span class="badge bg-hacienda-light p-2">
+                                <i class="bi bi-funnel me-1"></i> Filtros activos:
+                            </span>
+                            {% if request.GET.search %}
+                            <span class="badge bg-secondary p-2">Buscar: "{{ request.GET.search }}"</span>
+                            {% endif %}
+                            {% if request.GET.fk_an %}
+                            <span class="badge bg-secondary p-2">Animal seleccionado</span>
+                            {% endif %}
+                            {% if request.GET.tipo_evento_es %}
+                            <span class="badge bg-secondary p-2">Tipo: {{ request.GET.tipo_evento_es }}</span>
+                            {% endif %}
+                            {% if request.GET.estado_es %}
+                            <span class="badge bg-secondary p-2">Estado: {{ request.GET.estado_es }}</span>
+                            {% endif %}
+                            {% if request.GET.solo_pendientes == '1' %}
+                            <span class="badge bg-warning p-2">Solo pendientes</span>
+                            {% endif %}
+                            {% if request.GET.rango_fecha %}
+                            <span class="badge bg-secondary p-2">Fecha: 
+                                {% if request.GET.rango_fecha == 'hoy' %}Hoy
+                                {% elif request.GET.rango_fecha == 'semana' %}Esta semana
+                                {% elif request.GET.rango_fecha == 'mes' %}Este mes
+                                {% elif request.GET.rango_fecha == 'anio' %}Este año
+                                {% elif request.GET.rango_fecha == 'personalizado' %}Del {{ request.GET.fecha_desde }} al {{ request.GET.fecha_hasta }}
+                                {% endif %}
+                            </span>
+                            {% endif %}
+                            <a href="{% url 'listaeventosanitario' %}" class="badge bg-danger p-2 text-decoration-none">
+                                <i class="bi bi-x-circle me-1"></i>Limpiar todos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Filtro de búsqueda - ORIGINAL SIN MODIFICAR -->
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <form method="GET" action="" class="d-flex">
@@ -126,7 +287,7 @@ Listado de eventos sanitarios | Hacienda Joseph
                     </div>
                 </div>
 
-                <!-- Tabla -->
+                <!-- Tabla - ORIGINAL SIN MODIFICAR -->
                 <div class="table-responsive">
                     <table class="table table-hacienda align-middle mb-0">
                         <thead>
@@ -341,8 +502,11 @@ Listado de eventos sanitarios | Hacienda Joseph
                             <tr>
                                 <td colspan="11" class="text-center py-5">
                                     <i class="bi bi-inbox fs-1 text-muted"></i>
-                                    <p class="mt-3 text-muted">No hay eventos sanitarios registrados</p>
-                                    <a href="/nuevoeventosanitario/" class="btn btn-hacienda btn-sm mt-2">
+                                    <p class="mt-3 text-muted">No hay eventos sanitarios que coincidan con los filtros aplicados</p>
+                                    <a href="{% url 'listaeventosanitario' %}" class="btn btn-hacienda btn-sm mt-2">
+                                        <i class="bi bi-arrow-repeat me-2"></i>Limpiar filtros
+                                    </a>
+                                    <a href="/nuevoeventosanitario/" class="btn btn-hacienda-secondary btn-sm mt-2">
                                         <i class="bi bi-plus-circle me-2"></i>Registrar primer evento
                                     </a>
                                 </td>
@@ -352,7 +516,7 @@ Listado de eventos sanitarios | Hacienda Joseph
                     </table>
                 </div>
 
-                <!-- Paginación de Django -->
+                <!-- Paginación de Django - ORIGINAL SIN MODIFICAR -->
                 {% if eventos.has_other_pages %}
                 <div class="row mt-4">
                     <div class="col-md-6">
@@ -366,12 +530,12 @@ Listado de eventos sanitarios | Hacienda Joseph
                             <ul class="pagination justify-content-end flex-wrap">
                                 {% if eventos.has_previous %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
                                         <i class="bi bi-chevron-double-left"></i>
                                     </a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ eventos.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                    <a class="page-link" href="?page={{ eventos.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
                                         <i class="bi bi-chevron-left"></i>
                                     </a>
                                 </li>
@@ -384,7 +548,7 @@ Listado de eventos sanitarios | Hacienda Joseph
                                     </li>
                                     {% elif num > eventos.number|add:'-3' and num < eventos.number|add:'3' %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
                                             {{ num }}
                                         </a>
                                     </li>
@@ -393,12 +557,12 @@ Listado de eventos sanitarios | Hacienda Joseph
 
                                 {% if eventos.has_next %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ eventos.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                    <a class="page-link" href="?page={{ eventos.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
                                         <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ eventos.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                    <a class="page-link" href="?page={{ eventos.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
                                         <i class="bi bi-chevron-double-right"></i>
                                     </a>
                                 </li>
@@ -412,7 +576,8 @@ Listado de eventos sanitarios | Hacienda Joseph
             <div class="px-4 py-3 border-top" style="background: rgba(44,94,26,0.03);">
                 <small class="text-muted">
                     <i class="bi bi-bar-chart-line me-1"></i>
-                    Total de eventos: <strong>{{ eventos.paginator.count }}</strong>
+                    Total eventos: <strong>{{ eventos.paginator.count }}</strong> | 
+                    Costo total: <strong>${{ costo_total_filtrado|floatformat:2 }}</strong>
                 </small>
             </div>
         </div>
@@ -582,6 +747,11 @@ Listado de eventos sanitarios | Hacienda Joseph
         font-size: 0.8rem;
         padding: 0.35rem 0.65rem;
     }
+    .bg-hacienda-light {
+        background-color: #e8f5e9;
+        color: #2c5e1a;
+        border: 1px solid #2c5e1a;
+    }
 </style>
 
 {% endblock %}
@@ -591,6 +761,25 @@ Listado de eventos sanitarios | Hacienda Joseph
 <!-- ========================================== -->
 {% block scripts_extra %}
 <script>
+    // Mostrar/ocultar campos de rango de fecha personalizado
+    document.getElementById('selectRangoFecha').addEventListener('change', function () {
+        var campos = document.querySelectorAll('.campo-fecha-personalizada');
+        var mostrar = this.value === 'personalizado';
+        campos.forEach(function (c) {
+            c.style.display = mostrar ? '' : 'none';
+        });
+    });
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', function() {
+        var select = document.getElementById('selectRangoFecha');
+        if (select.value === 'personalizado') {
+            document.querySelectorAll('.campo-fecha-personalizada').forEach(function(c) {
+                c.style.display = '';
+            });
+        }
+    });
+
     // Modal detalle evento
     var modalDetalleEvento = document.getElementById('modalDetalleEvento');
     modalDetalleEvento.addEventListener('show.bs.modal', function (event) {
@@ -679,9 +868,7 @@ Listado de eventos sanitarios | Hacienda Joseph
         
         document.getElementById('btnEditarDesdeDetalle').href = '/editareventosanitario/' + id;
     });
-</script>
 
-<script>
     // Modal eliminar evento
     var modalEliminarEvento = document.getElementById('modalEliminarEvento');
     modalEliminarEvento.addEventListener('show.bs.modal', function (event) {

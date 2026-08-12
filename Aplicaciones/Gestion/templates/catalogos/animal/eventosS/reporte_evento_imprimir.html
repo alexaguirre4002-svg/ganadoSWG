@@ -1,0 +1,78 @@
+{% extends "catalogos/reportes/reporte_base_imprimir.html" %}
+{% load filtros_extra %}
+
+{% block titulo %}Reporte de eventos sanitarios | Hacienda Joseph{% endblock %}
+{% block encabezado_titulo %}Reporte de eventos sanitarios{% endblock %}
+
+{% block filtros_aplicados %}
+    {% if request.GET.search %}<strong>Búsqueda:</strong> "{{ request.GET.search }}" &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.fk_an %}<strong>Animal:</strong> filtrado &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.tipo_evento_es %}<strong>Tipo:</strong> {{ request.GET.tipo_evento_es }} &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.estado_es %}<strong>Estado:</strong> {{ request.GET.estado_es }} &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.solo_pendientes == '1' %}<strong>Pendientes:</strong> Solo pendientes &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.rango_fecha %}<strong>Fecha:</strong>
+        {% if request.GET.rango_fecha == 'hoy' %}Hoy
+        {% elif request.GET.rango_fecha == 'semana' %}Esta semana
+        {% elif request.GET.rango_fecha == 'mes' %}Este mes
+        {% elif request.GET.rango_fecha == 'anio' %}Este año
+        {% elif request.GET.rango_fecha == 'personalizado' %}Del {{ request.GET.fecha_desde }} al {{ request.GET.fecha_hasta }}
+        {% endif %}
+        &nbsp;·&nbsp;
+    {% endif %}
+    {% if not request.GET.search and not request.GET.fk_an and not request.GET.tipo_evento_es and not request.GET.estado_es and not request.GET.rango_fecha %}
+        Ninguno (se muestran todos los eventos sanitarios registrados)
+    {% endif %}
+{% endblock %}
+
+{% block tabla_reporte %}
+<table class="tabla-reporte">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Animal</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Fecha prog.</th>
+            <th>Fecha ejec.</th>
+            <th>Producto</th>
+            <th>Dosis</th>
+            <th>Vía</th>
+            <th>Veterinario</th>
+            <th>Resultado</th>
+            <th>Costo</th>
+            <th>Registrado por</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for evento in eventos %}
+        <tr>
+            <td>#{{ evento.id_es }}</td>
+            <td>{{ evento.fk_an.codigo_an|default:"—" }}</td>
+            <td>{{ evento.get_tipo_evento_es_display }}</td>
+            <td>{{ evento.get_estado_es_display }}</td>
+            <td>{{ evento.fecha_programada_es|date:"d/m/Y" }}</td>
+            <td>{{ evento.fecha_ejecutada_es|date:"d/m/Y"|default:"Pendiente" }}</td>
+            <td>{{ evento.fk_pv.nombre_pv|default:"—" }}</td>
+            <td class="text-center">{{ evento.dosis_es|default:"—" }}</td>
+            <td>{{ evento.get_via_administracion_es_display|default:"—" }}</td>
+            <td>{{ evento.veterinario_responsable_es|default:"—" }}</td>
+            <td>{{ evento.resultado_es|default:"—" }}</td>
+            <td class="text-end">{% if evento.costo_es %}${{ evento.costo_es }}{% else %}—{% endif %}</td>
+            <td>{{ evento.fk_us_es.username_us|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="13" style="text-align:center; padding:20px;">No hay eventos sanitarios que coincidan con los filtros aplicados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Resumen de totales -->
+<div class="resumen-reporte" style="margin-top: 20px; padding: 15px; background: #f8f9f5; border: 1px solid #d4c5a9; border-radius: 6px;">
+    <p><strong>Resumen del reporte:</strong></p>
+    <ul style="list-style: none; padding-left: 0; display: flex; flex-wrap: wrap; gap: 20px;">
+        <li><strong>Total de eventos:</strong> {{ total_resultados }}</li>
+        <li><strong>Costo total:</strong> ${{ costo_total }}</li>
+        <li><strong>Fecha generación:</strong> {{ fecha_generacion|date:"d/m/Y H:i" }}</li>
+    </ul>
+</div>
+{% endblock %}

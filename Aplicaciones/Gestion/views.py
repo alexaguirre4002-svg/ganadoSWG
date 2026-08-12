@@ -14174,3 +14174,256 @@ def exportarracion_csv(request):
         ])
 
     return response
+#EVENTO
+# ==========================================
+# EVENTOS SANITARIOS - FILTROS Y REPORTES
+# ==========================================
+
+from django.db.models import Q, Sum, Avg, Count
+from django.core.paginator import Paginator
+from datetime import date, timedelta, datetime
+
+def _construir_queryset_eventos(request):
+    """
+    Aplica todos los filtros del listado de eventos sanitarios sobre el queryset.
+    Se usa tanto en el listado como en la exportación/impresión.
+    """
+    search = request.GET.get('search', '')
+    fk_an = request.GET.get('fk_an', '')
+    tipo_evento_es = request.GET.get('tipo_evento_es', '')
+    estado_es = request.GET.get('estado_es', '')
+    rango_fecha = request.GET.get('rango_fecha', '')
+    fecha_desde = request.GET.get('fecha_desde', '')
+    fecha_hasta = request.GET.get('fecha_hasta', '')
+    solo_pendientes = request.GET.get('solo_pendientes', '')
+    orden = request.GET.get('orden', 'reciente')
+
+    eventos_query = EventoSanitario.objects.all().select_related('fk_an', 'fk_pv', 'fk_us_es')
+
+    if search:
+        eventos_query = eventos_query.filter(
+            Q(fk_an__codigo_an__icontains=search) |
+            Q(fk_an__nombre_an__icontains=search) |
+            Q(tipo_evento_es__icontains=search) |
+            Q(veterinario_responsable_es__icontains=search)
+        )
+
+    if fk_an:
+        try:
+            eventos_query = eventos_query.filter(fk_an_id=int(fk_an))
+        except ValueError:
+            pass
+
+    if tipo_evento_es:
+        eventos_query = eventos_query.filter(tipo_evento_es=tipo_evento_es)
+
+    if estado_es:
+        eventos_query = eventos_query.filter(estado_es=estado_es)
+
+    if solo_pendientes == '1':
+        eventos_query = eventos_query.filter(estado_es='pendiente')
+
+    hoy = date.today()
+    if rango_fecha == 'hoy':
+        eventos_query = eventos_query.filter(fecha_programada_es=hoy)
+    elif rango_fecha == 'semana':
+        inicio_semana = hoy - timedelta(days=hoy.weekday())
+        eventos_query = eventos_query.filter(fecha_programada_es__gte=inicio_semana, fecha_programada_es__lte=hoy)
+    elif rango_fecha == 'mes':
+        eventos_query = eventos_query.filter(fecha_programada_es__year=hoy.year, fecha_programada_es__month=hoy.month)
+    elif rango_fecha == 'anio':
+        eventos_query = eventos_query.filter(fecha_programada_es__year=hoy.year)
+    elif rango_fecha == 'personalizado':
+        if fecha_desde:
+            eventos_query = eventos_query.filter(fecha_programada_es__gte=fecha_desde)
+        if fecha_hasta:
+            eventos_query = eventos_query.filter(fecha_programada_es__lte=fecha_hasta)
+
+    ordenes_validos = {
+        'reciente': '-fecha_programada_es',
+        'antiguo': 'fecha_programada_es',
+        'animal': 'fk_an__codigo_an',
+        'estado': 'estado_es',
+        'costo_mayor': '-costo_es',
+    }
+    return eventos_query.order_by(ordenes_validos.get(orden, '-fecha_programada_es'))
+
+
+def listaeventosanitario(request):
+    """
+    Muestra el listado completo de eventos sanitarios con filtros avanzados,
+    búsqueda, estadísticas y exportación de reportes.
+    """
+    # ==========================================
+    # ESTADÍSTICAS GENERALES
+    # ==========================================
+    total_eventos = EventoSanitario.objects.count()
+    total_pendientes = EventoSanitario.objects.filter(estado_es='pendiente').count()
+    total_ejecutados = EventoSanitario.objects.filter(estado_es='ejecutado').count()
+    total_cancelados = EventoSanitario.objects.filter(estado_es='cancelado').count()
+    total_pospuestos = EventoSanitario.objects.filter(estado_es='pospuesto').count()
+
+    costo_total_general = EventoSanitario.objects.filter(
+        estado_es='ejecutado'
+    ).aggregate(total=Sum('costo_es'))['total'] or 0
+
+    # Animales para el filtro
+    animales = Animal.objects.filter(estado_an='activo').order_by('codigo_an')
+
+    # Tipos de evento para el filtro
+    tipos_evento = [
+        ('vacunacion', 'Vacunación'),
+        ('desparasitacion', 'Desparasitación'),
+        ('vitaminacion', 'Vitaminación'),
+        ('prueba_tuberculosis', 'Prueba tuberculosis'),
+        ('prueba_brucelosis', 'Prueba brucelosis'),
+        ('otro', 'Otro'),
+    ]
+
+    # ==========================================
+    # APLICAR FILTROS
+    # ==========================================
+    eventos_query = _construir_queryset_eventos(request)
+
+    total_filtrado = eventos_query.count()
+    costo_total_filtrado = eventos_query.filter(
+        estado_es='ejecutado'
+    ).aggregate(total=Sum('costo_es'))['total'] or 0
+
+    pendientes_filtrado = eventos_query.filter(estado_es='pendiente').count()
+
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(eventos_query, 20)
+    page_number = request.GET.get('page', 1)
+    eventos = paginator.get_page(page_number)
+
+    contexto = {
+        'eventos': eventos,
+        'total_eventos': total_eventos,
+        'total_pendientes': total_pendientes,
+        'total_ejecutados': total_ejecutados,
+        'total_cancelados': total_cancelados,
+        'total_pospuestos': total_pospuestos,
+        'costo_total_general': round(costo_total_general, 2),
+        'total_filtrado': total_filtrado,
+        'costo_total_filtrado': round(costo_total_filtrado, 2),
+        'pendientes_filtrado': pendientes_filtrado,
+        'animales': animales,
+        'tipos_evento': tipos_evento,
+    }
+
+    return render(request, 'catalogos/animal/eventosS/lista_evento.html', contexto)
+
+
+def reporteevento_imprimir(request):
+    """
+    Vista de solo lectura, sin paginación, con todos los eventos que
+    cumplen los filtros actuales, lista para imprimir.
+    """
+    eventos_query = _construir_queryset_eventos(request)
+    
+    costo_total = eventos_query.filter(
+        estado_es='ejecutado'
+    ).aggregate(total=Sum('costo_es'))['total'] or 0
+
+    return render(request, 'catalogos/animal/eventosS/reporte_evento_imprimir.html', {
+        'eventos': eventos_query,
+        'total_resultados': eventos_query.count(),
+        'costo_total': round(costo_total, 2),
+        'fecha_generacion': datetime.now(),
+    })
+
+
+def exportarevento_excel(request):
+    """
+    Descarga en Excel (.xlsx) de los eventos sanitarios que cumplen los filtros
+    actualmente aplicados en el listado.
+    """
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+
+    eventos_query = _construir_queryset_eventos(request)
+
+    wb = openpyxl.Workbook()
+    hoja = wb.active
+    hoja.title = 'Eventos Sanitarios'
+
+    encabezados = [
+        'ID', 'Animal', 'Tipo', 'Estado', 'Fecha programada', 'Fecha ejecutada',
+        'Producto', 'Dosis', 'Vía administración', 'Veterinario',
+        'Resultado', 'Costo', 'Registrado por'
+    ]
+    hoja.append(encabezados)
+    for celda in hoja[1]:
+        celda.font = Font(bold=True, color='FFFFFF')
+        celda.fill = PatternFill(start_color='2C5E1A', end_color='2C5E1A', fill_type='solid')
+        celda.alignment = Alignment(horizontal='center')
+
+    for e in eventos_query:
+        hoja.append([
+            e.id_es,
+            e.fk_an.codigo_an if e.fk_an else '',
+            e.get_tipo_evento_es_display(),
+            e.get_estado_es_display(),
+            e.fecha_programada_es.strftime('%d/%m/%Y') if e.fecha_programada_es else '',
+            e.fecha_ejecutada_es.strftime('%d/%m/%Y') if e.fecha_ejecutada_es else '',
+            e.fk_pv.nombre_pv if e.fk_pv else '',
+            float(e.dosis_es) if e.dosis_es is not None else '',
+            e.get_via_administracion_es_display() if e.via_administracion_es else '',
+            e.veterinario_responsable_es or '',
+            e.resultado_es or '',
+            float(e.costo_es) if e.costo_es is not None else '',
+            e.fk_us_es.username_us if e.fk_us_es else '',
+        ])
+
+    for columna in hoja.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        hoja.column_dimensions[columna[0].column_letter].width = max_len + 3
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    nombre_archivo = f'eventos_sanitarios_{date.today().strftime("%Y%m%d")}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+    wb.save(response)
+    return response
+
+
+def exportarevento_csv(request):
+    """
+    Descarga en CSV de los eventos sanitarios que cumplen los filtros actuales.
+    """
+    import csv
+
+    eventos_query = _construir_queryset_eventos(request)
+
+    response = HttpResponse(content_type='text/csv')
+    nombre_archivo = f'eventos_sanitarios_{date.today().strftime("%Y%m%d")}.csv'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'ID', 'Animal', 'Tipo', 'Estado', 'Fecha programada', 'Fecha ejecutada',
+        'Producto', 'Dosis', 'Vía administración', 'Veterinario',
+        'Resultado', 'Costo', 'Registrado por'
+    ])
+    for e in eventos_query:
+        writer.writerow([
+            e.id_es,
+            e.fk_an.codigo_an if e.fk_an else '',
+            e.get_tipo_evento_es_display(),
+            e.get_estado_es_display(),
+            e.fecha_programada_es.strftime('%d/%m/%Y') if e.fecha_programada_es else '',
+            e.fecha_ejecutada_es.strftime('%d/%m/%Y') if e.fecha_ejecutada_es else '',
+            e.fk_pv.nombre_pv if e.fk_pv else '',
+            e.dosis_es if e.dosis_es is not None else '',
+            e.get_via_administracion_es_display() if e.via_administracion_es else '',
+            e.veterinario_responsable_es or '',
+            e.resultado_es or '',
+            e.costo_es if e.costo_es is not None else '',
+            e.fk_us_es.username_us if e.fk_us_es else '',
+        ])
+
+    return response
