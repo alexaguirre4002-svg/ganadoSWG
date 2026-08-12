@@ -103,26 +103,132 @@ Listado de animales | Hacienda Joseph
                 <span class="badge bg-secondary ms-2">{{ animales.paginator.count }}</span>
             </div>
             <div class="p-4">
-                <!-- Filtro de búsqueda -->
+
+                <!-- ========================================== -->
+                <!-- PANEL DE FILTROS AVANZADOS                -->
+                <!-- ========================================== -->
                 <div class="row mb-3">
-                    <div class="col-md-6">
-                        <form method="GET" action="" class="d-flex">
-                            <input type="text" name="search" class="form-control form-control-sm" 
-                                   placeholder="🔍 Buscar por código, nombre o raza..." 
-                                   value="{{ request.GET.search }}">
-                            <button type="submit" class="btn btn-sm btn-hacienda ms-2">
-                                <i class="bi bi-search"></i>
-                            </button>
-                            {% if request.GET.search %}
-                            <a href="?page=1" class="btn btn-sm btn-hacienda-secondary ms-1">
-                                <i class="bi bi-x-circle"></i>
-                            </a>
-                            {% endif %}
+                    <div class="col-12">
+                        <form method="GET" action="" id="formFiltrosAnimal" class="p-3" style="background:#f8f9f5; border:1px solid #d4c5a9; border-radius:10px;">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold text-muted mb-1">Buscar</label>
+                                    <input type="text" name="search" class="form-control form-control-sm"
+                                           placeholder="🔍 Código, nombre o raza..." value="{{ request.GET.search }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">Raza</label>
+                                    <select name="fk_ra" class="form-select form-select-sm">
+                                        <option value="">Todas las razas</option>
+                                        {% for raza in razas_filtro %}
+                                        <option value="{{ raza.id_ra }}" {% if request.GET.fk_ra == raza.id_ra|stringformat:"s" %}selected{% endif %}>{{ raza.nombre_ra }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">Sexo</label>
+                                    <select name="sexo_an" class="form-select form-select-sm">
+                                        <option value="">Todos</option>
+                                        <option value="M" {% if request.GET.sexo_an == "M" %}selected{% endif %}>Macho</option>
+                                        <option value="H" {% if request.GET.sexo_an == "H" %}selected{% endif %}>Hembra</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">Categoría</label>
+                                    <select name="categoria_an" class="form-select form-select-sm">
+                                        <option value="">Todas</option>
+                                        <option value="ternero" {% if request.GET.categoria_an == "ternero" %}selected{% endif %}>Ternero</option>
+                                        <option value="novilla" {% if request.GET.categoria_an == "novilla" %}selected{% endif %}>Novilla</option>
+                                        <option value="vaca_leche" {% if request.GET.categoria_an == "vaca_leche" %}selected{% endif %}>Vaca leche</option>
+                                        <option value="vaca_seca" {% if request.GET.categoria_an == "vaca_seca" %}selected{% endif %}>Vaca seca</option>
+                                        <option value="toro" {% if request.GET.categoria_an == "toro" %}selected{% endif %}>Toro</option>
+                                        <option value="torito" {% if request.GET.categoria_an == "torito" %}selected{% endif %}>Torito</option>
+                                        <option value="ceba" {% if request.GET.categoria_an == "ceba" %}selected{% endif %}>Ceba</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">Estado</label>
+                                    <select name="estado_an" class="form-select form-select-sm">
+                                        <option value="">Todos</option>
+                                        <option value="activo" {% if request.GET.estado_an == "activo" %}selected{% endif %}>Activo</option>
+                                        <option value="vendido" {% if request.GET.estado_an == "vendido" %}selected{% endif %}>Vendido</option>
+                                        <option value="muerto" {% if request.GET.estado_an == "muerto" %}selected{% endif %}>Muerto</option>
+                                        <option value="faenado" {% if request.GET.estado_an == "faenado" %}selected{% endif %}>Faenado</option>
+                                        <option value="retirado" {% if request.GET.estado_an == "retirado" %}selected{% endif %}>Retirado</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row g-2 align-items-end mt-1">
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold text-muted mb-1">Potrero</label>
+                                    <select name="fk_potrero_an" class="form-select form-select-sm">
+                                        <option value="">Todos los potreros</option>
+                                        {% for potrero in potreros_filtro %}
+                                        <option value="{{ potrero.id_po }}" {% if request.GET.fk_potrero_an == potrero.id_po|stringformat:"s" %}selected{% endif %}>{{ potrero.nombre_po }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold text-muted mb-1">Fecha de ingreso</label>
+                                    <select name="rango_fecha" id="selectRangoFecha" class="form-select form-select-sm">
+                                        <option value="">Todas las fechas</option>
+                                        <option value="hoy" {% if request.GET.rango_fecha == "hoy" %}selected{% endif %}>Hoy</option>
+                                        <option value="7dias" {% if request.GET.rango_fecha == "7dias" %}selected{% endif %}>Últimos 7 días</option>
+                                        <option value="30dias" {% if request.GET.rango_fecha == "30dias" %}selected{% endif %}>Últimos 30 días</option>
+                                        <option value="anio_actual" {% if request.GET.rango_fecha == "anio_actual" %}selected{% endif %}>Este año</option>
+                                        <option value="personalizado" {% if request.GET.rango_fecha == "personalizado" %}selected{% endif %}>Rango personalizado</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 campo-fecha-personalizada" style="{% if request.GET.rango_fecha != 'personalizado' %}display:none;{% endif %}">
+                                    <label class="form-label small fw-bold text-muted mb-1">Desde</label>
+                                    <input type="date" name="fecha_desde" class="form-control form-control-sm" value="{{ request.GET.fecha_desde }}">
+                                </div>
+                                <div class="col-md-2 campo-fecha-personalizada" style="{% if request.GET.rango_fecha != 'personalizado' %}display:none;{% endif %}">
+                                    <label class="form-label small fw-bold text-muted mb-1">Hasta</label>
+                                    <input type="date" name="fecha_hasta" class="form-control form-control-sm" value="{{ request.GET.fecha_hasta }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">Ordenar por</label>
+                                    <select name="orden" class="form-select form-select-sm">
+                                        <option value="reciente" {% if request.GET.orden == "reciente" or not request.GET.orden %}selected{% endif %}>Más reciente</option>
+                                        <option value="nombre" {% if request.GET.orden == "nombre" %}selected{% endif %}>Nombre</option>
+                                        <option value="codigo" {% if request.GET.orden == "codigo" %}selected{% endif %}>Código</option>
+                                        <option value="fecha_ingreso" {% if request.GET.orden == "fecha_ingreso" %}selected{% endif %}>Fecha de ingreso</option>
+                                        <option value="peso" {% if request.GET.orden == "peso" %}selected{% endif %}>Peso actual</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-md-6 d-flex gap-2">
+                                    <button type="submit" class="btn btn-sm btn-hacienda">
+                                        <i class="bi bi-funnel me-1"></i>Filtrar
+                                    </button>
+                                    <a href="{% url 'listaanimal' %}" class="btn btn-sm btn-hacienda-secondary">
+                                        <i class="bi bi-x-circle me-1"></i>Limpiar
+                                    </a>
+                                </div>
+                                <div class="col-md-6 text-md-end d-flex gap-2 justify-content-md-end mt-2 mt-md-0">
+                                    <button type="submit" formaction="{% url 'reporteanimal_imprimir' %}" formtarget="_blank" class="btn btn-sm btn-outline-dark">
+                                        <i class="bi bi-printer me-1"></i>Generar reporte
+                                    </button>
+                                    <button type="submit" formaction="{% url 'exportaranimales_excel' %}" class="btn btn-sm btn-success">
+                                        <i class="bi bi-file-earmark-excel me-1"></i>Excel
+                                    </button>
+                                    <button type="submit" formaction="{% url 'exportaranimales_csv' %}" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-filetype-csv me-1"></i>CSV
+                                    </button>
+                                </div>
+                            </div>
                         </form>
                     </div>
-                    <div class="col-md-6 text-end">
+                </div>
+
+                <div class="row mb-2">
+                    <div class="col-12 text-end">
                         <small class="text-muted">
-                            Mostrando {{ animales.start_index }} a {{ animales.end_index }} 
+                            Mostrando {{ animales.start_index }} a {{ animales.end_index }}
                             de {{ animales.paginator.count }} registros
                         </small>
                     </div>
@@ -362,12 +468,12 @@ Listado de animales | Hacienda Joseph
                             <ul class="pagination justify-content-end flex-wrap">
                                 {% if animales.has_previous %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
                                         <i class="bi bi-chevron-double-left"></i>
                                     </a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ animales.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                    <a class="page-link" href="?page={{ animales.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
                                         <i class="bi bi-chevron-left"></i>
                                     </a>
                                 </li>
@@ -380,7 +486,7 @@ Listado de animales | Hacienda Joseph
                                     </li>
                                     {% elif num > animales.number|add:'-3' and num < animales.number|add:'3' %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                        <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
                                             {{ num }}
                                         </a>
                                     </li>
@@ -389,12 +495,12 @@ Listado de animales | Hacienda Joseph
 
                                 {% if animales.has_next %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ animales.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                    <a class="page-link" href="?page={{ animales.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
                                         <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ animales.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                    <a class="page-link" href="?page={{ animales.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
                                         <i class="bi bi-chevron-double-right"></i>
                                     </a>
                                 </li>
@@ -647,6 +753,15 @@ Listado de animales | Hacienda Joseph
 <!-- ========================================== -->
 {% block scripts_extra %}
 <script>
+    // Mostrar/ocultar campos de rango de fecha personalizado
+    document.getElementById('selectRangoFecha').addEventListener('change', function () {
+        var campos = document.querySelectorAll('.campo-fecha-personalizada');
+        var mostrar = this.value === 'personalizado';
+        campos.forEach(function (c) {
+            c.style.display = mostrar ? '' : 'none';
+        });
+    });
+
     // Modal detalle animal - con foto grande
     var modalDetalleAnimal = document.getElementById('modalDetalleAnimal');
     modalDetalleAnimal.addEventListener('show.bs.modal', function (event) {
