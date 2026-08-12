@@ -14528,92 +14528,302 @@ def exportarevento_csv(request):
 
     return response
 
-{% extends "catalogos/reportes/reporte_base_imprimir.html" %}
-{% load filtros_extra %}
+# ==========================================
+# PRODUCTOS VETERINARIOS - FILTROS Y REPORTES
+# ==========================================
 
-{% block titulo %}Reporte de productos veterinarios | Hacienda Joseph{% endblock %}
-{% block encabezado_titulo %}Reporte de productos veterinarios{% endblock %}
+from django.db.models import Q, Sum, Avg, Count, F
+from django.core.paginator import Paginator
+from datetime import date, timedelta, datetime
 
-{% block filtros_aplicados %}
-    {% if request.GET.search %}<strong>Búsqueda:</strong> "{{ request.GET.search }}" &nbsp;·&nbsp;{% endif %}
-    {% if request.GET.tipo_pv %}<strong>Tipo:</strong> {{ request.GET.tipo_pv }} &nbsp;·&nbsp;{% endif %}
-    {% if request.GET.activo_pv %}<strong>Estado:</strong> {{ request.GET.activo_pv }} &nbsp;·&nbsp;{% endif %}
-    {% if request.GET.stock_bajo == '1' %}<strong>Stock:</strong> Solo stock bajo &nbsp;·&nbsp;{% endif %}
-    {% if request.GET.proveedor_pv %}<strong>Proveedor:</strong> {{ request.GET.proveedor_pv }} &nbsp;·&nbsp;{% endif %}
-    {% if request.GET.rango_vencimiento %}<strong>Vencimiento:</strong>
-        {% if request.GET.rango_vencimiento == 'proximo' %}Próximo a vencer
-        {% elif request.GET.rango_vencimiento == 'vencido' %}Vencidos
-        {% elif request.GET.rango_vencimiento == 'personalizado' %}Del {{ request.GET.fecha_vencimiento_desde }} al {{ request.GET.fecha_vencimiento_hasta }}
-        {% endif %}
-        &nbsp;·&nbsp;
-    {% endif %}
-    {% if not request.GET.search and not request.GET.tipo_pv and not request.GET.activo_pv and not request.GET.stock_bajo and not request.GET.proveedor_pv and not request.GET.rango_vencimiento %}
-        Ninguno (se muestran todos los productos registrados)
-    {% endif %}
-{% endblock %}
+def _construir_queryset_prodvet(request):
+    """
+    Aplica todos los filtros del listado de productos veterinarios sobre el queryset.
+    Se usa tanto en el listado como en la exportación/impresión.
+    """
+    search = request.GET.get('search', '')
+    tipo_pv = request.GET.get('tipo_pv', '')
+    activo_pv = request.GET.get('activo_pv', '')
+    stock_bajo = request.GET.get('stock_bajo', '')
+    proveedor_pv = request.GET.get('proveedor_pv', '')
+    rango_vencimiento = request.GET.get('rango_vencimiento', '')
+    fecha_vencimiento_desde = request.GET.get('fecha_vencimiento_desde', '')
+    fecha_vencimiento_hasta = request.GET.get('fecha_vencimiento_hasta', '')
+    orden = request.GET.get('orden', 'reciente')
 
-{% block tabla_reporte %}
-<table class="tabla-reporte">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Código</th>
-            <th>Nombre</th>
-            <th>Tipo</th>
-            <th>Presentación</th>
-            <th>Stock</th>
-            <th>Stock mín.</th>
-            <th>Unidad</th>
-            <th>Vencimiento</th>
-            <th>Proveedor</th>
-            <th>Costo unit.</th>
-            <th>Estado</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for producto in productos %}
-        <tr>
-            <td>#{{ producto.id_pv }}</td>
-            <td>{{ producto.codigo_pv }}</td>
-            <td>{{ producto.nombre_pv }}</td>
-            <td>
-                {% if producto.tipo_pv == 'vacuna' %}Vacuna
-                {% elif producto.tipo_pv == 'antibiotico' %}Antibiótico
-                {% elif producto.tipo_pv == 'desparasitante' %}Desparasitante
-                {% elif producto.tipo_pv == 'vitamina' %}Vitamina
-                {% elif producto.tipo_pv == 'antiseptico' %}Antiséptico
-                {% else %}Otro{% endif %}
-            </td>
-            <td>{{ producto.presentacion_pv|default:"—" }}</td>
-            <td class="text-center">
-                {% if producto.stock_pv <= producto.stock_minimo_pv %}
-                    <span style="color:#dc3545; font-weight:bold;">{{ producto.stock_pv }}</span>
-                {% else %}
-                    {{ producto.stock_pv }}
-                {% endif %}
-            </td>
-            <td class="text-center">{{ producto.stock_minimo_pv }}</td>
-            <td>{{ producto.unidad_medida_pv }}</td>
-            <td>{{ producto.fecha_vencimiento_pv|date:"d/m/Y"|default:"—" }}</td>
-            <td>{{ producto.proveedor_pv|default:"—" }}</td>
-            <td class="text-end">{% if producto.costo_unitario_pv %}${{ producto.costo_unitario_pv }}{% else %}—{% endif %}</td>
-            <td>{% if producto.activo_pv %}Activo{% else %}Inactivo{% endif %}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="12" style="text-align:center; padding:20px;">No hay productos que coincidan con los filtros aplicados.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+    prodvet_query = ProductoVeterinario.objects.all()
 
-<!-- Resumen de totales -->
-<div class="resumen-reporte" style="margin-top: 20px; padding: 15px; background: #f8f9f5; border: 1px solid #d4c5a9; border-radius: 6px;">
-    <p><strong>Resumen del reporte:</strong></p>
-    <ul style="list-style: none; padding-left: 0; display: flex; flex-wrap: wrap; gap: 20px;">
-        <li><strong>Total de productos:</strong> {{ total_resultados }}</li>
-        <li><strong>Stock total:</strong> {{ total_stock }} unidades</li>
-        <li><strong>Productos con stock bajo:</strong> {{ stock_bajo }}</li>
-        <li><strong>Productos vencidos:</strong> {{ vencidos }}</li>
-        <li><strong>Fecha generación:</strong> {{ fecha_generacion|date:"d/m/Y H:i" }}</li>
-    </ul>
-</div>
-{% endblock %}
+    if search:
+        prodvet_query = prodvet_query.filter(
+            Q(codigo_pv__icontains=search) |
+            Q(nombre_pv__icontains=search) |
+            Q(tipo_pv__icontains=search) |
+            Q(proveedor_pv__icontains=search)
+        )
+
+    if tipo_pv:
+        prodvet_query = prodvet_query.filter(tipo_pv=tipo_pv)
+
+    if activo_pv == 'activo':
+        prodvet_query = prodvet_query.filter(activo_pv=True)
+    elif activo_pv == 'inactivo':
+        prodvet_query = prodvet_query.filter(activo_pv=False)
+
+    if stock_bajo == '1':
+        prodvet_query = prodvet_query.filter(stock_pv__lte=F('stock_minimo_pv'))
+
+    if proveedor_pv:
+        prodvet_query = prodvet_query.filter(proveedor_pv=proveedor_pv)
+
+    hoy = date.today()
+    if rango_vencimiento == 'proximo':
+        prodvet_query = prodvet_query.filter(
+            fecha_vencimiento_pv__isnull=False,
+            fecha_vencimiento_pv__gte=hoy,
+            fecha_vencimiento_pv__lte=hoy + timedelta(days=30)
+        )
+    elif rango_vencimiento == 'vencido':
+        prodvet_query = prodvet_query.filter(
+            fecha_vencimiento_pv__isnull=False,
+            fecha_vencimiento_pv__lt=hoy
+        )
+    elif rango_vencimiento == 'personalizado':
+        if fecha_vencimiento_desde:
+            prodvet_query = prodvet_query.filter(fecha_vencimiento_pv__gte=fecha_vencimiento_desde)
+        if fecha_vencimiento_hasta:
+            prodvet_query = prodvet_query.filter(fecha_vencimiento_pv__lte=fecha_vencimiento_hasta)
+
+    ordenes_validos = {
+        'reciente': '-created_at_pv',
+        'nombre': 'nombre_pv',
+        'codigo': 'codigo_pv',
+        'stock': 'stock_pv',
+        'vencimiento': 'fecha_vencimiento_pv',
+    }
+    return prodvet_query.order_by(ordenes_validos.get(orden, '-created_at_pv'))
+
+
+def listadoprodvet(request):
+    """
+    Muestra el listado completo de productos veterinarios con filtros avanzados,
+    búsqueda, estadísticas y exportación de reportes.
+    """
+    # ==========================================
+    # ESTADÍSTICAS GENERALES
+    # ==========================================
+    total_prodvet = ProductoVeterinario.objects.count()
+    total_activos = ProductoVeterinario.objects.filter(activo_pv=True).count()
+    total_vacunas = ProductoVeterinario.objects.filter(tipo_pv='vacuna').count()
+    total_antibioticos = ProductoVeterinario.objects.filter(tipo_pv='antibiotico').count()
+    total_vitaminas = ProductoVeterinario.objects.filter(tipo_pv='vitamina').count()
+    total_stock_bajo = ProductoVeterinario.objects.filter(stock_pv__lte=F('stock_minimo_pv')).count()
+
+    # Proveedores para el filtro
+    proveedores = ProductoVeterinario.objects.exclude(
+        proveedor_pv__isnull=True
+    ).exclude(
+        proveedor_pv=''
+    ).values_list('proveedor_pv', flat=True).distinct().order_by('proveedor_pv')
+
+    # Tipos de producto para el filtro
+    tipos_producto = [
+        ('vacuna', 'Vacuna'),
+        ('antibiotico', 'Antibiótico'),
+        ('desparasitante', 'Desparasitante'),
+        ('vitamina', 'Vitamina'),
+        ('antiseptico', 'Antiséptico'),
+        ('otro', 'Otro'),
+    ]
+
+    # ==========================================
+    # APLICAR FILTROS
+    # ==========================================
+    prodvet_query = _construir_queryset_prodvet(request)
+
+    total_filtrado = prodvet_query.count()
+    stock_bajo_filtrado = prodvet_query.filter(stock_pv__lte=F('stock_minimo_pv')).count()
+    vencidos_filtrado = prodvet_query.filter(
+        fecha_vencimiento_pv__isnull=False,
+        fecha_vencimiento_pv__lt=date.today()
+    ).count()
+
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(prodvet_query, 20)
+    page_number = request.GET.get('page', 1)
+    prodvet = paginator.get_page(page_number)
+
+    contexto = {
+        'prodvet': prodvet,
+        'total_prodvet': total_prodvet,
+        'total_activos': total_activos,
+        'total_vacunas': total_vacunas,
+        'total_antibioticos': total_antibioticos,
+        'total_vitaminas': total_vitaminas,
+        'total_stock_bajo': total_stock_bajo,
+        'total_filtrado': total_filtrado,
+        'stock_bajo_filtrado': stock_bajo_filtrado,
+        'vencidos_filtrado': vencidos_filtrado,
+        'proveedores': proveedores,
+        'tipos_producto': tipos_producto,
+    }
+
+    return render(request, 'catalogos/salud/prodvet/lista_prodvet.html', contexto)
+
+
+def reporteprodvet_imprimir(request):
+    """
+    Vista de solo lectura, sin paginación, con todos los productos que
+    cumplen los filtros actuales, lista para imprimir.
+    """
+    try:
+        prodvet_query = _construir_queryset_prodvet(request)
+        
+        total_stock = prodvet_query.aggregate(total=Sum('stock_pv'))['total'] or 0
+        stock_bajo = prodvet_query.filter(stock_pv__lte=F('stock_minimo_pv')).count()
+        vencidos = prodvet_query.filter(
+            fecha_vencimiento_pv__isnull=False,
+            fecha_vencimiento_pv__lt=date.today()
+        ).count()
+
+        return render(request, 'catalogos/salud/prodvet/reporte_prodvet_imprimir.html', {
+            'productos': prodvet_query,
+            'total_resultados': prodvet_query.count(),
+            'total_stock': round(total_stock, 2),
+            'stock_bajo': stock_bajo,
+            'vencidos': vencidos,
+            'fecha_generacion': datetime.now(),
+        })
+    except Exception as e:
+        messages.error(request, f"Error al generar el reporte: {str(e)}")
+        return redirect('/listadoprodvet')
+
+
+def exportarprodvet_excel(request):
+    """
+    Descarga en Excel (.xlsx) de los productos veterinarios que cumplen los filtros
+    actualmente aplicados en el listado.
+    """
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+
+    prodvet_query = _construir_queryset_prodvet(request)
+
+    wb = openpyxl.Workbook()
+    hoja = wb.active
+    hoja.title = 'Productos Veterinarios'
+
+    encabezados = [
+        'ID', 'Código', 'Nombre', 'Tipo', 'Presentación',
+        'Stock', 'Stock mínimo', 'Unidad', 'Vencimiento',
+        'Proveedor', 'Costo unitario', 'Estado'
+    ]
+    hoja.append(encabezados)
+    for celda in hoja[1]:
+        celda.font = Font(bold=True, color='FFFFFF')
+        celda.fill = PatternFill(start_color='2C5E1A', end_color='2C5E1A', fill_type='solid')
+        celda.alignment = Alignment(horizontal='center')
+
+    for p in prodvet_query:
+        # Tipo con texto
+        tipo_texto = ''
+        if p.tipo_pv == 'vacuna':
+            tipo_texto = 'Vacuna'
+        elif p.tipo_pv == 'antibiotico':
+            tipo_texto = 'Antibiótico'
+        elif p.tipo_pv == 'desparasitante':
+            tipo_texto = 'Desparasitante'
+        elif p.tipo_pv == 'vitamina':
+            tipo_texto = 'Vitamina'
+        elif p.tipo_pv == 'antiseptico':
+            tipo_texto = 'Antiséptico'
+        else:
+            tipo_texto = 'Otro'
+
+        hoja.append([
+            p.id_pv,
+            p.codigo_pv,
+            p.nombre_pv,
+            tipo_texto,
+            p.presentacion_pv or '',
+            float(p.stock_pv) if p.stock_pv is not None else '',
+            float(p.stock_minimo_pv) if p.stock_minimo_pv is not None else '',
+            p.unidad_medida_pv or '',
+            p.fecha_vencimiento_pv.strftime('%d/%m/%Y') if p.fecha_vencimiento_pv else '',
+            p.proveedor_pv or '',
+            float(p.costo_unitario_pv) if p.costo_unitario_pv is not None else '',
+            'Activo' if p.activo_pv else 'Inactivo',
+        ])
+
+    # Ajustar ancho de columnas
+    for columna in hoja.columns:
+        max_len = 0
+        for celda in columna:
+            if celda.value:
+                try:
+                    if len(str(celda.value)) > max_len:
+                        max_len = len(str(celda.value))
+                except:
+                    pass
+        hoja.column_dimensions[columna[0].column_letter].width = max_len + 3
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    nombre_archivo = f'productos_veterinarios_{date.today().strftime("%Y%m%d")}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+    wb.save(response)
+    return response
+
+
+def exportarprodvet_csv(request):
+    """
+    Descarga en CSV de los productos veterinarios que cumplen los filtros actuales.
+    """
+    import csv
+
+    prodvet_query = _construir_queryset_prodvet(request)
+
+    response = HttpResponse(content_type='text/csv')
+    nombre_archivo = f'productos_veterinarios_{date.today().strftime("%Y%m%d")}.csv'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'ID', 'Código', 'Nombre', 'Tipo', 'Presentación',
+        'Stock', 'Stock mínimo', 'Unidad', 'Vencimiento',
+        'Proveedor', 'Costo unitario', 'Estado'
+    ])
+    for p in prodvet_query:
+        # Tipo con texto
+        tipo_texto = ''
+        if p.tipo_pv == 'vacuna':
+            tipo_texto = 'Vacuna'
+        elif p.tipo_pv == 'antibiotico':
+            tipo_texto = 'Antibiótico'
+        elif p.tipo_pv == 'desparasitante':
+            tipo_texto = 'Desparasitante'
+        elif p.tipo_pv == 'vitamina':
+            tipo_texto = 'Vitamina'
+        elif p.tipo_pv == 'antiseptico':
+            tipo_texto = 'Antiséptico'
+        else:
+            tipo_texto = 'Otro'
+
+        writer.writerow([
+            p.id_pv,
+            p.codigo_pv,
+            p.nombre_pv,
+            tipo_texto,
+            p.presentacion_pv or '',
+            p.stock_pv if p.stock_pv is not None else '',
+            p.stock_minimo_pv if p.stock_minimo_pv is not None else '',
+            p.unidad_medida_pv or '',
+            p.fecha_vencimiento_pv.strftime('%d/%m/%Y') if p.fecha_vencimiento_pv else '',
+            p.proveedor_pv or '',
+            p.costo_unitario_pv if p.costo_unitario_pv is not None else '',
+            'Activo' if p.activo_pv else 'Inactivo',
+        ])
+
+    return response
