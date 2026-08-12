@@ -1,0 +1,68 @@
+{% extends "catalogos/reportes/reporte_base_imprimir.html" %}
+{% load filtros_extra %}
+
+{% block titulo %}Reporte de ingresos | Hacienda Joseph{% endblock %}
+{% block encabezado_titulo %}Reporte de ingresos{% endblock %}
+
+{% block filtros_aplicados %}
+    {% if request.GET.search %}<strong>Búsqueda:</strong> "{{ request.GET.search }}" &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.categoria_ig %}<strong>Categoría:</strong> {{ request.GET.categoria_ig }} &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.cliente_ig %}<strong>Cliente:</strong> {{ request.GET.cliente_ig }} &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.rango_fecha %}<strong>Fecha:</strong>
+        {% if request.GET.rango_fecha == 'hoy' %}Hoy
+        {% elif request.GET.rango_fecha == 'semana' %}Esta semana
+        {% elif request.GET.rango_fecha == 'mes' %}Este mes
+        {% elif request.GET.rango_fecha == 'anio' %}Este año
+        {% elif request.GET.rango_fecha == 'personalizado' %}Del {{ request.GET.fecha_desde }} al {{ request.GET.fecha_hasta }}
+        {% endif %}
+        &nbsp;·&nbsp;
+    {% endif %}
+    {% if not request.GET.search and not request.GET.categoria_ig and not request.GET.cliente_ig and not request.GET.rango_fecha %}
+        Ninguno (se muestran todos los ingresos registrados)
+    {% endif %}
+{% endblock %}
+
+{% block tabla_reporte %}
+<table class="tabla-reporte">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Categoría</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Cantidad</th>
+            <th>Precio unit.</th>
+            <th>Monto total</th>
+            <th>Comprobante</th>
+            <th>Registrado por</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ingreso in ingresos %}
+        <tr>
+            <td>#{{ ingreso.id_ig }}</td>
+            <td>{{ ingreso.get_categoria_ig_display }}</td>
+            <td>{{ ingreso.fecha_ig|date:"d/m/Y" }}</td>
+            <td>{{ ingreso.cliente_ig|default:"—" }}</td>
+            <td class="text-center">{% if ingreso.cantidad_ig %}{{ ingreso.cantidad_ig }}{% else %}—{% endif %}</td>
+            <td class="text-end">{% if ingreso.precio_unitario_ig %}${{ ingreso.precio_unitario_ig }}{% else %}—{% endif %}</td>
+            <td class="text-end">${{ ingreso.monto_total_ig }}</td>
+            <td>{{ ingreso.comprobante_ig|default:"—" }}</td>
+            <td>{{ ingreso.fk_us_ig.username_us|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" style="text-align:center; padding:20px;">No hay ingresos que coincidan con los filtros aplicados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Resumen de totales -->
+<div class="resumen-reporte" style="margin-top: 20px; padding: 15px; background: #f8f9f5; border: 1px solid #d4c5a9; border-radius: 6px;">
+    <p><strong>Resumen del reporte:</strong></p>
+    <ul style="list-style: none; padding-left: 0; display: flex; flex-wrap: wrap; gap: 20px;">
+        <li><strong>Total de ingresos:</strong> {{ total_resultados }}</li>
+        <li><strong>Monto total:</strong> ${{ total_monto }}</li>
+        <li><strong>Fecha generación:</strong> {{ fecha_generacion|date:"d/m/Y H:i" }}</li>
+    </ul>
+</div>
+{% endblock %}

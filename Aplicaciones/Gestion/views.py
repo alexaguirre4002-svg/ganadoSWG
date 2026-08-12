@@ -13644,3 +13644,229 @@ def exportarcosto_csv(request):
     writer.writerow(['TOTAL:', float(total_monto)])
 
     return response
+# ==========================================
+# INGRESOS - FILTROS Y REPORTES
+# ==========================================
+
+from django.db.models import Q, Sum, Avg
+from django.core.paginator import Paginator
+from datetime import date, timedelta, datetime
+
+def _construir_queryset_ingresos(request):
+    """
+    Aplica todos los filtros del listado de ingresos sobre el queryset.
+    Se usa tanto en el listado como en la exportación/impresión.
+    """
+    search = request.GET.get('search', '')
+    categoria_ig = request.GET.get('categoria_ig', '')
+    cliente_ig = request.GET.get('cliente_ig', '')
+    rango_fecha = request.GET.get('rango_fecha', '')
+    fecha_desde = request.GET.get('fecha_desde', '')
+    fecha_hasta = request.GET.get('fecha_hasta', '')
+    orden = request.GET.get('orden', 'reciente')
+
+    ingresos_query = Ingreso.objects.all().select_related('fk_us_ig')
+
+    if search:
+        ingresos_query = ingresos_query.filter(
+            Q(categoria_ig__icontains=search) |
+            Q(cliente_ig__icontains=search) |
+            Q(comprobante_ig__icontains=search)
+        )
+
+    if categoria_ig:
+        ingresos_query = ingresos_query.filter(categoria_ig=categoria_ig)
+
+    if cliente_ig:
+        ingresos_query = ingresos_query.filter(cliente_ig=cliente_ig)
+
+    hoy = date.today()
+    if rango_fecha == 'hoy':
+        ingresos_query = ingresos_query.filter(fecha_ig=hoy)
+    elif rango_fecha == 'semana':
+        inicio_semana = hoy - timedelta(days=hoy.weekday())
+        ingresos_query = ingresos_query.filter(fecha_ig__gte=inicio_semana, fecha_ig__lte=hoy)
+    elif rango_fecha == 'mes':
+        ingresos_query = ingresos_query.filter(fecha_ig__year=hoy.year, fecha_ig__month=hoy.month)
+    elif rango_fecha == 'anio':
+        ingresos_query = ingresos_query.filter(fecha_ig__year=hoy.year)
+    elif rango_fecha == 'personalizado':
+        if fecha_desde:
+            ingresos_query = ingresos_query.filter(fecha_ig__gte=fecha_desde)
+        if fecha_hasta:
+            ingresos_query = ingresos_query.filter(fecha_ig__lte=fecha_hasta)
+
+    ordenes_validos = {
+        'reciente': '-fecha_ig',
+        'antiguo': 'fecha_ig',
+        'monto_mayor': '-monto_total_ig',
+        'monto_menor': 'monto_total_ig',
+        'cliente': 'cliente_ig',
+    }
+    return ingresos_query.order_by(ordenes_validos.get(orden, '-fecha_ig'))
+
+
+def listaingreso(request):
+    """
+    Muestra el listado completo de ingresos con filtros avanzados,
+    búsqueda, estadísticas y exportación de reportes.
+    """
+    # ==========================================
+    # ESTADÍSTICAS GENERALES
+    # ==========================================
+    total_ingresos = Ingreso.objects.count()
+    monto_total_general = Ingreso.objects.aggregate(total=Sum('monto_total_ig'))['total'] or 0
+
+    # Categorías para el filtro
+    categorias = [
+        ('venta_leche', 'Venta leche'),
+        ('venta_animales', 'Venta animales'),
+        ('venta_subproductos', 'Venta subproductos'),
+        ('servicios_inseminacion', 'Servicios inseminación'),
+        ('otros', 'Otros'),
+    ]
+
+    # Clientes únicos para el filtro
+    clientes = Ingreso.objects.exclude(
+        cliente_ig__isnull=True
+    ).exclude(
+        cliente_ig=''
+    ).values_list('cliente_ig', flat=True).distinct().order_by('cliente_ig')
+
+    # ==========================================
+    # APLICAR FILTROS
+    # ==========================================
+    ingresos_query = _construir_queryset_ingresos(request)
+
+    total_filtrado = ingresos_query.count()
+    total_monto_filtrado = ingresos_query.aggregate(total=Sum('monto_total_ig'))['total'] or 0
+
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(ingresos_query, 20)
+    page_number = request.GET.get('page', 1)
+    ingresos_list = paginator.get_page(page_number)
+
+    contexto = {
+        'ingresos_list': ingresos_list,
+        'total_ingresos': total_ingresos,
+        'monto_total_general': round(monto_total_general, 2),
+        'total_filtrado': total_filtrado,
+        'total_monto_filtrado': round(total_monto_filtrado, 2),
+        'categorias': categorias,
+        'clientes': clientes,
+    }
+
+    return render(request, 'catalogos/finanzas/ingreso/lista_ingreso.html', contexto)
+
+
+def reporteingreso_imprimir(request):
+    """
+    Vista de solo lectura, sin paginación, con todos los ingresos que
+    cumplen los filtros actuales, lista para imprimir.
+    """
+    ingresos_query = _construir_queryset_ingresos(request)
+    
+    total_monto = ingresos_query.aggregate(total=Sum('monto_total_ig'))['total'] or 0
+
+    return render(request, 'catalogos/finanzas/ingreso/reporte_ingreso_imprimir.html', {
+        'ingresos': ingresos_query,
+        'total_resultados': ingresos_query.count(),
+        'total_monto': round(total_monto, 2),
+        'fecha_generacion': datetime.now(),
+    })
+
+
+def exportaringreso_excel(request):
+    """
+    Descarga en Excel (.xlsx) de los ingresos que cumplen los filtros
+    actualmente aplicados en el listado.
+    """
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+
+    ingresos_query = _construir_queryset_ingresos(request)
+
+    wb = openpyxl.Workbook()
+    hoja = wb.active
+    hoja.title = 'Ingresos'
+
+    encabezados = [
+        'ID', 'Categoría', 'Fecha', 'Cliente', 'Cantidad',
+        'Precio unitario', 'Monto total', 'Comprobante', 'Registrado por'
+    ]
+    hoja.append(encabezados)
+    for celda in hoja[1]:
+        celda.font = Font(bold=True, color='FFFFFF')
+        celda.fill = PatternFill(start_color='2C5E1A', end_color='2C5E1A', fill_type='solid')
+        celda.alignment = Alignment(horizontal='center')
+
+    for i in ingresos_query:
+        hoja.append([
+            i.id_ig,
+            i.get_categoria_ig_display(),
+            i.fecha_ig.strftime('%d/%m/%Y') if i.fecha_ig else '',
+            i.cliente_ig or '',
+            float(i.cantidad_ig) if i.cantidad_ig is not None else '',
+            float(i.precio_unitario_ig) if i.precio_unitario_ig is not None else '',
+            float(i.monto_total_ig) if i.monto_total_ig is not None else '',
+            i.comprobante_ig or '',
+            i.fk_us_ig.username_us if i.fk_us_ig else '',
+        ])
+
+    # Total
+    total_monto = ingresos_query.aggregate(total=Sum('monto_total_ig'))['total'] or 0
+    hoja.append([])
+    hoja.append(['', '', '', '', '', 'TOTAL:', float(total_monto)])
+    for celda in hoja[hoja.max_row]:
+        celda.font = Font(bold=True)
+
+    for columna in hoja.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        hoja.column_dimensions[columna[0].column_letter].width = max_len + 3
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    nombre_archivo = f'ingresos_{date.today().strftime("%Y%m%d")}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+    wb.save(response)
+    return response
+
+
+def exportaringreso_csv(request):
+    """
+    Descarga en CSV de los ingresos que cumplen los filtros actuales.
+    """
+    import csv
+
+    ingresos_query = _construir_queryset_ingresos(request)
+
+    response = HttpResponse(content_type='text/csv')
+    nombre_archivo = f'ingresos_{date.today().strftime("%Y%m%d")}.csv'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'ID', 'Categoría', 'Fecha', 'Cliente', 'Cantidad',
+        'Precio unitario', 'Monto total', 'Comprobante', 'Registrado por'
+    ])
+    for i in ingresos_query:
+        writer.writerow([
+            i.id_ig,
+            i.get_categoria_ig_display(),
+            i.fecha_ig.strftime('%d/%m/%Y') if i.fecha_ig else '',
+            i.cliente_ig or '',
+            i.cantidad_ig if i.cantidad_ig is not None else '',
+            i.precio_unitario_ig if i.precio_unitario_ig is not None else '',
+            i.monto_total_ig if i.monto_total_ig is not None else '',
+            i.comprobante_ig or '',
+            i.fk_us_ig.username_us if i.fk_us_ig else '',
+        ])
+
+    total_monto = ingresos_query.aggregate(total=Sum('monto_total_ig'))['total'] or 0
+    writer.writerow([])
+    writer.writerow(['TOTAL:', float(total_monto)])
+
+    return response
