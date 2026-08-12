@@ -2,7 +2,6 @@ import base64
 from decimal import Decimal,InvalidOperation
 from django.db import transaction
 from django.contrib import messages
-from django.db import models
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from .models import Aborto, Animal, AsignacionPotrero, CalidadLeche, Celo, Costo, EntregaLeche, EventoSanitario, Ingreso, Inseminacion, InsumoAlimenticio, LogAuditoria, ModeloML, MovimientoAnimal, Ordeno, Parto, Pesaje, PrediccionML, Prenez, Racion, Raza, Potrero,ProductoVeterinario,Dieta, RegistroClinico, Secado, Usuario  
