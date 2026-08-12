@@ -12629,7 +12629,9 @@ def exportaranimales_csv(request):
             a.motivo_salida_an or '',
         ])
     return response
-#REPORTE DE ORDEÑOSdef _construir_queryset_ordenos(request):
+
+# REPORTE DE ORDEÑOS
+def _construir_queryset_ordenos(request):
     """
     Aplica todos los filtros del listado de ordeños sobre el queryset.
     Se usa tanto en el listado como en la exportación/impresión.
