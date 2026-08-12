@@ -1,0 +1,69 @@
+{% extends "catalogos/reportes/reporte_base_imprimir.html" %}
+{% load filtros_extra %}
+
+{% block titulo %}Reporte de costos | Hacienda Joseph{% endblock %}
+{% block encabezado_titulo %}Reporte de costos{% endblock %}
+
+{% block filtros_aplicados %}
+    {% if request.GET.search %}<strong>Búsqueda:</strong> "{{ request.GET.search }}" &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.categoria_co %}<strong>Categoría:</strong> {{ request.GET.categoria_co }} &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.mes_referencia %}<strong>Mes:</strong> {{ request.GET.mes_referencia }} &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.anio_referencia %}<strong>Año:</strong> {{ request.GET.anio_referencia }} &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.rango_fecha %}<strong>Fecha:</strong>
+        {% if request.GET.rango_fecha == 'hoy' %}Hoy
+        {% elif request.GET.rango_fecha == 'semana' %}Esta semana
+        {% elif request.GET.rango_fecha == 'mes' %}Este mes
+        {% elif request.GET.rango_fecha == 'anio' %}Este año
+        {% elif request.GET.rango_fecha == 'personalizado' %}Del {{ request.GET.fecha_desde }} al {{ request.GET.fecha_hasta }}
+        {% endif %}
+        &nbsp;·&nbsp;
+    {% endif %}
+    {% if not request.GET.search and not request.GET.categoria_co and not request.GET.mes_referencia and not request.GET.anio_referencia and not request.GET.rango_fecha %}
+        Ninguno (se muestran todos los costos registrados)
+    {% endif %}
+{% endblock %}
+
+{% block tabla_reporte %}
+<table class="tabla-reporte">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Categoría</th>
+            <th>Monto</th>
+            <th>Fecha</th>
+            <th>Mes ref.</th>
+            <th>Año ref.</th>
+            <th>Descripción</th>
+            <th>Comprobante</th>
+            <th>Registrado por</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for costo in costos %}
+        <tr>
+            <td>#{{ costo.id_co }}</td>
+            <td>{{ costo.get_categoria_co_display }}</td>
+            <td class="text-end">${{ costo.monto_co }}</td>
+            <td>{{ costo.fecha_co|date:"d/m/Y" }}</td>
+            <td class="text-center">{{ costo.mes_referencia_co }}</td>
+            <td class="text-center">{{ costo.anio_referencia_co }}</td>
+            <td>{{ costo.descripcion_co|default:"—" }}</td>
+            <td>{{ costo.comprobante_co|default:"—" }}</td>
+            <td>{{ costo.fk_us_co.username_us|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" style="text-align:center; padding:20px;">No hay costos que coincidan con los filtros aplicados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Resumen de totales -->
+<div class="resumen-reporte" style="margin-top: 20px; padding: 15px; background: #f8f9f5; border: 1px solid #d4c5a9; border-radius: 6px;">
+    <p><strong>Resumen del reporte:</strong></p>
+    <ul style="list-style: none; padding-left: 0; display: flex; flex-wrap: wrap; gap: 20px;">
+        <li><strong>Total de costos:</strong> {{ total_resultados }}</li>
+        <li><strong>Monto total:</strong> ${{ total_monto }}</li>
+        <li><strong>Fecha generación:</strong> {{ fecha_generacion|date:"d/m/Y H:i" }}</li>
+    </ul>
+</div>
+{% endblock %}

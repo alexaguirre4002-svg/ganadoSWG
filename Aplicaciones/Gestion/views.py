@@ -13413,3 +13413,234 @@ def exportarcalidad_csv(request):
         ])
 
     return response
+#COSTOS
+# ==========================================
+# COSTOS - FILTROS Y REPORTES
+# ==========================================
+
+from django.db.models import Q, Sum, Avg
+from django.core.paginator import Paginator
+from datetime import date, timedelta, datetime
+
+def _construir_queryset_costos(request):
+    """
+    Aplica todos los filtros del listado de costos sobre el queryset.
+    Se usa tanto en el listado como en la exportación/impresión.
+    """
+    search = request.GET.get('search', '')
+    categoria_co = request.GET.get('categoria_co', '')
+    mes_referencia = request.GET.get('mes_referencia', '')
+    anio_referencia = request.GET.get('anio_referencia', '')
+    rango_fecha = request.GET.get('rango_fecha', '')
+    fecha_desde = request.GET.get('fecha_desde', '')
+    fecha_hasta = request.GET.get('fecha_hasta', '')
+    orden = request.GET.get('orden', 'reciente')
+
+    costos_query = Costo.objects.all().select_related('fk_us_co')
+
+    if search:
+        costos_query = costos_query.filter(
+            Q(categoria_co__icontains=search) |
+            Q(descripcion_co__icontains=search) |
+            Q(comprobante_co__icontains=search)
+        )
+
+    if categoria_co:
+        costos_query = costos_query.filter(categoria_co=categoria_co)
+
+    if mes_referencia:
+        try:
+            costos_query = costos_query.filter(mes_referencia_co=int(mes_referencia))
+        except ValueError:
+            pass
+
+    if anio_referencia:
+        try:
+            costos_query = costos_query.filter(anio_referencia_co=int(anio_referencia))
+        except ValueError:
+            pass
+
+    hoy = date.today()
+    if rango_fecha == 'hoy':
+        costos_query = costos_query.filter(fecha_co=hoy)
+    elif rango_fecha == 'semana':
+        inicio_semana = hoy - timedelta(days=hoy.weekday())
+        costos_query = costos_query.filter(fecha_co__gte=inicio_semana, fecha_co__lte=hoy)
+    elif rango_fecha == 'mes':
+        costos_query = costos_query.filter(fecha_co__year=hoy.year, fecha_co__month=hoy.month)
+    elif rango_fecha == 'anio':
+        costos_query = costos_query.filter(fecha_co__year=hoy.year)
+    elif rango_fecha == 'personalizado':
+        if fecha_desde:
+            costos_query = costos_query.filter(fecha_co__gte=fecha_desde)
+        if fecha_hasta:
+            costos_query = costos_query.filter(fecha_co__lte=fecha_hasta)
+
+    ordenes_validos = {
+        'reciente': '-fecha_co',
+        'antiguo': 'fecha_co',
+        'monto_mayor': '-monto_co',
+        'monto_menor': 'monto_co',
+        'categoria': 'categoria_co',
+    }
+    return costos_query.order_by(ordenes_validos.get(orden, '-fecha_co'))
+
+
+def listacosto(request):
+    """
+    Muestra el listado completo de costos con filtros avanzados,
+    búsqueda, estadísticas y exportación de reportes.
+    """
+    # ==========================================
+    # ESTADÍSTICAS GENERALES
+    # ==========================================
+    total_costos = Costo.objects.count()
+    monto_total_general = Costo.objects.aggregate(total=Sum('monto_co'))['total'] or 0
+
+    # ==========================================
+    # APLICAR FILTROS
+    # ==========================================
+    costos_query = _construir_queryset_costos(request)
+
+    total_filtrado = costos_query.count()
+    total_monto_filtrado = costos_query.aggregate(total=Sum('monto_co'))['total'] or 0
+
+    # ==========================================
+    # PAGINACIÓN
+    # ==========================================
+    paginator = Paginator(costos_query, 20)
+    page_number = request.GET.get('page', 1)
+    costo_list = paginator.get_page(page_number)
+
+    # Meses para el filtro
+    meses = [
+        (1, 'Enero'), (2, 'Febrero'), (3, 'Marzo'), (4, 'Abril'),
+        (5, 'Mayo'), (6, 'Junio'), (7, 'Julio'), (8, 'Agosto'),
+        (9, 'Septiembre'), (10, 'Octubre'), (11, 'Noviembre'), (12, 'Diciembre')
+    ]
+
+    # Años disponibles para el filtro
+    anios = Costo.objects.values_list('anio_referencia_co', flat=True).distinct().order_by('-anio_referencia_co')
+
+    contexto = {
+        'costo_list': costo_list,
+        'total_costos': total_costos,
+        'monto_total_general': round(monto_total_general, 2),
+        'total_filtrado': total_filtrado,
+        'total_monto_filtrado': round(total_monto_filtrado, 2),
+        'meses': meses,
+        'anios': anios,
+    }
+
+    return render(request, 'catalogos/finanzas/costo/lista_costo.html', contexto)
+
+
+def reportecosto_imprimir(request):
+    """
+    Vista de solo lectura, sin paginación, con todos los costos que
+    cumplen los filtros actuales, lista para imprimir.
+    """
+    costos_query = _construir_queryset_costos(request)
+    
+    total_monto = costos_query.aggregate(total=Sum('monto_co'))['total'] or 0
+
+    return render(request, 'catalogos/finanzas/costo/reporte_costo_imprimir.html', {
+        'costos': costos_query,
+        'total_resultados': costos_query.count(),
+        'total_monto': round(total_monto, 2),
+        'fecha_generacion': datetime.now(),
+    })
+
+
+def exportarcosto_excel(request):
+    """
+    Descarga en Excel (.xlsx) de los costos que cumplen los filtros
+    actualmente aplicados en el listado.
+    """
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+
+    costos_query = _construir_queryset_costos(request)
+
+    wb = openpyxl.Workbook()
+    hoja = wb.active
+    hoja.title = 'Costos'
+
+    encabezados = [
+        'ID', 'Categoría', 'Monto', 'Fecha', 'Mes referencia',
+        'Año referencia', 'Descripción', 'Comprobante', 'Registrado por'
+    ]
+    hoja.append(encabezados)
+    for celda in hoja[1]:
+        celda.font = Font(bold=True, color='FFFFFF')
+        celda.fill = PatternFill(start_color='2C5E1A', end_color='2C5E1A', fill_type='solid')
+        celda.alignment = Alignment(horizontal='center')
+
+    for c in costos_query:
+        hoja.append([
+            c.id_co,
+            c.get_categoria_co_display(),
+            float(c.monto_co) if c.monto_co is not None else '',
+            c.fecha_co.strftime('%d/%m/%Y') if c.fecha_co else '',
+            c.mes_referencia_co,
+            c.anio_referencia_co,
+            c.descripcion_co or '',
+            c.comprobante_co or '',
+            c.fk_us_co.username_us if c.fk_us_co else '',
+        ])
+
+    # Total
+    total_monto = costos_query.aggregate(total=Sum('monto_co'))['total'] or 0
+    hoja.append([])
+    hoja.append(['', '', 'TOTAL:', float(total_monto)])
+    for celda in hoja[hoja.max_row]:
+        celda.font = Font(bold=True)
+
+    for columna in hoja.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        hoja.column_dimensions[columna[0].column_letter].width = max_len + 3
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    nombre_archivo = f'costos_{date.today().strftime("%Y%m%d")}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+    wb.save(response)
+    return response
+
+
+def exportarcosto_csv(request):
+    """
+    Descarga en CSV de los costos que cumplen los filtros actuales.
+    """
+    import csv
+
+    costos_query = _construir_queryset_costos(request)
+
+    response = HttpResponse(content_type='text/csv')
+    nombre_archivo = f'costos_{date.today().strftime("%Y%m%d")}.csv'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'ID', 'Categoría', 'Monto', 'Fecha', 'Mes referencia',
+        'Año referencia', 'Descripción', 'Comprobante', 'Registrado por'
+    ])
+    for c in costos_query:
+        writer.writerow([
+            c.id_co,
+            c.get_categoria_co_display(),
+            c.monto_co if c.monto_co is not None else '',
+            c.fecha_co.strftime('%d/%m/%Y') if c.fecha_co else '',
+            c.mes_referencia_co,
+            c.anio_referencia_co,
+            c.descripcion_co or '',
+            c.comprobante_co or '',
+            c.fk_us_co.username_us if c.fk_us_co else '',
+        ])
+
+    total_monto = costos_query.aggregate(total=Sum('monto_co'))['total'] or 0
+    writer.writerow([])
+    writer.writerow(['TOTAL:', float(total_monto)])
+
+    return response

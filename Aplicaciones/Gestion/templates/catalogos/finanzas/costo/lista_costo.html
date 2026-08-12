@@ -68,7 +68,159 @@ Listado de costos | Hacienda Joseph
                 <span class="badge bg-secondary ms-2">{{ costo_list.paginator.count }}</span>
             </div>
             <div class="p-4">
-                <!-- Filtro de búsqueda -->
+
+                <!-- ========================================== -->
+                <!-- PANEL DE FILTROS AVANZADOS                -->
+                <!-- ========================================== -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <form method="GET" action="" id="formFiltrosCosto" class="p-3" style="background:#f8f9f5; border:1px solid #d4c5a9; border-radius:10px;">
+                            
+                            <!-- Fila 1: Búsqueda y filtros principales -->
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold text-muted mb-1">Buscar</label>
+                                    <input type="text" name="search" class="form-control form-control-sm"
+                                           placeholder="🔍 Categoría o descripción..." value="{{ request.GET.search }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">Categoría</label>
+                                    <select name="categoria_co" class="form-select form-select-sm">
+                                        <option value="">Todas</option>
+                                        <option value="alimentacion" {% if request.GET.categoria_co == "alimentacion" %}selected{% endif %}>Alimentación</option>
+                                        <option value="sanidad" {% if request.GET.categoria_co == "sanidad" %}selected{% endif %}>Sanidad</option>
+                                        <option value="reproduccion" {% if request.GET.categoria_co == "reproduccion" %}selected{% endif %}>Reproducción</option>
+                                        <option value="mano_obra" {% if request.GET.categoria_co == "mano_obra" %}selected{% endif %}>Mano de obra</option>
+                                        <option value="mantenimiento_infraestructura" {% if request.GET.categoria_co == "mantenimiento_infraestructura" %}selected{% endif %}>Mantenimiento</option>
+                                        <option value="compra_animales" {% if request.GET.categoria_co == "compra_animales" %}selected{% endif %}>Compra animales</option>
+                                        <option value="impuestos" {% if request.GET.categoria_co == "impuestos" %}selected{% endif %}>Impuestos</option>
+                                        <option value="otros" {% if request.GET.categoria_co == "otros" %}selected{% endif %}>Otros</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">Mes</label>
+                                    <select name="mes_referencia" class="form-select form-select-sm">
+                                        <option value="">Todos</option>
+                                        {% for mes_num, mes_nombre in meses %}
+                                        <option value="{{ mes_num }}" {% if request.GET.mes_referencia == mes_num|stringformat:"s" %}selected{% endif %}>{{ mes_nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">Año</label>
+                                    <select name="anio_referencia" class="form-select form-select-sm">
+                                        <option value="">Todos</option>
+                                        {% for anio in anios %}
+                                        <option value="{{ anio }}" {% if request.GET.anio_referencia == anio|stringformat:"s" %}selected{% endif %}>{{ anio }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">Ordenar por</label>
+                                    <select name="orden" class="form-select form-select-sm">
+                                        <option value="reciente" {% if request.GET.orden == "reciente" or not request.GET.orden %}selected{% endif %}>Más reciente</option>
+                                        <option value="antiguo" {% if request.GET.orden == "antiguo" %}selected{% endif %}>Más antiguo</option>
+                                        <option value="monto_mayor" {% if request.GET.orden == "monto_mayor" %}selected{% endif %}>Mayor monto</option>
+                                        <option value="monto_menor" {% if request.GET.orden == "monto_menor" %}selected{% endif %}>Menor monto</option>
+                                        <option value="categoria" {% if request.GET.orden == "categoria" %}selected{% endif %}>Categoría</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Fila 2: Rango de fechas y totales -->
+                            <div class="row g-2 align-items-end mt-2">
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold text-muted mb-1">Rango fecha</label>
+                                    <select name="rango_fecha" id="selectRangoFecha" class="form-select form-select-sm">
+                                        <option value="">Todas las fechas</option>
+                                        <option value="hoy" {% if request.GET.rango_fecha == "hoy" %}selected{% endif %}>Hoy</option>
+                                        <option value="semana" {% if request.GET.rango_fecha == "semana" %}selected{% endif %}>Esta semana</option>
+                                        <option value="mes" {% if request.GET.rango_fecha == "mes" %}selected{% endif %}>Este mes</option>
+                                        <option value="anio" {% if request.GET.rango_fecha == "anio" %}selected{% endif %}>Este año</option>
+                                        <option value="personalizado" {% if request.GET.rango_fecha == "personalizado" %}selected{% endif %}>Rango personalizado</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 campo-fecha-personalizada" style="{% if request.GET.rango_fecha != 'personalizado' %}display:none;{% endif %}">
+                                    <label class="form-label small fw-bold text-muted mb-1">Desde</label>
+                                    <input type="date" name="fecha_desde" class="form-control form-control-sm" value="{{ request.GET.fecha_desde }}">
+                                </div>
+                                <div class="col-md-2 campo-fecha-personalizada" style="{% if request.GET.rango_fecha != 'personalizado' %}display:none;{% endif %}">
+                                    <label class="form-label small fw-bold text-muted mb-1">Hasta</label>
+                                    <input type="date" name="fecha_hasta" class="form-control form-control-sm" value="{{ request.GET.fecha_hasta }}">
+                                </div>
+                                <div class="col-md-5 text-end">
+                                    <small class="text-muted">
+                                        Total filtrado: <strong>${{ total_monto_filtrado|floatformat:2 }}</strong> | 
+                                        Registros: <strong>{{ total_filtrado }}</strong>
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Fila 3: Botones de acción -->
+                            <div class="row mt-3">
+                                <div class="col-md-6 d-flex gap-2 flex-wrap">
+                                    <button type="submit" class="btn btn-sm btn-hacienda">
+                                        <i class="bi bi-funnel me-1"></i>Filtrar
+                                    </button>
+                                    <a href="{% url 'listacosto' %}" class="btn btn-sm btn-hacienda-secondary">
+                                        <i class="bi bi-x-circle me-1"></i>Limpiar
+                                    </a>
+                                </div>
+                                <div class="col-md-6 text-md-end d-flex gap-2 justify-content-md-end flex-wrap mt-2 mt-md-0">
+                                    <button type="submit" formaction="{% url 'reportecosto_imprimir' %}" formtarget="_blank" class="btn btn-sm btn-outline-dark">
+                                        <i class="bi bi-printer me-1"></i>Reporte
+                                    </button>
+                                    <button type="submit" formaction="{% url 'exportarcosto_excel' %}" class="btn btn-sm btn-success">
+                                        <i class="bi bi-file-earmark-excel me-1"></i>Excel
+                                    </button>
+                                    <button type="submit" formaction="{% url 'exportarcosto_csv' %}" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-filetype-csv me-1"></i>CSV
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Resumen de filtros aplicados -->
+                {% if request.GET %}
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <span class="badge bg-hacienda-light p-2">
+                                <i class="bi bi-funnel me-1"></i> Filtros activos:
+                            </span>
+                            {% if request.GET.search %}
+                            <span class="badge bg-secondary p-2">Buscar: "{{ request.GET.search }}"</span>
+                            {% endif %}
+                            {% if request.GET.categoria_co %}
+                            <span class="badge bg-secondary p-2">Categoría: {{ request.GET.categoria_co }}</span>
+                            {% endif %}
+                            {% if request.GET.mes_referencia %}
+                            <span class="badge bg-secondary p-2">Mes: {{ request.GET.mes_referencia }}</span>
+                            {% endif %}
+                            {% if request.GET.anio_referencia %}
+                            <span class="badge bg-secondary p-2">Año: {{ request.GET.anio_referencia }}</span>
+                            {% endif %}
+                            {% if request.GET.rango_fecha %}
+                            <span class="badge bg-secondary p-2">Fecha: 
+                                {% if request.GET.rango_fecha == 'hoy' %}Hoy
+                                {% elif request.GET.rango_fecha == 'semana' %}Esta semana
+                                {% elif request.GET.rango_fecha == 'mes' %}Este mes
+                                {% elif request.GET.rango_fecha == 'anio' %}Este año
+                                {% elif request.GET.rango_fecha == 'personalizado' %}Del {{ request.GET.fecha_desde }} al {{ request.GET.fecha_hasta }}
+                                {% endif %}
+                            </span>
+                            {% endif %}
+                            <a href="{% url 'listacosto' %}" class="badge bg-danger p-2 text-decoration-none">
+                                <i class="bi bi-x-circle me-1"></i>Limpiar todos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Filtro de búsqueda - ORIGINAL SIN MODIFICAR -->
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <form method="GET" action="" class="d-flex">
@@ -93,7 +245,7 @@ Listado de costos | Hacienda Joseph
                     </div>
                 </div>
 
-                <!-- Tabla -->
+                <!-- Tabla - ORIGINAL SIN MODIFICAR -->
                 <div class="table-responsive">
                     <table class="table table-hacienda align-middle mb-0">
                         <thead>
@@ -268,7 +420,7 @@ Listado de costos | Hacienda Joseph
                     </table>
                 </div>
 
-                <!-- Paginación de Django -->
+                <!-- Paginación de Django - ORIGINAL SIN MODIFICAR -->
                 {% if costo_list.has_other_pages %}
                 <div class="row mt-4">
                     <div class="col-md-6">
@@ -329,6 +481,7 @@ Listado de costos | Hacienda Joseph
                 <small class="text-muted">
                     <i class="bi bi-bar-chart-line me-1"></i>
                     Total de costos: <strong>{{ costo_list.paginator.count }}</strong> | 
+                    Total filtrado: <strong>${{ total_monto_filtrado|floatformat:2 }}</strong>
                 </small>
             </div>
         </div>
@@ -483,6 +636,11 @@ Listado de costos | Hacienda Joseph
         font-size: 0.8rem;
         padding: 0.35rem 0.65rem;
     }
+    .bg-hacienda-light {
+        background-color: #e8f5e9;
+        color: #2c5e1a;
+        border: 1px solid #2c5e1a;
+    }
 </style>
 
 {% endblock %}
@@ -492,6 +650,25 @@ Listado de costos | Hacienda Joseph
 <!-- ========================================== -->
 {% block scripts_extra %}
 <script>
+    // Mostrar/ocultar campos de rango de fecha personalizado
+    document.getElementById('selectRangoFecha').addEventListener('change', function () {
+        var campos = document.querySelectorAll('.campo-fecha-personalizada');
+        var mostrar = this.value === 'personalizado';
+        campos.forEach(function (c) {
+            c.style.display = mostrar ? '' : 'none';
+        });
+    });
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', function() {
+        var select = document.getElementById('selectRangoFecha');
+        if (select.value === 'personalizado') {
+            document.querySelectorAll('.campo-fecha-personalizada').forEach(function(c) {
+                c.style.display = '';
+            });
+        }
+    });
+
     // Modal detalle costo
     var modalDetalleCosto = document.getElementById('modalDetalleCosto');
     modalDetalleCosto.addEventListener('show.bs.modal', function (event) {
@@ -558,9 +735,7 @@ Listado de costos | Hacienda Joseph
         
         document.getElementById('btnEditarDesdeDetalle').href = '/editarcosto/' + id;
     });
-</script>
 
-<script>
     // Modal eliminar costo
     var modalEliminarCosto = document.getElementById('modalEliminarCosto');
     modalEliminarCosto.addEventListener('show.bs.modal', function (event) {
