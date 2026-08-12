@@ -622,7 +622,9 @@
         <div class="container-fluid">
             <!-- Brand / Logo -->
             <a class="navbar-brand d-flex align-items-center" href="{% url 'inicio' %}">
-                <img src="{% static 'img/logo.jpeg' %}" alt="Logo Hacienda Joseph" style="height: 38px; width: auto; margin-right: 8px; border-radius: 6px; background: white; padding: 2px;">
+                <span style="display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: white; margin-right: 8px; overflow: hidden; flex-shrink: 0;">
+                    <img src="{% static 'img/logo.jpeg' %}" alt="Logo Hacienda Joseph" style="width: 100%; height: 100%; object-fit: contain; padding: 2px;">
+                </span>
                 Hacienda <span style="color: white;">Joseph</span>
             </a>
             
