@@ -14531,7 +14531,7 @@ def exportarevento_csv(request):
 # PRODUCTOS VETERINARIOS - FILTROS Y REPORTES
 # ==========================================
 
-from django.db.models import Q, Sum, Avg, Count
+from django.db.models import Q, Sum, Avg, Count, F
 from django.core.paginator import Paginator
 from datetime import date, timedelta, datetime
 
@@ -14597,7 +14597,6 @@ def _construir_queryset_prodvet(request):
         'nombre': 'nombre_pv',
         'codigo': 'codigo_pv',
         'stock': 'stock_pv',
-        'stock_bajo': 'stock_pv',
         'vencimiento': 'fecha_vencimiento_pv',
     }
     return prodvet_query.order_by(ordenes_validos.get(orden, '-created_at_pv'))
