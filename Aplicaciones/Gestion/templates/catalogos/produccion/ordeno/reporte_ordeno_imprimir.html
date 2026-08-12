@@ -1,0 +1,62 @@
+{% extends "catalogos/reportes/reporte_base_imprimir.html" %}
+{% load filtros_extra %}
+
+{% block titulo %}Reporte de ordeños | Hacienda Joseph{% endblock %}
+{% block encabezado_titulo %}Reporte de producción de ordeño{% endblock %}
+
+{% block filtros_aplicados %}
+    {% if request.GET.search %}<strong>Búsqueda:</strong> "{{ request.GET.search }}" &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.turno_or %}<strong>Turno:</strong> {{ turnos_labels|get_item:request.GET.turno_or }} &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.fk_an %}<strong>Animal:</strong> filtrado &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.alerta_temp == "1" %}<strong>Solo alertas de temperatura</strong> &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.rango_fecha %}<strong>Fecha:</strong>
+        {% if request.GET.rango_fecha == "hoy" %}Hoy
+        {% elif request.GET.rango_fecha == "semana" %}Esta semana
+        {% elif request.GET.rango_fecha == "mes" %}Este mes
+        {% elif request.GET.rango_fecha == "anio" %}Este año
+        {% elif request.GET.rango_fecha == "personalizado" %}Del {{ request.GET.fecha_desde }} al {{ request.GET.fecha_hasta }}
+        {% endif %}
+    {% endif %}
+    {% if not request.GET.search and not request.GET.turno_or and not request.GET.fk_an and not request.GET.alerta_temp and not request.GET.rango_fecha %}
+        Ninguno (se muestran todos los ordeños registrados)
+    {% endif %}
+{% endblock %}
+
+{% block tabla_reporte %}
+<table class="tabla-reporte">
+    <thead>
+        <tr>
+            <th>Animal</th>
+            <th>Fecha</th>
+            <th>Turno</th>
+            <th>Litros</th>
+            <th>Temp. leche</th>
+            <th>Concentrado</th>
+            <th>Temp. ambiente</th>
+            <th>Observaciones</th>
+            <th>Registrado por</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ordeno in ordenos %}
+        <tr>
+            <td>{{ ordeno.fk_an.codigo_an }}{% if ordeno.fk_an.nombre_an %} — {{ ordeno.fk_an.nombre_an }}{% endif %}</td>
+            <td>{{ ordeno.fecha_or|date:"d/m/Y" }}</td>
+            <td>{{ turnos_labels|get_item:ordeno.turno_or }}</td>
+            <td>{{ ordeno.litros_or }} L</td>
+            <td>{{ ordeno.temperatura_leche_or|default:"—" }}</td>
+            <td>{{ ordeno.cantidad_concentrado_kg_or|default:"—" }}</td>
+            <td>{{ ordeno.temperatura_ambiental_or|default:"—" }}</td>
+            <td>{{ ordeno.observaciones_or|default:"—"|truncatechars:40 }}</td>
+            <td>{{ ordeno.fk_us_or.username_us }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" style="text-align:center; padding:20px;">No hay ordeños que coincidan con los filtros aplicados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block total_texto %}
+Total de registros: {{ total_resultados }} &nbsp;·&nbsp; <strong>Total de litros: {{ total_litros_filtrado }} L</strong>
+{% endblock %}

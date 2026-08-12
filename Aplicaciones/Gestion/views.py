@@ -12630,3 +12630,211 @@ def exportaranimales_csv(request):
             a.motivo_salida_an or '',
         ])
     return response
+#REPORTE DE ORDEÑOSdef _construir_queryset_ordenos(request):
+    """
+    Aplica todos los filtros del listado de ordeños sobre el queryset.
+    Se usa tanto en el listado como en la exportación/impresión.
+    """
+    search = request.GET.get('search', '')
+    turno_or = request.GET.get('turno_or', '')
+    fk_an = request.GET.get('fk_an', '')
+    rango_fecha = request.GET.get('rango_fecha', '')
+    fecha_desde = request.GET.get('fecha_desde', '')
+    fecha_hasta = request.GET.get('fecha_hasta', '')
+    alerta_temp = request.GET.get('alerta_temp', '')
+    orden = request.GET.get('orden', 'reciente')
+
+    ordenos_query = Ordeno.objects.all().select_related('fk_an', 'fk_us_or')
+
+    if search:
+        ordenos_query = ordenos_query.filter(
+            Q(fk_an__codigo_an__icontains=search) |
+            Q(fk_an__nombre_an__icontains=search)
+        )
+    if turno_or:
+        ordenos_query = ordenos_query.filter(turno_or=turno_or)
+    if fk_an:
+        ordenos_query = ordenos_query.filter(fk_an_id=fk_an)
+    if alerta_temp == '1':
+        ordenos_query = ordenos_query.filter(
+            temperatura_leche_or__isnull=False
+        ).exclude(
+            temperatura_leche_or__gte=4,
+            temperatura_leche_or__lte=7
+        )
+
+    hoy = date.today()
+    if rango_fecha == 'hoy':
+        ordenos_query = ordenos_query.filter(fecha_or=hoy)
+    elif rango_fecha == 'semana':
+        inicio_semana = hoy - timedelta(days=hoy.weekday())
+        ordenos_query = ordenos_query.filter(fecha_or__gte=inicio_semana, fecha_or__lte=hoy)
+    elif rango_fecha == 'mes':
+        ordenos_query = ordenos_query.filter(fecha_or__year=hoy.year, fecha_or__month=hoy.month)
+    elif rango_fecha == 'anio':
+        ordenos_query = ordenos_query.filter(fecha_or__year=hoy.year)
+    elif rango_fecha == 'personalizado':
+        if fecha_desde:
+            ordenos_query = ordenos_query.filter(fecha_or__gte=fecha_desde)
+        if fecha_hasta:
+            ordenos_query = ordenos_query.filter(fecha_or__lte=fecha_hasta)
+
+    ordenes_validos = {
+        'reciente': ['-fecha_or', '-created_at_or'],
+        'litros': ['-litros_or'],
+        'animal': ['fk_an__codigo_an'],
+    }
+    return ordenos_query.order_by(*ordenes_validos.get(orden, ['-fecha_or', '-created_at_or']))
+
+
+TURNOS_ORDENO_LABELS = {'manana': 'Mañana', 'tarde': 'Tarde', 'unico': 'Único'}
+
+
+def listaordeno(request):
+    """
+    Muestra el listado completo de ordeños con filtros avanzados
+    (turno, animal, fecha por día/semana/mes/año, alertas de temperatura),
+    totales del resultado filtrado y exportación de reportes.
+    """
+    total_ordenos = Ordeno.objects.count()
+    total_manana = Ordeno.objects.filter(turno_or='manana').count()
+    total_tarde = Ordeno.objects.filter(turno_or='tarde').count()
+
+    hoy = date.today()
+    litros_hoy = Ordeno.objects.filter(fecha_or=hoy).aggregate(total=Sum('litros_or'))['total'] or 0
+    promedio_litros = Ordeno.objects.aggregate(promedio=Avg('litros_or'))['promedio'] or 0
+    alertas_temp = Ordeno.objects.filter(
+        temperatura_leche_or__isnull=False
+    ).exclude(
+        temperatura_leche_or__gte=4,
+        temperatura_leche_or__lte=7
+    ).count()
+
+    ordenos_query = _construir_queryset_ordenos(request)
+
+    # Total de litros del resultado filtrado (responde al "mostrar totales" pedido)
+    total_litros_filtrado = ordenos_query.aggregate(total=Sum('litros_or'))['total'] or 0
+
+    paginator = Paginator(ordenos_query, 20)
+    page_number = request.GET.get('page', 1)
+    ordeno_list = paginator.get_page(page_number)
+
+    return render(request, 'catalogos/produccion/ordeno/lista_ordeno.html', {
+        'ordeno_list': ordeno_list,
+        'total_ordenos': total_ordenos,
+        'total_manana': total_manana,
+        'total_tarde': total_tarde,
+        'litros_hoy': round(litros_hoy, 2),
+        'promedio_litros': round(promedio_litros, 2),
+        'alertas_temp': alertas_temp,
+        'total_litros_filtrado': round(total_litros_filtrado, 2),
+        'animales_filtro': Animal.objects.all().order_by('codigo_an'),
+    })
+
+
+def reporteordeno_imprimir(request):
+    """
+    Vista de solo lectura, sin paginación, con todos los ordeños que
+    cumplen los filtros actuales, lista para imprimir.
+    """
+    ordenos_query = _construir_queryset_ordenos(request)
+    total_litros_filtrado = ordenos_query.aggregate(total=Sum('litros_or'))['total'] or 0
+    return render(request, 'catalogos/produccion/ordeno/reporte_ordeno_imprimir.html', {
+        'ordenos': ordenos_query,
+        'total_resultados': ordenos_query.count(),
+        'total_litros_filtrado': round(total_litros_filtrado, 2),
+        'fecha_generacion': datetime.now(),
+        'turnos_labels': TURNOS_ORDENO_LABELS,
+    })
+
+
+def exportarordenos_excel(request):
+    """
+    Descarga en Excel (.xlsx) de los ordeños que cumplen los filtros
+    actualmente aplicados en el listado.
+    """
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+
+    ordenos_query = _construir_queryset_ordenos(request)
+
+    wb = openpyxl.Workbook()
+    hoja = wb.active
+    hoja.title = 'Ordeños'
+
+    encabezados = [
+        'Animal', 'Nombre', 'Fecha', 'Turno', 'Litros', 'Temp. leche (°C)',
+        'Concentrado (kg)', 'Temp. ambiente (°C)', 'Observaciones', 'Registrado por',
+    ]
+    hoja.append(encabezados)
+    for celda in hoja[1]:
+        celda.font = Font(bold=True, color='FFFFFF')
+        celda.fill = PatternFill(start_color='2C5E1A', end_color='2C5E1A', fill_type='solid')
+        celda.alignment = Alignment(horizontal='center')
+
+    for o in ordenos_query:
+        hoja.append([
+            o.fk_an.codigo_an,
+            o.fk_an.nombre_an or '',
+            o.fecha_or.strftime('%d/%m/%Y') if o.fecha_or else '',
+            TURNOS_ORDENO_LABELS.get(o.turno_or, o.turno_or),
+            float(o.litros_or) if o.litros_or is not None else '',
+            float(o.temperatura_leche_or) if o.temperatura_leche_or is not None else '',
+            float(o.cantidad_concentrado_kg_or) if o.cantidad_concentrado_kg_or is not None else '',
+            float(o.temperatura_ambiental_or) if o.temperatura_ambiental_or is not None else '',
+            o.observaciones_or or '',
+            o.fk_us_or.username_us if o.fk_us_or else '',
+        ])
+
+    total_litros = ordenos_query.aggregate(total=Sum('litros_or'))['total'] or 0
+    hoja.append([])
+    hoja.append(['', '', '', 'TOTAL LITROS:', float(total_litros)])
+    for celda in hoja[hoja.max_row]:
+        celda.font = Font(bold=True)
+
+    for columna in hoja.columns:
+        max_len = max((len(str(c.value)) if c.value else 0) for c in columna)
+        hoja.column_dimensions[columna[0].column_letter].width = max_len + 3
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    nombre_archivo = f'ordenos_hacienda_joseph_{date.today().strftime("%Y%m%d")}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+    wb.save(response)
+    return response
+
+
+def exportarordenos_csv(request):
+    """
+    Descarga en CSV de los ordeños que cumplen los filtros actuales.
+    """
+    import csv
+
+    ordenos_query = _construir_queryset_ordenos(request)
+
+    response = HttpResponse(content_type='text/csv')
+    nombre_archivo = f'ordenos_hacienda_joseph_{date.today().strftime("%Y%m%d")}.csv'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'Animal', 'Nombre', 'Fecha', 'Turno', 'Litros', 'Temp. leche (°C)',
+        'Concentrado (kg)', 'Temp. ambiente (°C)', 'Observaciones', 'Registrado por',
+    ])
+    for o in ordenos_query:
+        writer.writerow([
+            o.fk_an.codigo_an, o.fk_an.nombre_an or '',
+            o.fecha_or.strftime('%d/%m/%Y') if o.fecha_or else '',
+            TURNOS_ORDENO_LABELS.get(o.turno_or, o.turno_or),
+            o.litros_or if o.litros_or is not None else '',
+            o.temperatura_leche_or if o.temperatura_leche_or is not None else '',
+            o.cantidad_concentrado_kg_or if o.cantidad_concentrado_kg_or is not None else '',
+            o.temperatura_ambiental_or if o.temperatura_ambiental_or is not None else '',
+            o.observaciones_or or '',
+            o.fk_us_or.username_us if o.fk_us_or else '',
+        ])
+    total_litros = ordenos_query.aggregate(total=Sum('litros_or'))['total'] or 0
+    writer.writerow([])
+    writer.writerow(['', '', '', 'TOTAL LITROS:', total_litros])
+    return response
