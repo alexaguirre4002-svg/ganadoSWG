@@ -41,7 +41,7 @@
 
     <style>
         .carrusel-hacienda-img {
-            height: 650px;          /* ← Más alto que antes (era 500px). Sube/baja este número a tu gusto */
+            height: 650px;
             object-fit: cover;
             object-position: center;
         }
@@ -57,45 +57,92 @@
                 height: 380px;
             }
         }
+
+        .video-hacienda-wrapper {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+
+        .video-hacienda-wrapper video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        @media (max-width: 992px) {
+            .video-hacienda-wrapper { height: 400px; }
+        }
+
+        @media (max-width: 576px) {
+            .video-hacienda-wrapper { height: 260px; }
+        }
     </style>
+
+    <!-- ========================================== -->
+    <!-- VIDEO DE PRESENTACIÓN                      -->
+    <!-- ========================================== -->
+    <div class="row mb-5 animate-fade-in">
+        <div class="col-12 px-0 px-md-3">
+            <div class="video-hacienda-wrapper shadow-lg">
+                <video controls poster="{% static 'img/logo.jpeg' %}">
+                    <source src="{% static 'video/hacienda.mp4' %}" type="video/mp4">
+                    Tu navegador no soporta la reproducción de video.
+                </video>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- CARRUSEL: GANADO                           -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12 text-center">
+            <h4 style="color: var(--color-primario);"><i class="bi bi-list-ul me-2"></i>Nuestro Ganado</h4>
+        </div>
+    </div>
 
     <div class="row mb-5 animate-fade-in">
         <div class="col-12 px-0 px-md-3">
-            <div id="carruselHacienda" class="carousel slide carousel-fade shadow-lg rounded-4 overflow-hidden" data-bs-ride="carousel">
-                
+            <div id="carruselGanado" class="carousel slide carousel-fade shadow-lg rounded-4 overflow-hidden" data-bs-ride="carousel">
+
                 <div class="carousel-indicators">
-                    <button type="button" data-bs-target="#carruselHacienda" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-                    <button type="button" data-bs-target="#carruselHacienda" data-bs-slide-to="1" aria-label="Slide 2"></button>
-                    <button type="button" data-bs-target="#carruselHacienda" data-bs-slide-to="2" aria-label="Slide 3"></button>
-                    <button type="button" data-bs-target="#carruselHacienda" data-bs-slide-to="3" aria-label="Slide 4"></button>
+                    <button type="button" data-bs-target="#carruselGanado" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#carruselGanado" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#carruselGanado" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                    <button type="button" data-bs-target="#carruselGanado" data-bs-slide-to="3" aria-label="Slide 4"></button>
+                    <!-- Agrega más <button> aquí si subes más fotos, con data-bs-slide-to="4", "5"... -->
                 </div>
 
                 <div class="carousel-inner">
-                    
+
                     <div class="carousel-item active">
-                        <img src="{% static 'img/carrusel/foto1.jpeg' %}" 
-                             class="d-block w-100 carrusel-hacienda-img" 
-                             alt="Hacienda Joseph - Foto 1">
+                        <img src="{% static 'img/carrusel/ganado1.jpeg' %}"
+                             class="d-block w-100 carrusel-hacienda-img"
+                             alt="Ganado - Foto 1">
                         <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
                             <h5><i class="bi bi-geo-alt me-2"></i>Ganado en pastoreo</h5>
-                            <p>Control y seguimiento de nuestro rodeo en los potreros.</p>
+                            <p>Control y seguimiento de nuestro rodeo.</p>
                         </div>
                     </div>
 
                     <div class="carousel-item">
-                        <img src="{% static 'img/carrusel/foto2.jpeg' %}" 
-                             class="d-block w-100 carrusel-hacienda-img" 
-                             alt="Hacienda Joseph - Foto 2">
+                        <img src="{% static 'img/carrusel/ganado2.jpeg' %}"
+                             class="d-block w-100 carrusel-hacienda-img"
+                             alt="Ganado - Foto 2">
                         <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
-                            <h5><i class="bi bi-building me-2"></i>Instalaciones de Calidad</h5>
-                            <p>Infraestructura moderna para el bienestar animal.</p>
+                            <h5><i class="bi bi-heart-pulse me-2"></i>Bienestar animal</h5>
+                            <p>Seguimiento continuo de la salud del rodeo.</p>
                         </div>
                     </div>
 
                     <div class="carousel-item">
-                        <img src="{% static 'img/carrusel/foto3.jpeg' %}" 
-                             class="d-block w-100 carrusel-hacienda-img" 
-                             alt="Hacienda Joseph - Foto 3">
+                        <img src="{% static 'img/carrusel/ganado3.jpeg' %}"
+                             class="d-block w-100 carrusel-hacienda-img"
+                             alt="Ganado - Foto 3">
                         <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
                             <h5><i class="bi bi-droplet me-2"></i>Producción lechera</h5>
                             <p>Registro diario y control de calidad de la leche.</p>
@@ -103,23 +150,116 @@
                     </div>
 
                     <div class="carousel-item">
-                        <img src="{% static 'img/carrusel/foto4.jpeg' %}" 
-                             class="d-block w-100 carrusel-hacienda-img" 
-                             alt="Hacienda Joseph - Foto 4">
+                        <img src="{% static 'img/carrusel/ganado4.jpeg' %}"
+                             class="d-block w-100 carrusel-hacienda-img"
+                             alt="Ganado - Foto 4">
                         <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
                             <h5><i class="bi bi-tree me-2"></i>Hacienda Joseph</h5>
                             <p>Pilaló, Cotopaxi.</p>
                         </div>
                     </div>
 
+                    <!-- Copia un bloque <div class="carousel-item">...</div> más aquí por cada foto extra -->
+
                 </div>
 
-                <button class="carousel-control-prev" type="button" data-bs-target="#carruselHacienda" data-bs-slide="prev">
+                <button class="carousel-control-prev" type="button" data-bs-target="#carruselGanado" data-bs-slide="prev">
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Anterior</span>
                 </button>
-                
-                <button class="carousel-control-next" type="button" data-bs-target="#carruselHacienda" data-bs-slide="next">
+
+                <button class="carousel-control-next" type="button" data-bs-target="#carruselGanado" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Siguiente</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- REDACCIÓN: SOBRE LA HACIENDA                -->
+    <!-- ========================================== -->
+    <div class="row justify-content-center mb-5 animate-fade-in">
+        <div class="col-11 col-md-10 col-lg-8">
+            <div class="card-hacienda p-4 p-md-5">
+                <i class="bi bi-tree-fill fs-1 mb-3" style="color: var(--color-primario);"></i>
+                <h4 style="color: var(--color-primario);">Hacienda Joseph</h4>
+                <p class="text-muted mb-0">
+                    Ubicada en el cantón Pujilí, a la altura del kilómetro 14 antes de llegar a Pilaló,
+                    en la provincia de Cotopaxi, la Hacienda Joseph es una explotación ganadera dedicada
+                    a la cría y producción de ganado bovino de doble propósito. Bajo la administración de
+                    su propietario, el sistema surge como respuesta a la necesidad de digitalizar y optimizar
+                    el control de las actividades diarias del predio: desde el manejo sanitario y reproductivo
+                    del hato, hasta la rotación de potreros y el seguimiento de la producción lechera,
+                    integrando además modelos de Machine Learning que apoyan la toma de decisiones sobre
+                    producción, reproducción y calidad de la leche.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- CARRUSEL: POTRERO                          -->
+    <!-- ========================================== -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12 text-center">
+            <h4 style="color: var(--color-primario);"><i class="bi bi-map me-2"></i>Nuestros Potreros</h4>
+        </div>
+    </div>
+
+    <div class="row mb-5 animate-fade-in">
+        <div class="col-12 px-0 px-md-3">
+            <div id="carruselPotrero" class="carousel slide carousel-fade shadow-lg rounded-4 overflow-hidden" data-bs-ride="carousel">
+
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#carruselPotrero" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#carruselPotrero" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#carruselPotrero" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                    <!-- Agrega más <button> aquí si subes más fotos, con data-bs-slide-to="3", "4"... -->
+                </div>
+
+                <div class="carousel-inner">
+
+                    <div class="carousel-item active">
+                        <img src="{% static 'img/carrusel/potrero1.jpeg' %}"
+                             class="d-block w-100 carrusel-hacienda-img"
+                             alt="Potrero - Foto 1">
+                        <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
+                            <h5><i class="bi bi-grid-3x3-gap-fill me-2"></i>Potreros de la hacienda</h5>
+                            <p>Rotación planificada para el descanso del pasto.</p>
+                        </div>
+                    </div>
+
+                    <div class="carousel-item">
+                        <img src="{% static 'img/carrusel/potrero2.jpeg' %}"
+                             class="d-block w-100 carrusel-hacienda-img"
+                             alt="Potrero - Foto 2">
+                        <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
+                            <h5><i class="bi bi-pin-map me-2"></i>Asignación de potreros</h5>
+                            <p>Distribución del ganado según capacidad y hectáreas.</p>
+                        </div>
+                    </div>
+
+                    <div class="carousel-item">
+                        <img src="{% static 'img/carrusel/potrero3.jpeg' %}"
+                             class="d-block w-100 carrusel-hacienda-img"
+                             alt="Potrero - Foto 3">
+                        <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
+                            <h5><i class="bi bi-tree me-2"></i>Pastizales</h5>
+                            <p>Cotopaxi.</p>
+                        </div>
+                    </div>
+
+                    <!-- Copia un bloque <div class="carousel-item">...</div> más aquí por cada foto extra -->
+
+                </div>
+
+                <button class="carousel-control-prev" type="button" data-bs-target="#carruselPotrero" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Anterior</span>
+                </button>
+
+                <button class="carousel-control-next" type="button" data-bs-target="#carruselPotrero" data-bs-slide="next">
                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Siguiente</span>
                 </button>
@@ -163,7 +303,7 @@
         </div>
     </div>
 
-    <div class="row justify-content-center mb-5 animate-fade-in">
+    <div class="row justify-content-center animate-fade-in">
         <div class="col-11 col-md-10 col-lg-8">
             <div class="card-hacienda p-3 p-md-4">
                 <h4 class="text-center mb-4" style="color: var(--color-primario);">
@@ -182,25 +322,6 @@
             </div>
         </div>
     </div>
-    
-    <div class="row justify-content-center animate-fade-in">
-        <div class="col-11 col-md-8">
-            <div class="card-hacienda p-3 p-md-4">
-                <i class="bi bi-info-circle fs-1 mb-3" style="color: var(--color-primario);"></i>
-                <h4 style="color: var(--color-primario);">Sobre el sistema</h4>
-                <p class="text-muted">
-                    Este sistema permite gestionar de manera integral todos los procesos de la hacienda: 
-                    registro de ganado, control de salud, planificación de reproducción, 
-                    rotación de potreros y seguimiento de producción lechera.
-                </p>
-                <hr style="border-color: var(--color-borde);">
-                <p class="mb-0">
-                    <i class="bi bi-calendar3 me-2"></i>
-                    <strong>Temporada actual:</strong> 2026 - 2026
-                </p>
-            </div>
-        </div>
-    </div>
 
 {% endblock %}
 
@@ -211,13 +332,14 @@
 {% block scripts_extra %}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var carrusel = document.getElementById('carruselHacienda');
-            if (carrusel) {
-                var bsCarrusel = new bootstrap.Carousel(carrusel, {
-                    interval: 4000,
-                    wrap: true,
-                    touch: true
-                });
+            var carruselGanado = document.getElementById('carruselGanado');
+            if (carruselGanado) {
+                new bootstrap.Carousel(carruselGanado, { interval: 4000, wrap: true, touch: true });
+            }
+
+            var carruselPotrero = document.getElementById('carruselPotrero');
+            if (carruselPotrero) {
+                new bootstrap.Carousel(carruselPotrero, { interval: 4500, wrap: true, touch: true });
             }
         });
     </script>
