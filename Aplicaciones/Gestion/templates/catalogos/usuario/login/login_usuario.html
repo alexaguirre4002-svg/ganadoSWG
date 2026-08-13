@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión | Hacienda Joseph</title>
+    <title>Iniciar sesión | Hacienda Joseph</title>
     
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -238,7 +238,7 @@
                             </div>
 
                             <!-- RECORDARME / OLVIDÓ -->
-                            <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="d-flex justify-content-between mb-4">
                                 <div class="form-check">
                                     <input type="checkbox" 
                                            class="form-check-input" 
@@ -250,9 +250,6 @@
                                         <i class="bi bi-bookmark-check me-1"></i>Recordarme
                                     </label>
                                 </div>
-                                <a href="#" data-bs-toggle="modal" data-bs-target="#modalRecuperarAdmin" style="font-size: 14px; color: var(--color-secundario); text-decoration: none;">
-                                    <i class="bi bi-question-circle me-1"></i>¿Olvidó su contraseña?
-                                </a>
                             </div>
 
                             <!-- BOTÓN INGRESAR -->
@@ -274,84 +271,6 @@
         </div>
     </div>
 
-    <!-- ===== MODAL: SOLO ADMINISTRADOR PUEDE RECUPERAR CONTRASEÑA ===== -->
-    <div class="modal fade" id="modalRecuperarAdmin" tabindex="-1" aria-labelledby="modalRecuperarAdminLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 12px; border: 2px solid var(--color-acento); overflow: hidden;">
-
-                <div class="card-header-hacienda" style="border-bottom: 3px solid var(--color-acento);">
-                    <i class="bi bi-shield-lock"></i>
-                    <h5 class="mb-0">Acceso de Administrador</h5>
-                    <p class="mb-0" style="font-size: 13px;">Solo un administrador puede iniciar la recuperación de contraseña</p>
-                </div>
-
-                <div class="modal-body p-4">
-
-                    {% if messages %}
-                        {% for message in messages %}
-                            {% if 'recuperacion' in message.tags %}
-                                <div class="alert alert-danger py-2" role="alert" style="border-radius: 8px; font-size: 14px;">
-                                    <i class="bi bi-x-circle-fill me-2"></i>{{ message }}
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    {% endif %}
-
-                    <form action="{% url 'verificaradminrecuperacion' %}" method="post" class="form-hacienda">
-                        {% csrf_token %}
-
-                        <div class="mb-3">
-                            <label for="admin_username">
-                                <i class="bi bi-person-circle me-1"></i>Usuario administrador
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-person"></i>
-                                </span>
-                                <input type="text" 
-                                       name="admin_username" 
-                                       id="admin_username" 
-                                       class="form-control" 
-                                       placeholder="Usuario del administrador"
-                                       maxlength="150"
-                                       required>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="admin_password">
-                                <i class="bi bi-key me-1"></i>Contraseña administrador
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-lock"></i>
-                                </span>
-                                <input type="password" 
-                                       name="admin_password" 
-                                       id="admin_password" 
-                                       class="form-control" 
-                                       placeholder="Contraseña del administrador"
-                                       maxlength="255"
-                                       required>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-hacienda mb-2">
-                            <i class="bi bi-unlock me-2"></i>Verificar y continuar
-                        </button>
-
-                        <div class="text-center">
-                            <button type="button" class="btn btn-link btn-sm text-muted" data-bs-dismiss="modal" style="font-size: 13px;">
-                                Cancelar
-                            </button>
-                        </div>
-
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
         // Mostrar/ocultar contraseña
         $('#btnMostrarPassword').on('click', function() {
@@ -365,14 +284,6 @@
                 icono.removeClass('bi-eye-slash').addClass('bi-eye');
             }
         });
-
-        // Si el servidor marcó error de recuperación (vía sessionStorage flag), reabrir el modal
-        {% if abrir_modal_recuperar %}
-        document.addEventListener('DOMContentLoaded', function() {
-            var modal = new bootstrap.Modal(document.getElementById('modalRecuperarAdmin'));
-            modal.show();
-        });
-        {% endif %}
     </script>
 
 </body>
