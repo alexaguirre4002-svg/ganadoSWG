@@ -14528,3 +14528,33 @@ def exportarevento_csv(request):
 
     return response
 
+# ==========================================
+# VERIFICAR ADMINISTRADOR - PUERTA DE ENTRADA A RECUPERAR CONTRASEÑA
+# Solo un usuario con rol_us == 'administrador' puede pasar de aquí
+# hacia el flujo de recuperación de contraseña (recuperarcontrasena).
+# ==========================================
+def verificaradminrecuperacion(request):
+    if request.method == 'POST':
+        username = request.POST.get('admin_username', '').strip()
+        password = request.POST.get('admin_password', '')
+
+        try:
+            admin = Usuario.objects.get(username_us=username)
+
+            if admin.rol_us != 'administrador':
+                messages.error(request, "Acceso denegado. Solo un administrador puede recuperar contraseñas.", extra_tags='recuperacion')
+                return redirect('/login/')
+
+            if not check_password(password, admin.password_us):
+                messages.error(request, "Usuario o contraseña de administrador incorrectos.", extra_tags='recuperacion')
+                return redirect('/login/')
+
+            # Verificación exitosa: autoriza el acceso al flujo de recuperación
+            request.session['acceso_recuperacion_autorizado'] = True
+            return redirect('/recuperarcontrasena/')
+
+        except Usuario.DoesNotExist:
+            messages.error(request, "Usuario o contraseña de administrador incorrectos.", extra_tags='recuperacion')
+            return redirect('/login/')
+
+    return redirect('/login/')
