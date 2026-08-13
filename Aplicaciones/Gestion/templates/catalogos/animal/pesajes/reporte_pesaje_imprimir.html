@@ -1,0 +1,85 @@
+{% extends "catalogos/reportes/reporte_base_imprimir.html" %}
+{% load filtros_extra %}
+
+{% block titulo %}Reporte de pesajes | Hacienda Joseph{% endblock %}
+{% block encabezado_titulo %}Reporte de pesajes{% endblock %}
+
+{% block filtros_aplicados %}
+    {% if request.GET.search %}<strong>Búsqueda:</strong> "{{ request.GET.search }}" &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.fk_an %}<strong>Animal:</strong> filtrado &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.metodo_pe %}<strong>Método:</strong> 
+        {% if request.GET.metodo_pe == 'bascula' %}Báscula
+        {% elif request.GET.metodo_pe == 'cinta_metrica' %}Cinta métrica
+        {% elif request.GET.metodo_pe == 'estimacion_visual' %}Estimación visual
+        {% endif %}
+        &nbsp;·&nbsp;
+    {% endif %}
+    {% if request.GET.condicion_corporal %}<strong>Cond. corporal:</strong> {{ request.GET.condicion_corporal }}/5 &nbsp;·&nbsp;{% endif %}
+    {% if request.GET.rango_fecha %}<strong>Fecha:</strong>
+        {% if request.GET.rango_fecha == 'hoy' %}Hoy
+        {% elif request.GET.rango_fecha == 'semana' %}Esta semana
+        {% elif request.GET.rango_fecha == 'mes' %}Este mes
+        {% elif request.GET.rango_fecha == 'anio' %}Este año
+        {% elif request.GET.rango_fecha == 'personalizado' %}Del {{ request.GET.fecha_desde }} al {{ request.GET.fecha_hasta }}
+        {% endif %}
+        &nbsp;·&nbsp;
+    {% endif %}
+    {% if request.GET.peso_min or request.GET.peso_max %}<strong>Peso:</strong> {{ request.GET.peso_min|default:'0' }} - {{ request.GET.peso_max|default:'∞' }} kg &nbsp;·&nbsp;{% endif %}
+    {% if not request.GET.search and not request.GET.fk_an and not request.GET.metodo_pe and not request.GET.condicion_corporal and not request.GET.rango_fecha and not request.GET.peso_min and not request.GET.peso_max %}
+        Ninguno (se muestran todos los pesajes registrados)
+    {% endif %}
+{% endblock %}
+
+{% block tabla_reporte %}
+<table class="tabla-reporte">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Animal</th>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Fecha</th>
+            <th>Peso (kg)</th>
+            <th>Cond. corporal</th>
+            <th>Método</th>
+            <th>Observaciones</th>
+            <th>Registrado por</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pesaje in pesajes %}
+        <tr>
+            <td>#{{ pesaje.id_pe }}</td>
+            <td>{{ pesaje.fk_an.codigo_an|default:"—" }}</td>
+            <td>{{ pesaje.fk_an.nombre_an|default:"—" }}</td>
+            <td>{{ pesaje.fk_an.categoria_an|default:"—" }}</td>
+            <td>{{ pesaje.fecha_pe|date:"d/m/Y" }}</td>
+            <td class="text-end">{{ pesaje.peso_kg_pe|default:"—" }}</td>
+            <td class="text-center">{{ pesaje.condicion_corporal_pe|default:"—" }}</td>
+            <td>
+                {% if pesaje.metodo_pe == 'bascula' %}Báscula
+                {% elif pesaje.metodo_pe == 'cinta_metrica' %}Cinta métrica
+                {% elif pesaje.metodo_pe == 'estimacion_visual' %}Estimación visual
+                {% else %}—{% endif %}
+            </td>
+            <td>{{ pesaje.observaciones_pe|default:"—" }}</td>
+            <td>{{ pesaje.fk_us_pe.username_us|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="10" style="text-align:center; padding:20px;">No hay pesajes que coincidan con los filtros aplicados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Resumen de totales -->
+<div class="resumen-reporte" style="margin-top: 20px; padding: 15px; background: #f8f9f5; border: 1px solid #d4c5a9; border-radius: 6px;">
+    <p><strong>Resumen del reporte:</strong></p>
+    <ul style="list-style: none; padding-left: 0; display: flex; flex-wrap: wrap; gap: 20px;">
+        <li><strong>Total de pesajes:</strong> {{ total_resultados }}</li>
+        <li><strong>Peso promedio:</strong> {{ peso_promedio }} kg</li>
+        <li><strong>Peso máximo:</strong> {{ peso_maximo }} kg</li>
+        <li><strong>Peso mínimo:</strong> {{ peso_minimo }} kg</li>
+        <li><strong>Fecha generación:</strong> {{ fecha_generacion|date:"d/m/Y H:i" }}</li>
+    </ul>
+</div>
+{% endblock %}

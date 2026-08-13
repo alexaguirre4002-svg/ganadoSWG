@@ -247,6 +247,10 @@ urlpatterns = [
     path('reporteevento/imprimir/', views.reporteevento_imprimir, name='reporteevento_imprimir'),
     path('exportarevento/excel/', views.exportarevento_excel, name='exportarevento_excel'),
     path('exportarevento/csv/', views.exportarevento_csv, name='exportarevento_csv'),
+    # REPORTES PESAJE
+    path('reportepesaje/imprimir/', views.reportepesaje_imprimir, name='reportepesaje_imprimir'),
+    path('exportarpesaje/excel/', views.exportarpesaje_excel, name='exportarpesaje_excel'),
+    path('exportarpesaje/csv/', views.exportarpesaje_csv, name='exportarpesaje_csv'),
     
 ]
 if settings.DEBUG:
