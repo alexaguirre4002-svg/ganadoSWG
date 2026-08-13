@@ -54,9 +54,9 @@ urlpatterns = [
     path('editarusuario/<int:id_us>', views.editarusuario),
     path('procesareditarusuario/', views.procesareditarusuario),
     # Recuperación de contraseña
-    path('recuperarcontrasena/', views.recuperarcontrasena, name='recuperarcontrasena'),
-    path('verificarcodigo/', views.verificarcodigo, name='verificarcodigo'),
-    path('reestablecercontrasena/', views.reestablecercontrasena, name='reestablecercontrasena'),
+    path('recuperarcontrasena/', views.recuperarcontrasena),
+    path('verificarcodigo/', views.verificarcodigo),
+    path('reestablecercontrasena/', views.reestablecercontrasena),
     # Auditoría
     path('historialauditoria/', views.historialauditoria, name='historialauditoria'),
     path('verdetallelog/<int:id_la>/', views.verdetallelog, name='verdetallelog'),
@@ -247,10 +247,6 @@ urlpatterns = [
     path('reporteevento/imprimir/', views.reporteevento_imprimir, name='reporteevento_imprimir'),
     path('exportarevento/excel/', views.exportarevento_excel, name='exportarevento_excel'),
     path('exportarevento/csv/', views.exportarevento_csv, name='exportarevento_csv'),
-    # REPORTES PESAJE
-    path('reportepesaje/imprimir/', views.reportepesaje_imprimir, name='reportepesaje_imprimir'),
-    path('exportarpesaje/excel/', views.exportarpesaje_excel, name='exportarpesaje_excel'),
-    path('exportarpesaje/csv/', views.exportarpesaje_csv, name='exportarpesaje_csv'),
     
 ]
 if settings.DEBUG:
