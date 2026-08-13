@@ -54,9 +54,9 @@ urlpatterns = [
     path('editarusuario/<int:id_us>', views.editarusuario),
     path('procesareditarusuario/', views.procesareditarusuario),
     # Recuperación de contraseña
-    path('recuperarcontrasena/', views.recuperarcontrasena),
-    path('verificarcodigo/', views.verificarcodigo),
-    path('reestablecercontrasena/', views.reestablecercontrasena),
+    path('recuperarcontrasena/', views.recuperarcontrasena, name='recuperarcontrasena'),
+    path('verificarcodigo/', views.verificarcodigo, name='verificarcodigo'),
+    path('reestablecercontrasena/', views.reestablecercontrasena, name='reestablecercontrasena'),
     # Auditoría
     path('historialauditoria/', views.historialauditoria, name='historialauditoria'),
     path('verdetallelog/<int:id_la>/', views.verdetallelog, name='verdetallelog'),

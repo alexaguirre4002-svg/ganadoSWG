@@ -1616,7 +1616,12 @@ def recuperarcontrasena(request):
         
         try:
             usuario = Usuario.objects.get(email_us=email)
-            
+
+            # Solo administradores pueden recuperar contraseña por este medio
+            if usuario.rol_us != 'administrador':
+                messages.error(request, "Esta opción de recuperación está disponible solo para administradores. Contacte al administrador del sistema.")
+                return render(request, 'catalogos/usuario/contrasena/recont_usuario.html')
+
             # Generar código de 6 dígitos
             codigo = ''.join(random.choices(string.digits, k=6))
             

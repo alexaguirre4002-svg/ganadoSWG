@@ -257,6 +257,13 @@
                                 <i class="bi bi-box-arrow-in-right me-2"></i>Ingresar al sistema
                             </button>
 
+                            <!-- OLVIDÓ SU CONTRASEÑA -->
+                            <div class="text-center mb-3">
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#modalRecuperar" style="color: var(--color-primario); font-weight: 600; font-size: 14px; text-decoration: none;">
+                                    <i class="bi bi-question-circle me-1"></i>¿Olvidó su contraseña?
+                                </a>
+                            </div>
+
                             <!-- SEPARADOR -->
                             <div class="text-center">
                                 <span class="text-muted" style="font-size: 12px;">
@@ -266,6 +273,60 @@
 
                         </form>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: RECUPERAR CONTRASEÑA (SOLO ADMIN)   -->
+    <!-- ========================================== -->
+    <div class="modal fade" id="modalRecuperar" tabindex="-1" aria-labelledby="modalRecuperarLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-hacienda">
+                <div class="card-header-hacienda" style="padding: 1.2rem;">
+                    <i class="bi bi-shield-lock" style="font-size: 2.2rem;"></i>
+                    <h5 class="mb-0" id="modalRecuperarLabel">Recuperar contraseña</h5>
+                    <p class="mb-0" style="font-size: 0.85rem;">Solo administradores</p>
+                </div>
+                <div class="modal-body p-4">
+
+                    <p class="text-muted" style="font-size: 14px;">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Esta opción solo está disponible para usuarios con rol de <strong>administrador</strong>.
+                        Ingrese su correo registrado y le enviaremos un código de verificación.
+                    </p>
+
+                    <form id="formRecuperar" method="post" action="{% url 'recuperarcontrasena' %}" class="form-hacienda">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="txt_email_recuperar">
+                                <i class="bi bi-envelope me-1"></i>Correo del administrador
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-envelope"></i>
+                                </span>
+                                <input type="email"
+                                       name="txt_email"
+                                       id="txt_email_recuperar"
+                                       class="form-control"
+                                       placeholder="Ingrese su correo"
+                                       maxlength="254"
+                                       required
+                                       autofocus>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-hacienda mb-2">
+                            <i class="bi bi-send-check me-2"></i>Enviar código de verificación
+                        </button>
+
+                        <button type="button" class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                    </form>
+
                 </div>
             </div>
         </div>
@@ -283,6 +344,16 @@
                 input.attr('type', 'password');
                 icono.removeClass('bi-eye-slash').addClass('bi-eye');
             }
+        });
+
+        // El formulario se envía normal (POST tradicional): el backend
+        // valida que el correo pertenezca a un administrador, envía el
+        // código y redirige a /verificarcodigo/, o muestra el error
+        // (vía messages de Django) en la página de recuperación.
+
+        // Limpiar el campo cada vez que se cierra el modal
+        document.getElementById('modalRecuperar').addEventListener('hidden.bs.modal', function () {
+            $('#txt_email_recuperar').val('');
         });
     </script>
 
