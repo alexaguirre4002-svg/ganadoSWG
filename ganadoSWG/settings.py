@@ -24,12 +24,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ==========================================
 # SEGURIDAD
 # ==========================================
-SECRET_KEY = 'django-insecure-^)r!fe^4tho3&ipvc$jupgg=pjj5%8+rhx2fysz7%q7p_lq#fx'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-cambiar-en-produccion')
 
-# ⚠️ IMPORTANTE: DEBUG debe ser False en producción
+# IMPORTANTE: DEBUG debe ser False en producción
 DEBUG = False
 
-ALLOWED_HOSTS = ['ganadoswg.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = [
+    'ganadoswg.onrender.com',
+    '.railway.app',      # permite cualquier subdominio *.up.railway.app / *.railway.app
+    'localhost',
+    '127.0.0.1',
+]
 
 # ==========================================
 # APLICACIONES
@@ -81,16 +86,16 @@ WSGI_APPLICATION = 'ganadoSWG.wsgi.application'
 # ==========================================
 # BASE DE DATOS - CONEXIÓN HÍBRIDA
 # ==========================================
-# ⚠️ Toma DATABASE_URL desde las variables de entorno de Render
+# Toma DATABASE_URL desde las variables de entorno (Railway o Render)
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if DATABASE_URL:
-    # 🔥 PRODUCCIÓN: Usa la base de datos de Render
+    # PRODUCCIÓN: Usa la base de datos del proveedor (Railway/Render)
     DATABASES = {
         'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
     }
 else:
-    # 💻 DESARROLLO LOCAL: Usa PostgreSQL en tu PC
+    # DESARROLLO LOCAL: Usa PostgreSQL en tu PC
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -138,7 +143,7 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-# 🔥 WhiteNoise para archivos estáticos en producción
+# WhiteNoise para archivos estáticos en producción
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ==========================================
@@ -154,17 +159,17 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'alpaaguirre1999@gmail.com'
-EMAIL_HOST_PASSWORD = 'piry mxhv iqip kazv'
-DEFAULT_FROM_EMAIL = 'Hacienda El Roble <alpaaguirre1999@gmail.com>'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = f'Hacienda El Roble <{EMAIL_HOST_USER}>'
 
 # ==========================================
 # CONFIGURACIÓN DE CLOUDINARY
 # ==========================================
 cloudinary.config(
-    cloud_name='dnqf7nccg',
-    api_key='324326838774969',
-    api_secret='XRZMsNoEGLASui9KgyehZojyugw',
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.environ.get('CLOUDINARY_API_KEY'),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
     secure=True
 )
 
